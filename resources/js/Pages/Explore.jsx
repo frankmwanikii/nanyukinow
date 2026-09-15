@@ -17,8 +17,8 @@ import {
     allListings,
     enrichListing,
     filterListings,
+    LOOK_LOCATIONS,
 } from '@/data/listings';
-import { useLocale } from '@/i18n/LocaleContext';
 
 const PAGE_SIZE = 12;
 const MAX_PAGE_BUTTONS = 12;
@@ -27,8 +27,13 @@ const catalogue = allListings.map((item, index) =>
     enrichListing(item, index),
 );
 
-function syncUrl({ category, subcategory, q }) {
-    const next = explorePath({ category, subcategory, q });
+function syncUrl({ category, subcategory, q, location }) {
+    const next = explorePath({
+        category,
+        subcategory,
+        q,
+        location: location || undefined,
+    });
     const current = `${window.location.pathname}${window.location.search}`;
     if (current !== next) {
         window.history.replaceState({}, '', next);
@@ -39,12 +44,10 @@ function ExploreContent({
     initialCategory = null,
     initialSubcategory = null,
     initialQuery = '',
+    initialLocation = null,
 }) {
-    const { t } = useLocale();
     const [query, setQuery] = useState(initialQuery);
-    const [draftQuery, setDraftQuery] = useState(initialQuery);
-    const [locationQuery, setLocationQuery] = useState('');
-    const [draftLocation, setDraftLocation] = useState('');
+    const [location, setLocation] = useState(initialLocation);
     const [categoryKey, setCategoryKey] = useState(initialCategory);
     const [subcategory, setSubcategory] = useState(initialSubcategory);
     const [minRating, setMinRating] = useState(0);
@@ -58,8 +61,8 @@ function ExploreContent({
         setCategoryKey(initialCategory);
         setSubcategory(initialSubcategory);
         setQuery(initialQuery);
-        setDraftQuery(initialQuery);
-    }, [initialCategory, initialSubcategory, initialQuery]);
+        setLocation(initialLocation);
+    }, [initialCategory, initialSubcategory, initialQuery, initialLocation]);
 
     useEffect(() => {
         const handle = window.setTimeout(() => {
@@ -67,21 +70,22 @@ function ExploreContent({
                 category: categoryKey,
                 subcategory,
                 q: query.trim() || null,
+                location,
             });
         }, 220);
         return () => window.clearTimeout(handle);
-    }, [categoryKey, subcategory, query]);
+    }, [categoryKey, subcategory, query, location]);
 
     useEffect(() => {
         setPage(1);
-    }, [categoryKey, subcategory, query, locationQuery, minRating, openNow]);
+    }, [categoryKey, subcategory, query, location, minRating, openNow]);
 
     const filtered = useMemo(() => {
         const items = filterListings(catalogue, {
             categoryKey,
             subcategory,
             query,
-            locationQuery,
+            location,
             minRating,
             openNow,
         });
@@ -89,14 +93,7 @@ function ExploreContent({
         return [...items].sort(
             (a, b) => (b.rating ?? 0) - (a.rating ?? 0),
         );
-    }, [
-        categoryKey,
-        subcategory,
-        query,
-        locationQuery,
-        minRating,
-        openNow,
-    ]);
+    }, [categoryKey, subcategory, query, location, minRating, openNow]);
 
     const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
     const safePage = Math.min(page, totalPages);
@@ -111,9 +108,7 @@ function ExploreContent({
 
     const clearFilters = () => {
         setQuery('');
-        setDraftQuery('');
-        setLocationQuery('');
-        setDraftLocation('');
+        setLocation(null);
         setCategoryKey(null);
         setSubcategory(null);
         setMinRating(0);
@@ -121,8 +116,6 @@ function ExploreContent({
     };
 
     const applySearch = () => {
-        setQuery(draftQuery);
-        setLocationQuery(draftLocation);
         setMobilePanel('list');
     };
 
@@ -142,10 +135,11 @@ function ExploreContent({
     };
 
     const sidebarProps = {
-        query: draftQuery,
-        onQueryChange: setDraftQuery,
-        locationQuery: draftLocation,
-        onLocationQueryChange: setDraftLocation,
+        query,
+        onQueryChange: setQuery,
+        location,
+        onLocationChange: setLocation,
+        locations: LOOK_LOCATIONS,
         categoryKey,
         onCategoryChange: handleCategoryChange,
         subcategory,
@@ -238,28 +232,15 @@ function ExploreContent({
                         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
                             <button
                                 type="button"
+                                disabled={safePage <= 1}
                                 onClick={() =>
-                                    mapOpen ? closeMap() : openMap()
+                                    setPage((p) => Math.max(1, p - 1))
                                 }
-                                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition ${
-                                    mapOpen
-                                        ? 'border-mustard bg-mustard text-olive-950'
-                                        : 'border-olive-200 bg-white text-olive-700 hover:border-olive-400'
-                                }`}
-                                aria-label={
-                                    mapOpen ? 'Hide map' : 'Show map'
-                                }
-                                title={
-                                    mapOpen
-                                        ? 'Hide map'
-                                        : 'Show listings on map'
-                                }
+                                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-olive-200 bg-white text-olive-700 transition hover:border-olive-400 disabled:cursor-not-allowed disabled:opacity-35"
+                                aria-label="Previous page"
+                                title="Previous page"
                             >
-                                <ChevronLeft
-                                    className={`h-5 w-5 transition ${
-                                        mapOpen ? 'rotate-180' : ''
-                                    }`}
-                                />
+                                <ChevronLeft className="h-5 w-5" />
                             </button>
 
                             <p className="truncate text-sm text-olive-700">
@@ -289,17 +270,6 @@ function ExploreContent({
                         <div className="flex shrink-0 items-center gap-1.5">
                             <button
                                 type="button"
-                                disabled={safePage <= 1}
-                                onClick={() =>
-                                    setPage((p) => Math.max(1, p - 1))
-                                }
-                                className="flex h-9 w-9 items-center justify-center rounded-full border border-olive-200 text-olive-700 transition hover:border-olive-400 disabled:cursor-not-allowed disabled:opacity-35"
-                                aria-label="Previous page"
-                            >
-                                <ChevronLeft className="h-4 w-4" />
-                            </button>
-                            <button
-                                type="button"
                                 disabled={safePage >= totalPages}
                                 onClick={() =>
                                     setPage((p) =>
@@ -308,19 +278,28 @@ function ExploreContent({
                                 }
                                 className="flex h-9 w-9 items-center justify-center rounded-full border border-olive-200 text-olive-700 transition hover:border-olive-400 disabled:cursor-not-allowed disabled:opacity-35"
                                 aria-label="Next page"
+                                title="Next page"
                             >
                                 <ChevronRight className="h-4 w-4" />
                             </button>
                             <button
                                 type="button"
-                                onClick={openMap}
+                                onClick={() =>
+                                    mapOpen ? closeMap() : openMap()
+                                }
                                 className={`ml-1 flex h-9 w-9 items-center justify-center rounded-full border transition ${
                                     mapOpen
-                                        ? 'border-mustard bg-mustard/20 text-olive-900'
+                                        ? 'border-mustard bg-mustard text-olive-950'
                                         : 'border-olive-200 text-olive-700 hover:border-olive-400'
                                 }`}
-                                aria-label="Open map"
-                                title="Open map"
+                                aria-label={
+                                    mapOpen ? 'Hide map' : 'Show map'
+                                }
+                                title={
+                                    mapOpen
+                                        ? 'Hide map'
+                                        : 'Show listings on map'
+                                }
                             >
                                 <MapIcon className="h-4 w-4" />
                             </button>
@@ -332,17 +311,18 @@ function ExploreContent({
                             <div className="flex h-full min-h-[240px] flex-col items-center justify-center rounded-2xl border border-dashed border-olive-300 bg-white/70 px-6 text-center">
                                 <Star className="mb-3 h-8 w-8 text-olive-300" />
                                 <p className="font-display text-lg font-semibold text-earth-dusk">
-                                    {t.explore.emptyTitle}
+                                    No listings match
                                 </p>
                                 <p className="mt-1 max-w-sm text-sm text-olive-600">
-                                    {t.explore.emptyBody}
+                                    Try another category, clear a filter, or
+                                    search a different keyword.
                                 </p>
                                 <button
                                     type="button"
                                     onClick={clearFilters}
                                     className="mt-5 rounded-full bg-[#4f5a3e] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-olive-800"
                                 >
-                                    {t.explore.clearFilters}
+                                    Clear filters
                                 </button>
                             </div>
                         ) : (
@@ -485,13 +465,14 @@ function ExploreContent({
     );
 }
 
-export default function Explore({ category, subcategory, q }) {
+export default function Explore({ category, subcategory, q, location }) {
     return (
         <SiteLayout title="Explore Nanyuki" hideFooter compactNav>
             <ExploreContent
                 initialCategory={category || null}
                 initialSubcategory={subcategory || null}
                 initialQuery={q || ''}
+                initialLocation={location || null}
             />
         </SiteLayout>
     );

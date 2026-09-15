@@ -23,7 +23,7 @@ export const listings = [
     {
         id: 1,
         title: 'Sportsman Arms Hotel',
-        location: 'Nanyuki Town',
+        location: 'Nanyuki',
         category: 'Stay',
         categoryKey: 'stay',
         subcategory: 'Hotels',
@@ -37,7 +37,7 @@ export const listings = [
     {
         id: 2,
         title: 'Trout Tree Restaurant',
-        location: 'Nanyuki',
+        location: 'Timau',
         category: 'Eat & Drink',
         categoryKey: 'eatDrink',
         subcategory: 'Garden Restaurant',
@@ -51,7 +51,7 @@ export const listings = [
     {
         id: 3,
         title: 'Mt Kenya Wildlife Conservancy',
-        location: 'Laikipia',
+        location: 'Naromoru',
         category: 'Things to do',
         categoryKey: 'thingsToDo',
         subcategory: 'Wildlife & Nature',
@@ -65,7 +65,7 @@ export const listings = [
     {
         id: 4,
         title: 'Kongoni Camp',
-        location: 'Nanyuki Outskirts',
+        location: 'Nanyuki',
         category: 'Stay',
         categoryKey: 'stay',
         subcategory: 'Lodges & Camps',
@@ -79,7 +79,7 @@ export const listings = [
     {
         id: 5,
         title: "Barney's Restaurant & Bar",
-        location: 'Nanyuki CBD',
+        location: 'Timau',
         category: 'Eat & Drink',
         categoryKey: 'eatDrink',
         subcategory: 'Bars & Lounges',
@@ -93,7 +93,7 @@ export const listings = [
     {
         id: 6,
         title: 'Nanyuki Airfield Adventures',
-        location: 'Nanyuki',
+        location: 'Naromoru',
         category: 'Things to do',
         categoryKey: 'thingsToDo',
         subcategory: 'Outdoor & Adventure',
@@ -110,12 +110,12 @@ export const trending = [
     {
         id: 't1',
         title: 'Solio Game Reserve Day Trip',
-        location: 'Laikipia',
+        location: 'Nanyuki',
         category: 'Things to do',
         categoryKey: 'thingsToDo',
         subcategory: 'Wildlife & Nature',
         rating: 4.7,
-        image: 'https://images.unsplash.com/photo-1534474077771-5f2e0f1f3f0f?auto=format&fit=crop&w=1000&q=80',
+        image: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=1000&q=80',
         logo: 'https://images.unsplash.com/photo-1549366021-9f761d450615?auto=format&fit=crop&w=120&q=80',
         lat: -0.095,
         lng: 36.99,
@@ -123,7 +123,7 @@ export const trending = [
     {
         id: 't2',
         title: 'Coffee at Le Rustique',
-        location: 'Nanyuki',
+        location: 'Timau',
         category: 'Eat & Drink',
         categoryKey: 'eatDrink',
         subcategory: 'Cafes',
@@ -136,7 +136,7 @@ export const trending = [
     {
         id: 't3',
         title: 'Ol Pejeta Conservancy',
-        location: 'Nanyuki',
+        location: 'Naromoru',
         category: 'Things to do',
         categoryKey: 'thingsToDo',
         subcategory: 'Wildlife & Nature',
@@ -146,13 +146,52 @@ export const trending = [
         lat: 0.018,
         lng: 36.905,
     },
+    {
+        id: 't4',
+        title: 'Mount Kenya Safari Club',
+        location: 'Nanyuki',
+        category: 'Stay',
+        categoryKey: 'stay',
+        subcategory: 'Safari Lodges',
+        rating: 4.8,
+        image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=1000&q=80',
+        logo: 'https://images.unsplash.com/photo-1560179707-f14f90ef2aca?auto=format&fit=crop&w=120&q=80',
+        lat: -0.002,
+        lng: 37.098,
+    },
+    {
+        id: 't5',
+        title: 'Trout Tree Restaurant',
+        location: 'Timau',
+        category: 'Eat & Drink',
+        categoryKey: 'eatDrink',
+        subcategory: 'Garden Restaurant',
+        rating: 4.9,
+        image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1000&q=80',
+        logo: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=120&q=80',
+        lat: 0.0214,
+        lng: 37.0682,
+    },
+    {
+        id: 't6',
+        title: 'Equator Monument Visit',
+        location: 'Naromoru',
+        category: 'Things to do',
+        categoryKey: 'thingsToDo',
+        subcategory: 'Outdoor & Adventure',
+        rating: 4.4,
+        image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1000&q=80',
+        logo: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=120&q=80',
+        lat: 0.0002,
+        lng: 37.0605,
+    },
 ];
 
 export const activities = [
     {
         id: 'a1',
         title: 'Mount Kenya Day Hike',
-        location: 'Sirimon Route',
+        location: 'Nanyuki',
         category: 'Things to do',
         categoryKey: 'thingsToDo',
         subcategory: 'Outdoor & Adventure',
@@ -165,7 +204,7 @@ export const activities = [
     {
         id: 'a2',
         title: 'Equator Monument Visit',
-        location: 'Nanyuki',
+        location: 'Timau',
         category: 'Things to do',
         categoryKey: 'thingsToDo',
         subcategory: 'Outdoor & Adventure',
@@ -178,7 +217,7 @@ export const activities = [
     {
         id: 'a3',
         title: 'Ranch Horseback Safari',
-        location: 'Laikipia Plains',
+        location: 'Naromoru',
         category: 'Things to do',
         categoryKey: 'thingsToDo',
         subcategory: 'Outdoor & Adventure',
@@ -207,7 +246,7 @@ export const recent = [
     {
         id: 'r2',
         title: 'Highland Spa Retreat',
-        location: 'Naro Moru Road',
+        location: 'Timau',
         category: 'Things to do',
         categoryKey: 'thingsToDo',
         subcategory: 'Spas & Wellness',
@@ -220,7 +259,7 @@ export const recent = [
     {
         id: 'r3',
         title: 'Market Street Gallery',
-        location: 'Nanyuki CBD',
+        location: 'Naromoru',
         category: 'Shopping',
         categoryKey: 'shopping',
         subcategory: 'Gifts & Souvenirs',
@@ -250,7 +289,7 @@ const extras = [
     {
         id: 'e2',
         title: 'Skyline Airbnb Loft',
-        location: 'Nanyuki Town',
+        location: 'Timau',
         category: 'Stay',
         categoryKey: 'stay',
         subcategory: 'Airbnbs',
@@ -263,7 +302,7 @@ const extras = [
     {
         id: 'e3',
         title: 'Equator Bakery',
-        location: 'Nanyuki CBD',
+        location: 'Naromoru',
         category: 'Eat & Drink',
         categoryKey: 'eatDrink',
         subcategory: 'Bakery & Deserts',
@@ -289,7 +328,7 @@ const extras = [
     {
         id: 'e5',
         title: 'Nanyuki Gym & CrossFit',
-        location: 'Nanyuki',
+        location: 'Timau',
         category: 'Things to do',
         categoryKey: 'thingsToDo',
         subcategory: 'Gym & Fitness',
@@ -302,7 +341,7 @@ const extras = [
     {
         id: 'e6',
         title: 'Night Owl Lounge',
-        location: 'Nanyuki CBD',
+        location: 'Naromoru',
         category: 'Things to do',
         categoryKey: 'thingsToDo',
         subcategory: 'Nightlife',
@@ -328,7 +367,7 @@ const extras = [
     {
         id: 'e8',
         title: 'Equator Medical Centre',
-        location: 'Nanyuki Town',
+        location: 'Timau',
         category: 'Services',
         categoryKey: 'services',
         subcategory: 'Health & Medical',
@@ -341,7 +380,7 @@ const extras = [
     {
         id: 'e9',
         title: 'Highland Car Hire',
-        location: 'Nanyuki Airfield',
+        location: 'Naromoru',
         category: 'Services',
         categoryKey: 'services',
         subcategory: 'Car Hire',
@@ -354,7 +393,7 @@ const extras = [
     {
         id: 'e10',
         title: 'Glow Beauty Studio',
-        location: 'Nanyuki CBD',
+        location: 'Nanyuki',
         category: 'Services',
         categoryKey: 'services',
         subcategory: 'Beauty & Personal Care',
@@ -367,7 +406,7 @@ const extras = [
     {
         id: 'e11',
         title: 'Cleanshelf Supermarket',
-        location: 'Nanyuki',
+        location: 'Timau',
         category: 'Shopping',
         categoryKey: 'shopping',
         subcategory: 'Supermarkets',
@@ -380,7 +419,7 @@ const extras = [
     {
         id: 'e12',
         title: 'Maasai Market Curios',
-        location: 'Nanyuki',
+        location: 'Naromoru',
         category: 'Shopping',
         categoryKey: 'shopping',
         subcategory: 'Curios & Souvenirs',
@@ -393,7 +432,7 @@ const extras = [
     {
         id: 'e13',
         title: 'Savanna Fashion House',
-        location: 'Nanyuki CBD',
+        location: 'Nanyuki',
         category: 'Shopping',
         categoryKey: 'shopping',
         subcategory: 'African Fashions',
@@ -406,7 +445,7 @@ const extras = [
     {
         id: 'e14',
         title: 'Cedar Grove Estate — For Sale',
-        location: 'Naro Moru Road',
+        location: 'Timau',
         category: 'Properties',
         categoryKey: 'properties',
         subcategory: 'For Sale',
@@ -419,7 +458,7 @@ const extras = [
     {
         id: 'e15',
         title: 'Townview Flat — For Rent',
-        location: 'Nanyuki Town',
+        location: 'Naromoru',
         category: 'Properties',
         categoryKey: 'properties',
         subcategory: 'For Rent',
@@ -432,7 +471,7 @@ const extras = [
     {
         id: 'e16',
         title: 'Warehouse Bay — For Lease',
-        location: 'Industrial Area',
+        location: 'Nanyuki',
         category: 'Properties',
         categoryKey: 'properties',
         subcategory: 'For Lease',
@@ -445,7 +484,7 @@ const extras = [
     {
         id: 'e17',
         title: 'Nanyuki Jazz Night',
-        location: 'Sportsman Arms',
+        location: 'Timau',
         category: 'Events',
         categoryKey: 'events',
         subcategory: 'Music & Entertainment',
@@ -458,7 +497,7 @@ const extras = [
     {
         id: 'e18',
         title: 'Community Harvest Fair',
-        location: 'Nanyuki Showground',
+        location: 'Naromoru',
         category: 'Events',
         categoryKey: 'events',
         subcategory: 'Family & Kids',
@@ -471,7 +510,7 @@ const extras = [
     {
         id: 'e19',
         title: 'Conservancy Charity Run',
-        location: 'Ol Pejeta',
+        location: 'Nanyuki',
         category: 'Events',
         categoryKey: 'events',
         subcategory: 'Wildlife & Conservation',
@@ -484,7 +523,7 @@ const extras = [
     {
         id: 'e20',
         title: 'Business Networking Mixer',
-        location: 'Nanyuki Club',
+        location: 'Timau',
         category: 'Events',
         categoryKey: 'events',
         subcategory: 'Business & Networking',
@@ -513,7 +552,7 @@ export const testimonials = [
     },
     {
         id: 'v3',
-        quote: 'The bilingual switch is a thoughtful touch. Guests and staff both use it when planning days out.',
+        quote: 'Found our favourite lodge in minutes and planned the whole weekend without the usual back-and-forth.',
         name: 'Grace W.',
         role: 'Lodge host',
         avatar: 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=160&q=80',
@@ -522,6 +561,53 @@ export const testimonials = [
 
 /** @deprecated use categoryKeys from @/data/categories */
 export { categoryKeys } from './categories';
+
+/** Areas covered by Nanyuki Now listings. */
+export const LOOK_LOCATIONS = ['Nanyuki', 'Timau', 'Naromoru'];
+
+const AREA_COORDS = {
+    Nanyuki: { lat: -0.0167, lng: 37.0728 },
+    Timau: { lat: 0.082, lng: 37.239 },
+    Naromoru: { lat: -0.163, lng: 37.017 },
+};
+
+function resolveLocation(item, index = 0) {
+    if (LOOK_LOCATIONS.includes(item.location)) {
+        return item.location;
+    }
+    if (LOOK_LOCATIONS.includes(item.area)) {
+        return item.area;
+    }
+
+    const raw = `${item.location || ''} ${item.title || ''}`.toLowerCase();
+
+    if (raw.includes('timau')) return 'Timau';
+    if (
+        raw.includes('naro moru') ||
+        raw.includes('naromoru') ||
+        raw.includes('naro-moru')
+    ) {
+        return 'Naromoru';
+    }
+    if (
+        raw.includes('nanyuki') ||
+        raw.includes('ol pejeta') ||
+        raw.includes('solio') ||
+        raw.includes('sirimon') ||
+        raw.includes('laikipia') ||
+        raw.includes('airfield') ||
+        raw.includes('sportsman')
+    ) {
+        return 'Nanyuki';
+    }
+
+    return LOOK_LOCATIONS[index % LOOK_LOCATIONS.length];
+}
+
+function jitterCoord(base, index, spread = 0.018) {
+    const offset = ((index % 7) - 3) * (spread / 3);
+    return Number((base + offset).toFixed(5));
+}
 
 /**
  * Deduplicated catalogue for the Explore page.
@@ -547,9 +633,19 @@ export function enrichListing(item, index = 0) {
         '+254 711 556 890',
     ];
     const prices = ['$', '$$', '$$$'];
+    const location = resolveLocation(item, index);
+    const center = AREA_COORDS[location];
 
     return {
         ...item,
+        location,
+        area: location,
+        lat: center
+            ? jitterCoord(center.lat, index)
+            : item.lat,
+        lng: center
+            ? jitterCoord(center.lng, index + 2, 0.022)
+            : item.lng,
         isOpen: item.isOpen ?? index % 5 !== 3,
         phone: item.phone ?? phones[index % phones.length],
         tagline:
@@ -565,35 +661,53 @@ export function enrichListing(item, index = 0) {
     };
 }
 
+/**
+ * Handpicked Gold List for the home page.
+ * Load more reveals the next batch of curated listings.
+ */
+export const goldList = (() => {
+    const ranked = allListings
+        .map((item, index) => enrichListing(item, index))
+        .filter((item) => (item.rating ?? 0) >= 4.3 || item.badge === 'top')
+        .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
+
+    if (ranked.length >= 12) return ranked;
+
+    const seen = new Set(ranked.map((item) => String(item.id)));
+    const filler = allListings
+        .map((item, index) => enrichListing(item, index))
+        .filter((item) => !seen.has(String(item.id)));
+
+    return [...ranked, ...filler];
+})();
+
 export function filterListings(
     items,
     {
         categoryKey = null,
         subcategory = null,
         query = '',
-        locationQuery = '',
+        location = null,
         minRating = 0,
         openNow = false,
     } = {},
 ) {
     const q = query.trim().toLowerCase();
-    const loc = locationQuery.trim().toLowerCase();
+    const area = location && location !== 'all' ? location : null;
 
     return items.filter((item) => {
         if (categoryKey && item.categoryKey !== categoryKey) return false;
         if (subcategory && item.subcategory !== subcategory) return false;
-        if (minRating && (item.rating ?? 0) < minRating) return false;
+        if (minRating > 0 && (item.rating ?? 0) < minRating) return false;
         if (openNow && item.isOpen === false) return false;
-
-        if (loc && !(item.location || '').toLowerCase().includes(loc)) {
-            return false;
-        }
+        if (area && item.location !== area && item.area !== area) return false;
 
         if (!q) return true;
 
         const haystack = [
             item.title,
             item.location,
+            item.area,
             item.category,
             item.subcategory,
             item.tagline,

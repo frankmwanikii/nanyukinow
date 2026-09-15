@@ -21,8 +21,9 @@ const RATING_OPTIONS = [
 export default function ExploreSidebar({
     query,
     onQueryChange,
-    locationQuery,
-    onLocationQueryChange,
+    location,
+    onLocationChange,
+    locations = [],
     categoryKey,
     onCategoryChange,
     subcategory,
@@ -106,6 +107,12 @@ export default function ExploreSidebar({
                                 type="search"
                                 value={query}
                                 onChange={(e) => onQueryChange(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        onSearch?.();
+                                    }
+                                }}
                                 placeholder="What are you looking for?"
                                 className="w-full rounded-lg border-olive-200 bg-white py-2.5 text-sm text-earth-dusk placeholder:text-olive-400 focus:border-mustard focus:ring-mustard"
                             />
@@ -206,22 +213,30 @@ export default function ExploreSidebar({
                         <Field label="Where to look?">
                             <div className="relative">
                                 <MapPin className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-olive-400" />
-                                <input
-                                    type="text"
-                                    value={locationQuery}
+                                <select
+                                    value={location || ''}
                                     onChange={(e) =>
-                                        onLocationQueryChange(e.target.value)
+                                        onLocationChange(
+                                            e.target.value || null,
+                                        )
                                     }
-                                    placeholder="Nanyuki, Laikipia…"
-                                    className="w-full rounded-lg border-olive-200 bg-white py-2.5 pl-9 pr-3 text-sm text-earth-dusk placeholder:text-olive-400 focus:border-mustard focus:ring-mustard"
-                                />
+                                    className="w-full appearance-none rounded-lg border-olive-200 bg-white py-2.5 pl-9 pr-9 text-sm text-earth-dusk focus:border-mustard focus:ring-mustard"
+                                >
+                                    <option value="">All locations</option>
+                                    {locations.map((area) => (
+                                        <option key={area} value={area}>
+                                            {area}
+                                        </option>
+                                    ))}
+                                </select>
+                                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-olive-400" />
                             </div>
                         </Field>
 
                         <button
                             type="button"
                             onClick={onSearch}
-                            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-olive-600 px-4 py-3 text-sm font-bold text-white shadow-soft transition hover:bg-olive-700"
+                            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#4f5a3e] px-4 py-3 text-sm font-bold text-white shadow-soft transition hover:bg-olive-800"
                         >
                             <Search className="h-4 w-4" />
                             Search

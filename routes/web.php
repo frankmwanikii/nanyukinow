@@ -9,10 +9,14 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/explore', function () {
+    $location = request()->string('location')->toString() ?: null;
+    $allowed = ['Nanyuki', 'Timau', 'Naromoru'];
+
     return Inertia::render('Explore', [
         'category' => request()->string('category')->toString() ?: null,
         'subcategory' => request()->string('subcategory')->toString() ?: null,
         'q' => request()->string('q')->toString() ?: null,
+        'location' => in_array($location, $allowed, true) ? $location : null,
     ]);
 })->name('explore');
 

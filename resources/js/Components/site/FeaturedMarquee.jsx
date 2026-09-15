@@ -1,8 +1,6 @@
 import { Link } from '@inertiajs/react';
-import { useLocale } from '@/i18n/LocaleContext';
 
 export default function FeaturedMarquee({ items }) {
-    const { t } = useLocale();
     const loop = [...items, ...items];
 
     return (
@@ -34,7 +32,7 @@ export default function FeaturedMarquee({ items }) {
                                     {item.title}
                                 </h3>
                                 <span className="shrink-0 rounded-full bg-mustard px-3 py-1 text-xs font-bold text-olive-950">
-                                    {t.featured.view}
+                                    View
                                 </span>
                             </div>
                         </Link>

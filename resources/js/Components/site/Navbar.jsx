@@ -12,7 +12,6 @@ import { useEffect, useMemo, useState } from 'react';
 import AuthModal from './AuthModal';
 import Logo from './Logo';
 import { explorePath, getCategoryByKey, mainCategories } from '@/data/categories';
-import { useLocale } from '@/i18n/LocaleContext';
 
 const MORE_KEYS = ['services', 'shopping', 'properties', 'events'];
 
@@ -60,7 +59,6 @@ function NavCaret({ open = false }) {
 }
 
 export default function Navbar({ compact = false }) {
-    const { t } = useLocale();
     const [open, setOpen] = useState(false);
     const [scrolled, setScrolled] = useState(compact);
     const [activeMenu, setActiveMenu] = useState(null);
@@ -95,33 +93,33 @@ export default function Navbar({ compact = false }) {
 
     const navLinks = useMemo(
         () => [
-            { key: 'home', label: t.nav.home, href: '/', menu: null },
+            { key: 'home', label: 'Home', href: '/', menu: null },
             {
                 key: 'eatDrink',
-                label: t.nav.eatDrink,
+                label: 'Eat & Drink',
                 href: explorePath({ category: 'eatDrink' }),
                 menu: 'eatDrink',
             },
             {
                 key: 'stay',
-                label: t.nav.stay,
+                label: 'Stay',
                 href: explorePath({ category: 'stay' }),
                 menu: 'stay',
             },
             {
                 key: 'thingsToDo',
-                label: t.nav.thingsToDo,
+                label: 'Things to do',
                 href: explorePath({ category: 'thingsToDo' }),
                 menu: 'thingsToDo',
             },
             {
                 key: 'more',
-                label: t.nav.more,
+                label: 'More',
                 href: explorePath(),
                 menu: 'more',
             },
         ],
-        [t],
+        [],
     );
 
     const submitSearch = (e) => {
@@ -155,7 +153,7 @@ export default function Navbar({ compact = false }) {
                         type="search"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
-                        placeholder={t.nav.searchPlaceholder}
+                        placeholder="What are you looking for?"
                         className="w-full border-0 bg-transparent py-2 pl-7 pr-2 text-[15px] text-white placeholder:text-white/65 focus:outline-none focus:ring-0 sm:text-base"
                     />
                 </form>
@@ -339,7 +337,9 @@ export default function Navbar({ compact = false }) {
                         className="hidden items-center gap-2 rounded-lg px-2.5 py-2 text-[15px] font-medium text-white/95 transition hover:bg-white/10 hover:text-white sm:text-base lg:inline-flex"
                     >
                         <User className="h-4 w-4" strokeWidth={1.85} />
-                        <span className="max-w-[10rem] truncate">{t.nav.signIn}</span>
+                        <span className="max-w-[10rem] truncate">
+                            Sign in or register
+                        </span>
                     </button>
 
                     <button
@@ -365,7 +365,7 @@ export default function Navbar({ compact = false }) {
                         className="inline-flex items-center gap-2 rounded-xl bg-mustard px-3.5 py-2.5 text-sm font-bold text-olive-950 shadow-[0_8px_20px_-8px_rgba(242,184,46,0.7)] transition hover:bg-white hover:text-mustard hover:shadow-md sm:px-4 sm:text-[15px]"
                     >
                         <Plus className="h-4 w-4 stroke-[2.5]" />
-                        {t.nav.addBusiness}
+                        Add Business
                     </Link>
                 </div>
             </div>
@@ -388,7 +388,7 @@ export default function Navbar({ compact = false }) {
                                     type="search"
                                     value={query}
                                     onChange={(e) => setQuery(e.target.value)}
-                                    placeholder={t.nav.searchPlaceholder}
+                                    placeholder="What are you looking for?"
                                     className="w-full border-0 bg-transparent text-sm text-white placeholder:text-white/65 focus:outline-none focus:ring-0"
                                 />
                             </form>
@@ -411,7 +411,7 @@ export default function Navbar({ compact = false }) {
                                     className="inline-flex items-center gap-2 rounded-lg px-3 py-3 text-left text-white transition hover:bg-white/10"
                                 >
                                     <User className="h-4 w-4" />
-                                    {t.nav.signIn}
+                                    Sign in or register
                                 </button>
                                 <Link
                                     href="/register"
@@ -419,7 +419,7 @@ export default function Navbar({ compact = false }) {
                                     onClick={() => setOpen(false)}
                                 >
                                     <Plus className="h-4 w-4 stroke-[2.5]" />
-                                    {t.nav.addBusiness}
+                                    Add Business
                                 </Link>
                             </div>
                         </div>

@@ -1,12 +1,19 @@
 import { Link } from '@inertiajs/react';
 import { Mail, MapPin, Phone } from 'lucide-react';
 import Logo from './Logo';
-import { useLocale } from '@/i18n/LocaleContext';
 
 function InstagramIcon({ className = '' }) {
     return (
         <svg viewBox="0 0 24 24" className={className} fill="none" aria-hidden>
-            <rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" strokeWidth="1.8" />
+            <rect
+                x="3"
+                y="3"
+                width="18"
+                height="18"
+                rx="5"
+                stroke="currentColor"
+                strokeWidth="1.8"
+            />
             <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.8" />
             <circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" />
         </svg>
@@ -38,30 +45,13 @@ function YouTubeIcon({ className = '' }) {
 }
 
 const socialLinks = [
-    {
-        label: 'TikTok',
-        href: 'https://www.tiktok.com',
-        Icon: TikTokIcon,
-    },
-    {
-        label: 'Instagram',
-        href: 'https://instagram.com',
-        Icon: InstagramIcon,
-    },
-    {
-        label: 'Facebook',
-        href: 'https://facebook.com',
-        Icon: FacebookIcon,
-    },
-    {
-        label: 'YouTube',
-        href: 'https://youtube.com',
-        Icon: YouTubeIcon,
-    },
+    { label: 'TikTok', href: 'https://www.tiktok.com', Icon: TikTokIcon },
+    { label: 'Instagram', href: 'https://instagram.com', Icon: InstagramIcon },
+    { label: 'Facebook', href: 'https://facebook.com', Icon: FacebookIcon },
+    { label: 'YouTube', href: 'https://youtube.com', Icon: YouTubeIcon },
 ];
 
 export default function Footer() {
-    const { t } = useLocale();
     const year = new Date().getFullYear();
 
     return (
@@ -70,18 +60,19 @@ export default function Footer() {
                 <div className="space-y-4">
                     <Logo />
                     <p className="max-w-sm text-sm leading-relaxed text-white/70">
-                        {t.footer.about}
+                        Nanyuki Now is your living guide to Laikipia’s highland
+                        town — listings, stories, and what’s happening right now.
                     </p>
                 </div>
 
                 <div>
                     <h3 className="mb-4 font-display text-sm font-semibold uppercase tracking-wider text-mustard">
-                        {t.footer.quickLinks}
+                        Quick links
                     </h3>
                     <ul className="space-y-2.5 text-sm text-white/75">
                         <li>
                             <Link href="/" className="transition hover:text-mint">
-                                {t.nav.home}
+                                Home
                             </Link>
                         </li>
                         <li>
@@ -89,17 +80,23 @@ export default function Footer() {
                                 href="/explore"
                                 className="transition hover:text-mint"
                             >
-                                {t.nav.explore}
+                                Explore
                             </Link>
                         </li>
                         <li>
-                            <a href="#categories" className="transition hover:text-mint">
-                                {t.categories.title}
+                            <a
+                                href="#categories"
+                                className="transition hover:text-mint"
+                            >
+                                Find it by category
                             </a>
                         </li>
                         <li>
-                            <Link href="/register" className="transition hover:text-mint">
-                                {t.nav.addBusiness}
+                            <Link
+                                href="/register"
+                                className="transition hover:text-mint"
+                            >
+                                Add Business
                             </Link>
                         </li>
                     </ul>
@@ -107,7 +104,7 @@ export default function Footer() {
 
                 <div>
                     <h3 className="mb-4 font-display text-sm font-semibold uppercase tracking-wider text-mustard">
-                        {t.footer.categories}
+                        Categories
                     </h3>
                     <ul className="space-y-2.5 text-sm text-white/75">
                         <li>
@@ -115,7 +112,7 @@ export default function Footer() {
                                 href="/explore?category=eatDrink"
                                 className="transition hover:text-mint"
                             >
-                                {t.nav.eatDrink}
+                                Eat & Drink
                             </Link>
                         </li>
                         <li>
@@ -123,7 +120,7 @@ export default function Footer() {
                                 href="/explore?category=stay"
                                 className="transition hover:text-mint"
                             >
-                                {t.nav.stay}
+                                Stay
                             </Link>
                         </li>
                         <li>
@@ -131,7 +128,7 @@ export default function Footer() {
                                 href="/explore?category=thingsToDo"
                                 className="transition hover:text-mint"
                             >
-                                {t.nav.thingsToDo}
+                                Things to do
                             </Link>
                         </li>
                         <li>
@@ -139,7 +136,7 @@ export default function Footer() {
                                 href="/explore?category=services"
                                 className="transition hover:text-mint"
                             >
-                                {t.categories.items.services}
+                                Services
                             </Link>
                         </li>
                     </ul>
@@ -147,7 +144,7 @@ export default function Footer() {
 
                 <div>
                     <h3 className="mb-4 font-display text-sm font-semibold uppercase tracking-wider text-mustard">
-                        {t.footer.contact}
+                        Contact
                     </h3>
                     <ul className="space-y-3 text-sm text-white/75">
                         <li className="flex gap-2">
@@ -193,7 +190,7 @@ export default function Footer() {
             <div className="border-t border-white/10">
                 <div className="mx-auto flex max-w-[1400px] flex-col items-center justify-between gap-2 px-4 py-4 text-center text-xs text-white/50 sm:flex-row sm:px-6 sm:text-left">
                     <p>
-                        © {year} Nanyuki Now. {t.footer.rights}{' '}
+                        © {year} Nanyuki Now. All rights reserved.{' '}
                         <span className="text-white/35">·</span> Designed by{' '}
                         <a
                             href="https://fraittech.co.ke"
@@ -205,18 +202,15 @@ export default function Footer() {
                         </a>
                     </p>
                     <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 sm:justify-end">
-                        <Link
-                            href="/terms"
-                            className="transition hover:text-mint"
-                        >
-                            {t.footer.terms}
+                        <Link href="/terms" className="transition hover:text-mint">
+                            Terms of Service
                         </Link>
                         <span className="h-3 w-px bg-white/25" aria-hidden />
                         <Link
                             href="/privacy"
                             className="transition hover:text-mint"
                         >
-                            {t.footer.privacy}
+                            Privacy Policy
                         </Link>
                     </div>
                 </div>
