@@ -50,8 +50,19 @@ class GoogleAuthController extends Controller
         $user = User::query()->where('email', $email)->first();
 
         if (! $user) {
+            $base = Str::lower(Str::slug(Str::before($email, '@'), '_')) ?: 'user';
+            $base = Str::limit(preg_replace('/[^a-z0-9_-]/', '', $base) ?: 'user', 24, '');
+            $username = $base;
+            $i = 1;
+
+            while (User::query()->where('username', $username)->exists()) {
+                $username = Str::limit($base, 20, '').$i;
+                $i++;
+            }
+
             $user = User::query()->create([
                 'name' => $googleUser->getName() ?: 'Nanyuki Now member',
+                'username' => $username,
                 'email' => $email,
                 'email_verified_at' => now(),
                 'password' => bcrypt(Str::random(40)),
