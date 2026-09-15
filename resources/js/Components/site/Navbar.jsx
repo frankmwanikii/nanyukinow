@@ -85,7 +85,7 @@ export default function Navbar() {
             className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
                 scrolled
                     ? 'bg-olive-600/95 shadow-lg shadow-earth-dusk/20 backdrop-blur-md'
-                    : 'bg-olive-600'
+                    : 'bg-transparent'
             }`}
         >
             <div className="mx-auto flex max-w-[1400px] items-center gap-3 px-3 py-3.5 sm:px-5 sm:py-4 lg:px-6 xl:gap-5">

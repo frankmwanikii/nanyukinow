@@ -1,13 +1,10 @@
-import { Link } from '@inertiajs/react';
-import { motion, useReducedMotion } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
 import SiteLayout from '@/Layouts/SiteLayout';
-import Logo from '@/Components/site/Logo';
 import Reveal from '@/Components/site/Reveal';
 import ListingCard from '@/Components/site/ListingCard';
 import SectionHeading from '@/Components/site/SectionHeading';
 import CategoryGrid from '@/Components/site/CategoryGrid';
 import Newsletter from '@/Components/site/Newsletter';
+import HeroSlider from '@/Components/site/HeroSlider';
 import { useLocale } from '@/i18n/LocaleContext';
 import {
     activities,
@@ -18,84 +15,15 @@ import {
     trending,
 } from '@/data/listings';
 
-const HERO_IMAGE =
-    'https://images.unsplash.com/photo-1489392191049-fc10c97e64b6?auto=format&fit=crop&w=2000&q=80';
-
 const CTA_IMAGE =
     'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=1800&q=80';
 
 function HomeContent() {
     const { t } = useLocale();
-    const reduce = useReducedMotion();
 
     return (
         <>
-            {/* Hero — brand first, full-bleed */}
-            <section className="relative flex min-h-[100svh] items-center justify-center overflow-hidden pt-16">
-                <div className="absolute inset-0">
-                    <img
-                        src={HERO_IMAGE}
-                        alt="Mount Kenya highland landscape near Nanyuki"
-                        className={`h-full w-full object-cover ${reduce ? '' : 'animate-ken-burns'}`}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-b from-earth-dusk/55 via-earth-dusk/35 to-earth-dusk/70" />
-                    <div className="absolute inset-0 bg-grain opacity-40 mix-blend-overlay" />
-                </div>
-
-                <div className="relative z-10 mx-auto flex w-full max-w-4xl flex-col items-center px-4 pb-20 pt-10 text-center sm:px-6">
-                    <motion.div
-                        initial={reduce ? false : { opacity: 0, y: 28 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                    >
-                        <Logo variant="hero" className="justify-center" />
-                    </motion.div>
-
-                    <motion.p
-                        initial={reduce ? false : { opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.18, duration: 0.7 }}
-                        className="mt-6 max-w-xl text-base text-white/85 sm:text-lg"
-                    >
-                        {t.hero.subtitle}
-                    </motion.p>
-
-                    <motion.div
-                        initial={reduce ? false : { opacity: 0, y: 16 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.32, duration: 0.65 }}
-                        className="mt-8 flex flex-col items-center gap-3 sm:flex-row"
-                    >
-                        <a
-                            href="#listings"
-                            className="inline-flex items-center gap-2 rounded-full bg-mustard px-6 py-3 text-sm font-semibold text-olive-950 shadow-lg transition hover:bg-mustard-soft"
-                        >
-                            {t.hero.ctaExplore}
-                            <ArrowRight className="h-4 w-4" />
-                        </a>
-                        <Link
-                            href="/register"
-                            className="inline-flex rounded-full border border-white/40 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20"
-                        >
-                            {t.hero.ctaAdd}
-                        </Link>
-                    </motion.div>
-                </div>
-
-                <motion.div
-                    aria-hidden
-                    className="absolute bottom-6 left-1/2 h-10 w-6 -translate-x-1/2 rounded-full border border-white/40"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 1 }}
-                >
-                    <motion.span
-                        className="mx-auto mt-2 block h-1.5 w-1.5 rounded-full bg-white"
-                        animate={reduce ? {} : { y: [0, 12, 0], opacity: [1, 0.4, 1] }}
-                        transition={{ repeat: Infinity, duration: 1.6 }}
-                    />
-                </motion.div>
-            </section>
+            <HeroSlider />
 
             {/* Featured trio */}
             <section className="relative z-10 -mt-8 bg-transparent pb-4 sm:-mt-12">

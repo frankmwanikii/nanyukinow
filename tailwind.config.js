@@ -58,6 +58,7 @@ export default {
             animation: {
                 'fade-up': 'fadeUp 0.7s ease-out both',
                 'ken-burns': 'kenBurns 28s ease-out infinite alternate',
+                'ken-burns-slide': 'kenBurnsSlide 7.5s ease-out both',
             },
             keyframes: {
                 fadeUp: {
@@ -67,6 +68,10 @@ export default {
                 kenBurns: {
                     '0%': { transform: 'scale(1)' },
                     '100%': { transform: 'scale(1.08)' },
+                },
+                kenBurnsSlide: {
+                    '0%': { transform: 'scale(1) translate(0%, 0%)' },
+                    '100%': { transform: 'scale(1.14) translate(-1.5%, -1%)' },
                 },
             },
         },
