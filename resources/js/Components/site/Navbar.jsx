@@ -63,7 +63,7 @@ export default function Navbar() {
                     : 'bg-olive-600'
             }`}
         >
-            <div className="mx-auto flex max-w-[1400px] items-center gap-3 px-3 py-2.5 sm:px-5 lg:px-6 xl:gap-5">
+            <div className="mx-auto flex max-w-[1400px] items-center gap-3 px-3 py-3.5 sm:px-5 sm:py-4 lg:px-6 xl:gap-5">
                 <Logo className="shrink-0" />
 
                 <form
@@ -79,7 +79,7 @@ export default function Navbar() {
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                         placeholder={t.nav.searchPlaceholder}
-                        className="w-full border-0 bg-transparent py-2 pl-7 pr-2 text-sm text-white placeholder:text-white/65 focus:outline-none focus:ring-0"
+                        className="w-full border-0 bg-transparent py-2 pl-7 pr-2 text-[15px] text-white placeholder:text-white/65 focus:outline-none focus:ring-0 sm:text-base"
                     />
                 </form>
 
@@ -93,7 +93,7 @@ export default function Navbar() {
                         >
                             <a
                                 href={link.href}
-                                className="inline-flex items-center gap-1 rounded-lg px-2.5 py-2 text-sm font-medium text-white/95 transition hover:bg-white/10 hover:text-white"
+                                className="inline-flex items-center gap-1 rounded-lg px-2.5 py-2 text-[15px] font-medium text-white/95 transition hover:bg-white/10 hover:text-white sm:text-base"
                             >
                                 {link.label}
                                 {link.menu ? (
@@ -129,7 +129,7 @@ export default function Navbar() {
                     <button
                         type="button"
                         onClick={toggleLocale}
-                        className="inline-flex items-center gap-1.5 rounded-lg px-2 py-2 text-xs font-medium text-white/90 transition hover:bg-white/10"
+                        className="inline-flex items-center gap-1.5 rounded-lg px-2 py-2 text-sm font-medium text-white/90 transition hover:bg-white/10"
                         aria-label="Switch language"
                     >
                         <Languages className="h-4 w-4" />
@@ -138,7 +138,7 @@ export default function Navbar() {
 
                     <Link
                         href="/login"
-                        className="hidden items-center gap-1.5 rounded-lg px-2 py-2 text-sm text-white/95 transition hover:bg-white/10 xl:inline-flex"
+                        className="hidden items-center gap-1.5 rounded-lg px-2 py-2 text-[15px] text-white/95 transition hover:bg-white/10 sm:text-base xl:inline-flex"
                     >
                         <User className="h-4 w-4" />
                         <span className="max-w-[9rem] truncate">{t.nav.signIn}</span>
@@ -154,7 +154,7 @@ export default function Navbar() {
 
                     <Link
                         href="/register"
-                        className="hidden items-center gap-1.5 rounded-full bg-white px-3 py-2 text-sm font-semibold text-mustard shadow-sm transition hover:bg-mustard hover:text-olive-900 sm:inline-flex"
+                        className="hidden items-center gap-1.5 rounded-full bg-white px-3.5 py-2.5 text-[15px] font-semibold text-mustard shadow-sm transition hover:bg-mustard hover:text-olive-900 sm:inline-flex sm:text-base"
                     >
                         <span className="flex h-5 w-5 items-center justify-center rounded-full border border-current">
                             <Plus className="h-3 w-3" />
