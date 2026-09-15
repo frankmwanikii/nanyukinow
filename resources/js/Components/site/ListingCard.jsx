@@ -9,9 +9,7 @@ export default function ListingCard({ listing, featured = false }) {
         <motion.article
             whileHover={{ y: -6 }}
             transition={{ type: 'spring', stiffness: 320, damping: 24 }}
-            className={`group overflow-hidden rounded-2xl bg-white shadow-soft ${
-                featured ? 'ring-1 ring-white/10' : ''
-            }`}
+            className="group overflow-hidden rounded-2xl bg-white shadow-soft"
         >
             <div className="relative aspect-[4/3] overflow-hidden">
                 <img

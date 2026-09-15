@@ -340,12 +340,6 @@ function ExploreContent({
                                             onMouseEnter={() =>
                                                 setActiveId(listing.id)
                                             }
-                                            className={`rounded-2xl transition ${
-                                                String(activeId) ===
-                                                String(listing.id)
-                                                    ? 'ring-2 ring-mustard ring-offset-2 ring-offset-[#f3f1ec]'
-                                                    : ''
-                                            }`}
                                         >
                                             <ListingCard listing={listing} />
                                         </div>
