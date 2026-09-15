@@ -1,6 +1,5 @@
 import { Link } from '@inertiajs/react';
 import {
-    ChevronDown,
     Menu,
     Plus,
     Search,
@@ -45,6 +44,27 @@ const dropdownItems = {
     ],
     more: ['Services', 'Shopping', 'Properties', 'Events'],
 };
+
+function NavCaret({ open = false }) {
+    return (
+        <svg
+            viewBox="0 0 12 8"
+            className={`ml-0.5 h-2.5 w-3 shrink-0 text-white transition-transform duration-200 ${
+                open ? 'rotate-180' : ''
+            }`}
+            aria-hidden
+        >
+            <path
+                d="M1.2 1.4 L6 6.2 L10.8 1.4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            />
+        </svg>
+    );
+}
 
 export default function Navbar() {
     const { t } = useLocale();
@@ -122,7 +142,7 @@ export default function Navbar() {
                             >
                                 {link.label}
                                 {link.menu ? (
-                                    <ChevronDown className="h-3.5 w-3.5 opacity-80" />
+                                    <NavCaret open={activeMenu === link.menu} />
                                 ) : null}
                             </a>
                             <AnimatePresence>

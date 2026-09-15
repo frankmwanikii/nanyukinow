@@ -179,12 +179,12 @@ export const testimonials = [
 ];
 
 export const categoryKeys = [
-    'hotels',
-    'food',
-    'tours',
+    'eatDrink',
+    'stay',
     'shopping',
-    'nightlife',
-    'wellness',
+    'thingsToDo',
     'events',
+    'properties',
     'services',
+    'more',
 ];

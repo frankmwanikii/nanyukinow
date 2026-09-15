@@ -34,6 +34,19 @@ const SLIDES = [
         cta: 'Check in',
         ctaHref: '#stay',
     },
+    {
+        id: 4,
+        image: '/images/hero/slide_4.webp',
+        alt: 'Dining with a view of Mount Kenya at dusk',
+        layout: 'safari',
+        overlay: 'from-earth-dusk/55 via-earth-dusk/40 to-earth-dusk/70',
+        eyebrow: 'A Taste of the Equator',
+        eyebrowClass: 'uppercase tracking-[0.18em]',
+        titleLead: "Nanyuki's Finest Flavors",
+        titleAccent: 'Redefined',
+        cta: 'See more',
+        ctaHref: '#eat',
+    },
 ];
 
 const INTERVAL_MS = 6500;
@@ -93,7 +106,9 @@ export default function HeroSlider() {
                         initial={reduce ? false : { opacity: 0, y: 18 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6 }}
-                        className="text-sm font-medium tracking-wide text-white/90 sm:text-base"
+                        className={`text-sm font-medium text-white/90 sm:text-base ${
+                            slide.eyebrowClass || 'tracking-wide'
+                        }`}
                     >
                         {slide.eyebrow}
                     </motion.p>

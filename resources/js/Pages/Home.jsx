@@ -100,16 +100,20 @@ function HomeContent() {
                 </div>
             </section>
 
-            {/* CTA banner */}
-            <section className="relative overflow-hidden py-20 sm:py-28">
-                <img
-                    src={CTA_IMAGE}
-                    alt="Lodge terrace at night"
-                    className="absolute inset-0 h-full w-full object-cover"
-                    loading="lazy"
-                />
-                <div className="absolute inset-0 bg-earth-dusk/65" />
-                <div className="relative mx-auto max-w-3xl px-4 text-center sm:px-6">
+            {/* CTA banner — taller, sticky background */}
+            <section className="relative isolate min-h-[28rem] overflow-clip sm:min-h-[34rem]">
+                <div className="absolute inset-0 -z-10">
+                    <div className="sticky top-0 h-[100svh] overflow-hidden">
+                        <img
+                            src={CTA_IMAGE}
+                            alt="Lodge terrace at night"
+                            className="h-full w-full object-cover"
+                            loading="lazy"
+                        />
+                        <div className="absolute inset-0 bg-earth-dusk/65" />
+                    </div>
+                </div>
+                <div className="relative z-10 flex min-h-[28rem] items-center justify-center px-4 py-24 text-center sm:min-h-[34rem] sm:px-6 sm:py-32">
                     <Reveal>
                         <h2 className="font-display text-3xl font-semibold text-white sm:text-4xl md:text-5xl">
                             {t.cta.title}
