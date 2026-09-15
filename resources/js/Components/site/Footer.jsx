@@ -26,7 +26,7 @@ export default function Footer() {
     const year = new Date().getFullYear();
 
     return (
-        <footer className="bg-earth-dusk text-white">
+        <footer className="relative z-10 bg-earth-dusk text-white">
             <div className="mx-auto grid max-w-[1400px] gap-10 px-4 py-14 sm:px-6 md:grid-cols-2 lg:grid-cols-4 lg:gap-8 lg:py-16">
                 <div className="space-y-4">
                     <Logo />
@@ -144,7 +144,20 @@ export default function Footer() {
                     <p>
                         © {year} Nanyuki Now. {t.footer.rights}
                     </p>
-                    <p className="tracking-wide">nanyukinow.co.ke</p>
+                    <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 sm:justify-end">
+                        <Link
+                            href="/terms"
+                            className="transition hover:text-mint"
+                        >
+                            {t.footer.terms}
+                        </Link>
+                        <Link
+                            href="/privacy"
+                            className="transition hover:text-mint"
+                        >
+                            {t.footer.privacy}
+                        </Link>
+                    </div>
                 </div>
             </div>
         </footer>

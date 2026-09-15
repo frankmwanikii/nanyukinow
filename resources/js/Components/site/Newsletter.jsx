@@ -14,7 +14,7 @@ export default function Newsletter() {
     };
 
     return (
-        <section id="contact" className="bg-olive-100/60 py-14 sm:py-20">
+        <section id="contact" className="relative z-10 bg-olive-100/60 py-14 sm:py-20">
             <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
                 <Reveal>
                     <div className="overflow-hidden rounded-3xl bg-white shadow-lift ring-1 ring-olive-200/70 lg:grid lg:grid-cols-2">

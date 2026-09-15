@@ -59,6 +59,7 @@ export default {
                 'fade-up': 'fadeUp 0.7s ease-out both',
                 'ken-burns': 'kenBurns 28s ease-out infinite alternate',
                 'ken-burns-slide': 'kenBurnsSlide 7.5s ease-out both',
+                marquee: 'marquee 28s linear infinite',
             },
             keyframes: {
                 fadeUp: {
@@ -72,6 +73,10 @@ export default {
                 kenBurnsSlide: {
                     '0%': { transform: 'scale(1) translate(0%, 0%)' },
                     '100%': { transform: 'scale(1.14) translate(-1.5%, -1%)' },
+                },
+                marquee: {
+                    '0%': { transform: 'translateX(0)' },
+                    '100%': { transform: 'translateX(-50%)' },
                 },
             },
         },

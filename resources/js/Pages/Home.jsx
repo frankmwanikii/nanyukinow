@@ -5,6 +5,7 @@ import SectionHeading from '@/Components/site/SectionHeading';
 import CategoryGrid from '@/Components/site/CategoryGrid';
 import Newsletter from '@/Components/site/Newsletter';
 import HeroSlider from '@/Components/site/HeroSlider';
+import FeaturedMarquee from '@/Components/site/FeaturedMarquee';
 import { useLocale } from '@/i18n/LocaleContext';
 import {
     activities,
@@ -25,36 +26,7 @@ function HomeContent() {
         <>
             <HeroSlider />
 
-            {/* Featured trio */}
-            <section className="relative z-10 -mt-8 bg-transparent pb-4 sm:-mt-12">
-                <div className="mx-auto grid max-w-[1400px] gap-4 px-4 sm:grid-cols-3 sm:px-6">
-                    {featured.map((item, i) => (
-                        <Reveal key={item.id} delay={i * 0.08}>
-                            <a
-                                href={item.href}
-                                className="group block overflow-hidden rounded-2xl shadow-lift"
-                            >
-                                <div className="relative aspect-[16/10] overflow-hidden">
-                                    <img
-                                        src={item.image}
-                                        alt={item.title}
-                                        className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-                                        loading="lazy"
-                                    />
-                                </div>
-                                <div className="flex items-center justify-between gap-3 bg-olive-600 px-4 py-4 text-white">
-                                    <h3 className="font-display text-sm font-semibold sm:text-base">
-                                        {item.title}
-                                    </h3>
-                                    <span className="shrink-0 rounded-full bg-mustard px-3 py-1 text-xs font-bold text-olive-950">
-                                        {t.featured.view}
-                                    </span>
-                                </div>
-                            </a>
-                        </Reveal>
-                    ))}
-                </div>
-            </section>
+            <FeaturedMarquee items={featured} />
 
             {/* Top rated */}
             <section id="listings" className="bg-olive-600 py-14 sm:py-20">
@@ -100,20 +72,16 @@ function HomeContent() {
                 </div>
             </section>
 
-            {/* CTA banner — taller, sticky background */}
-            <section className="relative isolate min-h-[28rem] overflow-clip sm:min-h-[34rem]">
-                <div className="absolute inset-0 -z-10">
-                    <div className="sticky top-0 h-[100svh] overflow-hidden">
-                        <img
-                            src={CTA_IMAGE}
-                            alt="Lodge terrace at night"
-                            className="h-full w-full object-cover"
-                            loading="lazy"
-                        />
-                        <div className="absolute inset-0 bg-earth-dusk/65" />
-                    </div>
-                </div>
-                <div className="relative z-10 flex min-h-[28rem] items-center justify-center px-4 py-24 text-center sm:min-h-[34rem] sm:px-6 sm:py-32">
+            {/* CTA — pins in place; sections below scroll over it */}
+            <section className="sticky top-0 z-0 flex h-[100svh] items-center justify-center overflow-hidden">
+                <img
+                    src={CTA_IMAGE}
+                    alt="Lodge terrace at night"
+                    className="absolute inset-0 h-full w-full object-cover"
+                    loading="lazy"
+                />
+                <div className="absolute inset-0 bg-earth-dusk/65" />
+                <div className="relative z-10 px-4 text-center sm:px-6">
                     <Reveal>
                         <h2 className="font-display text-3xl font-semibold text-white sm:text-4xl md:text-5xl">
                             {t.cta.title}
@@ -132,7 +100,7 @@ function HomeContent() {
             </section>
 
             {/* Activities */}
-            <section id="activities" className="bg-earth-sand py-14 sm:py-20">
+            <section id="activities" className="relative z-10 bg-earth-sand py-14 sm:py-20">
                 <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
                     <Reveal>
                         <SectionHeading
@@ -152,7 +120,7 @@ function HomeContent() {
             </section>
 
             {/* Recent */}
-            <section id="stay" className="bg-white py-14 sm:py-20">
+            <section id="stay" className="relative z-10 bg-white py-14 sm:py-20">
                 <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
                     <Reveal>
                         <SectionHeading
@@ -172,7 +140,7 @@ function HomeContent() {
             </section>
 
             {/* Testimonials */}
-            <section className="bg-earth-clay py-14 sm:py-20">
+            <section className="relative z-10 bg-earth-clay py-14 sm:py-20">
                 <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
                     <Reveal>
                         <SectionHeading

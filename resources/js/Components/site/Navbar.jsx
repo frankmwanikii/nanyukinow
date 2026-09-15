@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
+import AuthModal from './AuthModal';
 import Logo from './Logo';
 import { useLocale } from '@/i18n/LocaleContext';
 
@@ -72,6 +73,14 @@ export default function Navbar() {
     const [scrolled, setScrolled] = useState(false);
     const [activeMenu, setActiveMenu] = useState(null);
     const [query, setQuery] = useState('');
+    const [authOpen, setAuthOpen] = useState(false);
+    const [authTab, setAuthTab] = useState('login');
+
+    const openAuth = (tab = 'login') => {
+        setAuthTab(tab);
+        setAuthOpen(true);
+        setOpen(false);
+    };
 
     useEffect(() => {
         const onScroll = () => setScrolled(window.scrollY > 24);
@@ -171,13 +180,14 @@ export default function Navbar() {
                 </nav>
 
                 <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2.5">
-                    <Link
-                        href="/login"
-                        className="hidden items-center gap-1.5 rounded-lg px-2 py-2 text-[15px] text-white/95 transition hover:bg-white/10 sm:text-base xl:inline-flex"
+                    <button
+                        type="button"
+                        onClick={() => openAuth('login')}
+                        className="hidden items-center gap-2 rounded-xl bg-olive-500/80 px-3 py-2 text-[15px] font-medium text-white ring-1 ring-white/10 transition hover:bg-olive-500 sm:text-base lg:inline-flex"
                     >
-                        <User className="h-4 w-4" />
-                        <span className="max-w-[9rem] truncate">{t.nav.signIn}</span>
-                    </Link>
+                        <User className="h-4 w-4" strokeWidth={1.85} />
+                        <span className="max-w-[10rem] truncate">{t.nav.signIn}</span>
+                    </button>
 
                     <button
                         type="button"
@@ -242,14 +252,14 @@ export default function Navbar() {
                                 ))}
                             </div>
                             <div className="flex flex-col gap-2 border-t border-white/10 pt-4">
-                                <Link
-                                    href="/login"
-                                    className="inline-flex items-center gap-2 rounded-lg px-3 py-3 text-white hover:bg-white/10"
-                                    onClick={() => setOpen(false)}
+                                <button
+                                    type="button"
+                                    onClick={() => openAuth('login')}
+                                    className="inline-flex items-center gap-2 rounded-xl bg-olive-500/80 px-3 py-3 text-left text-white ring-1 ring-white/10 hover:bg-olive-500"
                                 >
                                     <User className="h-4 w-4" />
                                     {t.nav.signIn}
-                                </Link>
+                                </button>
                                 <Link
                                     href="/register"
                                     className="inline-flex items-center justify-center gap-2 rounded-xl bg-mustard px-4 py-3 font-bold text-olive-950 transition hover:bg-white hover:text-mustard"
@@ -263,6 +273,12 @@ export default function Navbar() {
                     </motion.div>
                 ) : null}
             </AnimatePresence>
+
+            <AuthModal
+                open={authOpen}
+                initialTab={authTab}
+                onClose={() => setAuthOpen(false)}
+            />
         </header>
     );
 }

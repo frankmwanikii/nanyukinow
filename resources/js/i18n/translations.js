@@ -82,6 +82,8 @@ export const translations = {
             categories: 'Categories',
             contact: 'Contact',
             rights: 'All rights reserved.',
+            terms: 'Terms of Service',
+            privacy: 'Privacy Policy',
         },
     },
     sw: {
@@ -167,6 +169,8 @@ export const translations = {
             categories: 'Kategoria',
             contact: 'Mawasiliano',
             rights: 'Haki zote zimehifadhiwa.',
+            terms: 'Masharti ya Huduma',
+            privacy: 'Sera ya Faragha',
         },
     },
 };
