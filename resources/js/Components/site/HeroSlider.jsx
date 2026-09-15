@@ -137,10 +137,10 @@ export default function HeroSlider() {
                     >
                         <a
                             href={slide.ctaHref}
-                            className="inline-flex items-center gap-3 rounded-full bg-mustard px-7 py-3.5 text-sm font-bold uppercase tracking-wide text-olive-950 shadow-lg transition hover:bg-mustard-soft sm:text-base"
+                            className="group inline-flex items-center gap-3 rounded-full bg-mustard px-7 py-3.5 text-sm font-bold uppercase tracking-wide text-olive-950 shadow-lg transition hover:bg-white hover:text-mustard hover:shadow-md sm:text-base"
                         >
                             {slide.cta}
-                            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-olive-950/10">
+                            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-olive-950/10 transition group-hover:bg-mustard/15">
                                 <ArrowRight className="h-4 w-4" />
                             </span>
                         </a>
@@ -152,7 +152,7 @@ export default function HeroSlider() {
                 <button
                     type="button"
                     onClick={() => step(-1)}
-                    className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-full bg-black/25 text-white backdrop-blur transition hover:bg-black/40 sm:h-12 sm:w-12"
+                    className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-full bg-black/25 text-white backdrop-blur transition hover:bg-mustard hover:text-olive-950 sm:h-12 sm:w-12"
                     aria-label="Previous slide"
                 >
                     <ChevronLeft className="h-5 w-5" />
@@ -160,7 +160,7 @@ export default function HeroSlider() {
                 <button
                     type="button"
                     onClick={() => step(1)}
-                    className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-full bg-black/25 text-white backdrop-blur transition hover:bg-black/40 sm:h-12 sm:w-12"
+                    className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-full bg-black/25 text-white backdrop-blur transition hover:bg-mustard hover:text-olive-950 sm:h-12 sm:w-12"
                     aria-label="Next slide"
                 >
                     <ChevronRight className="h-5 w-5" />

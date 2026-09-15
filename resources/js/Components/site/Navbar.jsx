@@ -43,7 +43,56 @@ const dropdownItems = {
         'Nightlife',
         'Spas & Wellness',
     ],
-    more: ['Services', 'Shopping', 'Properties', 'Events'],
+    more: [
+        {
+            label: 'Services',
+            children: [
+                'Tours & Guides',
+                'Health & Medical',
+                'Finance & Banking',
+                'Beauty & Personal Care',
+                'Car Hire',
+                'Tech & Digital',
+                'Creative & Media',
+                'Cleaning & Maintenance',
+            ],
+        },
+        {
+            label: 'Shopping',
+            children: [
+                'Supermarkets',
+                'Local Shops',
+                'Electronics',
+                'Mobile Phones & Gadgets',
+                'African Fashions',
+                'Boutique & Apparel',
+                'Party Items',
+                'Gifts & Souvenirs',
+                'Flower & Decor',
+                'Curios & Souvenirs',
+            ],
+        },
+        {
+            label: 'Properties',
+            children: ['For Sale', 'For Rent', 'For Lease'],
+        },
+        {
+            label: 'Events',
+            children: [
+                'Music & Entertainment',
+                'Faith & Community',
+                'Lifestyle & Social',
+                'Family & Kids',
+                'Seasonal Events',
+                'Arts & Culture',
+                'Sports & Fitness',
+                'Wildlife & Conservation',
+                'Charity & Fundraisers',
+                'Business & Networking',
+                'Outdoor & Adventure',
+            ],
+        },
+    ],
 };
 
 function NavCaret({ open = false }) {
@@ -72,6 +121,7 @@ export default function Navbar() {
     const [open, setOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [activeMenu, setActiveMenu] = useState(null);
+    const [activeFlyout, setActiveFlyout] = useState(null);
     const [query, setQuery] = useState('');
     const [authOpen, setAuthOpen] = useState(false);
     const [authTab, setAuthTab] = useState('login');
@@ -138,45 +188,148 @@ export default function Navbar() {
                 </form>
 
                 <nav className="hidden items-center gap-1 lg:flex xl:gap-2">
-                    {navLinks.map((link) => (
-                        <div
-                            key={link.key}
-                            className="relative"
-                            onMouseEnter={() => setActiveMenu(link.menu)}
-                            onMouseLeave={() => setActiveMenu(null)}
-                        >
-                            <a
-                                href={link.href}
-                                className="inline-flex items-center gap-1 rounded-lg px-2.5 py-2 text-[15px] font-medium text-white/95 transition hover:bg-white/10 hover:text-white sm:text-base"
+                    {navLinks.map((link) => {
+                        const isMore = link.menu === 'more';
+                        const items = link.menu
+                            ? dropdownItems[link.menu]
+                            : [];
+                        const flyoutItem = isMore
+                            ? items.find(
+                                  (item) =>
+                                      typeof item !== 'string' &&
+                                      item.label === activeFlyout,
+                              )
+                            : null;
+
+                        return (
+                            <div
+                                key={link.key}
+                                className="relative"
+                                onMouseEnter={() => {
+                                    setActiveMenu(link.menu);
+                                    setActiveFlyout(
+                                        isMore ? 'Services' : null,
+                                    );
+                                }}
+                                onMouseLeave={() => {
+                                    setActiveMenu(null);
+                                    setActiveFlyout(null);
+                                }}
                             >
-                                {link.label}
-                                {link.menu ? (
-                                    <NavCaret open={activeMenu === link.menu} />
-                                ) : null}
-                            </a>
-                            <AnimatePresence>
-                                {link.menu && activeMenu === link.menu ? (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 6 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: 4 }}
-                                        transition={{ duration: 0.16 }}
-                                        className="absolute left-0 top-full z-50 mt-1 min-w-[220px] border-t-[3px] border-mustard bg-white shadow-lift"
-                                    >
-                                        {dropdownItems[link.menu].map((item) => (
-                                            <a
-                                                key={item}
-                                                href={link.href}
-                                                className="block border-b border-olive-100/80 px-5 py-3.5 text-[15px] text-earth-dusk transition last:border-b-0 hover:bg-olive-50 hover:text-olive-800"
-                                            >
-                                                {item}
-                                            </a>
-                                        ))}
-                                    </motion.div>
-                                ) : null}
-                            </AnimatePresence>
-                        </div>
-                    ))}
+                                <a
+                                    href={link.href}
+                                    className="inline-flex items-center gap-1 rounded-lg px-2.5 py-2 text-[15px] font-medium text-white/95 transition hover:bg-white/10 hover:text-white sm:text-base"
+                                >
+                                    {link.label}
+                                    {link.menu ? (
+                                        <NavCaret
+                                            open={activeMenu === link.menu}
+                                        />
+                                    ) : null}
+                                </a>
+                                <AnimatePresence>
+                                    {link.menu &&
+                                    activeMenu === link.menu ? (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 6 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: 4 }}
+                                            transition={{ duration: 0.16 }}
+                                            className={`absolute top-full z-[60] mt-1 flex ${
+                                                isMore
+                                                    ? 'right-0'
+                                                    : 'left-0'
+                                            }`}
+                                        >
+                                            <div className="min-w-[220px] border-t-[3px] border-mustard bg-white shadow-lift">
+                                                {items.map((item) => {
+                                                    const label =
+                                                        typeof item ===
+                                                        'string'
+                                                            ? item
+                                                            : item.label;
+                                                    const children =
+                                                        typeof item ===
+                                                        'string'
+                                                            ? null
+                                                            : item.children;
+                                                    const hasFlyout =
+                                                        Boolean(
+                                                            children?.length,
+                                                        );
+                                                    const flyoutOpen =
+                                                        hasFlyout &&
+                                                        activeFlyout ===
+                                                            label;
+
+                                                    return (
+                                                        <div
+                                                            key={label}
+                                                            onMouseEnter={() =>
+                                                                setActiveFlyout(
+                                                                    hasFlyout
+                                                                        ? label
+                                                                        : null,
+                                                                )
+                                                            }
+                                                        >
+                                                            <a
+                                                                href={
+                                                                    link.href
+                                                                }
+                                                                className={`flex items-center justify-between border-b border-olive-100/80 px-5 py-3.5 text-[15px] text-earth-dusk transition last:border-b-0 hover:bg-olive-50 hover:text-olive-800 ${
+                                                                    flyoutOpen
+                                                                        ? 'bg-olive-50 text-olive-800'
+                                                                        : ''
+                                                                }`}
+                                                            >
+                                                                <span>
+                                                                    {label}
+                                                                </span>
+                                                                {hasFlyout ? (
+                                                                    <svg
+                                                                        viewBox="0 0 8 12"
+                                                                        className="ml-3 h-3 w-2.5 shrink-0 text-earth-dusk/50"
+                                                                        aria-hidden
+                                                                    >
+                                                                        <path
+                                                                            d="M1.4 1.2 L6.2 6 L1.4 10.8"
+                                                                            fill="none"
+                                                                            stroke="currentColor"
+                                                                            strokeWidth="2.4"
+                                                                            strokeLinecap="round"
+                                                                            strokeLinejoin="round"
+                                                                        />
+                                                                    </svg>
+                                                                ) : null}
+                                                            </a>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                            {flyoutItem?.children ? (
+                                                <div className="min-w-[240px] border-t-[3px] border-mustard bg-white shadow-lift">
+                                                    {flyoutItem.children.map(
+                                                        (child) => (
+                                                            <a
+                                                                key={child}
+                                                                href={
+                                                                    link.href
+                                                                }
+                                                                className="block border-b border-olive-100/80 px-5 py-3.5 text-[15px] text-earth-dusk transition last:border-b-0 hover:bg-olive-50 hover:text-olive-800"
+                                                            >
+                                                                {child}
+                                                            </a>
+                                                        ),
+                                                    )}
+                                                </div>
+                                            ) : null}
+                                        </motion.div>
+                                    ) : null}
+                                </AnimatePresence>
+                            </div>
+                        );
+                    })}
                 </nav>
 
                 <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2.5">
