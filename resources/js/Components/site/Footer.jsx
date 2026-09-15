@@ -21,6 +21,45 @@ function FacebookIcon({ className = '' }) {
     );
 }
 
+function TikTokIcon({ className = '' }) {
+    return (
+        <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden>
+            <path d="M19.6 8.3a6.7 6.7 0 0 1-3.9-1.2v7.1a5.9 5.9 0 1 1-5.1-5.8v2.9a3 3 0 1 0 2.2 2.9V2.5h2.8a6.7 6.7 0 0 0 4 4.2v1.6z" />
+        </svg>
+    );
+}
+
+function YouTubeIcon({ className = '' }) {
+    return (
+        <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden>
+            <path d="M23 12.2s0-3.4-.4-5a3 3 0 0 0-2.1-2.1C18.7 4.6 12 4.6 12 4.6s-6.7 0-8.5.5A3 3 0 0 0 1.4 7.2C1 8.8 1 12.2 1 12.2s0 3.4.4 5a3 3 0 0 0 2.1 2.1c1.8.5 8.5.5 8.5.5s6.7 0 8.5-.5a3 3 0 0 0 2.1-2.1c.4-1.6.4-5 .4-5zM9.8 15.5v-6.6l5.7 3.3-5.7 3.3z" />
+        </svg>
+    );
+}
+
+const socialLinks = [
+    {
+        label: 'TikTok',
+        href: 'https://www.tiktok.com',
+        Icon: TikTokIcon,
+    },
+    {
+        label: 'Instagram',
+        href: 'https://instagram.com',
+        Icon: InstagramIcon,
+    },
+    {
+        label: 'Facebook',
+        href: 'https://facebook.com',
+        Icon: FacebookIcon,
+    },
+    {
+        label: 'YouTube',
+        href: 'https://youtube.com',
+        Icon: YouTubeIcon,
+    },
+];
+
 export default function Footer() {
     const { t } = useLocale();
     const year = new Date().getFullYear();
@@ -116,41 +155,48 @@ export default function Footer() {
                             </a>
                         </li>
                     </ul>
-                    <div className="mt-5 flex gap-3">
+                </div>
+            </div>
+
+            <div className="flex justify-center px-4 pb-6 sm:px-6">
+                <div className="flex items-center gap-3">
+                    {socialLinks.map(({ label, href, Icon }) => (
                         <a
-                            href="https://instagram.com"
+                            key={label}
+                            href={href}
                             target="_blank"
                             rel="noreferrer"
-                            className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 transition hover:bg-mustard hover:text-olive-900"
-                            aria-label="Instagram"
+                            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-mustard hover:text-olive-900"
+                            aria-label={label}
                         >
-                            <InstagramIcon className="h-4 w-4" />
+                            <Icon className="h-4 w-4" />
                         </a>
-                        <a
-                            href="https://facebook.com"
-                            target="_blank"
-                            rel="noreferrer"
-                            className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 transition hover:bg-mustard hover:text-olive-900"
-                            aria-label="Facebook"
-                        >
-                            <FacebookIcon className="h-4 w-4" />
-                        </a>
-                    </div>
+                    ))}
                 </div>
             </div>
 
             <div className="border-t border-white/10">
                 <div className="mx-auto flex max-w-[1400px] flex-col items-center justify-between gap-2 px-4 py-4 text-center text-xs text-white/50 sm:flex-row sm:px-6 sm:text-left">
                     <p>
-                        © {year} Nanyuki Now. {t.footer.rights}
+                        © {year} Nanyuki Now. {t.footer.rights}{' '}
+                        <span className="text-white/35">·</span> Designed by{' '}
+                        <a
+                            href="https://fraittech.co.ke"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-white/70 transition hover:text-mint"
+                        >
+                            Fraittech
+                        </a>
                     </p>
-                    <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 sm:justify-end">
+                    <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 sm:justify-end">
                         <Link
                             href="/terms"
                             className="transition hover:text-mint"
                         >
                             {t.footer.terms}
                         </Link>
+                        <span className="h-3 w-px bg-white/25" aria-hidden />
                         <Link
                             href="/privacy"
                             className="transition hover:text-mint"

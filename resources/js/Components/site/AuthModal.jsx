@@ -128,11 +128,11 @@ export default function AuthModal({ open, onClose, initialTab = 'login' }) {
     return (
         <AnimatePresence>
             {open ? (
-                <div className="fixed inset-0 z-[80] flex items-end justify-center sm:items-center sm:p-4">
+                <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 sm:p-6">
                     <motion.button
                         type="button"
                         aria-label="Close sign in"
-                        className="absolute inset-0 bg-earth-dusk/70 backdrop-blur-sm"
+                        className="absolute inset-0 bg-earth-dusk/55"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
@@ -144,50 +144,49 @@ export default function AuthModal({ open, onClose, initialTab = 'login' }) {
                         role="dialog"
                         aria-modal="true"
                         aria-labelledby={titleId}
-                        initial={{ opacity: 0, y: 28, scale: 0.98 }}
+                        initial={{ opacity: 0, y: 18, scale: 0.96 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 16, scale: 0.98 }}
+                        exit={{ opacity: 0, y: 12, scale: 0.97 }}
                         transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-                        className="relative z-10 flex max-h-[92svh] w-full max-w-md flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl"
+                        className="relative z-10 flex max-h-[min(92svh,52rem)] w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl"
                     >
-                        <div className="relative overflow-hidden bg-olive-700 px-6 pb-6 pt-5 text-white">
-                            <div className="pointer-events-none absolute -right-8 -top-10 h-36 w-36 rounded-full bg-mustard/25 blur-2xl" />
-                            <div className="pointer-events-none absolute -bottom-12 left-6 h-32 w-32 rounded-full bg-mint/20 blur-3xl" />
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white ring-1 ring-white/25 transition hover:bg-white hover:text-olive-900 sm:right-5 sm:top-5"
+                            aria-label="Close"
+                        >
+                            <X className="h-5 w-5" strokeWidth={2.25} />
+                        </button>
 
-                            <div className="relative flex items-start justify-between gap-3">
-                                <div>
-                                    <img
-                                        src="/images/logo.png"
-                                        alt=""
-                                        className="mb-3 h-9 w-auto object-contain brightness-0 invert"
-                                    />
-                                    <h2
-                                        id={titleId}
-                                        className="font-display text-2xl font-semibold tracking-tight"
-                                    >
-                                        {tab === 'login'
-                                            ? 'Welcome back'
-                                            : 'Join Nanyuki Now'}
-                                    </h2>
-                                    <p className="mt-1 text-sm text-white/75">
-                                        {tab === 'login'
-                                            ? 'Sign in to save spots and manage your listings.'
-                                            : 'Create an account to list your business and explore.'}
-                                    </p>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={onClose}
-                                    className="rounded-xl bg-white/10 p-2 text-white transition hover:bg-white/20"
-                                    aria-label="Close"
+                        <div className="relative overflow-hidden bg-olive-700 px-6 pb-8 pt-8 text-white sm:px-10 sm:pb-10 sm:pt-10">
+                            <div className="pointer-events-none absolute -right-8 -top-10 h-44 w-44 rounded-full bg-mustard/25 blur-2xl" />
+                            <div className="pointer-events-none absolute -bottom-12 left-6 h-40 w-40 rounded-full bg-mint/20 blur-3xl" />
+
+                            <div className="relative max-w-lg pr-12">
+                                <img
+                                    src="/images/logo.png"
+                                    alt=""
+                                    className="mb-4 h-10 w-auto object-contain brightness-0 invert sm:h-11"
+                                />
+                                <h2
+                                    id={titleId}
+                                    className="font-display text-3xl font-semibold tracking-tight sm:text-4xl"
                                 >
-                                    <X className="h-5 w-5" />
-                                </button>
+                                    {tab === 'login'
+                                        ? 'Welcome back'
+                                        : 'Join Nanyuki Now'}
+                                </h2>
+                                <p className="mt-2 text-sm text-white/75 sm:text-base">
+                                    {tab === 'login'
+                                        ? 'Sign in to save spots and manage your listings.'
+                                        : 'Create an account to list your business and explore.'}
+                                </p>
                             </div>
                         </div>
 
-                        <div className="overflow-y-auto px-6 py-5">
-                            <div className="mb-5 grid grid-cols-2 rounded-xl bg-olive-50 p-1">
+                        <div className="overflow-y-auto px-6 py-6 sm:px-10 sm:py-8">
+                            <div className="mb-6 grid grid-cols-2 rounded-2xl bg-olive-50 p-1.5">
                                 {[
                                     { id: 'login', label: 'Sign in' },
                                     { id: 'register', label: 'Register' },
@@ -196,7 +195,7 @@ export default function AuthModal({ open, onClose, initialTab = 'login' }) {
                                         key={item.id}
                                         type="button"
                                         onClick={() => setTab(item.id)}
-                                        className={`rounded-lg px-3 py-2.5 text-sm font-semibold transition ${
+                                        className={`rounded-xl px-3 py-3 text-sm font-semibold transition sm:text-base ${
                                             tab === item.id
                                                 ? 'bg-white text-olive-800 shadow-sm'
                                                 : 'text-olive-600 hover:text-olive-800'
@@ -209,13 +208,13 @@ export default function AuthModal({ open, onClose, initialTab = 'login' }) {
 
                             <a
                                 href={route('auth.google')}
-                                className="flex w-full items-center justify-center gap-3 rounded-xl border border-olive-200 bg-white px-4 py-3 text-sm font-semibold text-earth-dusk shadow-sm transition hover:border-olive-300 hover:bg-olive-50/60"
+                                className="flex w-full items-center justify-center gap-3 rounded-2xl border border-olive-200 bg-white px-4 py-3.5 text-sm font-semibold text-earth-dusk shadow-sm transition hover:border-olive-300 hover:bg-olive-50/60 sm:text-base"
                             >
                                 <GoogleIcon className="h-5 w-5" />
                                 Continue with Google
                             </a>
 
-                            <div className="my-5 flex items-center gap-3">
+                            <div className="my-6 flex items-center gap-3">
                                 <div className="h-px flex-1 bg-olive-100" />
                                 <span className="text-xs font-medium uppercase tracking-wide text-olive-500">
                                     or email
@@ -300,7 +299,7 @@ export default function AuthModal({ open, onClose, initialTab = 'login' }) {
                                     <button
                                         type="submit"
                                         disabled={busy}
-                                        className="mt-1 w-full rounded-xl bg-mustard px-4 py-3.5 text-sm font-bold text-olive-950 shadow-[0_10px_24px_-10px_rgba(242,184,46,0.75)] transition hover:bg-mustard/90 disabled:opacity-60"
+                                        className="mt-2 w-full rounded-2xl bg-mustard px-4 py-4 text-sm font-bold text-olive-950 shadow-[0_10px_24px_-10px_rgba(242,184,46,0.75)] transition hover:bg-mustard/90 disabled:opacity-60 sm:text-base"
                                     >
                                         {loginForm.processing
                                             ? 'Signing in…'
@@ -400,7 +399,7 @@ export default function AuthModal({ open, onClose, initialTab = 'login' }) {
                                     <button
                                         type="submit"
                                         disabled={busy}
-                                        className="mt-1 w-full rounded-xl bg-mustard px-4 py-3.5 text-sm font-bold text-olive-950 shadow-[0_10px_24px_-10px_rgba(242,184,46,0.75)] transition hover:bg-mustard/90 disabled:opacity-60"
+                                        className="mt-2 w-full rounded-2xl bg-mustard px-4 py-4 text-sm font-bold text-olive-950 shadow-[0_10px_24px_-10px_rgba(242,184,46,0.75)] transition hover:bg-mustard/90 disabled:opacity-60 sm:text-base"
                                     >
                                         {registerForm.processing
                                             ? 'Creating account…'
@@ -409,7 +408,7 @@ export default function AuthModal({ open, onClose, initialTab = 'login' }) {
                                 </form>
                             )}
 
-                            <p className="mt-5 text-center text-xs leading-relaxed text-olive-500">
+                            <p className="mt-6 text-center text-xs leading-relaxed text-olive-500 sm:text-sm">
                                 By continuing you agree to Nanyuki Now’s terms
                                 and privacy policy.
                             </p>

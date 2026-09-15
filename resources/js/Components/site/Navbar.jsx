@@ -183,7 +183,7 @@ export default function Navbar() {
                     <button
                         type="button"
                         onClick={() => openAuth('login')}
-                        className="hidden items-center gap-2 rounded-xl bg-olive-500/80 px-3 py-2 text-[15px] font-medium text-white ring-1 ring-white/10 transition hover:bg-olive-500 sm:text-base lg:inline-flex"
+                        className="hidden items-center gap-2 rounded-lg px-2.5 py-2 text-[15px] font-medium text-white/95 transition hover:bg-white/10 hover:text-white sm:text-base lg:inline-flex"
                     >
                         <User className="h-4 w-4" strokeWidth={1.85} />
                         <span className="max-w-[10rem] truncate">{t.nav.signIn}</span>
@@ -255,7 +255,7 @@ export default function Navbar() {
                                 <button
                                     type="button"
                                     onClick={() => openAuth('login')}
-                                    className="inline-flex items-center gap-2 rounded-xl bg-olive-500/80 px-3 py-3 text-left text-white ring-1 ring-white/10 hover:bg-olive-500"
+                                    className="inline-flex items-center gap-2 rounded-lg px-3 py-3 text-left text-white transition hover:bg-white/10"
                                 >
                                     <User className="h-4 w-4" />
                                     {t.nav.signIn}
