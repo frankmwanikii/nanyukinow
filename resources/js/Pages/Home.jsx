@@ -74,6 +74,37 @@ function HomeContent() {
 
             <FeaturedMarquee items={featured} />
 
+            {/* About */}
+            <section
+                id="about"
+                className="relative z-10 bg-earth-sand py-16 sm:py-20 md:py-24"
+            >
+                <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
+                    <Reveal>
+                        <div className="mx-auto max-w-3xl text-center">
+                            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-olive-600 sm:text-sm">
+                                About
+                            </p>
+                            <h2 className="font-display text-3xl font-semibold tracking-tight text-earth-dusk sm:text-4xl md:text-[2.75rem] md:leading-tight">
+                                Nanyuki Now
+                            </h2>
+                            <div
+                                className="mx-auto mt-5 h-1 w-12 rounded-full bg-mustard"
+                                aria-hidden
+                            />
+                            <p className="mt-6 text-base leading-relaxed text-olive-700/90 sm:mt-8 sm:text-lg sm:leading-8 md:text-xl md:leading-9">
+                                Nanyuki Now is a local discovery platform
+                                designed to showcase the very best of Nanyuki
+                                and the surrounding towns. From great places to
+                                eat and stay, to unique experiences, services,
+                                and events worth knowing about, we bring
+                                everything in one trusted space.
+                            </p>
+                        </div>
+                    </Reveal>
+                </div>
+            </section>
+
             <GoldListSection />
 
             <CategoryGrid />
