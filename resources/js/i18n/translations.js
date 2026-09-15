@@ -1,0 +1,172 @@
+export const translations = {
+    en: {
+        nav: {
+            home: 'Home',
+            eatDrink: 'Eat & Drink',
+            stay: 'Stay',
+            thingsToDo: 'Things to do',
+            more: 'More',
+            searchPlaceholder: 'What are you looking for?',
+            signIn: 'Sign in or register',
+            addBusiness: 'Add Business',
+            language: 'Kiswahili',
+        },
+        hero: {
+            tagline: 'Your city, right now',
+            subtitle:
+                'Discover where to eat, stay, and explore in Nanyuki — curated for locals and visitors.',
+            ctaExplore: 'Explore listings',
+            ctaAdd: 'List your business',
+        },
+        featured: {
+            title: 'This week in Nanyuki',
+            view: 'View',
+        },
+        topRated: {
+            eyebrow: 'Handpicked',
+            title: 'Top rated destinations',
+            subtitle: 'Places locals recommend and visitors return to.',
+        },
+        categories: {
+            eyebrow: 'Browse',
+            title: 'Find it by category',
+            subtitle: 'From lodges to coffee, tours to nightlife.',
+            items: {
+                hotels: 'Hotels & Lodges',
+                food: 'Food & Drink',
+                tours: 'Tours & Safaris',
+                shopping: 'Shopping',
+                nightlife: 'Nightlife',
+                wellness: 'Wellness',
+                events: 'Events',
+                services: 'Services',
+            },
+        },
+        trending: {
+            eyebrow: 'Buzz',
+            title: 'Trending now',
+            subtitle: 'What people are saving and sharing this week.',
+        },
+        cta: {
+            title: 'Designed for you',
+            body: 'Whether you are planning a weekend or growing a local business, Nanyuki Now keeps the city at your fingertips.',
+            button: 'Get in touch',
+        },
+        activities: {
+            eyebrow: 'Outdoors',
+            title: 'Activities & adventures',
+            subtitle: 'Mount Kenya trails, ranch days, and sky-high views.',
+        },
+        recent: {
+            eyebrow: 'Fresh',
+            title: 'Recently added',
+            subtitle: 'New spots joining the map.',
+        },
+        testimonials: {
+            eyebrow: 'Voices',
+            title: 'Loved by the community',
+        },
+        newsletter: {
+            title: 'The Newsletter',
+            body: 'Weekend picks, new openings, and local stories — straight to your inbox.',
+            name: 'Name',
+            email: 'Email',
+            message: 'Message',
+            submit: 'Submit',
+            success: 'Thanks — we will be in touch.',
+        },
+        footer: {
+            about:
+                'Nanyuki Now is your living guide to Laikipia’s highland town — listings, stories, and what’s happening right now.',
+            quickLinks: 'Quick links',
+            categories: 'Categories',
+            contact: 'Contact',
+            rights: 'All rights reserved.',
+        },
+    },
+    sw: {
+        nav: {
+            home: 'Nyumbani',
+            eatDrink: 'Chakula & Vinywaji',
+            stay: 'Malazi',
+            thingsToDo: 'Mambo ya kufanya',
+            more: 'Zaidi',
+            searchPlaceholder: 'Unatafuta nini?',
+            signIn: 'Ingia au jisajili',
+            addBusiness: 'Ongeza Biashara',
+            language: 'English',
+        },
+        hero: {
+            tagline: 'Mji wako, sasa hivi',
+            subtitle:
+                'Gundua mahali pa kula, kulala, na kutembelea Nanyuki — kwa wenyeji na wageni.',
+            ctaExplore: 'Chunguza orodha',
+            ctaAdd: 'Orodhesha biashara yako',
+        },
+        featured: {
+            title: 'Wiki hii Nanyuki',
+            view: 'Angalia',
+        },
+        topRated: {
+            eyebrow: 'Teuliwa',
+            title: 'Maeneo yaliyopimwa juu',
+            subtitle: 'Mahali wenyeji wanapendekeza na wageni wanarudi.',
+        },
+        categories: {
+            eyebrow: 'Vinjari',
+            title: 'Tafuta kwa kategoria',
+            subtitle: 'Kutoka lodges hadi kahawa, ziara hadi nightlife.',
+            items: {
+                hotels: 'Hoteli & Lodges',
+                food: 'Chakula & Vinywaji',
+                tours: 'Ziara & Safari',
+                shopping: 'Ununuzi',
+                nightlife: 'Nightlife',
+                wellness: 'Afya',
+                events: 'Matukio',
+                services: 'Huduma',
+            },
+        },
+        trending: {
+            eyebrow: 'Sasa',
+            title: 'Zinazovuma sasa',
+            subtitle: 'Anachohifadhiwa na kushirikiwa wiki hii.',
+        },
+        cta: {
+            title: 'Imeundwa kwa ajili yako',
+            body: 'Iwe unapanga wikendi au kukuza biashara ya ndani, Nanyuki Now inaweka mji mikononi mwako.',
+            button: 'Wasiliana nasi',
+        },
+        activities: {
+            eyebrow: 'Nje',
+            title: 'Shughuli & matukio',
+            subtitle: 'Njia za Mount Kenya, shamba, na mandhari ya juu.',
+        },
+        recent: {
+            eyebrow: 'Mpya',
+            title: 'Zilizongezwa hivi karibuni',
+            subtitle: 'Maeneo mapya kwenye ramani.',
+        },
+        testimonials: {
+            eyebrow: 'Sauti',
+            title: 'Inapendwa na jamii',
+        },
+        newsletter: {
+            title: 'Jarida',
+            body: 'Mapendekezo ya wikendi, ufunguzi mpya, na hadithi za ndani — kwenye barua pepe yako.',
+            name: 'Jina',
+            email: 'Barua pepe',
+            message: 'Ujumbe',
+            submit: 'Wasilisha',
+            success: 'Asante — tutawasiliana.',
+        },
+        footer: {
+            about:
+                'Nanyuki Now ni mwongozo wako wa mji wa milima wa Laikipia — orodha, hadithi, na yanayoendelea sasa hivi.',
+            quickLinks: 'Viungo vya haraka',
+            categories: 'Kategoria',
+            contact: 'Mawasiliano',
+            rights: 'Haki zote zimehifadhiwa.',
+        },
+    },
+};
