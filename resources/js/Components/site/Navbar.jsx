@@ -4,7 +4,7 @@ import {
     Menu,
     Plus,
     Search,
-    ShoppingBag,
+    ShoppingCart,
     User,
     X,
 } from 'lucide-react';
@@ -92,7 +92,7 @@ export default function Navbar() {
                 <Logo className="shrink-0" />
 
                 <form
-                    className="relative ml-1 hidden min-w-0 flex-1 items-center md:flex lg:max-w-xs xl:max-w-sm"
+                    className="relative ml-1 hidden min-w-0 flex-1 items-center md:flex"
                     onSubmit={(e) => {
                         e.preventDefault();
                     }}
@@ -108,7 +108,7 @@ export default function Navbar() {
                     />
                 </form>
 
-                <nav className="ml-auto hidden items-center gap-1 lg:flex xl:gap-2">
+                <nav className="hidden items-center gap-1 lg:flex xl:gap-2">
                     {navLinks.map((link) => (
                         <div
                             key={link.key}
@@ -150,7 +150,7 @@ export default function Navbar() {
                     ))}
                 </nav>
 
-                <div className="ml-auto flex items-center gap-1 sm:gap-2 lg:ml-2">
+                <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2.5">
                     <Link
                         href="/login"
                         className="hidden items-center gap-1.5 rounded-lg px-2 py-2 text-[15px] text-white/95 transition hover:bg-white/10 sm:text-base xl:inline-flex"
@@ -164,18 +164,8 @@ export default function Navbar() {
                         className="hidden rounded-lg p-2 text-white transition hover:bg-white/10 sm:inline-flex"
                         aria-label="Cart"
                     >
-                        <ShoppingBag className="h-4 w-4" />
+                        <ShoppingCart className="h-5 w-5" strokeWidth={1.75} />
                     </button>
-
-                    <Link
-                        href="/register"
-                        className="hidden items-center gap-1.5 rounded-full bg-white px-3.5 py-2.5 text-[15px] font-semibold text-mustard shadow-sm transition hover:bg-mustard hover:text-olive-900 sm:inline-flex sm:text-base"
-                    >
-                        <span className="flex h-5 w-5 items-center justify-center rounded-full border border-current">
-                            <Plus className="h-3 w-3" />
-                        </span>
-                        {t.nav.addBusiness}
-                    </Link>
 
                     <button
                         type="button"
@@ -186,6 +176,14 @@ export default function Navbar() {
                     >
                         {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
                     </button>
+
+                    <Link
+                        href="/register"
+                        className="inline-flex items-center gap-2 rounded-xl bg-mustard px-3.5 py-2.5 text-sm font-bold text-olive-950 shadow-[0_8px_20px_-8px_rgba(242,184,46,0.7)] transition hover:bg-white hover:text-mustard hover:shadow-md sm:px-4 sm:text-[15px]"
+                    >
+                        <Plus className="h-4 w-4 stroke-[2.5]" />
+                        {t.nav.addBusiness}
+                    </Link>
                 </div>
             </div>
 
@@ -234,10 +232,10 @@ export default function Navbar() {
                                 </Link>
                                 <Link
                                     href="/register"
-                                    className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-4 py-3 font-semibold text-mustard"
+                                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-mustard px-4 py-3 font-bold text-olive-950 transition hover:bg-white hover:text-mustard"
                                     onClick={() => setOpen(false)}
                                 >
-                                    <Plus className="h-4 w-4" />
+                                    <Plus className="h-4 w-4 stroke-[2.5]" />
                                     {t.nav.addBusiness}
                                 </Link>
                             </div>

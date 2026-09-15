@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from 'react';
 const SLIDES = [
     {
         id: 1,
-        image: '/images/hero/slide-1.webp',
+        image: '/images/hero/slide_1.jpeg',
         alt: 'Nanyuki Now — Mount Kenya, wildlife, and town life',
         layout: 'image',
         overlay: 'from-earth-dusk/20 via-transparent to-earth-dusk/45',
@@ -24,15 +24,15 @@ const SLIDES = [
     },
     {
         id: 3,
-        image: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=2000&q=80',
-        alt: 'Safari wildlife on the Laikipia plains',
+        image: '/images/hero/bnb3.webp',
+        alt: 'A-frame cabin stay in Nanyuki at dusk',
         layout: 'safari',
-        overlay: 'from-earth-dusk/55 via-earth-dusk/40 to-earth-dusk/70',
-        eyebrow: 'Outdoors & adventure',
-        titleLead: 'Explore more of',
-        titleAccent: 'Nanyuki',
-        cta: 'Start exploring',
-        ctaHref: '#listings',
+        overlay: 'from-earth-dusk/55 via-earth-dusk/35 to-earth-dusk/70',
+        eyebrow: 'Your Home Away From Home',
+        titleLead: 'Unwind in the Heart Of Nanyuki',
+        titleAccent: 'Stay. Relax. Explore',
+        cta: 'Check in',
+        ctaHref: '#stay',
     },
 ];
 
@@ -70,7 +70,7 @@ export default function HeroSlider() {
                     initial={reduce ? false : { opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={reduce ? undefined : { opacity: 0 }}
-                    transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
+                    transition={{ duration: 0.9, ease: 'easeInOut' }}
                 >
                     <img
                         src={slide.image}
@@ -87,7 +87,7 @@ export default function HeroSlider() {
             </AnimatePresence>
 
             {slide.layout === 'safari' ? (
-                <div className="relative z-10 mx-auto flex w-full max-w-4xl flex-col items-center px-4 pb-20 pt-10 text-center sm:px-6">
+                <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col items-center px-4 pb-20 pt-10 text-center sm:px-6">
                     <motion.p
                         key={`eyebrow-${slide.id}`}
                         initial={reduce ? false : { opacity: 0, y: 18 }}
@@ -103,10 +103,14 @@ export default function HeroSlider() {
                         initial={reduce ? false : { opacity: 0, y: 22 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1, duration: 0.7 }}
-                        className="mt-3 font-display text-4xl font-bold leading-[1.1] tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl"
+                        className="mt-3 max-w-none font-display text-3xl font-bold leading-[1.15] tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl"
                     >
-                        <span className="block">{slide.titleLead}</span>
-                        <span className="mt-1 block text-mint">{slide.titleAccent}</span>
+                        <span className="block whitespace-nowrap">
+                            {slide.titleLead}
+                        </span>
+                        <span className="mt-1 block whitespace-nowrap text-mint">
+                            {slide.titleAccent}
+                        </span>
                     </motion.h1>
 
                     <motion.div
