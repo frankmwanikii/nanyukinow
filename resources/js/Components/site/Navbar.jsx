@@ -1,7 +1,6 @@
 import { Link } from '@inertiajs/react';
 import {
     ChevronDown,
-    Languages,
     Menu,
     Plus,
     Search,
@@ -15,14 +14,40 @@ import Logo from './Logo';
 import { useLocale } from '@/i18n/LocaleContext';
 
 const dropdownItems = {
-    eatDrink: ['Restaurants', 'Cafés', 'Bars', 'Bakeries'],
-    stay: ['Hotels', 'Lodges', 'Airbnbs', 'Camps'],
-    thingsToDo: ['Safaris', 'Hiking', 'Culture', 'Family'],
-    more: ['Shopping', 'Services', 'Events', 'Wellness'],
+    eatDrink: [
+        'Restaurants',
+        'Cafes',
+        'Bars & Lounges',
+        'Pork Joint & BBQ',
+        'Outdoor Dining',
+        'Fast Food & Takeaways',
+        'Bakery & Deserts',
+        'Garden Restaurant',
+    ],
+    stay: [
+        'Airbnbs',
+        'Hotels',
+        'Boutique Hotels',
+        'Conference Hotels',
+        'Luxury Camps',
+        'Private Villa',
+        'Resorts',
+        'Safari Lodges',
+        'Serviced Apartments',
+        'Lodges & Camps',
+    ],
+    thingsToDo: [
+        'Outdoor & Adventure',
+        'Wildlife & Nature',
+        'Gym & Fitness',
+        'Nightlife',
+        'Spas & Wellness',
+    ],
+    more: ['Services', 'Shopping', 'Properties', 'Events'],
 };
 
 export default function Navbar() {
-    const { t, toggleLocale } = useLocale();
+    const { t } = useLocale();
     const [open, setOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [activeMenu, setActiveMenu] = useState(null);
@@ -103,17 +128,17 @@ export default function Navbar() {
                             <AnimatePresence>
                                 {link.menu && activeMenu === link.menu ? (
                                     <motion.div
-                                        initial={{ opacity: 0, y: 8 }}
+                                        initial={{ opacity: 0, y: 6 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: 6 }}
-                                        transition={{ duration: 0.18 }}
-                                        className="absolute left-0 top-full z-50 min-w-[180px] rounded-xl bg-white p-2 shadow-lift"
+                                        exit={{ opacity: 0, y: 4 }}
+                                        transition={{ duration: 0.16 }}
+                                        className="absolute left-0 top-full z-50 mt-1 min-w-[220px] border-t-[3px] border-mustard bg-white shadow-lift"
                                     >
                                         {dropdownItems[link.menu].map((item) => (
                                             <a
                                                 key={item}
                                                 href={link.href}
-                                                className="block rounded-lg px-3 py-2 text-sm text-olive-800 transition hover:bg-olive-50"
+                                                className="block border-b border-olive-100/80 px-5 py-3.5 text-[15px] text-earth-dusk transition last:border-b-0 hover:bg-olive-50 hover:text-olive-800"
                                             >
                                                 {item}
                                             </a>
@@ -126,16 +151,6 @@ export default function Navbar() {
                 </nav>
 
                 <div className="ml-auto flex items-center gap-1 sm:gap-2 lg:ml-2">
-                    <button
-                        type="button"
-                        onClick={toggleLocale}
-                        className="inline-flex items-center gap-1.5 rounded-lg px-2 py-2 text-sm font-medium text-white/90 transition hover:bg-white/10"
-                        aria-label="Switch language"
-                    >
-                        <Languages className="h-4 w-4" />
-                        <span className="hidden sm:inline">{t.nav.language}</span>
-                    </button>
-
                     <Link
                         href="/login"
                         className="hidden items-center gap-1.5 rounded-lg px-2 py-2 text-[15px] text-white/95 transition hover:bg-white/10 sm:text-base xl:inline-flex"
