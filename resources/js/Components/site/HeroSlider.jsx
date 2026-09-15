@@ -1,3 +1,4 @@
+import { Link } from '@inertiajs/react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
@@ -20,7 +21,7 @@ const SLIDES = [
         titleLead: "Discover Nanyuki's",
         titleAccent: 'Wild side',
         cta: 'Start exploring',
-        ctaHref: '#activities',
+        ctaHref: '/explore?category=thingsToDo',
     },
     {
         id: 3,
@@ -32,7 +33,7 @@ const SLIDES = [
         titleLead: 'Unwind in the Heart Of Nanyuki',
         titleAccent: 'Stay. Relax. Explore',
         cta: 'Check in',
-        ctaHref: '#stay',
+        ctaHref: '/explore?category=stay',
     },
     {
         id: 4,
@@ -45,7 +46,7 @@ const SLIDES = [
         titleLead: "Nanyuki's Finest Flavors",
         titleAccent: 'Redefined',
         cta: 'See more',
-        ctaHref: '#eat',
+        ctaHref: '/explore?category=eatDrink',
     },
 ];
 
@@ -135,7 +136,7 @@ export default function HeroSlider() {
                         transition={{ delay: 0.22, duration: 0.6 }}
                         className="mt-8"
                     >
-                        <a
+                        <Link
                             href={slide.ctaHref}
                             className="group inline-flex items-center gap-3 rounded-full bg-mustard px-7 py-3.5 text-sm font-bold uppercase tracking-wide text-olive-950 shadow-lg transition hover:bg-white hover:text-mustard hover:shadow-md sm:text-base"
                         >
@@ -143,7 +144,7 @@ export default function HeroSlider() {
                             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-olive-950/10 transition group-hover:bg-mustard/15">
                                 <ArrowRight className="h-4 w-4" />
                             </span>
-                        </a>
+                        </Link>
                     </motion.div>
                 </div>
             ) : null}

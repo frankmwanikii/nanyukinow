@@ -80,14 +80,17 @@ export default function Footer() {
                     </h3>
                     <ul className="space-y-2.5 text-sm text-white/75">
                         <li>
-                            <a href="/" className="transition hover:text-mint">
+                            <Link href="/" className="transition hover:text-mint">
                                 {t.nav.home}
-                            </a>
+                            </Link>
                         </li>
                         <li>
-                            <a href="#listings" className="transition hover:text-mint">
-                                {t.topRated.title}
-                            </a>
+                            <Link
+                                href="/explore"
+                                className="transition hover:text-mint"
+                            >
+                                {t.nav.explore}
+                            </Link>
                         </li>
                         <li>
                             <a href="#categories" className="transition hover:text-mint">
@@ -108,24 +111,36 @@ export default function Footer() {
                     </h3>
                     <ul className="space-y-2.5 text-sm text-white/75">
                         <li>
-                            <a href="#eat" className="transition hover:text-mint">
+                            <Link
+                                href="/explore?category=eatDrink"
+                                className="transition hover:text-mint"
+                            >
                                 {t.nav.eatDrink}
-                            </a>
+                            </Link>
                         </li>
                         <li>
-                            <a href="#stay" className="transition hover:text-mint">
+                            <Link
+                                href="/explore?category=stay"
+                                className="transition hover:text-mint"
+                            >
                                 {t.nav.stay}
-                            </a>
+                            </Link>
                         </li>
                         <li>
-                            <a href="#activities" className="transition hover:text-mint">
+                            <Link
+                                href="/explore?category=thingsToDo"
+                                className="transition hover:text-mint"
+                            >
                                 {t.nav.thingsToDo}
-                            </a>
+                            </Link>
                         </li>
                         <li>
-                            <a href="#categories" className="transition hover:text-mint">
+                            <Link
+                                href="/explore?category=services"
+                                className="transition hover:text-mint"
+                            >
                                 {t.categories.items.services}
-                            </a>
+                            </Link>
                         </li>
                     </ul>
                 </div>

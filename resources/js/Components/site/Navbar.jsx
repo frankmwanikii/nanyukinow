@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import {
     Menu,
     Plus,
@@ -8,92 +8,35 @@ import {
     X,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import AuthModal from './AuthModal';
 import Logo from './Logo';
+import { explorePath, getCategoryByKey, mainCategories } from '@/data/categories';
 import { useLocale } from '@/i18n/LocaleContext';
 
-const dropdownItems = {
-    eatDrink: [
-        'Restaurants',
-        'Cafes',
-        'Bars & Lounges',
-        'Pork Joint & BBQ',
-        'Outdoor Dining',
-        'Fast Food & Takeaways',
-        'Bakery & Deserts',
-        'Garden Restaurant',
-    ],
-    stay: [
-        'Airbnbs',
-        'Hotels',
-        'Boutique Hotels',
-        'Conference Hotels',
-        'Luxury Camps',
-        'Private Villa',
-        'Resorts',
-        'Safari Lodges',
-        'Serviced Apartments',
-        'Lodges & Camps',
-    ],
-    thingsToDo: [
-        'Outdoor & Adventure',
-        'Wildlife & Nature',
-        'Gym & Fitness',
-        'Nightlife',
-        'Spas & Wellness',
-    ],
-    more: [
-        {
-            label: 'Services',
-            children: [
-                'Tours & Guides',
-                'Health & Medical',
-                'Finance & Banking',
-                'Beauty & Personal Care',
-                'Car Hire',
-                'Tech & Digital',
-                'Creative & Media',
-                'Cleaning & Maintenance',
-            ],
-        },
-        {
-            label: 'Shopping',
-            children: [
-                'Supermarkets',
-                'Local Shops',
-                'Electronics',
-                'Mobile Phones & Gadgets',
-                'African Fashions',
-                'Boutique & Apparel',
-                'Party Items',
-                'Gifts & Souvenirs',
-                'Flower & Decor',
-                'Curios & Souvenirs',
-            ],
-        },
-        {
-            label: 'Properties',
-            children: ['For Sale', 'For Rent', 'For Lease'],
-        },
-        {
-            label: 'Events',
-            children: [
-                'Music & Entertainment',
-                'Faith & Community',
-                'Lifestyle & Social',
-                'Family & Kids',
-                'Seasonal Events',
-                'Arts & Culture',
-                'Sports & Fitness',
-                'Wildlife & Conservation',
-                'Charity & Fundraisers',
-                'Business & Networking',
-                'Outdoor & Adventure',
-            ],
-        },
-    ],
-};
+const MORE_KEYS = ['services', 'shopping', 'properties', 'events'];
+
+const moreLabelToKey = Object.fromEntries(
+    MORE_KEYS.map((key) => [getCategoryByKey(key).label, key]),
+);
+
+function buildDropdownItems() {
+    const byKey = Object.fromEntries(
+        mainCategories.map((cat) => [cat.key, cat.children]),
+    );
+
+    return {
+        eatDrink: byKey.eatDrink,
+        stay: byKey.stay,
+        thingsToDo: byKey.thingsToDo,
+        more: MORE_KEYS.map((key) => {
+            const cat = getCategoryByKey(key);
+            return { label: cat.label, key: cat.key, children: cat.children };
+        }),
+    };
+}
+
+const dropdownItems = buildDropdownItems();
 
 function NavCaret({ open = false }) {
     return (
@@ -116,10 +59,10 @@ function NavCaret({ open = false }) {
     );
 }
 
-export default function Navbar() {
+export default function Navbar({ compact = false }) {
     const { t } = useLocale();
     const [open, setOpen] = useState(false);
-    const [scrolled, setScrolled] = useState(false);
+    const [scrolled, setScrolled] = useState(compact);
     const [activeMenu, setActiveMenu] = useState(null);
     const [activeFlyout, setActiveFlyout] = useState(null);
     const [query, setQuery] = useState('');
@@ -133,11 +76,15 @@ export default function Navbar() {
     };
 
     useEffect(() => {
+        if (compact) {
+            setScrolled(true);
+            return undefined;
+        }
         const onScroll = () => setScrolled(window.scrollY > 24);
         onScroll();
         window.addEventListener('scroll', onScroll, { passive: true });
         return () => window.removeEventListener('scroll', onScroll);
-    }, []);
+    }, [compact]);
 
     useEffect(() => {
         document.body.style.overflow = open ? 'hidden' : '';
@@ -146,24 +93,52 @@ export default function Navbar() {
         };
     }, [open]);
 
-    const navLinks = [
-        { key: 'home', label: t.nav.home, href: '/', menu: null },
-        { key: 'eatDrink', label: t.nav.eatDrink, href: '#eat', menu: 'eatDrink' },
-        { key: 'stay', label: t.nav.stay, href: '#stay', menu: 'stay' },
-        {
-            key: 'thingsToDo',
-            label: t.nav.thingsToDo,
-            href: '#activities',
-            menu: 'thingsToDo',
-        },
-        { key: 'more', label: t.nav.more, href: '#categories', menu: 'more' },
-    ];
+    const navLinks = useMemo(
+        () => [
+            { key: 'home', label: t.nav.home, href: '/', menu: null },
+            {
+                key: 'eatDrink',
+                label: t.nav.eatDrink,
+                href: explorePath({ category: 'eatDrink' }),
+                menu: 'eatDrink',
+            },
+            {
+                key: 'stay',
+                label: t.nav.stay,
+                href: explorePath({ category: 'stay' }),
+                menu: 'stay',
+            },
+            {
+                key: 'thingsToDo',
+                label: t.nav.thingsToDo,
+                href: explorePath({ category: 'thingsToDo' }),
+                menu: 'thingsToDo',
+            },
+            {
+                key: 'more',
+                label: t.nav.more,
+                href: explorePath(),
+                menu: 'more',
+            },
+        ],
+        [t],
+    );
+
+    const submitSearch = (e) => {
+        e.preventDefault();
+        router.get(
+            '/explore',
+            query.trim() ? { q: query.trim() } : {},
+            { preserveState: false },
+        );
+        setOpen(false);
+    };
 
     return (
         <header
             className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
-                scrolled
-                    ? 'bg-olive-600/95 shadow-lg shadow-earth-dusk/20 backdrop-blur-md'
+                scrolled || compact
+                    ? 'bg-[#4f5a3e]/95 shadow-lg shadow-earth-dusk/20 backdrop-blur-md'
                     : 'bg-transparent'
             }`}
         >
@@ -172,9 +147,7 @@ export default function Navbar() {
 
                 <form
                     className="relative ml-1 hidden min-w-0 flex-1 items-center md:flex"
-                    onSubmit={(e) => {
-                        e.preventDefault();
-                    }}
+                    onSubmit={submitSearch}
                     role="search"
                 >
                     <Search className="pointer-events-none absolute left-0 h-4 w-4 text-white/80" />
@@ -207,16 +180,14 @@ export default function Navbar() {
                                 className="relative"
                                 onMouseEnter={() => {
                                     setActiveMenu(link.menu);
-                                    setActiveFlyout(
-                                        isMore ? 'Services' : null,
-                                    );
+                                    setActiveFlyout(null);
                                 }}
                                 onMouseLeave={() => {
                                     setActiveMenu(null);
                                     setActiveFlyout(null);
                                 }}
                             >
-                                <a
+                                <Link
                                     href={link.href}
                                     className="inline-flex items-center gap-1 rounded-lg px-2.5 py-2 text-[15px] font-medium text-white/95 transition hover:bg-white/10 hover:text-white sm:text-base"
                                 >
@@ -226,7 +197,7 @@ export default function Navbar() {
                                             open={activeMenu === link.menu}
                                         />
                                     ) : null}
-                                </a>
+                                </Link>
                                 <AnimatePresence>
                                     {link.menu &&
                                     activeMenu === link.menu ? (
@@ -235,13 +206,13 @@ export default function Navbar() {
                                             animate={{ opacity: 1, y: 0 }}
                                             exit={{ opacity: 0, y: 4 }}
                                             transition={{ duration: 0.16 }}
-                                            className={`absolute top-full z-[60] mt-1 flex ${
+                                            className={`absolute top-full z-[60] mt-1 ${
                                                 isMore
                                                     ? 'right-0'
                                                     : 'left-0'
                                             }`}
                                         >
-                                            <div className="min-w-[220px] border-t-[3px] border-mustard bg-white shadow-lift">
+                                            <div className="relative min-w-[220px] border-t-[3px] border-mustard bg-white shadow-lift">
                                                 {items.map((item) => {
                                                     const label =
                                                         typeof item ===
@@ -261,22 +232,38 @@ export default function Navbar() {
                                                         hasFlyout &&
                                                         activeFlyout ===
                                                             label;
+                                                    const itemHref =
+                                                        typeof item ===
+                                                        'string'
+                                                            ? explorePath({
+                                                                  category:
+                                                                      link.menu,
+                                                                  subcategory:
+                                                                      item,
+                                                              })
+                                                            : explorePath({
+                                                                  category:
+                                                                      item.key ||
+                                                                      moreLabelToKey[
+                                                                          label
+                                                                      ],
+                                                              });
 
                                                     return (
                                                         <div
                                                             key={label}
-                                                            onMouseEnter={() =>
-                                                                setActiveFlyout(
+                                                            onMouseEnter={() => {
+                                                                if (
                                                                     hasFlyout
-                                                                        ? label
-                                                                        : null,
-                                                                )
-                                                            }
-                                                        >
-                                                            <a
-                                                                href={
-                                                                    link.href
+                                                                ) {
+                                                                    setActiveFlyout(
+                                                                        label,
+                                                                    );
                                                                 }
+                                                            }}
+                                                        >
+                                                            <Link
+                                                                href={itemHref}
                                                                 className={`flex items-center justify-between border-b border-olive-100/80 px-5 py-3.5 text-[15px] text-earth-dusk transition last:border-b-0 hover:bg-olive-50 hover:text-olive-800 ${
                                                                     flyoutOpen
                                                                         ? 'bg-olive-50 text-olive-800'
@@ -302,28 +289,41 @@ export default function Navbar() {
                                                                         />
                                                                     </svg>
                                                                 ) : null}
-                                                            </a>
+                                                            </Link>
                                                         </div>
                                                     );
                                                 })}
+
+                                                {isMore &&
+                                                flyoutItem?.children ? (
+                                                    <div className="absolute left-full top-0 z-[70] min-w-[240px] border-t-[3px] border-mustard bg-white shadow-lift">
+                                                        {flyoutItem.children.map(
+                                                            (child) => (
+                                                                <Link
+                                                                    key={
+                                                                        child
+                                                                    }
+                                                                    href={explorePath(
+                                                                        {
+                                                                            category:
+                                                                                flyoutItem.key ||
+                                                                                moreLabelToKey[
+                                                                                    flyoutItem
+                                                                                        .label
+                                                                                ],
+                                                                            subcategory:
+                                                                                child,
+                                                                        },
+                                                                    )}
+                                                                    className="block border-b border-olive-100/80 px-5 py-3.5 text-[15px] text-earth-dusk transition last:border-b-0 hover:bg-olive-50 hover:text-olive-800"
+                                                                >
+                                                                    {child}
+                                                                </Link>
+                                                            ),
+                                                        )}
+                                                    </div>
+                                                ) : null}
                                             </div>
-                                            {flyoutItem?.children ? (
-                                                <div className="min-w-[240px] border-t-[3px] border-mustard bg-white shadow-lift">
-                                                    {flyoutItem.children.map(
-                                                        (child) => (
-                                                            <a
-                                                                key={child}
-                                                                href={
-                                                                    link.href
-                                                                }
-                                                                className="block border-b border-olive-100/80 px-5 py-3.5 text-[15px] text-earth-dusk transition last:border-b-0 hover:bg-olive-50 hover:text-olive-800"
-                                                            >
-                                                                {child}
-                                                            </a>
-                                                        ),
-                                                    )}
-                                                </div>
-                                            ) : null}
                                         </motion.div>
                                     ) : null}
                                 </AnimatePresence>
@@ -376,12 +376,12 @@ export default function Navbar() {
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        className="overflow-hidden border-t border-white/10 bg-olive-700 lg:hidden"
+                        className="overflow-hidden border-t border-white/10 bg-[#4f5a3e] lg:hidden"
                     >
                         <div className="space-y-4 px-4 py-4">
                             <form
                                 className="flex items-center gap-2 rounded-xl bg-white/10 px-3 py-2"
-                                onSubmit={(e) => e.preventDefault()}
+                                onSubmit={submitSearch}
                             >
                                 <Search className="h-4 w-4 text-white/80" />
                                 <input
@@ -394,14 +394,14 @@ export default function Navbar() {
                             </form>
                             <div className="flex flex-col gap-1">
                                 {navLinks.map((link) => (
-                                    <a
+                                    <Link
                                         key={link.key}
                                         href={link.href}
                                         onClick={() => setOpen(false)}
                                         className="rounded-lg px-3 py-3 text-base font-medium text-white hover:bg-white/10"
                                     >
                                         {link.label}
-                                    </a>
+                                    </Link>
                                 ))}
                             </div>
                             <div className="flex flex-col gap-2 border-t border-white/10 pt-4">

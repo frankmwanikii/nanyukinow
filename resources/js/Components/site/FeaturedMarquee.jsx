@@ -1,3 +1,4 @@
+import { Link } from '@inertiajs/react';
 import { useLocale } from '@/i18n/LocaleContext';
 
 export default function FeaturedMarquee({ items }) {
@@ -12,7 +13,7 @@ export default function FeaturedMarquee({ items }) {
             <div className="group/marquee overflow-hidden">
                 <div className="flex w-max gap-4 animate-marquee group-hover/marquee:[animation-play-state:paused] motion-reduce:animate-none">
                     {loop.map((item, i) => (
-                        <a
+                        <Link
                             key={`${item.id}-${i}`}
                             href={item.href}
                             className="group w-[min(82vw,22rem)] shrink-0 overflow-hidden rounded-2xl shadow-lift sm:w-[24rem]"
@@ -36,7 +37,7 @@ export default function FeaturedMarquee({ items }) {
                                     {t.featured.view}
                                 </span>
                             </div>
-                        </a>
+                        </Link>
                     ))}
                 </div>
             </div>

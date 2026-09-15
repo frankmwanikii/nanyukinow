@@ -55,8 +55,10 @@ export default function ListingCard({ listing, featured = false }) {
                 <p className="flex items-center gap-1.5 text-sm text-olive-600">
                     <MapPin className="h-3.5 w-3.5 shrink-0" />
                     {listing.location}
-                    {listing.category ? (
-                        <span className="text-olive-400">· {listing.category}</span>
+                    {listing.subcategory || listing.category ? (
+                        <span className="text-olive-400">
+                            · {listing.subcategory || listing.category}
+                        </span>
                     ) : null}
                 </p>
             </div>

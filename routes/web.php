@@ -8,6 +8,14 @@ Route::get('/', function () {
     return Inertia::render('Home');
 })->name('home');
 
+Route::get('/explore', function () {
+    return Inertia::render('Explore', [
+        'category' => request()->string('category')->toString() ?: null,
+        'subcategory' => request()->string('subcategory')->toString() ?: null,
+        'q' => request()->string('q')->toString() ?: null,
+    ]);
+})->name('explore');
+
 Route::get('/terms', function () {
     return Inertia::render('Terms');
 })->name('terms');
