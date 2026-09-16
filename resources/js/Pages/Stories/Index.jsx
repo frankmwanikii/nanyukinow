@@ -1,6 +1,11 @@
 import { Link } from '@inertiajs/react';
-import { Search, SlidersHorizontal } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import {
+    ChevronLeft,
+    ChevronRight,
+    Filter,
+    Search,
+} from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import SiteLayout from '@/Layouts/SiteLayout';
 import StoryCard from '@/Components/site/StoryCard';
 import {
@@ -10,18 +15,29 @@ import {
     formatArticleDate,
 } from '@/data/articles';
 
+const PAGE_SIZE = 12;
+
 export default function StoriesIndex({
     category: initialCategory = null,
     q: initialQ = '',
 }) {
     const [category, setCategory] = useState(initialCategory || null);
     const [q, setQ] = useState(initialQ || '');
-    const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+    const [filtersOpen, setFiltersOpen] = useState(true);
+    const [page, setPage] = useState(1);
 
     const filtered = useMemo(
         () => filterArticles({ category, q }),
         [category, q],
     );
+
+    const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+    const safePage = Math.min(page, totalPages);
+
+    const pageItems = useMemo(() => {
+        const start = (safePage - 1) * PAGE_SIZE;
+        return filtered.slice(start, start + PAGE_SIZE);
+    }, [filtered, safePage]);
 
     const recent = useMemo(
         () =>
@@ -33,6 +49,10 @@ export default function StoriesIndex({
                 .slice(0, 4),
         [],
     );
+
+    useEffect(() => {
+        setPage(1);
+    }, [category, q]);
 
     const sync = (nextCategory, nextQ) => {
         const params = new URLSearchParams();
@@ -114,7 +134,9 @@ export default function StoriesIndex({
                             <span>All stories</span>
                             <span
                                 className={`text-xs font-medium ${
-                                    !category ? 'text-white/70' : 'text-olive-400'
+                                    !category
+                                        ? 'text-white/70'
+                                        : 'text-olive-400'
                                 }`}
                             >
                                 {articles.length}
@@ -154,7 +176,7 @@ export default function StoriesIndex({
                 </ul>
             </div>
 
-            <div className="hidden rounded-2xl bg-white p-5 shadow-soft ring-1 ring-olive-100 sm:p-6 lg:block">
+            <div className="rounded-2xl bg-white p-5 shadow-soft ring-1 ring-olive-100 sm:p-6">
                 <h2 className="font-display text-base font-semibold text-earth-dusk">
                     Latest
                 </h2>
@@ -182,7 +204,8 @@ export default function StoriesIndex({
         </aside>
     );
 
-    const [featured, ...rest] = filtered;
+    const [featured, ...rest] =
+        safePage === 1 ? pageItems : [null, ...pageItems];
 
     return (
         <SiteLayout title="Stories & travel tips">
@@ -203,54 +226,43 @@ export default function StoriesIndex({
 
             <section className="py-8 sm:py-12 lg:py-14">
                 <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
-                    <div className="mb-5 flex items-center justify-between gap-3 lg:hidden">
-                        <p className="text-sm text-olive-600">
-                            {filtered.length}{' '}
-                            {filtered.length === 1 ? 'story' : 'stories'}
-                        </p>
+                    <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+                        <div>
+                            <h2 className="font-display text-2xl font-semibold text-earth-dusk">
+                                {category || 'All stories'}
+                            </h2>
+                            <p className="mt-1 text-sm text-olive-600">
+                                {filtered.length}{' '}
+                                {filtered.length === 1 ? 'story' : 'stories'}
+                                {q.trim() ? ` matching “${q.trim()}”` : ''}
+                                {totalPages > 1
+                                    ? ` · Page ${safePage} of ${totalPages}`
+                                    : ''}
+                            </p>
+                        </div>
                         <button
                             type="button"
-                            onClick={() =>
-                                setMobileFiltersOpen((open) => !open)
-                            }
-                            className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-olive-800 shadow-soft ring-1 ring-olive-200"
+                            onClick={() => setFiltersOpen((open) => !open)}
+                            className="inline-flex items-center gap-2.5 text-sm font-bold text-earth-dusk transition hover:text-olive-700"
+                            aria-expanded={filtersOpen}
                         >
-                            <SlidersHorizontal className="h-4 w-4" />
-                            {mobileFiltersOpen ? 'Hide filters' : 'Filters'}
+                            {filtersOpen ? 'Hide Filters' : 'Show Filters'}
+                            <Filter className="h-4 w-4 fill-current" />
                         </button>
                     </div>
 
-                    {mobileFiltersOpen ? (
-                        <div className="mb-8 lg:hidden">{sidebar}</div>
-                    ) : null}
-
-                    <div className="grid gap-8 lg:grid-cols-[17.5rem_minmax(0,1fr)] xl:grid-cols-[19rem_minmax(0,1fr)] xl:gap-10">
-                        <div className="hidden lg:block">{sidebar}</div>
+                    <div
+                        className={`grid gap-8 xl:gap-10 ${
+                            filtersOpen
+                                ? 'lg:grid-cols-[17.5rem_minmax(0,1fr)] xl:grid-cols-[19rem_minmax(0,1fr)]'
+                                : ''
+                        }`}
+                    >
+                        {filtersOpen ? (
+                            <div className="min-w-0">{sidebar}</div>
+                        ) : null}
 
                         <div className="min-w-0">
-                            <div className="mb-6 hidden items-end justify-between gap-4 lg:flex">
-                                <div>
-                                    <h2 className="font-display text-2xl font-semibold text-earth-dusk">
-                                        {category || 'All stories'}
-                                    </h2>
-                                    <p className="mt-1 text-sm text-olive-600">
-                                        {filtered.length}{' '}
-                                        {filtered.length === 1
-                                            ? 'story'
-                                            : 'stories'}
-                                        {q.trim()
-                                            ? ` matching “${q.trim()}”`
-                                            : ''}
-                                    </p>
-                                </div>
-                                <Link
-                                    href="/explore"
-                                    className="text-sm font-semibold text-olive-700 underline-offset-2 hover:underline"
-                                >
-                                    Explore listings
-                                </Link>
-                            </div>
-
                             {filtered.length === 0 ? (
                                 <div className="rounded-2xl bg-white px-6 py-16 text-center shadow-soft">
                                     <p className="font-display text-lg text-olive-800">
@@ -265,24 +277,110 @@ export default function StoriesIndex({
                                     </button>
                                 </div>
                             ) : (
-                                <div className="space-y-5">
-                                    {featured ? (
-                                        <StoryCard
-                                            article={featured}
-                                            featured
-                                        />
-                                    ) : null}
-                                    {rest.length > 0 ? (
-                                        <div className="grid gap-5 sm:grid-cols-2">
-                                            {rest.map((article) => (
-                                                <StoryCard
-                                                    key={article.id}
-                                                    article={article}
-                                                />
-                                            ))}
+                                <>
+                                    <div className="space-y-5">
+                                        {featured ? (
+                                            <StoryCard
+                                                article={featured}
+                                                featured
+                                            />
+                                        ) : null}
+                                        {(safePage === 1 ? rest : pageItems)
+                                            .length > 0 ? (
+                                            <div className="grid gap-5 sm:grid-cols-2">
+                                                {(safePage === 1
+                                                    ? rest
+                                                    : pageItems
+                                                ).map((article) => (
+                                                    <StoryCard
+                                                        key={article.id}
+                                                        article={article}
+                                                    />
+                                                ))}
+                                            </div>
+                                        ) : null}
+                                    </div>
+
+                                    {totalPages > 1 ? (
+                                        <div className="mt-10 flex flex-col items-center gap-3">
+                                            <nav
+                                                className="inline-flex items-center gap-1 rounded-2xl border border-olive-200/80 bg-white p-1.5 shadow-soft"
+                                                aria-label="Stories pagination"
+                                            >
+                                                <button
+                                                    type="button"
+                                                    disabled={safePage <= 1}
+                                                    onClick={() =>
+                                                        setPage((p) =>
+                                                            Math.max(1, p - 1),
+                                                        )
+                                                    }
+                                                    className="inline-flex h-9 items-center gap-1 rounded-xl px-3 text-sm font-semibold text-olive-700 transition hover:bg-olive-50 disabled:cursor-not-allowed disabled:opacity-35"
+                                                    aria-label="Previous page"
+                                                >
+                                                    <ChevronLeft className="h-4 w-4" />
+                                                    <span className="hidden sm:inline">
+                                                        Prev
+                                                    </span>
+                                                </button>
+                                                <div className="mx-0.5 h-5 w-px bg-olive-200" />
+                                                {Array.from(
+                                                    { length: totalPages },
+                                                    (_, i) => i + 1,
+                                                ).map((n) => {
+                                                    const active =
+                                                        n === safePage;
+                                                    return (
+                                                        <button
+                                                            key={n}
+                                                            type="button"
+                                                            onClick={() =>
+                                                                setPage(n)
+                                                            }
+                                                            className={`flex h-9 min-w-9 items-center justify-center rounded-xl px-3 text-sm font-semibold transition ${
+                                                                active
+                                                                    ? 'bg-[#4f5a3e] text-white shadow-sm'
+                                                                    : 'text-earth-dusk hover:bg-olive-50'
+                                                            }`}
+                                                            aria-current={
+                                                                active
+                                                                    ? 'page'
+                                                                    : undefined
+                                                            }
+                                                        >
+                                                            {n}
+                                                        </button>
+                                                    );
+                                                })}
+                                                <div className="mx-0.5 h-5 w-px bg-olive-200" />
+                                                <button
+                                                    type="button"
+                                                    disabled={
+                                                        safePage >= totalPages
+                                                    }
+                                                    onClick={() =>
+                                                        setPage((p) =>
+                                                            Math.min(
+                                                                totalPages,
+                                                                p + 1,
+                                                            ),
+                                                        )
+                                                    }
+                                                    className="inline-flex h-9 items-center gap-1 rounded-xl px-3 text-sm font-semibold text-olive-700 transition hover:bg-olive-50 disabled:cursor-not-allowed disabled:opacity-35"
+                                                    aria-label="Next page"
+                                                >
+                                                    <span className="hidden sm:inline">
+                                                        Next
+                                                    </span>
+                                                    <ChevronRight className="h-4 w-4" />
+                                                </button>
+                                            </nav>
+                                            <p className="text-xs font-medium text-olive-500">
+                                                Page {safePage} of {totalPages}
+                                            </p>
                                         </div>
                                     ) : null}
-                                </div>
+                                </>
                             )}
                         </div>
                     </div>
