@@ -148,15 +148,11 @@ export default function Navbar({ compact = false }) {
                         <button
                             type="button"
                             className="inline-flex shrink-0 rounded-lg p-2 text-white transition hover:bg-white/10"
-                            onClick={() => setOpen((v) => !v)}
+                            onClick={() => setOpen(true)}
                             aria-expanded={open}
-                            aria-label={open ? 'Close menu' : 'Open menu'}
+                            aria-label="Open menu"
                         >
-                            {open ? (
-                                <X className="h-6 w-6" strokeWidth={1.85} />
-                            ) : (
-                                <Menu className="h-6 w-6" strokeWidth={1.85} />
-                            )}
+                            <Menu className="h-6 w-6" strokeWidth={1.85} />
                         </button>
                         <Logo className="min-w-0" />
                     </div>
@@ -407,67 +403,73 @@ export default function Navbar({ compact = false }) {
 
             <AnimatePresence>
                 {open ? (
-                    <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        className="overflow-hidden border-t border-white/10 bg-[#4f5a3e] font-display lg:hidden"
-                    >
-                        <div className="space-y-4 px-4 py-4">
-                            <form
-                                className="relative flex items-center gap-2 rounded-xl bg-white/10 px-3 py-2"
-                                onSubmit={submitSearch}
-                            >
-                                <Search className="relative z-10 h-4 w-4 shrink-0 text-white/80" />
-                                <FlippingSearchHint
-                                    visible={!query.trim()}
-                                    className="left-9 text-sm"
-                                />
-                                <input
-                                    type="search"
-                                    value={query}
-                                    onChange={(e) => setQuery(e.target.value)}
-                                    placeholder={
-                                        query.trim()
-                                            ? 'What are you looking for?'
-                                            : ''
-                                    }
-                                    aria-label="Search"
-                                    className="w-full border-0 bg-transparent font-sans text-sm text-white placeholder:text-white/65 focus:outline-none focus:ring-0"
-                                />
-                            </form>
-                            <div className="flex flex-col gap-1">
-                                {navLinks.map((link) => (
-                                    <Link
-                                        key={link.key}
-                                        href={link.href}
-                                        onClick={() => setOpen(false)}
-                                        className="rounded-lg px-3 py-3 text-lg font-semibold text-white hover:bg-white/10"
-                                    >
-                                        {link.label}
-                                    </Link>
-                                ))}
-                            </div>
-                            <div className="flex flex-col gap-2 border-t border-white/10 pt-4">
+                    <>
+                        <motion.button
+                            type="button"
+                            key="mobile-nav-backdrop"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="fixed inset-0 z-[1200] bg-black/50 backdrop-blur-[2px] lg:hidden"
+                            aria-label="Close menu"
+                            onClick={() => setOpen(false)}
+                        />
+                        <motion.aside
+                            key="mobile-nav-drawer"
+                            initial={{ x: '-100%' }}
+                            animate={{ x: 0 }}
+                            exit={{ x: '-100%' }}
+                            transition={{
+                                type: 'spring',
+                                stiffness: 380,
+                                damping: 34,
+                            }}
+                            className="fixed inset-y-0 left-0 z-[1201] flex w-[min(20rem,86vw)] flex-col bg-[#4f5a3e] font-display shadow-lift lg:hidden"
+                            role="dialog"
+                            aria-modal="true"
+                            aria-label="Main menu"
+                        >
+                            <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-3.5">
+                                <Logo className="min-w-0" />
                                 <button
                                     type="button"
-                                    onClick={() => openAuth('login')}
-                                    className="inline-flex items-center gap-2 rounded-lg px-3 py-3 text-left text-base font-semibold text-white transition hover:bg-white/10"
+                                    onClick={() => setOpen(false)}
+                                    className="inline-flex rounded-lg p-2 text-white transition hover:bg-white/10"
+                                    aria-label="Close menu"
                                 >
-                                    <User className="h-4 w-4" />
-                                    Sign in or register
+                                    <X className="h-5 w-5" strokeWidth={2} />
                                 </button>
+                            </div>
+
+                            <nav className="flex-1 overflow-y-auto px-3 py-4">
+                                <ul className="flex flex-col gap-0.5">
+                                    {navLinks.map((link) => (
+                                        <li key={link.key}>
+                                            <Link
+                                                href={link.href}
+                                                onClick={() => setOpen(false)}
+                                                className="block rounded-xl px-3 py-3.5 text-lg font-semibold text-white transition hover:bg-white/10"
+                                            >
+                                                {link.label}
+                                            </Link>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </nav>
+
+                            <div className="border-t border-white/10 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
                                 <Link
                                     href="/register"
-                                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-mustard px-4 py-3 text-base font-bold text-olive-950 transition hover:bg-white hover:text-mustard"
+                                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-mustard px-4 py-3.5 text-base font-bold text-olive-950 transition hover:bg-white hover:text-mustard"
                                     onClick={() => setOpen(false)}
                                 >
                                     <Plus className="h-4 w-4 stroke-[2.5]" />
                                     Add Business
                                 </Link>
                             </div>
-                        </div>
-                    </motion.div>
+                        </motion.aside>
+                    </>
                 ) : null}
             </AnimatePresence>
 
