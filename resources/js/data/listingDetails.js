@@ -313,14 +313,30 @@ export const listingDetailsById = {
         address: 'Nanyuki Town centre',
         gallery: [
             {
-                src: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1200&q=80',
                 label: 'On trail',
                 kind: 'outdoor',
+                images: [
+                    'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1400&q=80',
+                    'https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=1400&q=80',
+                    'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1400&q=80',
+                ],
             },
             {
-                src: 'https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&w=1200&q=80',
                 label: 'Team',
                 kind: 'team',
+                images: [
+                    'https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&w=1400&q=80',
+                    'https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=1400&q=80',
+                    'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1400&q=80',
+                ],
+            },
+            {
+                label: 'Briefing',
+                kind: 'workspace',
+                images: [
+                    'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1400&q=80',
+                    'https://images.unsplash.com/photo-1497215842964-222b430dc094?auto=format&fit=crop&w=1400&q=80',
+                ],
             },
         ],
         video: {
@@ -383,6 +399,8 @@ export const listingDetailsById = {
                 kind: 'checkout',
                 images: [
                     'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?auto=format&fit=crop&w=1400&q=80',
+                    'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=1400&q=80',
+                    'https://images.unsplash.com/photo-1556740758-90de374c12ad?auto=format&fit=crop&w=1400&q=80',
                 ],
             },
         ],
@@ -517,6 +535,153 @@ export const listingDetailsById = {
     },
 };
 
+const ACTIVITY_GALLERY = [
+    {
+        label: 'Experience',
+        kind: 'experience',
+        images: [
+            'https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1549366021-9f761d450615?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&w=1400&q=80',
+        ],
+    },
+    {
+        label: 'Outdoors',
+        kind: 'outdoor',
+        images: [
+            'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=1400&q=80',
+        ],
+    },
+    {
+        label: 'Highlights',
+        kind: 'highlights',
+        images: [
+            'https://images.unsplash.com/photo-1456926638090-c60cd07ea953?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1474044159687-1ee9f38a6762?auto=format&fit=crop&w=1400&q=80',
+        ],
+    },
+];
+
+const SERVICE_GALLERY = [
+    {
+        label: 'On the job',
+        kind: 'work',
+        images: [
+            'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1400&q=80',
+        ],
+    },
+    {
+        label: 'Team',
+        kind: 'team',
+        images: [
+            'https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1400&q=80',
+        ],
+    },
+    {
+        label: 'Workspace',
+        kind: 'workspace',
+        images: [
+            'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1497215842964-222b430dc094?auto=format&fit=crop&w=1400&q=80',
+        ],
+    },
+];
+
+const SHOP_GALLERY = [
+    {
+        label: 'Storefront',
+        kind: 'store',
+        images: [
+            'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?auto=format&fit=crop&w=1400&q=80',
+        ],
+    },
+    {
+        label: 'Products',
+        kind: 'products',
+        images: [
+            'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1488459716781-31a44007a7d5?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1528698827591-e19ccd7bc23d?auto=format&fit=crop&w=1400&q=80',
+        ],
+    },
+    {
+        label: 'Details',
+        kind: 'details',
+        images: [
+            'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=1400&q=80',
+        ],
+    },
+];
+
+const EVENT_GALLERY = [
+    {
+        label: 'Stage',
+        kind: 'stage',
+        images: [
+            'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=1400&q=80',
+        ],
+    },
+    {
+        label: 'Crowd',
+        kind: 'crowd',
+        images: [
+            'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1400&q=80',
+        ],
+    },
+    {
+        label: 'Atmosphere',
+        kind: 'venue',
+        images: [
+            'https://images.unsplash.com/photo-1511379938547-c1f69419868d?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?auto=format&fit=crop&w=1400&q=80',
+        ],
+    },
+];
+
+/** Extra stock frames used to pad thin galleries to at least 3 photos. */
+const PAD_IMAGES = [
+    'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&w=1400&q=80',
+    'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1400&q=80',
+    'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1400&q=80',
+    'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=1400&q=80',
+    'https://images.unsplash.com/photo-1474044159687-1ee9f38a6762?auto=format&fit=crop&w=1400&q=80',
+    'https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=1400&q=80',
+];
+
+function ensureGalleryDepth(gallery, minPerSpace = 3) {
+    const spaces = normalizeGallerySpaces(gallery);
+    return spaces.map((space, spaceIndex) => {
+        const images = [...space.images];
+        let pad = 0;
+        while (images.length < minPerSpace) {
+            const candidate =
+                PAD_IMAGES[(spaceIndex * 3 + pad) % PAD_IMAGES.length];
+            if (!images.includes(candidate)) {
+                images.push(candidate);
+            }
+            pad += 1;
+            if (pad > PAD_IMAGES.length + 2) break;
+        }
+        return {
+            ...space,
+            images,
+            cover: images[0],
+        };
+    });
+}
+
 const DEFAULTS_BY_CATEGORY = {
     eatDrink: {
         galleryKinds: DINING_GALLERY,
@@ -536,6 +701,7 @@ const DEFAULTS_BY_CATEGORY = {
         ],
     },
     thingsToDo: {
+        galleryKinds: ACTIVITY_GALLERY,
         amenities: ['parking', 'family'],
         payments: PAY_DEFAULT,
         withHours: true,
@@ -547,6 +713,7 @@ const DEFAULTS_BY_CATEGORY = {
         bring: ['Comfortable shoes', 'Water'],
     },
     services: {
+        galleryKinds: SERVICE_GALLERY,
         amenities: [],
         payments: ['Cash', 'M-Pesa'],
         withHours: true,
@@ -558,6 +725,7 @@ const DEFAULTS_BY_CATEGORY = {
         ],
     },
     shopping: {
+        galleryKinds: SHOP_GALLERY,
         amenities: ['parking', 'cards', 'wifi'],
         payments: PAY_DEFAULT,
         withHours: true,
@@ -575,6 +743,7 @@ const DEFAULTS_BY_CATEGORY = {
         ],
     },
     events: {
+        galleryKinds: EVENT_GALLERY,
         payments: ['M-Pesa', 'Cash'],
         withHours: false,
         facts: [
@@ -591,30 +760,42 @@ const DEFAULTS_BY_CATEGORY = {
 
 function buildGallery(listing, defaults) {
     if (defaults.galleryKinds?.length) {
-        return defaults.galleryKinds.map((space, i) => {
-            const images = Array.isArray(space.images)
-                ? [...space.images]
-                : space.src
-                  ? [space.src]
-                  : [];
-            if (i === 0 && listing.image) {
-                images[0] = listing.image;
-            }
-            return {
-                label: space.label || 'Gallery',
-                kind: space.kind || space.label || 'space',
-                images,
-            };
-        });
+        return ensureGalleryDepth(
+            defaults.galleryKinds.map((space, i) => {
+                const images = Array.isArray(space.images)
+                    ? [...space.images]
+                    : space.src
+                      ? [space.src]
+                      : [];
+                if (i === 0 && listing.image) {
+                    images[0] = listing.image;
+                }
+                return {
+                    label: space.label || 'Gallery',
+                    kind: space.kind || space.label || 'space',
+                    images,
+                };
+            }),
+        );
     }
-    if (!listing.image) return [];
-    return [
+    if (!listing.image) return ensureGalleryDepth(ROOM_GALLERY);
+    return ensureGalleryDepth([
         {
             label: 'Gallery',
             kind: 'main',
             images: [listing.image],
         },
-    ];
+        {
+            label: 'More views',
+            kind: 'more',
+            images: PAD_IMAGES.slice(0, 3),
+        },
+        {
+            label: 'Highlights',
+            kind: 'highlights',
+            images: PAD_IMAGES.slice(2, 5),
+        },
+    ]);
 }
 
 /**
@@ -683,7 +864,7 @@ export function getListingDetail(listing) {
         ...listing,
         ...base,
         ...explicit,
-        gallery: explicit?.gallery ?? base.gallery,
+        gallery: ensureGalleryDepth(explicit?.gallery ?? base.gallery),
         chips: { ...base.chips, ...explicit?.chips },
         reviewSummary: { ...base.reviewSummary, ...explicit?.reviewSummary },
     };
