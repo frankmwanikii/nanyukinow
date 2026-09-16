@@ -16,10 +16,10 @@ export const categoryLayouts = {
         main: [
             'visualTour',
             'video',
+            'menus',
             'amenities',
             'chips',
             'priceRange',
-            'docs',
         ],
         side: ['about', 'map', 'hours', 'payments'],
         ctaSecondary: 'View menu',

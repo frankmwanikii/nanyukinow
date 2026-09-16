@@ -220,14 +220,18 @@ export const listingDetailsById = {
             'wheelchair',
         ],
         priceRangeLabel: 'Pricey',
-        docs: [
+        menus: [
             {
                 title: 'Lunch menu',
-                image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=400&q=80',
+                image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80',
             },
             {
                 title: 'Drinks list',
-                image: 'https://images.unsplash.com/photo-1470337458703-46ad1756a187?auto=format&fit=crop&w=400&q=80',
+                image: 'https://images.unsplash.com/photo-1470337458703-46ad1756a187?auto=format&fit=crop&w=800&q=80',
+            },
+            {
+                title: 'Dessert board',
+                image: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=800&q=80',
             },
         ],
         hours: WEEKDAY_HOURS.map((h) =>
@@ -241,7 +245,85 @@ export const listingDetailsById = {
             tags: ['Trout', 'Outdoor dining'],
         },
         reviewSummary: { count: 214, highlight: 'Unforgettable setting — come hungry.' },
-        relatedIds: [5, 't2', 'e3'],
+        relatedIds: [5, 't2', 'rn1'],
+    },
+
+    // Eat & Drink — Root North Farmshop & Cafe
+    rn1: {
+        about:
+            'Root North Farmshop & Café in Timau is a charming countryside stop nestled along the slopes of Mount Kenya. It blends a farm-to-table concept with a relaxed café experience, offering fresh, locally inspired meals, baked goods, and quality coffee in a serene open-air setting.\n\nSurrounded by expansive farmland and cool highland air, it’s a peaceful retreat for travellers and locals passing through the Nanyuki–Timau corridor, ideal for slow breakfasts, casual lunches, or a quiet coffee break with scenic views.',
+        address: 'Timau Road, Mount Kenya slopes',
+        gallery: [
+            {
+                label: 'Café & terrace',
+                kind: 'dining',
+                images: [
+                    'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=1400&q=80',
+                    'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1400&q=80',
+                    'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1400&q=80',
+                ],
+            },
+            {
+                label: 'Farm shop',
+                kind: 'shop',
+                images: [
+                    'https://images.unsplash.com/photo-1488459716781-31db52582fe9?auto=format&fit=crop&w=1400&q=80',
+                    'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=1400&q=80',
+                ],
+            },
+        ],
+        video: {
+            poster:
+                'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=1200&q=80',
+            src: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
+            title: 'A morning at Root North',
+        },
+        amenities: [
+            'wifi',
+            'outdoor',
+            'parking',
+            'family',
+            'garden',
+            'cards',
+        ],
+        priceRangeLabel: 'Moderate',
+        menus: [
+            {
+                title: 'Drinks & food menu',
+                image: '/images/menus/root-north-menu-drinks-food.webp',
+            },
+            {
+                title: 'Pudding menu',
+                image: '/images/menus/root-north-menu-pudding.webp',
+            },
+        ],
+        hours: [
+            { day: 'Monday', open: '08:00', close: '17:00' },
+            { day: 'Tuesday', open: '08:00', close: '17:00' },
+            { day: 'Wednesday', open: '08:00', close: '17:00' },
+            { day: 'Thursday', open: '08:00', close: '17:00' },
+            { day: 'Friday', open: '08:00', close: '17:00' },
+            { day: 'Saturday', open: '08:00', close: '17:00' },
+            { day: 'Sunday', open: '08:00', close: '17:00' },
+        ],
+        hoursStatus: 'open',
+        payments: ['Cash', 'M-Pesa', 'Card'],
+        email: 'hello@rootnorth.co.ke',
+        socials: {
+            instagram: 'https://instagram.com/',
+            facebook: 'https://facebook.com/',
+            whatsapp: 'https://wa.me/254703564727',
+        },
+        chips: {
+            region: 'Timau Area',
+            categories: ['Eat & Drink', 'Cafes', 'Farmshop'],
+            tags: ['Farm-to-table', 'Coffee', 'Mount Kenya views'],
+        },
+        reviewSummary: {
+            count: 64,
+            highlight: 'Peaceful highland café — perfect coffee stop on the Timau road.',
+        },
+        relatedIds: ['t2', 2, 'e3'],
     },
 
     // Things to do — Mt Kenya Wildlife Conservancy
@@ -806,6 +888,7 @@ export function getListingDetail(listing) {
         credentials: defaults.credentials ?? [],
         brands: defaults.brands ?? [],
         docs: [],
+        menus: [],
         floorPlan: null,
         agent:
             listing.categoryKey === 'properties'

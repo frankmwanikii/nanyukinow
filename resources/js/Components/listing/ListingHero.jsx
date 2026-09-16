@@ -33,18 +33,7 @@ export default function ListingHero({ listing, secondaryCta }) {
                             />
                         ) : null}
                         <div className="min-w-0 pb-1">
-                            <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-mint">
-                                <span>{listing.category}</span>
-                                {listing.subcategory ? (
-                                    <>
-                                        <span className="text-white/40">·</span>
-                                        <span className="normal-case tracking-normal text-white/75">
-                                            {listing.subcategory}
-                                        </span>
-                                    </>
-                                ) : null}
-                            </div>
-                            <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl">
+                            <h1 className="font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl">
                                 {listing.title}
                             </h1>
                             <p className="mt-2 max-w-xl text-sm text-white/80 sm:text-base">

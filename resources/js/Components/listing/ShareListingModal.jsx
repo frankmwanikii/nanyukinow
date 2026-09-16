@@ -33,7 +33,7 @@ function WhatsAppIcon({ className = '' }) {
 function TelegramIcon({ className = '' }) {
     return (
         <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden>
-            <path d="M21.8 4.2 2.9 11.5c-1.3.5-1.3 1.2-.2 1.5l4.8 1.5 1.8 5.6c.2.7.1 1 .9 1 .6 0 .8-.3 1.1-.6l2.7-2.6 5.6 4.1c1 .6 1.8.3 2.1-1l3.8-17.8c.4-1.5-.5-2.1-1.7-1.6z" />
+            <path d="M21.5 3.3 2.9 10.7c-1.3.5-1.3 1.2-.2 1.5l4.8 1.5 11.1-7c.5-.3 1-.1.6.2L9.7 14.3l-.3 4.7c.5 0 .7-.2 1-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.8-.8L22.9 4.5c.3-1.2-.5-1.7-1.4-1.2z" />
         </svg>
     );
 }
@@ -56,8 +56,19 @@ function LinkedInIcon({ className = '' }) {
 
 function ThreadsIcon({ className = '' }) {
     return (
-        <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden>
-            <path d="M16.3 9.2c-.1-1.9-1.1-3.3-3.1-3.8-.6-.2-1.3-.2-2-.2-2.7 0-4.4 1.8-4.4 4.5 0 1.6.7 2.9 1.9 3.6.5.3 1 .5 1.6.6l.2-.9c-.4-.1-.7-.2-1-.4-.8-.5-1.2-1.3-1.2-2.9 0-2 1.2-3.3 3-3.3.5 0 1 .1 1.4.2 1.3.4 1.9 1.3 2 2.7-1.1-.1-2.2 0-3.1.4-1.4.5-2.3 1.6-2.3 3.1 0 1.9 1.5 3.2 3.5 3.2 1.3 0 2.4-.5 3.2-1.5.5.9 1.2 1.3 2.1 1.4v-1c-.5-.1-.8-.3-1.1-.7-.2-.4-.3-.8-.4-1.3.2-.1.3-.3.4-.5.5-1 1-2.1 1.1-3.4.1-1.1 0-2.1-.3-3zM12.7 15c-1.1 0-1.8-.7-1.8-1.6 0-1.3 1.2-1.9 3-1.9.1 1.7-.8 3.5-1.2 3.5z" />
+        <svg viewBox="0 0 24 24" className={className} aria-hidden>
+            <text
+                x="12"
+                y="12"
+                textAnchor="middle"
+                dominantBaseline="central"
+                fill="currentColor"
+                fontSize="18"
+                fontWeight="700"
+                fontFamily="system-ui, -apple-system, Segoe UI, sans-serif"
+            >
+                @
+            </text>
         </svg>
     );
 }

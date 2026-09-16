@@ -802,6 +802,23 @@ const extras = [
         lng: 37.0732,
     },
     {
+        id: 'rn1',
+        title: 'Root North Farmshop & Cafe',
+        location: 'Timau',
+        category: 'Eat & Drink',
+        categoryKey: 'eatDrink',
+        subcategory: 'Cafes',
+        rating: 4.8,
+        image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=900&q=80',
+        logo: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=120&q=80',
+        badge: 'top',
+        phone: '+254 703 564 727',
+        tagline: 'Farm-to-table café on the Timau road',
+        priceLevel: '$$',
+        lat: 0.0285,
+        lng: 37.245,
+    },
+    {
         id: 'e4',
         title: 'Laikipia Outdoor BBQ',
         location: 'Nanyuki',
@@ -1098,6 +1115,19 @@ function jitterCoord(base, index, spread = 0.018) {
     return Number((base + offset).toFixed(5));
 }
 
+export function listingSlug(title, id) {
+    const base = String(title || '')
+        .toLowerCase()
+        .normalize('NFKD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .replace(/-{2,}/g, '-');
+
+    if (base) return base;
+    return `listing-${id ?? 'unknown'}`;
+}
+
 /**
  * Deduplicated catalogue for the Explore page.
  * Home sections keep their own curated arrays above.
@@ -1114,6 +1144,32 @@ export const allListings = (() => {
     return Array.from(map.values());
 })();
 
+/** Unique slug map so duplicate titles get a stable -id suffix. */
+const listingSlugById = (() => {
+    const used = new Map();
+    const byId = new Map();
+
+    allListings.forEach((item) => {
+        let slug = listingSlug(item.title, item.id);
+        if (used.has(slug) && used.get(slug) !== String(item.id)) {
+            slug = `${slug}-${item.id}`;
+        }
+        used.set(slug, String(item.id));
+        byId.set(String(item.id), slug);
+    });
+
+    return byId;
+})();
+
+export function slugForListing(listing) {
+    if (!listing) return 'listing';
+    if (listing.slug) return listing.slug;
+    return (
+        listingSlugById.get(String(listing.id)) ||
+        listingSlug(listing.title, listing.id)
+    );
+}
+
 export function enrichListing(item, index = 0) {
     const phones = [
         '+254 700 112 334',
@@ -1124,9 +1180,11 @@ export function enrichListing(item, index = 0) {
     const prices = ['$', '$$', '$$$'];
     const location = resolveLocation(item, index);
     const center = AREA_COORDS[location];
+    const slug = item.slug || slugForListing(item);
 
     return {
         ...item,
+        slug,
         location,
         area: location,
         lat: center
@@ -1177,6 +1235,27 @@ export function getListingById(id) {
     return enrichListing(allListings[index], index);
 }
 
+/** Lookup by name slug (preferred) or legacy id. */
+export function getListingBySlug(slugOrId) {
+    if (slugOrId == null || slugOrId === '') return null;
+    const key = String(slugOrId);
+
+    const index = allListings.findIndex((item) => {
+        const slug = item.slug || slugForListing(item);
+        return slug === key;
+    });
+    if (index !== -1) {
+        return enrichListing(allListings[index], index);
+    }
+
+    return getListingById(key);
+}
+
+export function listingHref(listing) {
+    const slug = slugForListing(listing);
+    return `/listings/${encodeURIComponent(slug)}`;
+}
+
 export function getRelatedListings(listing, relatedIds = [], limit = 3) {
     if (!listing) return [];
     const byId = new Map(
@@ -1188,25 +1267,40 @@ export function getRelatedListings(listing, relatedIds = [], limit = 3) {
     const picked = [];
     const seen = new Set([String(listing.id)]);
 
+    const sameSubcategory = (item) =>
+        Boolean(listing.subcategory) &&
+        item.subcategory === listing.subcategory;
+
+    const sameCategory = (item) =>
+        item.categoryKey === listing.categoryKey ||
+        item.category === listing.category;
+
+    const tryAdd = (item) => {
+        if (!item || seen.has(String(item.id))) return false;
+        picked.push(item);
+        seen.add(String(item.id));
+        return picked.length >= limit;
+    };
+
+    // 1) Explicit related IDs that match this subcategory / category
     for (const rid of relatedIds) {
         const item = byId.get(String(rid));
-        if (item && !seen.has(String(item.id))) {
-            picked.push(item);
-            seen.add(String(item.id));
+        if (!item) continue;
+        if (sameSubcategory(item) || sameCategory(item)) {
+            if (tryAdd(item)) return picked;
         }
-        if (picked.length >= limit) return picked;
     }
 
-    for (const item of byId.values()) {
-        if (seen.has(String(item.id))) continue;
-        if (
-            item.categoryKey === listing.categoryKey ||
-            item.location === listing.location
-        ) {
-            picked.push(item);
-            seen.add(String(item.id));
+    // 2) Same subcategory (e.g. all Airbnbs)
+    if (listing.subcategory) {
+        for (const item of byId.values()) {
+            if (sameSubcategory(item) && tryAdd(item)) return picked;
         }
-        if (picked.length >= limit) break;
+    }
+
+    // 3) Same category (e.g. all Stay)
+    for (const item of byId.values()) {
+        if (sameCategory(item) && tryAdd(item)) return picked;
     }
 
     return picked;

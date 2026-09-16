@@ -8,6 +8,7 @@ import EventSchedule from './EventSchedule';
 import FactStrip from './FactStrip';
 import FloorPlan from './FloorPlan';
 import HoursList from './HoursList';
+import MenuGallery from './MenuGallery';
 import ReviewsTeaser from './ReviewsTeaser';
 import VideoPreview from './VideoPreview';
 import VisualTour from './VisualTour';
@@ -139,16 +140,24 @@ export function renderListingSection(key, listing) {
                     priceRangeLabel={listing.priceRangeLabel}
                 />
             ) : null;
-        case 'docs':
-            return listing.docs?.length ? (
-                <AboutBlock
+        case 'menus':
+            return (
+                <MenuGallery
                     key={key}
-                    about={null}
+                    menus={listing.menus}
                     docs={listing.docs}
-                    title="Menus & flyers"
-                    sectionId=""
+                    title="Menus"
                 />
-            ) : null;
+            );
+        case 'docs':
+            return (
+                <MenuGallery
+                    key={key}
+                    menus={listing.menus}
+                    docs={listing.docs}
+                    title="Menus"
+                />
+            );
         case 'floorPlan':
             return <FloorPlan key={key} floorPlan={listing.floorPlan} />;
         case 'reviews':

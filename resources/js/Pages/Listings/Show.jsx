@@ -12,7 +12,7 @@ import { renderListingSection } from '@/Components/listing/renderListingSection'
 import { getListingDetail } from '@/data/listingDetails';
 import { getLayoutForCategory } from '@/data/listingLayouts';
 import {
-    getListingById,
+    getListingBySlug,
     getRelatedListings,
 } from '@/data/listings';
 
@@ -24,8 +24,8 @@ function readTabFromHash() {
     return VALID_TABS.has(hash) ? hash : 'overview';
 }
 
-export default function ListingShow({ id }) {
-    const base = getListingById(id);
+export default function ListingShow({ slug, id }) {
+    const base = getListingBySlug(slug || id);
     const listing = getListingDetail(base);
     const [tab, setTab] = useState(readTabFromHash);
 

@@ -2,10 +2,11 @@ import { Link } from '@inertiajs/react';
 import { Heart, MapPin, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
+import { listingHref } from '@/data/listings';
 
 export default function ListingCard({ listing, featured = false }) {
     const [saved, setSaved] = useState(false);
-    const href = `/listings/${listing.id}`;
+    const href = listingHref(listing);
 
     return (
         <motion.article

@@ -33,9 +33,9 @@ Route::get('/stories/{slug}', function (string $slug) {
     ]);
 })->name('stories.show');
 
-Route::get('/listings/{id}', function (string $id) {
+Route::get('/listings/{slug}', function (string $slug) {
     return Inertia::render('Listings/Show', [
-        'id' => $id,
+        'slug' => $slug,
     ]);
 })->name('listings.show');
 

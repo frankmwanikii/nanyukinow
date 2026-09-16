@@ -11,9 +11,15 @@ export default function AboutBlock({
     return (
         <DetailSection id={sectionId || undefined} title={title}>
             {about ? (
-                <p className="text-sm leading-relaxed text-olive-800 sm:text-[0.95rem] sm:leading-7">
-                    {about}
-                </p>
+                <div className="space-y-3 text-sm leading-relaxed text-olive-800 sm:text-[0.95rem] sm:leading-7">
+                    {String(about)
+                        .split(/\n\s*\n/)
+                        .map((para) => para.trim())
+                        .filter(Boolean)
+                        .map((para) => (
+                            <p key={para.slice(0, 48)}>{para}</p>
+                        ))}
+                </div>
             ) : null}
             {docs?.length ? (
                 <div className={`${about ? 'mt-4' : ''} grid grid-cols-2 gap-3`}>
