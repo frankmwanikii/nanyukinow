@@ -821,6 +821,21 @@ export function getListingDetail(listing) {
         eventSchedule: defaults.eventSchedule ?? null,
         agenda: defaults.agenda ?? [],
         payments: defaults.payments ?? [],
+        email:
+            listing.email ||
+            `hello@${String(listing.title || 'listing')
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, '')
+                .slice(0, 18) || 'listing'}.co.ke`,
+        socials: listing.socials || {
+            instagram: 'https://instagram.com/',
+            facebook: 'https://facebook.com/',
+            tiktok: 'https://www.tiktok.com/',
+            youtube: 'https://youtube.com/',
+            whatsapp: listing.phone
+                ? `https://wa.me/${String(listing.phone).replace(/\D/g, '')}`
+                : null,
+        },
         priceRangeLabel: listing.priceLevel
             ? { $: 'Budget', $$: 'Moderate', $$$: 'Pricey' }[listing.priceLevel] ||
               listing.priceLevel
