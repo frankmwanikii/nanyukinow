@@ -44,8 +44,16 @@ export default {
                 },
             },
             fontFamily: {
-                display: ['Sora', ...defaultTheme.fontFamily.sans],
-                sans: ['DM Sans', ...defaultTheme.fontFamily.sans],
+                display: [
+                    '"Geometry Soft Pro"',
+                    'Sora',
+                    ...defaultTheme.fontFamily.sans,
+                ],
+                sans: ['"DM Sans"', ...defaultTheme.fontFamily.sans],
+                brand: [
+                    '"Geometry Soft Pro"',
+                    ...defaultTheme.fontFamily.sans,
+                ],
             },
             boxShadow: {
                 lift: '0 12px 40px -12px rgba(28, 23, 18, 0.28)',

@@ -14,7 +14,7 @@
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=4">
 
         <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=dm-sans:400,500,600,700|sora:500,600,700&display=swap" rel="stylesheet" />
+        <link href="https://fonts.bunny.net/css?family=dm-sans:400,500,600,700&display=swap" rel="stylesheet" />
 
         @routes
         @viteReactRefresh

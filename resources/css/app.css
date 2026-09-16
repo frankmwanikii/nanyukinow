@@ -1,3 +1,11 @@
+@font-face {
+    font-family: 'Geometry Soft Pro';
+    src: url('/fonts/GeometrySoftPro-BoldN.otf') format('opentype');
+    font-weight: 600 800;
+    font-style: normal;
+    font-display: swap;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -13,6 +21,11 @@
 
     ::selection {
         @apply bg-mustard/40 text-earth-dusk;
+    }
+
+    /* Brand display face for titles used across the site */
+    .font-display {
+        letter-spacing: -0.02em;
     }
 }
 

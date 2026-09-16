@@ -158,7 +158,7 @@ export default function Navbar({ compact = false }) {
                     />
                 </form>
 
-                <nav className="hidden items-center gap-1 lg:flex xl:gap-2">
+                <nav className="hidden items-center gap-1 font-display lg:flex xl:gap-2">
                     {navLinks.map((link) => {
                         const isMore = link.menu === 'more';
                         const items = link.menu
@@ -187,7 +187,7 @@ export default function Navbar({ compact = false }) {
                             >
                                 <Link
                                     href={link.href}
-                                    className="inline-flex items-center gap-1 rounded-lg px-2.5 py-2 text-[15px] font-medium text-white/95 transition hover:bg-white/10 hover:text-white sm:text-base"
+                                    className="inline-flex items-center gap-1 rounded-lg px-2.5 py-2 text-[15px] font-semibold text-white/95 transition hover:bg-white/10 hover:text-white sm:text-base"
                                 >
                                     {link.label}
                                     {link.menu ? (
@@ -210,7 +210,7 @@ export default function Navbar({ compact = false }) {
                                                     : 'left-0'
                                             }`}
                                         >
-                                            <div className="relative min-w-[220px] border-t-[3px] border-mustard bg-white shadow-lift">
+                                            <div className="relative min-w-[220px] border-t-[3px] border-mustard bg-white font-display shadow-lift">
                                                 {items.map((item) => {
                                                     const label =
                                                         typeof item ===
@@ -262,7 +262,7 @@ export default function Navbar({ compact = false }) {
                                                         >
                                                             <Link
                                                                 href={itemHref}
-                                                                className={`flex items-center justify-between border-b border-olive-100/80 px-5 py-3.5 text-[15px] text-earth-dusk transition last:border-b-0 hover:bg-olive-50 hover:text-olive-800 ${
+                                                                className={`flex items-center justify-between border-b border-olive-100/80 px-5 py-3.5 text-[15px] font-semibold text-earth-dusk transition last:border-b-0 hover:bg-olive-50 hover:text-olive-800 ${
                                                                     flyoutOpen
                                                                         ? 'bg-olive-50 text-olive-800'
                                                                         : ''
@@ -294,7 +294,7 @@ export default function Navbar({ compact = false }) {
 
                                                 {isMore &&
                                                 flyoutItem?.children ? (
-                                                    <div className="absolute left-full top-0 z-[70] min-w-[240px] border-t-[3px] border-mustard bg-white shadow-lift">
+                                                    <div className="absolute left-full top-0 z-[70] min-w-[240px] border-t-[3px] border-mustard bg-white font-display shadow-lift">
                                                         {flyoutItem.children.map(
                                                             (child) => (
                                                                 <Link
@@ -313,7 +313,7 @@ export default function Navbar({ compact = false }) {
                                                                                 child,
                                                                         },
                                                                     )}
-                                                                    className="block border-b border-olive-100/80 px-5 py-3.5 text-[15px] text-earth-dusk transition last:border-b-0 hover:bg-olive-50 hover:text-olive-800"
+                                                                    className="block border-b border-olive-100/80 px-5 py-3.5 text-[15px] font-semibold text-earth-dusk transition last:border-b-0 hover:bg-olive-50 hover:text-olive-800"
                                                                 >
                                                                     {child}
                                                                 </Link>
@@ -330,11 +330,11 @@ export default function Navbar({ compact = false }) {
                     })}
                 </nav>
 
-                <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2.5">
+                <div className="ml-auto flex shrink-0 items-center gap-1.5 font-display sm:gap-2.5">
                     <button
                         type="button"
                         onClick={() => openAuth('login')}
-                        className="hidden items-center gap-2 rounded-lg px-2.5 py-2 text-[15px] font-medium text-white/95 transition hover:bg-white/10 hover:text-white sm:text-base lg:inline-flex"
+                        className="hidden items-center gap-2 rounded-lg px-2.5 py-2 text-[15px] font-semibold text-white/95 transition hover:bg-white/10 hover:text-white sm:text-base lg:inline-flex"
                     >
                         <User className="h-4 w-4" strokeWidth={1.85} />
                         <span className="max-w-[10rem] truncate">
@@ -376,7 +376,7 @@ export default function Navbar({ compact = false }) {
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        className="overflow-hidden border-t border-white/10 bg-[#4f5a3e] lg:hidden"
+                        className="overflow-hidden border-t border-white/10 bg-[#4f5a3e] font-display lg:hidden"
                     >
                         <div className="space-y-4 px-4 py-4">
                             <form
@@ -389,7 +389,7 @@ export default function Navbar({ compact = false }) {
                                     value={query}
                                     onChange={(e) => setQuery(e.target.value)}
                                     placeholder="What are you looking for?"
-                                    className="w-full border-0 bg-transparent text-sm text-white placeholder:text-white/65 focus:outline-none focus:ring-0"
+                                    className="w-full border-0 bg-transparent font-sans text-sm text-white placeholder:text-white/65 focus:outline-none focus:ring-0"
                                 />
                             </form>
                             <div className="flex flex-col gap-1">
@@ -398,7 +398,7 @@ export default function Navbar({ compact = false }) {
                                         key={link.key}
                                         href={link.href}
                                         onClick={() => setOpen(false)}
-                                        className="rounded-lg px-3 py-3 text-base font-medium text-white hover:bg-white/10"
+                                        className="rounded-lg px-3 py-3 text-base font-semibold text-white hover:bg-white/10"
                                     >
                                         {link.label}
                                     </Link>
@@ -408,7 +408,7 @@ export default function Navbar({ compact = false }) {
                                 <button
                                     type="button"
                                     onClick={() => openAuth('login')}
-                                    className="inline-flex items-center gap-2 rounded-lg px-3 py-3 text-left text-white transition hover:bg-white/10"
+                                    className="inline-flex items-center gap-2 rounded-lg px-3 py-3 text-left font-semibold text-white transition hover:bg-white/10"
                                 >
                                     <User className="h-4 w-4" />
                                     Sign in or register
