@@ -9,6 +9,7 @@ import Newsletter from '@/Components/site/Newsletter';
 import HeroSlider from '@/Components/site/HeroSlider';
 import FeaturedMarquee from '@/Components/site/FeaturedMarquee';
 import TrendingCarousel from '@/Components/site/TrendingCarousel';
+import StoriesSection from '@/Components/site/StoriesSection';
 import {
     airbnbs,
     featured,
@@ -247,6 +248,8 @@ function HomeContent() {
             </section>
 
             <WildlifeSafarisSection />
+
+            <StoriesSection />
 
             <AirbnbsSection />
 

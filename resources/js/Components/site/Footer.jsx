@@ -84,6 +84,14 @@ export default function Footer() {
                             </Link>
                         </li>
                         <li>
+                            <Link
+                                href="/stories"
+                                className="transition hover:text-mint"
+                            >
+                                Stories
+                            </Link>
+                        </li>
+                        <li>
                             <a
                                 href="#categories"
                                 className="transition hover:text-mint"

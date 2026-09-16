@@ -20,6 +20,19 @@ Route::get('/explore', function () {
     ]);
 })->name('explore');
 
+Route::get('/stories', function () {
+    return Inertia::render('Stories/Index', [
+        'category' => request()->string('category')->toString() ?: null,
+        'q' => request()->string('q')->toString() ?: null,
+    ]);
+})->name('stories.index');
+
+Route::get('/stories/{slug}', function (string $slug) {
+    return Inertia::render('Stories/Show', [
+        'slug' => $slug,
+    ]);
+})->name('stories.show');
+
 Route::get('/terms', function () {
     return Inertia::render('Terms');
 })->name('terms');
