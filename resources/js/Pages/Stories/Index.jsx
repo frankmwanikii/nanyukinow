@@ -235,9 +235,7 @@ export default function StoriesIndex({
                                 {filtered.length}{' '}
                                 {filtered.length === 1 ? 'story' : 'stories'}
                                 {q.trim() ? ` matching “${q.trim()}”` : ''}
-                                {totalPages > 1
-                                    ? ` · Page ${safePage} of ${totalPages}`
-                                    : ''}
+                                {` · Page ${safePage} of ${totalPages}`}
                             </p>
                         </div>
                         <button
@@ -277,111 +275,95 @@ export default function StoriesIndex({
                                     </button>
                                 </div>
                             ) : (
-                                <>
-                                    <div className="space-y-5">
-                                        {featured ? (
-                                            <StoryCard
-                                                article={featured}
-                                                featured
-                                            />
-                                        ) : null}
-                                        {(safePage === 1 ? rest : pageItems)
-                                            .length > 0 ? (
-                                            <div className="grid gap-5 sm:grid-cols-2">
-                                                {(safePage === 1
-                                                    ? rest
-                                                    : pageItems
-                                                ).map((article) => (
-                                                    <StoryCard
-                                                        key={article.id}
-                                                        article={article}
-                                                    />
-                                                ))}
-                                            </div>
-                                        ) : null}
-                                    </div>
-
-                                    {totalPages > 1 ? (
-                                        <div className="mt-10 flex flex-col items-center gap-3">
-                                            <nav
-                                                className="inline-flex items-center gap-1 rounded-2xl border border-olive-200/80 bg-white p-1.5 shadow-soft"
-                                                aria-label="Stories pagination"
-                                            >
-                                                <button
-                                                    type="button"
-                                                    disabled={safePage <= 1}
-                                                    onClick={() =>
-                                                        setPage((p) =>
-                                                            Math.max(1, p - 1),
-                                                        )
-                                                    }
-                                                    className="inline-flex h-9 items-center gap-1 rounded-xl px-3 text-sm font-semibold text-olive-700 transition hover:bg-olive-50 disabled:cursor-not-allowed disabled:opacity-35"
-                                                    aria-label="Previous page"
-                                                >
-                                                    <ChevronLeft className="h-4 w-4" />
-                                                    <span className="hidden sm:inline">
-                                                        Prev
-                                                    </span>
-                                                </button>
-                                                <div className="mx-0.5 h-5 w-px bg-olive-200" />
-                                                {Array.from(
-                                                    { length: totalPages },
-                                                    (_, i) => i + 1,
-                                                ).map((n) => {
-                                                    const active =
-                                                        n === safePage;
-                                                    return (
-                                                        <button
-                                                            key={n}
-                                                            type="button"
-                                                            onClick={() =>
-                                                                setPage(n)
-                                                            }
-                                                            className={`flex h-9 min-w-9 items-center justify-center rounded-xl px-3 text-sm font-semibold transition ${
-                                                                active
-                                                                    ? 'bg-[#4f5a3e] text-white shadow-sm'
-                                                                    : 'text-earth-dusk hover:bg-olive-50'
-                                                            }`}
-                                                            aria-current={
-                                                                active
-                                                                    ? 'page'
-                                                                    : undefined
-                                                            }
-                                                        >
-                                                            {n}
-                                                        </button>
-                                                    );
-                                                })}
-                                                <div className="mx-0.5 h-5 w-px bg-olive-200" />
-                                                <button
-                                                    type="button"
-                                                    disabled={
-                                                        safePage >= totalPages
-                                                    }
-                                                    onClick={() =>
-                                                        setPage((p) =>
-                                                            Math.min(
-                                                                totalPages,
-                                                                p + 1,
-                                                            ),
-                                                        )
-                                                    }
-                                                    className="inline-flex h-9 items-center gap-1 rounded-xl px-3 text-sm font-semibold text-olive-700 transition hover:bg-olive-50 disabled:cursor-not-allowed disabled:opacity-35"
-                                                    aria-label="Next page"
-                                                >
-                                                    <span className="hidden sm:inline">
-                                                        Next
-                                                    </span>
-                                                    <ChevronRight className="h-4 w-4" />
-                                                </button>
-                                            </nav>
-                                            <p className="text-xs font-medium text-olive-500">
-                                                Page {safePage} of {totalPages}
-                                            </p>
+                                <div className="space-y-5">
+                                    {featured ? (
+                                        <StoryCard
+                                            article={featured}
+                                            featured
+                                        />
+                                    ) : null}
+                                    {(safePage === 1 ? rest : pageItems)
+                                        .length > 0 ? (
+                                        <div className="grid gap-5 sm:grid-cols-2">
+                                            {(safePage === 1
+                                                ? rest
+                                                : pageItems
+                                            ).map((article) => (
+                                                <StoryCard
+                                                    key={article.id}
+                                                    article={article}
+                                                />
+                                            ))}
                                         </div>
                                     ) : null}
-                                </>
+                                </div>
                             )}
+
+                            <div className="mt-10 flex flex-col items-center gap-3">
+                                <nav
+                                    className="inline-flex items-center gap-1 rounded-2xl border border-olive-200/80 bg-white p-1.5 shadow-soft"
+                                    aria-label="Stories pagination"
+                                >
+                                    <button
+                                        type="button"
+                                        disabled={safePage <= 1}
+                                        onClick={() =>
+                                            setPage((p) => Math.max(1, p - 1))
+                                        }
+                                        className="inline-flex h-9 items-center gap-1 rounded-xl px-3 text-sm font-semibold text-olive-700 transition hover:bg-olive-50 disabled:cursor-not-allowed disabled:opacity-35"
+                                        aria-label="Previous page"
+                                    >
+                                        <ChevronLeft className="h-4 w-4" />
+                                        <span className="hidden sm:inline">
+                                            Prev
+                                        </span>
+                                    </button>
+                                    <div className="mx-0.5 h-5 w-px bg-olive-200" />
+                                    {Array.from(
+                                        { length: totalPages },
+                                        (_, i) => i + 1,
+                                    ).map((n) => {
+                                        const active = n === safePage;
+                                        return (
+                                            <button
+                                                key={n}
+                                                type="button"
+                                                onClick={() => setPage(n)}
+                                                className={`flex h-9 min-w-9 items-center justify-center rounded-xl px-3 text-sm font-semibold transition ${
+                                                    active
+                                                        ? 'bg-[#4f5a3e] text-white shadow-sm'
+                                                        : 'text-earth-dusk hover:bg-olive-50'
+                                                }`}
+                                                aria-current={
+                                                    active ? 'page' : undefined
+                                                }
+                                            >
+                                                {n}
+                                            </button>
+                                        );
+                                    })}
+                                    <div className="mx-0.5 h-5 w-px bg-olive-200" />
+                                    <button
+                                        type="button"
+                                        disabled={safePage >= totalPages}
+                                        onClick={() =>
+                                            setPage((p) =>
+                                                Math.min(totalPages, p + 1),
+                                            )
+                                        }
+                                        className="inline-flex h-9 items-center gap-1 rounded-xl px-3 text-sm font-semibold text-olive-700 transition hover:bg-olive-50 disabled:cursor-not-allowed disabled:opacity-35"
+                                        aria-label="Next page"
+                                    >
+                                        <span className="hidden sm:inline">
+                                            Next
+                                        </span>
+                                        <ChevronRight className="h-4 w-4" />
+                                    </button>
+                                </nav>
+                                <p className="text-xs font-medium text-olive-500">
+                                    Page {safePage} of {totalPages}
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
