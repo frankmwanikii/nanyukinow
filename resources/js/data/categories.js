@@ -107,6 +107,26 @@ export const mainCategories = [
 
 export const categoryKeys = mainCategories.map((c) => c.key);
 
+/** Building / unit types for property listings (separate from For Sale / Rent / Lease). */
+export const PROPERTY_TYPES = [
+    'Villa',
+    'Bungalow',
+    'Maisonette',
+    'Apartment',
+    'Bedsitter',
+    'Studio',
+    'Townhouse',
+    'Duplex',
+    'Mansion',
+    'Cottage',
+    'Farmhouse',
+    'Penthouse',
+    'Commercial',
+    'Warehouse',
+    'Office',
+    'Land',
+];
+
 export function getCategoryByKey(key) {
     return mainCategories.find((c) => c.key === key) ?? null;
 }

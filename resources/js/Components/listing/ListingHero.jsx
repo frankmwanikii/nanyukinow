@@ -33,6 +33,21 @@ export default function ListingHero({ listing, secondaryCta }) {
                             />
                         ) : null}
                         <div className="min-w-0 pb-1">
+                            {listing.categoryKey === 'properties' &&
+                            (listing.propertyType || listing.subcategory) ? (
+                                <p className="mb-2 flex flex-wrap items-center gap-2">
+                                    {listing.propertyType ? (
+                                        <span className="inline-flex rounded-full bg-mustard px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-olive-950">
+                                            {listing.propertyType}
+                                        </span>
+                                    ) : null}
+                                    {listing.subcategory ? (
+                                        <span className="inline-flex rounded-full bg-white/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white ring-1 ring-white/30 backdrop-blur">
+                                            {listing.subcategory}
+                                        </span>
+                                    ) : null}
+                                </p>
+                            ) : null}
                             <h1 className="font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl">
                                 {listing.title}
                             </h1>

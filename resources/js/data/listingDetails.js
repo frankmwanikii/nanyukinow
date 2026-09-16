@@ -542,7 +542,6 @@ export const listingDetailsById = {
             title: 'Property walkthrough',
         },
         facts: [
-            { label: 'Type', value: 'For sale' },
             { label: 'Bedrooms', value: '4' },
             { label: 'Baths', value: '3' },
             { label: 'Size', value: '320 m²' },
@@ -569,11 +568,167 @@ export const listingDetailsById = {
         payments: ['Bank transfer', 'M-Pesa (deposit)'],
         chips: {
             region: 'Timau Area',
-            categories: ['Properties', 'For Sale'],
+            categories: ['Properties', 'Mansion', 'For Sale'],
             tags: ['Garden', 'Mountain view'],
         },
         reviewSummary: { count: 12, highlight: 'Transparent viewings and clear paperwork.' },
-        relatedIds: ['e15', 'e16', 'e2'],
+        relatedIds: ['e14b', 'e14c', 'e15'],
+    },
+
+    e14b: {
+        about:
+            'A modern villa with open living spaces, private garden, and easy access to town — ideal as a family home or highland retreat.',
+        address: 'Simba Ridge, Nanyuki outskirts',
+        facts: [
+            { label: 'Bedrooms', value: '5' },
+            { label: 'Baths', value: '4' },
+            { label: 'Size', value: '410 m²' },
+            { label: 'Price', value: 'On request' },
+        ],
+        amenities: ['parking', 'wifi', 'security', 'garden', 'outdoor'],
+        agent: {
+            name: 'Highland Homes Agency',
+            phone: '+254 722 445 668',
+            email: 'viewings@highlandhomes.ke',
+            note: 'Private viewings available weekends.',
+        },
+        chips: {
+            region: 'Nanyuki Area',
+            categories: ['Properties', 'Villa', 'For Sale'],
+            tags: ['Garden', 'Family home'],
+        },
+        reviewSummary: { count: 9, highlight: 'Spacious and well finished.' },
+        relatedIds: ['e14', 'e14c', 'e15c'],
+    },
+
+    e14c: {
+        about:
+            'Single-level bungalow on a quiet Timau plot — bright rooms, mature trees, and straightforward living for a small family.',
+        address: 'Greenfields Estate, Timau',
+        facts: [
+            { label: 'Bedrooms', value: '3' },
+            { label: 'Baths', value: '2' },
+            { label: 'Size', value: '180 m²' },
+            { label: 'Price', value: 'On request' },
+        ],
+        amenities: ['parking', 'security', 'garden'],
+        agent: {
+            name: 'Highland Homes Agency',
+            phone: '+254 722 445 668',
+            email: 'viewings@highlandhomes.ke',
+            note: 'Ask about title and utilities.',
+        },
+        chips: {
+            region: 'Timau Area',
+            categories: ['Properties', 'Bungalow', 'For Sale'],
+            tags: ['Quiet', 'Ready to move'],
+        },
+        reviewSummary: { count: 7, highlight: 'Easy single-level living.' },
+        relatedIds: ['e14', 'e14b', 'e15'],
+    },
+
+    e15: {
+        about:
+            'Bright apartment near town amenities — balcony views, secure parking, and flexible lease terms for working travellers.',
+        address: 'Townview Court, Naromoru',
+        facts: [
+            { label: 'Bedrooms', value: '2' },
+            { label: 'Baths', value: '1' },
+            { label: 'Size', value: '85 m²' },
+            { label: 'Rent', value: 'On request' },
+        ],
+        amenities: ['parking', 'wifi', 'security'],
+        agent: {
+            name: 'Townview Lettings',
+            phone: '+254 711 220 441',
+            email: 'lets@townview.ke',
+            note: 'Available for immediate occupancy.',
+        },
+        chips: {
+            region: 'Naromoru Area',
+            categories: ['Properties', 'Apartment', 'For Rent'],
+            tags: ['Furnished options', 'Town access'],
+        },
+        reviewSummary: { count: 18, highlight: 'Clean flat, responsive landlord.' },
+        relatedIds: ['e15b', 'e15c', 'e14'],
+    },
+
+    e15b: {
+        about:
+            'Compact bedsitter on Market Road — affordable, secure, and walking distance to shops and matatus.',
+        address: 'Market Road, Nanyuki',
+        facts: [
+            { label: 'Bedrooms', value: 'Bedsitter' },
+            { label: 'Baths', value: '1' },
+            { label: 'Size', value: '28 m²' },
+            { label: 'Rent', value: 'On request' },
+        ],
+        amenities: ['wifi', 'security'],
+        agent: {
+            name: 'Townview Lettings',
+            phone: '+254 711 220 441',
+            email: 'lets@townview.ke',
+            note: 'Deposit + first month required.',
+        },
+        chips: {
+            region: 'Nanyuki Area',
+            categories: ['Properties', 'Bedsitter', 'For Rent'],
+            tags: ['Budget', 'Town centre'],
+        },
+        reviewSummary: { count: 14, highlight: 'Good value for singles.' },
+        relatedIds: ['e15', 'e15c', 'e16'],
+    },
+
+    e15c: {
+        about:
+            'Two-level maisonette with private entrance and small yard — suited to families who want space without leaving town.',
+        address: 'Hillside Lane, Nanyuki',
+        facts: [
+            { label: 'Bedrooms', value: '3' },
+            { label: 'Baths', value: '2.5' },
+            { label: 'Size', value: '160 m²' },
+            { label: 'Rent', value: 'On request' },
+        ],
+        amenities: ['parking', 'wifi', 'security', 'garden'],
+        agent: {
+            name: 'Highland Homes Agency',
+            phone: '+254 722 445 668',
+            email: 'viewings@highlandhomes.ke',
+            note: 'Long-term leases preferred.',
+        },
+        chips: {
+            region: 'Nanyuki Area',
+            categories: ['Properties', 'Maisonette', 'For Rent'],
+            tags: ['Family', 'Private yard'],
+        },
+        reviewSummary: { count: 11, highlight: 'Feels like a house, not a flat.' },
+        relatedIds: ['e15', 'e14b', 'e14'],
+    },
+
+    e16: {
+        about:
+            'Clear-span warehouse bay with yard access — suited to storage, light logistics, or workshop use on a renewable lease.',
+        address: 'Industrial spur, Nanyuki',
+        facts: [
+            { label: 'Units', value: '1 bay' },
+            { label: 'Size', value: '450 m²' },
+            { label: 'Yard', value: 'Yes' },
+            { label: 'Lease', value: 'On request' },
+        ],
+        amenities: ['parking', 'security'],
+        agent: {
+            name: 'North Commercial Desk',
+            phone: '+254 700 118 902',
+            email: 'lease@northcommercial.ke',
+            note: 'Site visit with prior notice.',
+        },
+        chips: {
+            region: 'Nanyuki Area',
+            categories: ['Properties', 'Warehouse', 'For Lease'],
+            tags: ['Logistics', 'Yard access'],
+        },
+        reviewSummary: { count: 6, highlight: 'Practical bay with easy truck turn.' },
+        relatedIds: ['e14', 'e15', 'e15b'],
     },
 
     // Events — Nanyuki Jazz Night
@@ -1412,6 +1567,35 @@ export function getListingDetail(listing) {
     const explicit = listingDetailsById[listing.id] ?? listingDetailsById[String(listing.id)];
     const defaults = DEFAULTS_BY_CATEGORY[listing.categoryKey] ?? DEFAULTS_BY_CATEGORY.eatDrink;
 
+    const propertyType = listing.propertyType || null;
+    const rawFacts = explicit?.facts ?? defaults.facts ?? [];
+    const facts =
+        listing.categoryKey === 'properties'
+            ? [
+                  ...(propertyType
+                      ? [{ label: 'Property type', value: propertyType }]
+                      : []),
+                  ...(listing.subcategory
+                      ? [{ label: 'Listing', value: listing.subcategory }]
+                      : []),
+                  ...rawFacts.filter(
+                      (f) =>
+                          f?.label &&
+                          f.label !== 'Property type' &&
+                          f.label !== 'Listing' &&
+                          !(
+                              f.label === 'Type' &&
+                              /sale|rent|lease/i.test(String(f.value || ''))
+                          ),
+                  ),
+              ]
+            : rawFacts;
+
+    const baseChipsCategories =
+        listing.categoryKey === 'properties'
+            ? [listing.category, propertyType, listing.subcategory].filter(Boolean)
+            : [listing.category, listing.subcategory].filter(Boolean);
+
     const base = {
         about:
             listing.about ||
@@ -1426,7 +1610,8 @@ export function getListingDetail(listing) {
               }
             : null,
         amenities: defaults.amenities ?? [],
-        facts: defaults.facts ?? [],
+        facts,
+        propertyType,
         houseRules: defaults.houseRules ?? [],
         included: defaults.included ?? [],
         bring: defaults.bring ?? [],
@@ -1472,7 +1657,7 @@ export function getListingDetail(listing) {
             : null,
         chips: {
             region: `${listing.location} Area`,
-            categories: [listing.category, listing.subcategory].filter(Boolean),
+            categories: baseChipsCategories,
             tags: listing.tagline ? [listing.tagline] : [],
         },
         reviewSummary: {
@@ -1482,12 +1667,27 @@ export function getListingDetail(listing) {
         relatedIds: [],
     };
 
+    const mergedChips = { ...base.chips, ...explicit?.chips };
+    if (listing.categoryKey === 'properties') {
+        const chipCats = [
+            listing.category,
+            propertyType || explicit?.chips?.categories?.find?.(Boolean),
+            listing.subcategory,
+            ...(Array.isArray(explicit?.chips?.categories)
+                ? explicit.chips.categories
+                : []),
+        ].filter(Boolean);
+        mergedChips.categories = [...new Set(chipCats)];
+    }
+
     return {
         ...listing,
         ...base,
         ...explicit,
+        propertyType: propertyType || explicit?.propertyType || null,
+        facts: listing.categoryKey === 'properties' ? facts : explicit?.facts ?? base.facts,
         gallery: ensureGalleryDepth(explicit?.gallery ?? base.gallery),
-        chips: { ...base.chips, ...explicit?.chips },
+        chips: mergedChips,
         reviewSummary: { ...base.reviewSummary, ...explicit?.reviewSummary },
         products:
             Array.isArray(explicit?.products) && explicit.products.length
