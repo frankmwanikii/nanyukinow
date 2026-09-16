@@ -17,6 +17,7 @@ import {
     Wine,
     Briefcase,
 } from 'lucide-react';
+import { useState } from 'react';
 import DetailSection from './DetailSection';
 
 const AMENITY_META = {
@@ -39,10 +40,14 @@ const AMENITY_META = {
     car: { label: 'Car access', icon: Car },
 };
 
+const PREVIEW_COUNT = 8;
+
 export default function AmenitiesGrid({
     amenities = [],
     title = 'Amenities',
 }) {
+    const [expanded, setExpanded] = useState(false);
+
     const items = (amenities || [])
         .map((key) => {
             if (typeof key === 'string') {
@@ -54,24 +59,40 @@ export default function AmenitiesGrid({
 
     if (!items.length) return null;
 
+    const visible = expanded ? items : items.slice(0, PREVIEW_COUNT);
+    const hasMore = items.length > PREVIEW_COUNT;
+
     return (
         <DetailSection title={title}>
-            <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {items.map((item) => {
+            <ul className="grid grid-cols-1 gap-x-8 gap-y-3 sm:grid-cols-2">
+                {visible.map((item) => {
                     const Icon = item.icon || Leaf;
                     return (
                         <li
                             key={item.label}
-                            className="flex items-center gap-3 rounded-xl bg-olive-50/80 px-3 py-2.5 text-sm font-medium text-olive-800"
+                            className="flex items-center gap-3 text-sm font-medium text-olive-800"
                         >
-                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-olive-700 shadow-soft">
-                                <Icon className="h-4 w-4" />
-                            </span>
-                            {item.label}
+                            <Icon
+                                className="h-[1.15rem] w-[1.15rem] shrink-0 text-olive-700"
+                                strokeWidth={1.75}
+                                aria-hidden
+                            />
+                            <span>{item.label}</span>
                         </li>
                     );
                 })}
             </ul>
+            {hasMore ? (
+                <button
+                    type="button"
+                    onClick={() => setExpanded((v) => !v)}
+                    className="mt-4 text-sm font-semibold text-olive-900 underline decoration-olive-300 underline-offset-4 transition hover:decoration-mustard"
+                >
+                    {expanded
+                        ? 'Show fewer'
+                        : `Show all ${items.length} amenities`}
+                </button>
+            ) : null}
         </DetailSection>
     );
 }

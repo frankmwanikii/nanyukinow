@@ -19,7 +19,7 @@ export default function ReviewsTeaser({ rating, reviewSummary }) {
                     ) : null}
                 </div>
                 {reviewSummary?.highlight ? (
-                    <p className="max-w-md rounded-xl bg-olive-50 px-4 py-3 text-sm leading-relaxed text-olive-800">
+                    <p className="max-w-md text-sm leading-relaxed text-olive-800">
                         “{reviewSummary.highlight}”
                     </p>
                 ) : null}

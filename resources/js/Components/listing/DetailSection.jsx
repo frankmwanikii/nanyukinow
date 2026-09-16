@@ -13,10 +13,10 @@ export default function DetailSection({
     return (
         <section
             id={id || undefined}
-            className={`rounded-2xl bg-white p-5 shadow-soft sm:p-6 ${className}`}
+            className={`rounded-xl border border-olive-200/70 bg-white p-4 sm:p-5 ${className}`}
         >
             {(title || action) && (
-                <div className="mb-4 flex items-start justify-between gap-3">
+                <div className="mb-3 flex items-start justify-between gap-3">
                     {title ? (
                         <h2 className="font-display text-lg font-semibold text-earth-dusk sm:text-xl">
                             {title}

@@ -143,7 +143,7 @@ export default function ReviewsPage({ listing }) {
     };
 
     return (
-        <div className="mx-auto grid max-w-[900px] gap-5 px-4 sm:px-6">
+        <div className="mx-auto grid max-w-[900px] gap-4 px-4 sm:px-6">
             <DetailSection title="Reviews">
                 <div className="flex flex-wrap items-end justify-between gap-4">
                     <div>
@@ -157,7 +157,7 @@ export default function ReviewsPage({ listing }) {
                         </p>
                     </div>
                     {listing.reviewSummary?.highlight ? (
-                        <p className="max-w-md rounded-xl bg-olive-50 px-4 py-3 text-sm leading-relaxed text-olive-800">
+                        <p className="max-w-md text-sm leading-relaxed text-olive-800">
                             “{listing.reviewSummary.highlight}”
                         </p>
                     ) : null}
@@ -226,7 +226,7 @@ export default function ReviewsPage({ listing }) {
                 {pageItems.map((review) => (
                     <article
                         key={review.id}
-                        className="rounded-2xl bg-white p-5 shadow-soft sm:p-6"
+                        className="rounded-xl border border-olive-200/70 bg-white p-4 sm:p-5"
                     >
                         <div className="flex flex-wrap items-start justify-between gap-3">
                             <div>
@@ -249,7 +249,7 @@ export default function ReviewsPage({ listing }) {
             {totalPages > 1 ? (
                 <div className="flex flex-col items-center gap-3 pb-2">
                     <nav
-                        className="inline-flex items-center gap-1 rounded-2xl border border-olive-200/80 bg-white p-1.5 shadow-soft"
+                        className="inline-flex items-center gap-1 rounded-xl border border-olive-200/80 bg-white p-1.5"
                         aria-label="Reviews pagination"
                     >
                         <button

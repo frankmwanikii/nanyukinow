@@ -6,16 +6,13 @@ export default function FactStrip({ facts = [], title = 'At a glance' }) {
 
     return (
         <DetailSection title={title}>
-            <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            <dl className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3 lg:grid-cols-4">
                 {items.map((fact) => (
-                    <div
-                        key={fact.label}
-                        className="rounded-xl bg-olive-50/90 px-3 py-3"
-                    >
+                    <div key={fact.label} className="min-w-0">
                         <dt className="text-[11px] font-semibold uppercase tracking-wide text-olive-500">
                             {fact.label}
                         </dt>
-                        <dd className="mt-1 font-display text-base font-semibold text-earth-dusk">
+                        <dd className="mt-1 truncate font-display text-base font-semibold text-earth-dusk">
                             {fact.value}
                         </dd>
                     </div>

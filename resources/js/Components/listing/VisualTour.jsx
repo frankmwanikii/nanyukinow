@@ -46,6 +46,26 @@ function ArrowButton({ direction, onClick, className = '', label, size = 'md' })
     );
 }
 
+function MosaicTile({ src, alt, onClick, className = '', children }) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            className={`group relative block overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-mustard ${className}`}
+            aria-label={alt}
+        >
+            <img
+                src={src}
+                alt=""
+                className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                loading="lazy"
+            />
+            <div className="pointer-events-none absolute inset-0 bg-black/0 transition group-hover:bg-black/10" />
+            {children}
+        </button>
+    );
+}
+
 export default function VisualTour({ gallery = [], title = 'Visual tour' }) {
     const spaces = useMemo(
         () => normalizeGallerySpaces(gallery),
@@ -54,12 +74,10 @@ export default function VisualTour({ gallery = [], title = 'Visual tour' }) {
     const flat = useMemo(() => flattenSpaces(spaces), [spaces]);
 
     const [spaceIndex, setSpaceIndex] = useState(0);
-    const [imageIndex, setImageIndex] = useState(0);
     const [lightbox, setLightbox] = useState(null);
 
     useEffect(() => {
         setSpaceIndex(0);
-        setImageIndex(0);
     }, [gallery]);
 
     const safeSpaceIndex = Math.min(
@@ -68,32 +86,31 @@ export default function VisualTour({ gallery = [], title = 'Visual tour' }) {
     );
     const space = spaces[safeSpaceIndex];
     const images = space?.images || [];
-    const safeImageIndex = Math.min(
-        imageIndex,
-        Math.max(images.length - 1, 0),
-    );
-    const currentSrc = images[safeImageIndex];
+
+    const mosaicSources = useMemo(() => {
+        if (spaces.length <= 1) {
+            return flat.map((item) => item.src);
+        }
+        return images;
+    }, [spaces.length, flat, images]);
 
     const goSpace = (next) => {
         setSpaceIndex(next);
-        setImageIndex(0);
     };
 
-    const prevImage = () => {
-        if (images.length <= 1) return;
-        setImageIndex((i) => (i - 1 + images.length) % images.length);
-    };
-
-    const nextImage = () => {
-        if (images.length <= 1) return;
-        setImageIndex((i) => (i + 1) % images.length);
-    };
-
-    const openLightbox = (sIdx = safeSpaceIndex, iIdx = safeImageIndex) => {
+    const openLightbox = (sIdx = safeSpaceIndex, iIdx = 0) => {
         const global = flat.findIndex(
             (item) => item.spaceIndex === sIdx && item.imageIndex === iIdx,
         );
         setLightbox(global >= 0 ? global : 0);
+    };
+
+    const openMosaicAt = (localIndex) => {
+        if (spaces.length <= 1) {
+            setLightbox(Math.min(localIndex, flat.length - 1));
+            return;
+        }
+        openLightbox(safeSpaceIndex, localIndex);
     };
 
     const closeLightbox = () => setLightbox(null);
@@ -137,10 +154,9 @@ export default function VisualTour({ gallery = [], title = 'Visual tour' }) {
         if (lightbox == null || !flat[lightbox]) return;
         const item = flat[lightbox];
         setSpaceIndex(item.spaceIndex);
-        setImageIndex(item.imageIndex);
     }, [lightbox, flat]);
 
-    if (!spaces.length || !currentSrc) return null;
+    if (!spaces.length || !mosaicSources.length) return null;
 
     const lightboxItem =
         lightbox != null ? flat[Math.min(lightbox, flat.length - 1)] : null;
@@ -151,84 +167,15 @@ export default function VisualTour({ gallery = [], title = 'Visual tour' }) {
         ? lightboxItem.imageIndex + 1
         : 0;
 
+    const primary = mosaicSources[0];
+    const side = mosaicSources.slice(1, 5);
+    const showSide = side.length > 0;
+
     return (
         <>
             <DetailSection id="gallery" title={title}>
-                <div className="overflow-hidden rounded-2xl bg-olive-100 shadow-soft">
-                    <div className="relative aspect-[16/10]">
-                        <button
-                            type="button"
-                            onClick={() => openLightbox()}
-                            className="group absolute inset-0 block w-full text-left"
-                            aria-label="Open image gallery"
-                        >
-                            <AnimatePresence mode="wait">
-                                <motion.img
-                                    key={`${space.kind}-${currentSrc}`}
-                                    initial={{ opacity: 0.35 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    transition={{ duration: 0.3 }}
-                                    src={currentSrc}
-                                    alt={`${space.label} photo ${safeImageIndex + 1}`}
-                                    className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.02]"
-                                />
-                            </AnimatePresence>
-                            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-earth-dusk/40 via-transparent to-transparent" />
-                        </button>
-
-                        <span className="pointer-events-none absolute bottom-3 left-3 z-10 rounded-full bg-earth-dusk/85 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur">
-                            {space.label}
-                            {images.length > 1
-                                ? ` · ${safeImageIndex + 1}/${images.length}`
-                                : ''}
-                        </span>
-
-                        <button
-                            type="button"
-                            onClick={() => openLightbox()}
-                            className="absolute bottom-3 right-3 z-10 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3.5 py-2 text-xs font-bold text-olive-900 shadow-soft transition hover:bg-mustard"
-                        >
-                            <Expand className="h-3.5 w-3.5" />
-                            View all {flat.length}
-                        </button>
-
-                        {images.length > 1 ? (
-                            <>
-                                <ArrowButton
-                                    direction="prev"
-                                    label={`Previous ${space.label} photo`}
-                                    onClick={prevImage}
-                                    className="absolute left-3 top-1/2 z-10 -translate-y-1/2"
-                                />
-                                <ArrowButton
-                                    direction="next"
-                                    label={`Next ${space.label} photo`}
-                                    onClick={nextImage}
-                                    className="absolute right-3 top-1/2 z-10 -translate-y-1/2"
-                                />
-                            </>
-                        ) : null}
-
-                        {images.length > 1 ? (
-                            <div className="pointer-events-none absolute inset-x-0 bottom-12 z-10 flex justify-center gap-1.5">
-                                {images.map((_, i) => (
-                                    <span
-                                        key={i}
-                                        className={`h-1.5 rounded-full transition ${
-                                            i === safeImageIndex
-                                                ? 'w-5 bg-mustard'
-                                                : 'w-1.5 bg-white/70'
-                                        }`}
-                                    />
-                                ))}
-                            </div>
-                        ) : null}
-                    </div>
-                </div>
-
                 {spaces.length > 1 ? (
-                    <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+                    <div className="mb-3 flex gap-2 overflow-x-auto pb-0.5">
                         {spaces.map((item, index) => {
                             const selected = index === safeSpaceIndex;
                             return (
@@ -236,57 +183,121 @@ export default function VisualTour({ gallery = [], title = 'Visual tour' }) {
                                     key={`${item.kind}-${item.label}`}
                                     type="button"
                                     onClick={() => goSpace(index)}
-                                    className={`group relative w-[7.5rem] shrink-0 overflow-hidden rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard sm:w-32 ${
+                                    className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition sm:text-sm ${
                                         selected
-                                            ? 'ring-2 ring-mustard ring-offset-2 ring-offset-white'
-                                            : ''
+                                            ? 'bg-olive-800 text-white'
+                                            : 'bg-olive-50 text-olive-800 hover:bg-olive-100'
                                     }`}
                                 >
-                                    <img
-                                        src={item.cover || item.images[0]}
-                                        alt=""
-                                        className="aspect-[4/3] w-full object-cover transition duration-300 group-hover:scale-105"
-                                        loading="lazy"
-                                    />
-                                    <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-earth-dusk/85 to-transparent px-1.5 pb-1.5 pt-5 text-left text-[10px] font-semibold leading-tight text-white sm:text-xs">
-                                        {item.label}
-                                        {item.images.length > 1 ? (
-                                            <span className="mt-0.5 block font-normal text-white/80">
-                                                {item.images.length} photos
-                                            </span>
-                                        ) : null}
-                                    </span>
+                                    {item.label}
+                                    {item.images.length > 1 ? (
+                                        <span className="ml-1.5 opacity-70">
+                                            {item.images.length}
+                                        </span>
+                                    ) : null}
                                 </button>
                             );
                         })}
                     </div>
-                ) : images.length > 1 ? (
-                    <div className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8">
-                        {images.map((src, index) => {
-                            const selected = index === safeImageIndex;
-                            return (
+                ) : null}
+
+                <div
+                    className={`overflow-hidden rounded-xl ${
+                        showSide
+                            ? 'grid gap-1.5 sm:grid-cols-4 sm:grid-rows-2 sm:gap-2'
+                            : ''
+                    }`}
+                >
+                    <MosaicTile
+                        src={primary}
+                        alt={`Open ${space.label} gallery`}
+                        onClick={() => openMosaicAt(0)}
+                        className={
+                            showSide
+                                ? 'aspect-[4/3] sm:col-span-2 sm:row-span-2 sm:aspect-auto sm:h-full sm:min-h-[260px] lg:min-h-[300px]'
+                                : 'aspect-[16/10]'
+                        }
+                    >
+                        {!showSide ? (
+                            <span className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3.5 py-2 text-xs font-bold text-olive-900 shadow-soft">
+                                <Expand className="h-3.5 w-3.5" />
+                                View photo
+                            </span>
+                        ) : null}
+                    </MosaicTile>
+
+                    {showSide
+                        ? side.map((src, index) => {
+                              const isLast = index === side.length - 1;
+                              return (
+                                  <MosaicTile
+                                      key={`${src}-${index}`}
+                                      src={src}
+                                      alt={`Open photo ${index + 2}`}
+                                      onClick={() => openMosaicAt(index + 1)}
+                                      className={`hidden aspect-[4/3] sm:block sm:aspect-auto sm:h-full sm:min-h-[126px] lg:min-h-[146px] ${
+                                          side.length === 1
+                                              ? 'sm:col-span-2 sm:row-span-2'
+                                              : side.length === 2
+                                                ? 'sm:col-span-2'
+                                                : side.length === 3 && index === 2
+                                                  ? 'sm:col-span-2'
+                                                  : ''
+                                      }`}
+                                  >
+                                      {isLast ? (
+                                          <span className="absolute inset-0 flex items-end justify-end bg-gradient-to-t from-earth-dusk/50 via-transparent to-transparent p-3">
+                                              <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-2 text-xs font-bold text-olive-900 shadow-soft">
+                                                  <Expand className="h-3.5 w-3.5" />
+                                                  Show all {flat.length}
+                                              </span>
+                                          </span>
+                                      ) : null}
+                                  </MosaicTile>
+                              );
+                          })
+                        : null}
+                </div>
+
+                {showSide ? (
+                    <div className="mt-3 flex items-center justify-between gap-3 sm:hidden">
+                        <div className="flex gap-1.5 overflow-x-auto">
+                            {mosaicSources.slice(0, 6).map((src, index) => (
                                 <button
-                                    key={`${src}-${index}`}
+                                    key={`${src}-m-${index}`}
                                     type="button"
-                                    onClick={() => setImageIndex(index)}
-                                    onDoubleClick={() =>
-                                        openLightbox(safeSpaceIndex, index)
-                                    }
-                                    className={`group overflow-hidden rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard ${
-                                        selected
-                                            ? 'ring-2 ring-mustard ring-offset-2 ring-offset-white'
-                                            : ''
-                                    }`}
+                                    onClick={() => openMosaicAt(index)}
+                                    className="h-14 w-16 shrink-0 overflow-hidden rounded-lg"
                                 >
                                     <img
                                         src={src}
                                         alt=""
-                                        className="aspect-[4/3] w-full object-cover transition duration-300 group-hover:scale-105"
+                                        className="h-full w-full object-cover"
                                         loading="lazy"
                                     />
                                 </button>
-                            );
-                        })}
+                            ))}
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => openMosaicAt(0)}
+                            className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-olive-200 bg-white px-3 py-2 text-xs font-bold text-olive-900"
+                        >
+                            <Expand className="h-3.5 w-3.5" />
+                            All {flat.length}
+                        </button>
+                    </div>
+                ) : null}
+
+                {showSide ? (
+                    <div className="mt-3 hidden sm:block">
+                        <button
+                            type="button"
+                            onClick={() => openMosaicAt(0)}
+                            className="text-sm font-semibold text-olive-900 underline decoration-olive-300 underline-offset-4 transition hover:decoration-mustard"
+                        >
+                            Browse all {flat.length} photos
+                        </button>
                     </div>
                 ) : null}
             </DetailSection>
@@ -303,22 +314,19 @@ export default function VisualTour({ gallery = [], title = 'Visual tour' }) {
                         aria-label="Image lightbox"
                         onClick={closeLightbox}
                     >
-                        {/* Top chrome */}
                         <div
                             className="relative z-20 flex items-center justify-between gap-3 px-4 py-4 sm:px-8"
                             onClick={(e) => e.stopPropagation()}
                         >
-                            <div className="flex min-w-0 items-center gap-3">
-                                <div className="rounded-2xl bg-white/10 px-4 py-2.5 ring-1 ring-white/15 backdrop-blur-md">
-                                    <p className="truncate font-display text-sm font-semibold text-white sm:text-base">
-                                        {lightboxItem.label}
-                                    </p>
-                                    <p className="text-[11px] font-medium uppercase tracking-wider text-white/55">
-                                        Photo {lightboxSpacePos} of{' '}
-                                        {lightboxSpaceCount} · {lightbox + 1}/
-                                        {flat.length} total
-                                    </p>
-                                </div>
+                            <div className="min-w-0">
+                                <p className="truncate font-display text-sm font-semibold text-white sm:text-base">
+                                    {lightboxItem.label}
+                                </p>
+                                <p className="text-[11px] font-medium uppercase tracking-wider text-white/55">
+                                    Photo {lightboxSpacePos} of {lightboxSpaceCount}
+                                    {' · '}
+                                    {lightbox + 1}/{flat.length} total
+                                </p>
                             </div>
                             <button
                                 type="button"
@@ -330,7 +338,6 @@ export default function VisualTour({ gallery = [], title = 'Visual tour' }) {
                             </button>
                         </div>
 
-                        {/* Stage */}
                         <div
                             className="relative flex min-h-0 flex-1 items-center justify-center px-4 pb-2 sm:px-20"
                             onClick={(e) => e.stopPropagation()}
@@ -368,14 +375,10 @@ export default function VisualTour({ gallery = [], title = 'Visual tour' }) {
                                         alt={lightboxItem.label}
                                         className="max-h-[min(72vh,820px)] w-auto max-w-full rounded-2xl object-contain shadow-[0_30px_80px_-20px_rgba(0,0,0,0.65)] ring-1 ring-white/10"
                                     />
-                                    <span className="absolute left-4 top-4 rounded-full bg-earth-dusk/75 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-md">
-                                        {lightboxItem.label}
-                                    </span>
                                 </motion.div>
                             </AnimatePresence>
                         </div>
 
-                        {/* Filmstrip */}
                         <div
                             className="relative z-20 border-t border-white/10 bg-black/25 px-4 py-4 backdrop-blur-md sm:px-8 sm:py-5"
                             onClick={(e) => e.stopPropagation()}

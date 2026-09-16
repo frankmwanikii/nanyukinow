@@ -351,8 +351,8 @@ export default function ContactInfoPage({ listing }) {
     ].filter(Boolean);
 
     return (
-        <div className="mx-auto grid max-w-[1400px] gap-5 px-4 sm:px-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.9fr)] lg:items-start lg:gap-6">
-            <div className="flex flex-col gap-5">
+        <div className="mx-auto grid max-w-[1400px] gap-4 px-4 sm:px-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.9fr)] lg:items-start lg:gap-5">
+            <div className="flex flex-col gap-4">
                 <DetailSection title="Contact info">
                     <div className="space-y-5">
                         <div>
@@ -438,7 +438,7 @@ export default function ContactInfoPage({ listing }) {
                 <DirectionsMap listing={listing} />
             </div>
 
-            <aside className="flex flex-col gap-5 lg:sticky lg:top-36">
+            <aside className="flex flex-col gap-4 lg:sticky lg:top-36">
                 {listing.agent ? <AgentCard agent={listing.agent} /> : null}
                 <HoursList
                     hours={listing.hours}

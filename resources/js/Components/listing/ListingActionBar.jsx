@@ -57,8 +57,8 @@ export default function ListingActionBar({ listing }) {
     ];
 
     return (
-        <div className="bg-earth-sand">
-            <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-center gap-2.5 px-4 py-3 sm:gap-3 sm:px-6 sm:py-4">
+        <div className="border-b border-olive-200/50 bg-earth-sand">
+            <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-center gap-2 px-4 py-2.5 sm:gap-2.5 sm:px-6 sm:py-3">
                 {actions.map((action) => {
                     const Icon = action.icon;
                     return (
@@ -66,14 +66,14 @@ export default function ListingActionBar({ listing }) {
                             key={action.label}
                             type="button"
                             onClick={action.onClick}
-                            className={`inline-flex items-center gap-2.5 rounded-full px-4 py-2.5 text-sm font-semibold transition ${
+                            className={`inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-sm font-semibold transition ${
                                 action.active
-                                    ? 'bg-mustard/25 text-olive-950 shadow-soft'
-                                    : 'bg-white/55 text-olive-800 ring-1 ring-olive-200/60 hover:bg-white hover:shadow-soft'
+                                    ? 'bg-mustard/25 text-olive-950'
+                                    : 'text-olive-800 hover:bg-white/70'
                             }`}
                         >
                             <Icon
-                                className={`h-5 w-5 sm:h-[1.35rem] sm:w-[1.35rem] ${
+                                className={`h-[1.15rem] w-[1.15rem] ${
                                     action.active
                                         ? 'fill-mustard text-mustard'
                                         : 'text-olive-700'

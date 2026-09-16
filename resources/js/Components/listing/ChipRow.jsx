@@ -5,45 +5,47 @@ export default function ChipRow({ chips, priceRangeLabel }) {
     const region = chips?.region;
     const categories = chips?.categories?.filter(Boolean) || [];
     const tags = chips?.tags?.filter(Boolean) || [];
+    const labels = [...categories, ...tags];
 
-    if (!region && !categories.length && !tags.length && !priceRangeLabel) {
+    if (!region && !labels.length && !priceRangeLabel) {
         return null;
     }
 
     return (
-        <div className="space-y-4">
-            {region ? (
-                <DetailSection title="Region">
+        <DetailSection title="Details">
+            <div className="space-y-4">
+                {region ? (
                     <p className="inline-flex items-center gap-2 text-sm font-medium text-olive-800">
-                        <MapPin className="h-4 w-4 text-mustard" />
+                        <MapPin className="h-4 w-4 shrink-0 text-mustard" />
                         {region}
                     </p>
-                </DetailSection>
-            ) : null}
+                ) : null}
 
-            {priceRangeLabel ? (
-                <DetailSection title="Price range">
-                    <p className="font-display text-lg font-semibold text-earth-dusk">
-                        {priceRangeLabel}
-                    </p>
-                </DetailSection>
-            ) : null}
+                {priceRangeLabel ? (
+                    <div>
+                        <p className="text-[11px] font-semibold uppercase tracking-wide text-olive-500">
+                            Price range
+                        </p>
+                        <p className="mt-1 font-display text-lg font-semibold text-earth-dusk">
+                            {priceRangeLabel}
+                        </p>
+                    </div>
+                ) : null}
 
-            {categories.length || tags.length ? (
-                <DetailSection title="Categories">
+                {labels.length ? (
                     <div className="flex flex-wrap gap-2">
-                        {[...categories, ...tags].map((label) => (
+                        {labels.map((label) => (
                             <span
                                 key={label}
-                                className="inline-flex items-center gap-1.5 rounded-full bg-olive-50 px-3 py-1.5 text-xs font-semibold text-olive-800"
+                                className="inline-flex items-center gap-1.5 rounded-full border border-olive-200/80 bg-transparent px-3 py-1.5 text-xs font-semibold text-olive-800"
                             >
                                 <Tag className="h-3 w-3 text-mustard" />
                                 {label}
                             </span>
                         ))}
                     </div>
-                </DetailSection>
-            ) : null}
-        </div>
+                ) : null}
+            </div>
+        </DetailSection>
     );
 }
