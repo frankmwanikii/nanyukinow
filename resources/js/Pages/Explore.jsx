@@ -50,6 +50,7 @@ function ExploreContent({
     const [location, setLocation] = useState(initialLocation);
     const [categoryKey, setCategoryKey] = useState(initialCategory);
     const [subcategory, setSubcategory] = useState(initialSubcategory);
+    const [propertyType, setPropertyType] = useState(null);
     const [minRating, setMinRating] = useState(0);
     const [openNow, setOpenNow] = useState(false);
     const [activeId, setActiveId] = useState(null);
@@ -78,12 +79,13 @@ function ExploreContent({
 
     useEffect(() => {
         setPage(1);
-    }, [categoryKey, subcategory, query, location, minRating, openNow]);
+    }, [categoryKey, subcategory, propertyType, query, location, minRating, openNow]);
 
     const filtered = useMemo(() => {
         const items = filterListings(catalogue, {
             categoryKey,
             subcategory,
+            propertyType,
             query,
             location,
             minRating,
@@ -93,7 +95,7 @@ function ExploreContent({
         return [...items].sort(
             (a, b) => (b.rating ?? 0) - (a.rating ?? 0),
         );
-    }, [categoryKey, subcategory, query, location, minRating, openNow]);
+    }, [categoryKey, subcategory, propertyType, query, location, minRating, openNow]);
 
     const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
     const safePage = Math.min(page, totalPages);
@@ -109,6 +111,7 @@ function ExploreContent({
         setLocation(null);
         setCategoryKey(null);
         setSubcategory(null);
+        setPropertyType(null);
         setMinRating(0);
         setOpenNow(false);
     };
@@ -120,6 +123,7 @@ function ExploreContent({
     const handleCategoryChange = (key) => {
         setCategoryKey(key);
         setSubcategory(null);
+        setPropertyType(null);
     };
 
     const openMap = () => {
@@ -142,6 +146,8 @@ function ExploreContent({
         onCategoryChange: handleCategoryChange,
         subcategory,
         onSubcategoryChange: setSubcategory,
+        propertyType,
+        onPropertyTypeChange: setPropertyType,
         minRating,
         onMinRatingChange: setMinRating,
         openNow,

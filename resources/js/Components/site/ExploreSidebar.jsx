@@ -7,7 +7,7 @@ import {
     Star,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { mainCategories } from '@/data/categories';
+import { mainCategories, PROPERTY_TYPES } from '@/data/categories';
 
 const RATING_OPTIONS = [
     { value: 5, label: '5 stars', stars: 5 },
@@ -28,6 +28,8 @@ export default function ExploreSidebar({
     onCategoryChange,
     subcategory,
     onSubcategoryChange,
+    propertyType,
+    onPropertyTypeChange,
     minRating,
     onMinRatingChange,
     openNow,
@@ -51,11 +53,13 @@ export default function ExploreSidebar({
     const selectCategory = (key) => {
         onCategoryChange(key);
         onSubcategoryChange(null);
+        onPropertyTypeChange?.(null);
     };
 
     const clearCategory = () => {
         onCategoryChange(null);
         onSubcategoryChange(null);
+        onPropertyTypeChange?.(null);
     };
 
     return (
@@ -165,6 +169,7 @@ export default function ExploreSidebar({
                                         const value = e.target.value || null;
                                         onCategoryChange(value);
                                         onSubcategoryChange(null);
+                                        onPropertyTypeChange?.(null);
                                     }}
                                     className="w-full appearance-none rounded-lg border-olive-200 bg-white py-2.5 pl-3 pr-9 text-sm text-earth-dusk focus:border-mustard focus:ring-mustard"
                                 >
@@ -204,6 +209,30 @@ export default function ExploreSidebar({
                                                 </option>
                                             ),
                                         )}
+                                    </select>
+                                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-olive-400" />
+                                </div>
+                            </Field>
+                        ) : null}
+
+                        {categoryKey === 'properties' ? (
+                            <Field label="Property type">
+                                <div className="relative">
+                                    <select
+                                        value={propertyType || ''}
+                                        onChange={(e) =>
+                                            onPropertyTypeChange?.(
+                                                e.target.value || null,
+                                            )
+                                        }
+                                        className="w-full appearance-none rounded-lg border-olive-200 bg-white py-2.5 pl-3 pr-9 text-sm text-earth-dusk focus:border-mustard focus:ring-mustard"
+                                    >
+                                        <option value="">All types</option>
+                                        {PROPERTY_TYPES.map((type) => (
+                                            <option key={type} value={type}>
+                                                {type}
+                                            </option>
+                                        ))}
                                     </select>
                                     <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-olive-400" />
                                 </div>
@@ -292,6 +321,40 @@ export default function ExploreSidebar({
                                 );
                             })}
                         </ul>
+
+                        {categoryKey === 'properties' ? (
+                            <div className="mt-5">
+                                <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-olive-500">
+                                    Property type
+                                </p>
+                                <ul className="space-y-0.5 border-l-2 border-olive-200 pl-2">
+                                    {PROPERTY_TYPES.map((type) => {
+                                        const typeActive = propertyType === type;
+                                        return (
+                                            <li key={type}>
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        onPropertyTypeChange?.(
+                                                            typeActive
+                                                                ? null
+                                                                : type,
+                                                        )
+                                                    }
+                                                    className={`w-full rounded-md px-2.5 py-2 text-left text-[13px] transition ${
+                                                        typeActive
+                                                            ? 'bg-mustard/25 font-semibold text-olive-950'
+                                                            : 'font-medium text-earth-dusk hover:bg-olive-50'
+                                                    }`}
+                                                >
+                                                    {type}
+                                                </button>
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                            </div>
+                        ) : null}
                     </div>
                 ) : (
                     <div className="space-y-1">

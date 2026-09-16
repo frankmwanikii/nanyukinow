@@ -23,6 +23,12 @@ export default function ListingCard({ listing, featured = false }) {
                         loading="lazy"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-earth-dusk/35 via-transparent to-transparent" />
+                    {listing.categoryKey === 'properties' &&
+                    listing.propertyType ? (
+                        <span className="absolute left-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-olive-900 shadow-sm">
+                            {listing.propertyType}
+                        </span>
+                    ) : null}
                     {listing.logo && (
                         <img
                             src={listing.logo}

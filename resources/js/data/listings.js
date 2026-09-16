@@ -1448,6 +1448,7 @@ export function filterListings(
     {
         categoryKey = null,
         subcategory = null,
+        propertyType = null,
         query = '',
         location = null,
         minRating = 0,
@@ -1460,6 +1461,7 @@ export function filterListings(
     return items.filter((item) => {
         if (categoryKey && item.categoryKey !== categoryKey) return false;
         if (subcategory && item.subcategory !== subcategory) return false;
+        if (propertyType && item.propertyType !== propertyType) return false;
         if (minRating > 0 && (item.rating ?? 0) < minRating) return false;
         if (openNow && item.isOpen === false) return false;
         if (area && item.location !== area && item.area !== area) return false;
@@ -1472,6 +1474,7 @@ export function filterListings(
             item.area,
             item.category,
             item.subcategory,
+            item.propertyType,
             item.tagline,
         ]
             .filter(Boolean)
