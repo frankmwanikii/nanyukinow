@@ -62,7 +62,7 @@ export default function ExploreSidebar({
         <aside
             className={`flex h-full flex-col border-r border-olive-200 bg-white ${className}`}
         >
-            <div className="grid shrink-0 grid-cols-2 border-b border-olive-200">
+            <div className="grid shrink-0 grid-cols-2">
                 {['filters', 'categories'].map((key) => (
                     <button
                         key={key}

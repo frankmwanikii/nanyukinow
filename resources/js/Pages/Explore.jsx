@@ -12,7 +12,7 @@ import ExploreMap from '@/Components/site/ExploreMap';
 import ExploreSidebar from '@/Components/site/ExploreSidebar';
 import ListingCard from '@/Components/site/ListingCard';
 import SiteLayout from '@/Layouts/SiteLayout';
-import { explorePath, getCategoryByKey } from '@/data/categories';
+import { explorePath } from '@/data/categories';
 import {
     allListings,
     enrichListing,
@@ -103,8 +103,6 @@ function ExploreContent({
         (safePage - 1) * PAGE_SIZE,
         safePage * PAGE_SIZE,
     );
-
-    const activeCategory = getCategoryByKey(categoryKey);
 
     const clearFilters = () => {
         setQuery('');
@@ -228,55 +226,40 @@ function ExploreContent({
                             : 'hidden lg:flex'
                     }`}
                 >
-                    <div className="flex shrink-0 items-center justify-between gap-3 border-b border-olive-200 bg-white px-3 py-2.5 sm:px-4">
-                        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-                            <button
-                                type="button"
-                                disabled={safePage <= 1}
-                                onClick={() =>
-                                    setPage((p) => Math.max(1, p - 1))
-                                }
-                                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-olive-200 bg-white text-olive-700 transition hover:border-olive-400 disabled:cursor-not-allowed disabled:opacity-35"
-                                aria-label="Previous page"
-                                title="Previous page"
-                            >
-                                <ChevronLeft className="h-5 w-5" />
-                            </button>
+                    <div className="relative flex shrink-0 items-center px-3 py-2.5 sm:px-4">
+                        <button
+                            type="button"
+                            disabled={safePage <= 1}
+                            onClick={() => setPage((p) => Math.max(1, p - 1))}
+                            className="relative z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-olive-200/80 bg-transparent text-olive-700 transition hover:border-olive-400 disabled:cursor-not-allowed disabled:opacity-35"
+                            aria-label="Previous page"
+                            title="Previous page"
+                        >
+                            <ChevronLeft className="h-5 w-5" />
+                        </button>
 
-                            <p className="truncate text-sm text-olive-700">
-                                Showing{' '}
-                                <span className="font-semibold text-earth-dusk">
-                                    {filtered.length === 0
-                                        ? '0'
-                                        : `${start}–${end}`}
-                                </span>{' '}
-                                out of{' '}
-                                <span className="font-semibold text-earth-dusk">
-                                    {filtered.length}
-                                </span>{' '}
-                                results
-                                {activeCategory ? (
-                                    <span className="text-olive-500">
-                                        {' '}
-                                        · {activeCategory.label}
-                                        {subcategory
-                                            ? ` / ${subcategory}`
-                                            : ''}
-                                    </span>
-                                ) : null}
-                            </p>
-                        </div>
+                        <p className="pointer-events-none absolute inset-x-12 top-1/2 -translate-y-1/2 truncate text-center text-sm text-olive-700">
+                            Showing{' '}
+                            <span className="font-semibold text-earth-dusk">
+                                {filtered.length === 0
+                                    ? '0'
+                                    : `${start}–${end}`}
+                            </span>{' '}
+                            out of{' '}
+                            <span className="font-semibold text-earth-dusk">
+                                {filtered.length}
+                            </span>{' '}
+                            results
+                        </p>
 
-                        <div className="flex shrink-0 items-center gap-1.5">
+                        <div className="relative z-10 ml-auto flex shrink-0 items-center gap-1.5">
                             <button
                                 type="button"
                                 disabled={safePage >= totalPages}
                                 onClick={() =>
-                                    setPage((p) =>
-                                        Math.min(totalPages, p + 1),
-                                    )
+                                    setPage((p) => Math.min(totalPages, p + 1))
                                 }
-                                className="flex h-9 w-9 items-center justify-center rounded-full border border-olive-200 text-olive-700 transition hover:border-olive-400 disabled:cursor-not-allowed disabled:opacity-35"
+                                className="flex h-9 w-9 items-center justify-center rounded-full border border-olive-200/80 bg-transparent text-olive-700 transition hover:border-olive-400 disabled:cursor-not-allowed disabled:opacity-35"
                                 aria-label="Next page"
                                 title="Next page"
                             >
@@ -290,7 +273,7 @@ function ExploreContent({
                                 className={`ml-1 flex h-9 w-9 items-center justify-center rounded-full border transition ${
                                     mapOpen
                                         ? 'border-mustard bg-mustard text-olive-950'
-                                        : 'border-olive-200 text-olive-700 hover:border-olive-400'
+                                        : 'border-olive-200/80 bg-transparent text-olive-700 hover:border-olive-400'
                                 }`}
                                 aria-label={
                                     mapOpen ? 'Hide map' : 'Show map'

@@ -9,20 +9,64 @@ export const articles = [
     {
         id: 'a1',
         slug: 'nanyuki-shopping-guide',
-        title: 'The Nanyuki shopping guide',
+        title: 'The Nanyuki Shopping Guide',
         category: 'Shopping',
         excerpt:
-            'From market stalls to boutique finds, here’s where locals actually shop — and what to bring home.',
-        image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=80',
+            "Nanyuki isn't just a stop for fuel — it's a treasure trove of high-quality crafts and modern convenience.",
+        image: '/images/stories/shopping-hero.webp',
         author: 'Nanyuki Now',
         publishedAt: '2026-03-02',
-        readMinutes: 5,
+        readMinutes: 6,
         body: [
-            'Nanyuki punches above its weight when it comes to shopping. Between farm produce, craft markets, and a growing strip of independent stores, you can fill a weekend without ever needing a mall.',
-            'Start in town for everyday essentials, then fan out toward Timau and Naromoru for farm shops, souvenir stops, and quiet boutiques tucked along the main routes.',
-            'For gifts, look for locally made leather, honey, coffee, and textiles. Ask vendors what’s in season — highland produce changes quickly, and that’s half the fun.',
-            'Tip: carry small notes, shop earlier in the day for the best selection, and leave room in your bag for one spontaneous find.',
+            "Nanyuki isn't just a stop for fuel; it's a hidden treasure of high-quality crafts and modern convenience. Bring a suitcase that is almost empty.",
         ],
+        sections: [
+            {
+                id: 'modern-hub',
+                title: 'The Modern Hub: One-Stop Convenience',
+                paragraphs: [
+                    "Nanyuki's modern shopping scene is anchored by places like Cedar Mall — a clean, one-stop hub for fashion, groceries, pharmacy runs, and everyday essentials. Think Chandarana Foodplus, Goodlife Pharmacy, Optica, Beyond Fruits, and more under one roof, with easy parking and a breezy highland setting.",
+                    'Whether you need trail snacks before a conservancy day or a last-minute gift before heading home, the modern malls keep town life simple without losing the highland feel.',
+                ],
+                image: '/images/stories/shopping-cedar-mall.webp',
+                imageAlt: 'Cedar Mall Nanyuki exterior on a clear day',
+            },
+            {
+                id: 'artisan-gems',
+                title: 'The Artisan Gems: Shopping with a Story',
+                paragraphs: [
+                    'Beyond the malls, Nanyuki shines in its artisan finds — beaded jewelry, woven baskets, leatherwork, and curios that carry the color and craft of Laikipia. Markets and craft stalls turn shopping into conversation: ask who made the piece, what the patterns mean, and what is in season.',
+                    'These are the souvenirs worth packing space for — items with a story, not just a price tag.',
+                ],
+                image: '/images/stories/shopping-curios.webp',
+                imageAlt: 'Colorful Maasai beadwork and woven baskets',
+            },
+            {
+                id: 'survival-kit',
+                title: 'The Nanyuki Shopping Survival Kit: What to Bring',
+                paragraphs: [
+                    'A little prep goes a long way when you are hopping between malls, markets, and roadside craft stops.',
+                ],
+                list: [
+                    {
+                        title: 'Comfortable walking shoes',
+                        text: "You'll be on your feet exploring shops, stalls, and short stretches between stops.",
+                    },
+                    {
+                        title: 'Reusable bags',
+                        text: 'Go green and keep a sturdy bag ready for crafts, produce, and spontaneous finds.',
+                    },
+                    {
+                        title: 'A sense of adventure',
+                        text: 'The best pieces often sit in the least expected corners — ask locals where they shop.',
+                    },
+                ],
+                image: '/images/stories/shopping-survival.webp',
+                imageAlt: 'Hikers on a mountain ridge at sunset',
+            },
+        ],
+        proTip:
+            "Don't be afraid to bargain at local markets. It's part of the culture and often results in a better price — and a friendly conversation with the seller.",
     },
     {
         id: 'a2',

@@ -73,11 +73,12 @@ function AirbnbsSection() {
     return (
         <section
             id="airbnbs"
-            className="relative z-10 bg-white py-14 sm:py-20"
+            className="relative z-10 bg-olive-700 py-14 sm:py-20"
         >
             <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
                 <Reveal>
                     <SectionHeading
+                        light
                         eyebrow="Stay"
                         title="Highland Airbnbs"
                         subtitle="Homes with character across Nanyuki, Timau, and Naromoru."
@@ -99,7 +100,7 @@ function AirbnbsSection() {
                                     Math.min(n + PAGE_SIZE, airbnbs.length),
                                 )
                             }
-                            className="inline-flex rounded-full bg-olive-600 px-8 py-3.5 text-sm font-bold text-white shadow-lift transition hover:bg-mustard hover:text-olive-950 sm:px-10 sm:text-base"
+                            className="inline-flex rounded-full bg-mustard px-8 py-3.5 text-sm font-bold text-olive-950 shadow-lift transition hover:bg-white hover:text-mustard sm:px-10 sm:text-base"
                         >
                             Load more
                         </button>

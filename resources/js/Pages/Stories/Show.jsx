@@ -1,8 +1,16 @@
 import { Link } from '@inertiajs/react';
-import { ArrowLeft, Check, Clock, Copy, Share2 } from 'lucide-react';
+import {
+    ArrowLeft,
+    Check,
+    Clock,
+    Copy,
+    Lightbulb,
+    Share2,
+} from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import SiteLayout from '@/Layouts/SiteLayout';
 import StoryCard from '@/Components/site/StoryCard';
+import StoryComments from '@/Components/site/StoryComments';
 import {
     articles,
     formatArticleDate,
@@ -102,12 +110,12 @@ function ShareBar({ article }) {
                 url: shareUrl,
             });
         } catch {
-            // user cancelled
+            // cancelled
         }
     };
 
     return (
-        <div className="mt-12 rounded-2xl border border-olive-200 bg-white p-5 shadow-soft sm:p-6">
+        <div className="rounded-2xl border border-olive-200 bg-white p-5 shadow-soft sm:p-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                     <p className="font-display text-lg font-semibold text-earth-dusk">
@@ -128,7 +136,6 @@ function ShareBar({ article }) {
                     </button>
                 ) : null}
             </div>
-
             <div className="mt-5 flex flex-wrap gap-2">
                 {links.map(({ label, href, icon: Icon }) => (
                     <a
@@ -155,6 +162,73 @@ function ShareBar({ article }) {
                     {copied ? 'Copied' : 'Copy link'}
                 </button>
             </div>
+        </div>
+    );
+}
+
+function ArticleSections({ sections = [] }) {
+    return (
+        <div className="mt-12 space-y-14 sm:space-y-16">
+            {sections.map((section, index) => {
+                const reverse = index % 2 === 1;
+                return (
+                    <section
+                        key={section.id || section.title}
+                        className="grid items-center gap-8 lg:grid-cols-2 lg:gap-12"
+                    >
+                        <div className={reverse ? 'lg:order-2' : ''}>
+                            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-olive-600">
+                                {String(index + 1).padStart(2, '0')}
+                            </p>
+                            <h2 className="mt-2 font-display text-2xl font-semibold tracking-tight text-earth-dusk sm:text-3xl">
+                                {section.title}
+                            </h2>
+                            <div className="mt-4 space-y-4 text-base leading-relaxed text-olive-800/90 sm:text-[1.05rem] sm:leading-8">
+                                {(section.paragraphs || []).map((paragraph, i) => (
+                                    <p key={i}>{paragraph}</p>
+                                ))}
+                            </div>
+                            {section.list?.length ? (
+                                <ol className="mt-6 space-y-4">
+                                    {section.list.map((item, i) => (
+                                        <li
+                                            key={item.title || i}
+                                            className="flex gap-4 rounded-2xl bg-white p-4 shadow-soft ring-1 ring-olive-100 sm:p-5"
+                                        >
+                                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-olive-600 font-display text-sm font-bold text-white">
+                                                {i + 1}
+                                            </span>
+                                            <div>
+                                                <p className="font-display text-base font-semibold text-earth-dusk">
+                                                    {item.title}
+                                                </p>
+                                                <p className="mt-1 text-sm leading-relaxed text-olive-700 sm:text-[0.95rem]">
+                                                    {item.text}
+                                                </p>
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ol>
+                            ) : null}
+                        </div>
+
+                        {section.image ? (
+                            <div
+                                className={`overflow-hidden rounded-2xl shadow-lift ${
+                                    reverse ? 'lg:order-1' : ''
+                                }`}
+                            >
+                                <img
+                                    src={section.image}
+                                    alt={section.imageAlt || ''}
+                                    className="aspect-[4/3] h-full w-full object-cover"
+                                    loading="lazy"
+                                />
+                            </div>
+                        ) : null}
+                    </section>
+                );
+            })}
         </div>
     );
 }
@@ -186,20 +260,22 @@ export default function StoryShow({ slug }) {
     const related = articles
         .filter((item) => item.id !== article.id)
         .slice(0, 3);
+    const hasSections = Array.isArray(article.sections) && article.sections.length > 0;
 
     return (
         <SiteLayout title={article.title}>
             <article>
-                <header className="relative overflow-hidden bg-olive-900 pt-24 sm:pt-28">
+                {/* Hero — retained overlay design */}
+                <header className="relative flex min-h-[58svh] items-end overflow-hidden bg-olive-900 pt-24 sm:min-h-[64svh] sm:pt-28">
                     <div className="absolute inset-0">
                         <img
                             src={article.image}
                             alt=""
-                            className="h-full w-full object-cover opacity-45"
+                            className="h-full w-full object-cover"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-olive-950 via-olive-900/80 to-olive-900/55" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#1c1712] via-[#1c1712]/55 to-[#1c1712]/25" />
                     </div>
-                    <div className="relative mx-auto max-w-3xl px-4 pb-14 pt-8 sm:px-6 sm:pb-16">
+                    <div className="relative mx-auto w-full max-w-4xl px-4 pb-12 pt-16 sm:px-6 sm:pb-16">
                         <Link
                             href="/stories"
                             className="inline-flex items-center gap-2 text-sm font-semibold text-white/80 transition hover:text-mustard"
@@ -210,7 +286,7 @@ export default function StoryShow({ slug }) {
                         <p className="mt-6 text-xs font-semibold uppercase tracking-[0.2em] text-mint">
                             {article.category}
                         </p>
-                        <h1 className="mt-3 font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl">
+                        <h1 className="mt-3 max-w-3xl font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl md:leading-tight">
                             {article.title}
                         </h1>
                         <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-white/75">
@@ -225,31 +301,62 @@ export default function StoryShow({ slug }) {
                 </header>
 
                 <div className="bg-earth-sand py-10 sm:py-14">
-                    <div className="mx-auto max-w-3xl px-4 sm:px-6">
-                        <p className="font-display text-lg leading-relaxed text-olive-800 sm:text-xl sm:leading-8">
-                            {article.excerpt}
+                    <div
+                        className={`mx-auto px-4 sm:px-6 ${
+                            hasSections ? 'max-w-5xl' : 'max-w-3xl'
+                        }`}
+                    >
+                        <p className="mx-auto max-w-3xl font-display text-lg leading-relaxed text-olive-800 sm:text-xl sm:leading-8">
+                            {(article.body && article.body[0]) || article.excerpt}
                         </p>
-                        <div className="mt-8 space-y-5 text-base leading-relaxed text-olive-800/90 sm:text-[1.05rem] sm:leading-8">
-                            {article.body.map((paragraph, i) => (
-                                <p key={i}>{paragraph}</p>
-                            ))}
-                        </div>
 
-                        <ShareBar article={article} />
+                        {!hasSections && article.body?.length > 1 ? (
+                            <div className="mx-auto mt-8 max-w-3xl space-y-5 text-base leading-relaxed text-olive-800/90 sm:text-[1.05rem] sm:leading-8">
+                                {article.body.slice(1).map((paragraph, i) => (
+                                    <p key={i}>{paragraph}</p>
+                                ))}
+                            </div>
+                        ) : null}
 
-                        <div className="mt-8 flex flex-wrap gap-3">
-                            <Link
-                                href={`/stories?category=${encodeURIComponent(article.category)}`}
-                                className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-olive-700 ring-1 ring-olive-200 transition hover:bg-olive-600 hover:text-white hover:ring-olive-600"
-                            >
-                                More in {article.category}
-                            </Link>
-                            <Link
-                                href="/stories"
-                                className="rounded-full bg-olive-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-mustard hover:text-olive-950"
-                            >
-                                Browse all stories
-                            </Link>
+                        {hasSections ? (
+                            <ArticleSections sections={article.sections} />
+                        ) : null}
+
+                        {article.proTip ? (
+                            <aside className="mx-auto mt-12 max-w-3xl overflow-hidden rounded-2xl border border-mustard/30 bg-white shadow-soft">
+                                <div className="flex gap-4 p-5 sm:gap-5 sm:p-6">
+                                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-mustard/20 text-olive-900">
+                                        <Lightbulb className="h-5 w-5" />
+                                    </div>
+                                    <div>
+                                        <p className="font-display text-lg font-semibold text-earth-dusk">
+                                            Pro-tip
+                                        </p>
+                                        <p className="mt-2 text-sm leading-relaxed text-olive-700 sm:text-base sm:leading-7">
+                                            {article.proTip}
+                                        </p>
+                                    </div>
+                                </div>
+                            </aside>
+                        ) : null}
+
+                        <div className="mx-auto mt-12 max-w-3xl space-y-8">
+                            <ShareBar article={article} />
+                            <StoryComments slug={article.slug} />
+                            <div className="flex flex-wrap gap-3">
+                                <Link
+                                    href={`/stories?category=${encodeURIComponent(article.category)}`}
+                                    className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-olive-700 ring-1 ring-olive-200 transition hover:bg-olive-600 hover:text-white hover:ring-olive-600"
+                                >
+                                    More in {article.category}
+                                </Link>
+                                <Link
+                                    href="/stories"
+                                    className="rounded-full bg-olive-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-mustard hover:text-olive-950"
+                                >
+                                    Browse all stories
+                                </Link>
+                            </div>
                         </div>
                     </div>
                 </div>

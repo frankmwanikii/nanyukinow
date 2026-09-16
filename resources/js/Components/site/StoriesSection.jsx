@@ -20,11 +20,13 @@ export default function StoriesSection() {
     return (
         <section
             id="stories"
-            className="relative z-10 bg-olive-50 py-14 sm:py-20"
+            className="relative z-10 py-14 sm:py-20"
+            style={{ backgroundColor: '#3f3127' }}
         >
             <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
                 <Reveal>
                     <SectionHeading
+                        light
                         eyebrow="Stories"
                         title="Make the most of your visit!"
                         subtitle="Travel tips and local know-how to plan a better stay around Nanyuki."
@@ -42,7 +44,7 @@ export default function StoriesSection() {
                 <div className="mt-10 flex justify-center">
                     <Link
                         href="/stories"
-                        className="inline-flex rounded-full border border-olive-300 bg-white px-7 py-3 text-sm font-semibold text-olive-800 shadow-soft transition hover:border-mustard hover:bg-mustard hover:text-olive-950 sm:px-8"
+                        className="inline-flex rounded-full border border-white/25 bg-white/10 px-7 py-3 text-sm font-semibold text-white shadow-soft transition hover:border-mustard hover:bg-mustard hover:text-olive-950 sm:px-8"
                     >
                         Browse all stories
                     </Link>

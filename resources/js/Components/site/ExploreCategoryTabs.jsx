@@ -25,30 +25,42 @@ export default function ExploreCategoryTabs({
     onCategoryChange,
 }) {
     return (
-        <div className="shrink-0 border-b border-olive-200 bg-white pt-3 sm:pt-4">
-            <div className="flex items-stretch justify-center gap-1 overflow-x-auto px-2 sm:gap-2 sm:px-4 scrollbar-none">
-                <TabButton
-                    active={!categoryKey}
-                    label="All"
-                    icon={LayoutGrid}
-                    onClick={() => onCategoryChange(null)}
-                />
-                {mainCategories.map((cat) => {
-                    const Icon = icons[cat.key] ?? LayoutGrid;
-                    return (
-                        <TabButton
-                            key={cat.key}
-                            active={categoryKey === cat.key}
-                            label={cat.label}
-                            icon={Icon}
-                            onClick={() =>
-                                onCategoryChange(
-                                    categoryKey === cat.key ? null : cat.key,
-                                )
-                            }
-                        />
-                    );
-                })}
+        <div className="shrink-0 border-b border-olive-200 bg-white">
+            <p className="px-3 pt-3 text-sm font-semibold text-olive-700 lg:hidden">
+                What are you looking for?
+            </p>
+            <div className="flex items-stretch">
+                <div className="hidden w-[300px] shrink-0 items-center px-4 py-3.5 lg:flex xl:w-[320px]">
+                    <p className="text-sm font-semibold text-olive-700 md:text-[15px]">
+                        What are you looking for?
+                    </p>
+                </div>
+                <div className="flex min-w-0 flex-1 items-stretch gap-1 overflow-x-auto px-2 scrollbar-none sm:gap-2 sm:px-3">
+                    <TabButton
+                        active={!categoryKey}
+                        label="All"
+                        icon={LayoutGrid}
+                        onClick={() => onCategoryChange(null)}
+                    />
+                    {mainCategories.map((cat) => {
+                        const Icon = icons[cat.key] ?? LayoutGrid;
+                        return (
+                            <TabButton
+                                key={cat.key}
+                                active={categoryKey === cat.key}
+                                label={cat.label}
+                                icon={Icon}
+                                onClick={() =>
+                                    onCategoryChange(
+                                        categoryKey === cat.key
+                                            ? null
+                                            : cat.key,
+                                    )
+                                }
+                            />
+                        );
+                    })}
+                </div>
             </div>
         </div>
     );
