@@ -157,7 +157,7 @@ function ExploreContent({
     };
 
     return (
-        <div className="flex h-svh flex-col bg-[#f3f1ec] pt-[4.75rem] lg:pt-[5.25rem]">
+        <div className="flex h-svh flex-col bg-[#f3f1ec] pt-[5.75rem] sm:pt-[6.25rem] lg:pt-[6.75rem]">
             <ExploreCategoryTabs
                 categoryKey={categoryKey}
                 onCategoryChange={handleCategoryChange}
