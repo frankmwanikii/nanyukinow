@@ -10,19 +10,19 @@ import HeroSlider from '@/Components/site/HeroSlider';
 import FeaturedMarquee from '@/Components/site/FeaturedMarquee';
 import TrendingCarousel from '@/Components/site/TrendingCarousel';
 import {
-    activities,
+    airbnbs,
     featured,
     goldList,
-    recent,
     testimonials,
     trending,
+    wildlifeSafaris,
 } from '@/data/listings';
 
 const CTA_IMAGE = '/images/designed-for-you.webp';
-const GOLD_PAGE_SIZE = 9;
+const PAGE_SIZE = 9;
 
 function GoldListSection() {
-    const [visible, setVisible] = useState(GOLD_PAGE_SIZE);
+    const [visible, setVisible] = useState(PAGE_SIZE);
     const shown = useMemo(() => goldList.slice(0, visible), [visible]);
     const hasMore = visible < goldList.length;
 
@@ -39,7 +39,7 @@ function GoldListSection() {
                 </Reveal>
                 <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                     {shown.map((listing, i) => (
-                        <Reveal key={listing.id} delay={(i % GOLD_PAGE_SIZE) * 0.04}>
+                        <Reveal key={listing.id} delay={(i % PAGE_SIZE) * 0.04}>
                             <ListingCard listing={listing} featured />
                         </Reveal>
                     ))}
@@ -50,13 +50,106 @@ function GoldListSection() {
                             type="button"
                             onClick={() =>
                                 setVisible((n) =>
-                                    Math.min(
-                                        n + GOLD_PAGE_SIZE,
-                                        goldList.length,
-                                    ),
+                                    Math.min(n + PAGE_SIZE, goldList.length),
                                 )
                             }
                             className="inline-flex rounded-full bg-mustard px-8 py-3.5 text-sm font-bold text-olive-950 shadow-lift transition hover:bg-white hover:text-mustard sm:px-10 sm:text-base"
+                        >
+                            Load more
+                        </button>
+                    </div>
+                ) : null}
+            </div>
+        </section>
+    );
+}
+
+function AirbnbsSection() {
+    const [visible, setVisible] = useState(PAGE_SIZE);
+    const shown = useMemo(() => airbnbs.slice(0, visible), [visible]);
+    const hasMore = visible < airbnbs.length;
+
+    return (
+        <section
+            id="airbnbs"
+            className="relative z-10 bg-white py-14 sm:py-20"
+        >
+            <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
+                <Reveal>
+                    <SectionHeading
+                        eyebrow="Stay"
+                        title="Highland Airbnbs"
+                        subtitle="Homes with character across Nanyuki, Timau, and Naromoru."
+                    />
+                </Reveal>
+                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                    {shown.map((listing, i) => (
+                        <Reveal key={listing.id} delay={(i % PAGE_SIZE) * 0.04}>
+                            <ListingCard listing={listing} />
+                        </Reveal>
+                    ))}
+                </div>
+                {hasMore ? (
+                    <div className="mt-10 flex justify-center">
+                        <button
+                            type="button"
+                            onClick={() =>
+                                setVisible((n) =>
+                                    Math.min(n + PAGE_SIZE, airbnbs.length),
+                                )
+                            }
+                            className="inline-flex rounded-full bg-olive-600 px-8 py-3.5 text-sm font-bold text-white shadow-lift transition hover:bg-mustard hover:text-olive-950 sm:px-10 sm:text-base"
+                        >
+                            Load more
+                        </button>
+                    </div>
+                ) : null}
+            </div>
+        </section>
+    );
+}
+
+function WildlifeSafarisSection() {
+    const [visible, setVisible] = useState(PAGE_SIZE);
+    const shown = useMemo(
+        () => wildlifeSafaris.slice(0, visible),
+        [visible],
+    );
+    const hasMore = visible < wildlifeSafaris.length;
+
+    return (
+        <section
+            id="wildlife"
+            className="relative z-10 bg-earth-sand py-14 sm:py-20"
+        >
+            <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
+                <Reveal>
+                    <SectionHeading
+                        eyebrow="Wild"
+                        title="Wildlife Safaris"
+                        subtitle="Seeking untamed adventures?"
+                    />
+                </Reveal>
+                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                    {shown.map((listing, i) => (
+                        <Reveal key={listing.id} delay={(i % PAGE_SIZE) * 0.04}>
+                            <ListingCard listing={listing} />
+                        </Reveal>
+                    ))}
+                </div>
+                {hasMore ? (
+                    <div className="mt-10 flex justify-center">
+                        <button
+                            type="button"
+                            onClick={() =>
+                                setVisible((n) =>
+                                    Math.min(
+                                        n + PAGE_SIZE,
+                                        wildlifeSafaris.length,
+                                    ),
+                                )
+                            }
+                            className="inline-flex rounded-full bg-olive-600 px-8 py-3.5 text-sm font-bold text-white shadow-lift transition hover:bg-mustard hover:text-olive-950 sm:px-10 sm:text-base"
                         >
                             Load more
                         </button>
@@ -153,51 +246,9 @@ function HomeContent() {
                 </div>
             </section>
 
-            {/* Activities */}
-            <section
-                id="activities"
-                className="relative z-10 bg-earth-sand py-14 sm:py-20"
-            >
-                <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
-                    <Reveal>
-                        <SectionHeading
-                            eyebrow="Outdoors"
-                            title="Activities & adventures"
-                            subtitle="Mount Kenya trails, ranch days, and sky-high views."
-                        />
-                    </Reveal>
-                    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                        {activities.map((listing, i) => (
-                            <Reveal key={listing.id} delay={i * 0.06}>
-                                <ListingCard listing={listing} />
-                            </Reveal>
-                        ))}
-                    </div>
-                </div>
-            </section>
+            <WildlifeSafarisSection />
 
-            {/* Recent */}
-            <section
-                id="stay"
-                className="relative z-10 bg-white py-14 sm:py-20"
-            >
-                <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
-                    <Reveal>
-                        <SectionHeading
-                            eyebrow="Fresh"
-                            title="Recently added"
-                            subtitle="New spots joining the map."
-                        />
-                    </Reveal>
-                    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                        {recent.map((listing, i) => (
-                            <Reveal key={listing.id} delay={i * 0.06}>
-                                <ListingCard listing={listing} />
-                            </Reveal>
-                        ))}
-                    </div>
-                </div>
-            </section>
+            <AirbnbsSection />
 
             {/* Testimonials */}
             <section className="relative z-10 bg-earth-clay py-14 sm:py-20">
