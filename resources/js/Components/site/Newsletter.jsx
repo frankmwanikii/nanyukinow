@@ -14,40 +14,74 @@ export default function Newsletter() {
     return (
         <section
             id="contact"
-            className="relative z-10 bg-olive-100 py-14 sm:py-20"
+            className="relative z-10 overflow-hidden bg-earth-sand py-16 sm:py-20 lg:py-24"
         >
+            <div className="pointer-events-none absolute inset-y-0 left-0 hidden w-2 bg-olive-600 sm:block lg:w-2.5" />
+
             <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
                 <Reveal>
-                    <div className="overflow-hidden rounded-3xl bg-white shadow-lift ring-1 ring-olive-200/70 lg:grid lg:grid-cols-2">
-                        <div className="relative overflow-hidden bg-olive-600 px-6 py-10 text-white sm:px-10 sm:py-14">
-                            <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-mustard/20 blur-2xl" />
-                            <div className="pointer-events-none absolute -bottom-16 left-10 h-48 w-48 rounded-full bg-mint/15 blur-3xl" />
-                            <p className="relative font-display text-2xl font-semibold sm:text-3xl">
-                                The Newsletter
+                    <div className="mx-auto mb-10 max-w-xl text-center sm:mb-14">
+                        <h2 className="font-display text-3xl font-semibold tracking-tight text-earth-dusk sm:text-4xl md:text-5xl">
+                            Nanyuki Insider
+                        </h2>
+                        <div className="mx-auto mt-4 flex max-w-xs items-center gap-2 sm:mt-5">
+                            <span className="flex gap-1">
+                                <span className="h-1.5 w-1.5 rounded-full bg-olive-600" />
+                                <span className="h-1.5 w-1.5 rounded-full bg-olive-600" />
+                                <span className="h-1.5 w-1.5 rounded-full bg-olive-600" />
+                            </span>
+                            <span className="h-px flex-1 bg-olive-600" />
+                        </div>
+                        <p className="mt-3 text-base text-olive-600 sm:text-lg">
+                            Stay in the loop
+                        </p>
+                    </div>
+                </Reveal>
+
+                <Reveal delay={0.08}>
+                    <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:gap-12 xl:gap-16">
+                        <div className="max-w-xl">
+                            <h3 className="font-display text-3xl font-semibold tracking-tight text-earth-dusk sm:text-4xl md:text-[2.75rem] md:leading-tight">
+                                Get the Latest
+                            </h3>
+                            <p className="mt-1 font-display text-2xl font-semibold text-olive-600 sm:text-3xl md:text-4xl">
+                                Mambo kwa Ground
                             </p>
-                            <p className="relative mt-3 max-w-md text-sm leading-relaxed text-white/80 sm:text-base">
-                                Weekend picks, new openings, and local stories —
-                                straight to your inbox.
+                            <p className="mt-5 text-sm leading-relaxed text-olive-800 sm:text-base sm:leading-7">
+                                Be the first to know about weekend offers from
+                                top hotels, new menus at local eateries, and
+                                essential service updates in your area.
                             </p>
                         </div>
 
-                        <div className="flex flex-col justify-center px-6 py-8 sm:px-10 sm:py-12">
+                        <div className="rounded-2xl border border-olive-200/70 bg-white p-6 shadow-soft sm:p-8">
+                            <h3 className="font-display text-xl font-semibold text-earth-dusk sm:text-2xl">
+                                Join the list
+                            </h3>
+                            <p className="mt-1 text-sm text-olive-500">
+                                Be the first to be in the know.
+                            </p>
+                            <div className="mt-4 h-px bg-olive-100" />
+
                             {sent ? (
                                 <motion.p
                                     initial={{ opacity: 0, y: 8 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    className="font-display text-lg text-olive-700"
+                                    className="mt-6 font-display text-lg text-olive-700"
                                 >
-                                    Thanks — you’re on the list.
+                                    Thanks — you’re on the Insider list.
                                 </motion.p>
                             ) : (
                                 <form
                                     onSubmit={onSubmit}
-                                    className="flex flex-col gap-4 sm:flex-row sm:items-end"
+                                    className="mt-6 space-y-5"
                                 >
-                                    <label className="block min-w-0 flex-1">
-                                        <span className="mb-1.5 block text-sm font-medium text-olive-800">
-                                            Email
+                                    <label className="block">
+                                        <span className="mb-1.5 block text-sm font-semibold text-earth-dusk">
+                                            Email address{' '}
+                                            <span className="text-mustard">
+                                                *
+                                            </span>
                                         </span>
                                         <input
                                             required
@@ -57,12 +91,15 @@ export default function Newsletter() {
                                                 setEmail(e.target.value)
                                             }
                                             placeholder="you@email.com"
-                                            className="w-full rounded-xl border-olive-200 bg-earth-sand/40 focus:border-olive-500 focus:ring-olive-500"
+                                            className="w-full rounded-xl border-0 bg-olive-50 px-4 py-3.5 text-sm text-earth-dusk ring-1 ring-olive-200 placeholder:text-olive-400 focus:ring-2 focus:ring-mustard"
                                         />
+                                        <span className="mt-1.5 block text-xs text-olive-500">
+                                            Example: you@email.com
+                                        </span>
                                     </label>
                                     <button
                                         type="submit"
-                                        className="inline-flex shrink-0 rounded-full bg-olive-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-olive-700"
+                                        className="inline-flex w-full items-center justify-center rounded-full bg-olive-700 px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-mustard hover:text-olive-950 sm:w-auto"
                                     >
                                         Subscribe
                                     </button>
