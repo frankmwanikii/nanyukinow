@@ -4,6 +4,7 @@ import ListingCard from '@/Components/site/ListingCard';
 
 export default function TrendingCarousel({ items = [] }) {
     const trackRef = useRef(null);
+    const pauseUntilRef = useRef(0);
     const [paused, setPaused] = useState(false);
     const loop = [...items, ...items];
 
@@ -11,18 +12,18 @@ export default function TrendingCarousel({ items = [] }) {
         const track = trackRef.current;
         if (!track || items.length === 0) return undefined;
 
-        let frame = 0;
         let rafId = 0;
 
         const tick = () => {
-            if (!paused && track) {
+            const hold =
+                paused || Date.now() < pauseUntilRef.current;
+            if (!hold && track) {
                 track.scrollLeft += 0.6;
                 const half = track.scrollWidth / 2;
                 if (track.scrollLeft >= half) {
                     track.scrollLeft -= half;
                 }
             }
-            frame += 1;
             rafId = window.requestAnimationFrame(tick);
         };
 
@@ -37,24 +38,27 @@ export default function TrendingCarousel({ items = [] }) {
         const amount = card
             ? card.getBoundingClientRect().width + 20
             : 320;
+        pauseUntilRef.current = Date.now() + 900;
         track.scrollBy({ left: direction * amount, behavior: 'smooth' });
     };
 
     if (items.length === 0) return null;
 
     return (
-        <div className="relative">
+        <div
+            className="relative"
+            onMouseEnter={() => setPaused(true)}
+            onMouseLeave={() => setPaused(false)}
+            onFocusCapture={() => setPaused(true)}
+            onBlurCapture={(e) => {
+                if (!e.currentTarget.contains(e.relatedTarget)) {
+                    setPaused(false);
+                }
+            }}
+        >
             <div
                 ref={trackRef}
                 className="flex gap-5 overflow-x-auto scroll-smooth pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-                onMouseEnter={() => setPaused(true)}
-                onMouseLeave={() => setPaused(false)}
-                onFocusCapture={() => setPaused(true)}
-                onBlurCapture={(e) => {
-                    if (!e.currentTarget.contains(e.relatedTarget)) {
-                        setPaused(false);
-                    }
-                }}
             >
                 {loop.map((listing, i) => (
                     <div

@@ -1,15 +1,26 @@
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { Heart, MapPin, Star } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { listingHref } from '@/data/listings';
 
-function MarqueeCard({ item, inert = false, allowClick = true }) {
+const DRAG_THRESHOLD = 8;
+
+function MarqueeCard({ item, inert = false, shouldSuppressClick }) {
     const [saved, setSaved] = useState(false);
+    const href = item.href || listingHref(item);
 
     return (
         <Link
-            href={item.href}
+            href={href}
             onClick={(e) => {
-                if (!allowClick) e.preventDefault();
+                if (shouldSuppressClick?.()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return;
+                }
+                // Ensure navigation even when drag handlers interfere with the link.
+                e.preventDefault();
+                router.visit(href);
             }}
             className="group w-[min(82vw,22rem)] shrink-0 overflow-hidden rounded-2xl bg-olive-600 shadow-soft sm:w-[24rem]"
             tabIndex={inert ? -1 : undefined}
@@ -39,7 +50,6 @@ function MarqueeCard({ item, inert = false, allowClick = true }) {
                     onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        if (!allowClick) return;
                         setSaved((v) => !v);
                     }}
                     onPointerDown={(e) => e.stopPropagation()}
@@ -84,13 +94,13 @@ export default function FeaturedMarquee({ items = [] }) {
     const dragRef = useRef({
         active: false,
         moved: false,
+        suppressClick: false,
         startX: 0,
         startScroll: 0,
         pointerId: null,
     });
     const [setsPerSegment, setSetsPerSegment] = useState(2);
     const [paused, setPaused] = useState(false);
-    const [allowClick, setAllowClick] = useState(true);
 
     useEffect(() => {
         if (items.length === 0) return undefined;
@@ -125,7 +135,6 @@ export default function FeaturedMarquee({ items = [] }) {
 
     const loop = useMemo(() => [...segment, ...segment], [segment]);
 
-    // Keep scroll inside the seamless half-loop
     const wrapScroll = (track) => {
         const half = track.scrollWidth / 2;
         if (half <= 0) return;
@@ -140,7 +149,6 @@ export default function FeaturedMarquee({ items = [] }) {
         const track = viewportRef.current;
         if (!track || items.length === 0) return undefined;
 
-        // Start mid-segment so left drag has room
         const half = track.scrollWidth / 2;
         if (half > 0) track.scrollLeft = half * 0.25;
 
@@ -159,48 +167,64 @@ export default function FeaturedMarquee({ items = [] }) {
     const onPointerDown = (e) => {
         const track = viewportRef.current;
         if (!track || e.button === 2) return;
+        if (e.target.closest('button')) return;
+
         dragRef.current = {
             active: true,
             moved: false,
+            suppressClick: false,
             startX: e.clientX,
             startScroll: track.scrollLeft,
             pointerId: e.pointerId,
         };
-        setAllowClick(true);
-        track.setPointerCapture?.(e.pointerId);
     };
 
     const onPointerMove = (e) => {
         const track = viewportRef.current;
         const drag = dragRef.current;
         if (!track || !drag.active) return;
+
         const dx = e.clientX - drag.startX;
-        if (Math.abs(dx) > 6) {
+        if (Math.abs(dx) <= DRAG_THRESHOLD) return;
+
+        if (!drag.moved) {
             drag.moved = true;
-            setAllowClick(false);
+            drag.suppressClick = true;
+            track.setPointerCapture?.(e.pointerId);
         }
+
         track.scrollLeft = drag.startScroll - dx;
         wrapScroll(track);
     };
 
-    const endDrag = (e) => {
+    const endDrag = () => {
         const drag = dragRef.current;
         if (!drag.active) return;
         const track = viewportRef.current;
-        if (track && drag.pointerId != null) {
+
+        if (track && drag.moved && drag.pointerId != null) {
             try {
                 track.releasePointerCapture?.(drag.pointerId);
             } catch {
                 // already released
             }
         }
+
+        const didDrag = drag.moved;
         drag.active = false;
         drag.pointerId = null;
-        if (drag.moved) {
-            // Re-enable clicks after the click event from this gesture
-            window.setTimeout(() => setAllowClick(true), 0);
+        drag.moved = false;
+
+        if (didDrag) {
+            window.setTimeout(() => {
+                drag.suppressClick = false;
+            }, 80);
+        } else {
+            drag.suppressClick = false;
         }
     };
+
+    const shouldSuppressClick = () => dragRef.current.suppressClick;
 
     if (items.length === 0) return null;
 
@@ -238,7 +262,7 @@ export default function FeaturedMarquee({ items = [] }) {
                         key={`${item.id}-${i}`}
                         item={item}
                         inert={i >= segment.length}
-                        allowClick={allowClick}
+                        shouldSuppressClick={shouldSuppressClick}
                     />
                 ))}
             </div>

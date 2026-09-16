@@ -115,6 +115,7 @@ export const PROPERTY_TYPES = [
     'Apartment',
     'Bedsitter',
     'Studio',
+    'Real estate',
     'Townhouse',
     'Duplex',
     'Mansion',
@@ -124,7 +125,6 @@ export const PROPERTY_TYPES = [
     'Commercial',
     'Warehouse',
     'Office',
-    'Land',
 ];
 
 export function getCategoryByKey(key) {

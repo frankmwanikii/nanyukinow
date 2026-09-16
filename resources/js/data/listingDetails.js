@@ -214,6 +214,7 @@ export const listingDetailsById = {
         about:
             'A Nanyuki classic on the edge of town — garden rooms, a busy restaurant terrace, and easy access to Mount Kenya adventures. Ideal for stopovers, family weekends, and conference groups that still want highland air.',
         address: 'Nanyuki–Meru Highway, Nanyuki',
+        website: 'https://www.sportsmanarms.co.ke',
         gallery: HOTEL_GALLERY,
         amenities: [
             'wifi',
@@ -255,6 +256,7 @@ export const listingDetailsById = {
         about:
             'Treehouse dining above a trout farm — fresh fish, highland views, and a menu that rewards a slow lunch. Book ahead on weekends; the walkways fill fast when the weather is clear.',
         address: 'Timau Road, near Nanyuki',
+        website: 'https://www.trouttree.co.ke',
         gallery: DINING_GALLERY,
         video: {
             poster: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1200&q=80',
@@ -383,6 +385,7 @@ export const listingDetailsById = {
         about:
             'Guided wildlife encounters at the foot of Mount Kenya — orphaned animals, conservation stories, and walking trails that make the highland landscape feel close.',
         address: 'Mount Kenya Wildlife Conservancy, Nanyuki',
+        website: 'https://www.mtkenyawildlife.org',
         gallery: [
             {
                 label: 'Gallery',
@@ -1983,6 +1986,7 @@ export function getListingDetail(listing) {
                 .toLowerCase()
                 .replace(/[^a-z0-9]+/g, '')
                 .slice(0, 18) || 'listing'}.co.ke`,
+        website: listing.website || null,
         socials: listing.socials || {
             instagram: 'https://instagram.com/',
             facebook: 'https://facebook.com/',

@@ -1,38 +1,5 @@
-export const featured = [
-    {
-        id: 'f1',
-        title: 'Sunset at Mount Kenya',
-        location: 'Nanyuki',
-        category: 'Things to do',
-        subcategory: 'Outdoor & Adventure',
-        rating: 4.9,
-        image: 'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&w=1200&q=80',
-        logo: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=120&q=80',
-        href: '/explore?category=thingsToDo',
-    },
-    {
-        id: 'f2',
-        title: 'Highland lodge nights',
-        location: 'Timau',
-        category: 'Stay',
-        subcategory: 'Safari Lodges',
-        rating: 4.8,
-        image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80',
-        logo: 'https://images.unsplash.com/photo-1560179707-f14f90ef2aca?auto=format&fit=crop&w=120&q=80',
-        href: '/explore?category=stay',
-    },
-    {
-        id: 'f3',
-        title: 'Town flavours & cafés',
-        location: 'Nanyuki',
-        category: 'Eat & Drink',
-        subcategory: 'Cafes',
-        rating: 4.7,
-        image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80',
-        logo: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=120&q=80',
-        href: '/explore?category=eatDrink',
-    },
-];
+/** Featured hero marquee — resolved to real listings below (see `featured`). */
+export const FEATURED_LISTING_IDS = ['w1', 't4', 2];
 
 export const listings = [
     {
@@ -1428,6 +1395,16 @@ export function listingHref(listing) {
     const slug = slugForListing(listing);
     return `/listings/${encodeURIComponent(slug)}`;
 }
+
+/** Hero marquee cards — real listings so clicks open detail pages. */
+export const featured = FEATURED_LISTING_IDS.map((id) => {
+    const listing = getListingById(id);
+    if (!listing) return null;
+    return {
+        ...listing,
+        href: listingHref(listing),
+    };
+}).filter(Boolean);
 
 export function getRelatedListings(listing, relatedIds = [], limit = 3) {
     if (!listing) return [];
