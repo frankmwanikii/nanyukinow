@@ -157,11 +157,13 @@ function ExploreContent({
     };
 
     return (
-        <div className="flex h-svh flex-col bg-[#f3f1ec] pt-[5.75rem] pb-[4.75rem] sm:pt-[6.25rem] lg:pt-[6.75rem] lg:pb-0">
-            <ExploreCategoryTabs
-                categoryKey={categoryKey}
-                onCategoryChange={handleCategoryChange}
-            />
+        <div className="flex h-svh flex-col bg-[#f3f1ec] pb-[4.75rem] lg:pb-0">
+            <div className="shrink-0 bg-white pt-[5.75rem] sm:pt-[6.25rem] lg:pt-[6.75rem]">
+                <ExploreCategoryTabs
+                    categoryKey={categoryKey}
+                    onCategoryChange={handleCategoryChange}
+                />
+            </div>
 
             {/* Mobile toolbar */}
             <div className="flex shrink-0 items-center gap-2 border-b border-olive-200 bg-white px-3 py-2.5 lg:hidden">

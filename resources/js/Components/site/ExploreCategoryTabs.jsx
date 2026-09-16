@@ -26,11 +26,11 @@ export default function ExploreCategoryTabs({
 }) {
     return (
         <div className="shrink-0 border-b border-olive-200 bg-white">
-            <p className="px-3 pt-3 text-sm font-semibold text-olive-700 lg:hidden">
+            <p className="px-3 pb-2 text-sm font-semibold text-olive-700 lg:hidden">
                 What are you looking for?
             </p>
             <div className="flex items-stretch">
-                <div className="hidden w-[300px] shrink-0 items-center px-4 py-3.5 lg:flex xl:w-[320px]">
+                <div className="hidden w-[300px] shrink-0 items-center px-4 pb-3.5 pt-0 lg:flex xl:w-[320px]">
                     <p className="text-sm font-semibold text-olive-700 md:text-[15px]">
                         What are you looking for?
                     </p>
@@ -71,7 +71,7 @@ function TabButton({ active, label, icon: Icon, onClick }) {
         <button
             type="button"
             onClick={onClick}
-            className={`relative flex shrink-0 items-center gap-2 px-3.5 py-3.5 text-[13px] font-semibold transition sm:px-4 ${
+            className={`relative flex shrink-0 items-center gap-2 px-3.5 pb-3.5 pt-0 text-[13px] font-semibold transition sm:px-4 ${
                 active
                     ? 'text-earth-dusk'
                     : 'text-earth-dusk/90 hover:text-earth-dusk'
