@@ -87,7 +87,42 @@ function todayHoursLabel(row) {
     return `${open} - ${close}`;
 }
 
-export default function HoursList({ hours, status = 'open', title = 'Hours' }) {
+function toMinutes(parsed) {
+    if (!parsed) return null;
+    return parsed.hour * 60 + parsed.minute;
+}
+
+/**
+ * Whether the business is open right now based on today's hours row.
+ * Supports overnight windows (e.g. 10:00 pm – 2:00 am).
+ */
+function isOpenNow(row, date) {
+    if (!row) return false;
+    if (!row.close || String(row.open).toLowerCase() === 'closed') {
+        return false;
+    }
+
+    const openMins = toMinutes(parseHourMinute(row.open));
+    const closeMins = toMinutes(parseHourMinute(row.close));
+    if (openMins == null || closeMins == null) return false;
+
+    const nowMins = date.getHours() * 60 + date.getMinutes();
+
+    // Same-day window: 8:00 am – 10:00 pm
+    if (closeMins > openMins) {
+        return nowMins >= openMins && nowMins < closeMins;
+    }
+
+    // Overnight window: 10:00 pm – 2:00 am
+    if (closeMins < openMins) {
+        return nowMins >= openMins || nowMins < closeMins;
+    }
+
+    // open === close → treat as closed / invalid
+    return false;
+}
+
+export default function HoursList({ hours, title = 'Working hours' }) {
     const [now, setNow] = useState(() => new Date());
 
     useEffect(() => {
@@ -100,10 +135,10 @@ export default function HoursList({ hours, status = 'open', title = 'Hours' }) {
     const todayRow = useMemo(() => findTodayRow(hours || [], now), [hours, now]);
     const localTimeLabel = useMemo(() => formatLocalNow(now), [now]);
     const todayLabel = useMemo(() => todayHoursLabel(todayRow), [todayRow]);
+    const isOpen = useMemo(() => isOpenNow(todayRow, now), [todayRow, now]);
 
     if (!Array.isArray(hours) || !hours.length) return null;
 
-    const isOpen = status === 'open';
     const todayName = DAY_NAMES[now.getDay()];
 
     return (
@@ -121,18 +156,13 @@ export default function HoursList({ hours, status = 'open', title = 'Hours' }) {
                 </span>
             }
         >
-            <div className="mb-4 space-y-2 border-b border-olive-100 pb-4">
-                <p className="text-sm font-medium text-olive-700">
-                    {localTimeLabel}
+            <div className="mb-4 space-y-1 border-b border-olive-100 pb-4">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-olive-500">
+                    Open hours today
                 </p>
-                <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-olive-500">
-                        Open hours today
-                    </p>
-                    <p className="mt-0.5 font-display text-base font-semibold text-earth-dusk">
-                        {todayLabel}
-                    </p>
-                </div>
+                <p className="font-display text-base font-semibold text-earth-dusk">
+                    {todayLabel}
+                </p>
             </div>
 
             <ul className="divide-y divide-olive-100">
@@ -178,6 +208,10 @@ export default function HoursList({ hours, status = 'open', title = 'Hours' }) {
                     );
                 })}
             </ul>
+
+            <p className="mt-3 border-t border-olive-100 pt-3 text-right text-xs italic text-olive-500">
+                {localTimeLabel}
+            </p>
         </DetailSection>
     );
 }

@@ -66,11 +66,34 @@ function MosaicTile({ src, alt, onClick, className = '', children }) {
     );
 }
 
-export default function VisualTour({ gallery = [], title = 'Visual tour' }) {
-    const spaces = useMemo(
-        () => normalizeGallerySpaces(gallery),
-        [gallery],
-    );
+export default function VisualTour({
+    gallery = [],
+    title = 'Visual tour',
+    hideTabs = false,
+}) {
+    const spaces = useMemo(() => {
+        const normalized = normalizeGallerySpaces(gallery);
+        if (!hideTabs || normalized.length <= 1) return normalized;
+
+        const images = [];
+        const seen = new Set();
+        for (const space of normalized) {
+            for (const src of space.images) {
+                if (!src || seen.has(src)) continue;
+                seen.add(src);
+                images.push(src);
+            }
+        }
+        if (!images.length) return [];
+        return [
+            {
+                label: title || 'Gallery',
+                kind: 'gallery',
+                images,
+                cover: images[0],
+            },
+        ];
+    }, [gallery, hideTabs, title]);
     const flat = useMemo(() => flattenSpaces(spaces), [spaces]);
 
     const [spaceIndex, setSpaceIndex] = useState(0);

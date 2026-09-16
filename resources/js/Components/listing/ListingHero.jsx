@@ -1,11 +1,13 @@
 import { Link } from '@inertiajs/react';
-import { MessageCircle, Phone, Star } from 'lucide-react';
+import { MessageCircle, Phone, Star, Ticket } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function ListingHero({ listing, secondaryCta }) {
     const tel = listing.phone
         ? `tel:${String(listing.phone).replace(/\s+/g, '')}`
         : null;
+    const isEvent = listing.categoryKey === 'events';
+    const ticketUrl = listing.ticketUrl;
 
     return (
         <header className="relative flex min-h-[68svh] items-end overflow-hidden bg-olive-900 pt-24 sm:min-h-[78svh] sm:pt-28 lg:min-h-[82svh]">
@@ -48,12 +50,35 @@ export default function ListingHero({ listing, secondaryCta }) {
                                     ) : null}
                                 </p>
                             ) : null}
+                            {isEvent && listing.subcategory ? (
+                                <p className="mb-2">
+                                    <span className="inline-flex rounded-full bg-mustard px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-olive-950">
+                                        {listing.subcategory}
+                                    </span>
+                                </p>
+                            ) : null}
                             <h1 className="font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl">
                                 {listing.title}
                             </h1>
                             <p className="mt-2 max-w-xl text-sm text-white/80 sm:text-base">
-                                {listing.tagline}
-                                {listing.location ? ` · ${listing.location}` : ''}
+                                {isEvent
+                                    ? [
+                                          listing.venue,
+                                          listing.location,
+                                          listing.earlyBirdPrice
+                                              ? `Early bird ${listing.earlyBirdPrice}`
+                                              : listing.ticketPrice,
+                                      ]
+                                          .filter(Boolean)
+                                          .join(' · ')
+                                    : [
+                                          listing.tagline,
+                                          listing.location
+                                              ? listing.location
+                                              : null,
+                                      ]
+                                          .filter(Boolean)
+                                          .join(' · ')}
                             </p>
                             {listing.rating ? (
                                 <p className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-white">
@@ -61,7 +86,8 @@ export default function ListingHero({ listing, secondaryCta }) {
                                     {listing.rating}
                                     {listing.reviewSummary?.count ? (
                                         <span className="font-normal text-white/70">
-                                            · {listing.reviewSummary.count} reviews
+                                            · {listing.reviewSummary.count}{' '}
+                                            reviews
                                         </span>
                                     ) : null}
                                 </p>
@@ -70,13 +96,33 @@ export default function ListingHero({ listing, secondaryCta }) {
                     </div>
 
                     <div className="flex flex-wrap gap-3 lg:justify-end">
-                        {tel ? (
+                        {ticketUrl ? (
+                            <a
+                                href={ticketUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 rounded-full bg-mustard px-5 py-3 text-sm font-bold text-olive-950 shadow-lift transition hover:bg-white"
+                            >
+                                <Ticket className="h-4 w-4" />
+                                Buy tickets
+                            </a>
+                        ) : null}
+                        {tel && !ticketUrl ? (
                             <a
                                 href={tel}
                                 className="inline-flex items-center gap-2 rounded-full bg-mustard px-5 py-3 text-sm font-bold text-olive-950 shadow-lift transition hover:bg-white"
                             >
                                 <Phone className="h-4 w-4" />
                                 Call now
+                            </a>
+                        ) : null}
+                        {tel && ticketUrl ? (
+                            <a
+                                href={tel}
+                                className="inline-flex items-center gap-2 rounded-full bg-white/15 px-5 py-3 text-sm font-semibold text-white ring-1 ring-white/35 backdrop-blur transition hover:bg-white hover:text-olive-950"
+                            >
+                                <Phone className="h-4 w-4" />
+                                Call
                             </a>
                         ) : null}
                         <Link
@@ -86,7 +132,7 @@ export default function ListingHero({ listing, secondaryCta }) {
                             <MessageCircle className="h-4 w-4" />
                             Direct message
                         </Link>
-                        {secondaryCta ? (
+                        {secondaryCta && !ticketUrl ? (
                             <span className="hidden items-center rounded-full bg-olive-800/80 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-white/90 sm:inline-flex">
                                 {secondaryCta}
                             </span>

@@ -4,9 +4,13 @@ import AmenitiesGrid from './AmenitiesGrid';
 import BulletList from './BulletList';
 import ChipRow from './ChipRow';
 import DirectionsMap from './DirectionsMap';
+import EventLineup from './EventLineup';
 import EventSchedule from './EventSchedule';
+import EventSponsors from './EventSponsors';
+import EventTickets from './EventTickets';
+import EventWhen from './EventWhen';
+import EventWhere from './EventWhere';
 import FactStrip from './FactStrip';
-import FloorPlan from './FloorPlan';
 import HoursList from './HoursList';
 import MenuGallery from './MenuGallery';
 import ReviewsTeaser from './ReviewsTeaser';
@@ -25,8 +29,10 @@ export function renderListingSection(key, listing) {
                 <VisualTour
                     key={key}
                     gallery={listing.gallery}
+                    hideTabs={listing.categoryKey === 'events'}
                     title={
-                        listing.categoryKey === 'thingsToDo'
+                        listing.categoryKey === 'thingsToDo' ||
+                        listing.categoryKey === 'events'
                             ? 'Gallery'
                             : listing.categoryKey === 'stay' ||
                                 listing.categoryKey === 'properties'
@@ -117,11 +123,10 @@ export function renderListingSection(key, listing) {
             );
         case 'agenda':
             return (
-                <BulletList
+                <EventLineup
                     key={key}
                     title="Line-up"
                     items={listing.agenda}
-                    ordered
                 />
             );
         case 'chips':
@@ -158,8 +163,24 @@ export function renderListingSection(key, listing) {
                     title="Menus"
                 />
             );
-        case 'floorPlan':
-            return <FloorPlan key={key} floorPlan={listing.floorPlan} />;
+        case 'highlights':
+            return (
+                <BulletList
+                    key={key}
+                    title="What's nearby"
+                    items={listing.highlights}
+                />
+            );
+        case 'eventWhen':
+            return <EventWhen key={key} listing={listing} />;
+        case 'eventWhere':
+            return <EventWhere key={key} listing={listing} />;
+        case 'eventTickets':
+            return <EventTickets key={key} listing={listing} />;
+        case 'sponsors':
+            return (
+                <EventSponsors key={key} sponsors={listing.sponsors} />
+            );
         case 'reviews':
             return (
                 <ReviewsTeaser

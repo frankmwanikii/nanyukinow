@@ -607,10 +607,13 @@ export const listingDetailsById = {
             'security',
             'garden',
         ],
-        floorPlan: {
-            image: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1200&q=80',
-            title: 'Ground floor plan',
-        },
+        highlights: [
+            'Mount Kenya views from the upper terrace',
+            '10 minutes to Timau town & shops',
+            'Quiet cul-de-sac with gated access',
+            'Mature garden and outdoor entertaining space',
+            'Title deed ready for transfer',
+        ],
         agent: {
             name: 'Highland Homes Agency',
             phone: '+254 722 445 668',
@@ -638,6 +641,12 @@ export const listingDetailsById = {
             { label: 'Price', value: 'On request' },
         ],
         amenities: ['parking', 'wifi', 'security', 'garden', 'outdoor'],
+        highlights: [
+            'Open-plan living with private garden',
+            'Short drive into Nanyuki CBD',
+            'Secure estate with parking',
+            'Ideal family home or highland retreat',
+        ],
         agent: {
             name: 'Highland Homes Agency',
             phone: '+254 722 445 668',
@@ -664,6 +673,12 @@ export const listingDetailsById = {
             { label: 'Price', value: 'On request' },
         ],
         amenities: ['parking', 'security', 'garden'],
+        highlights: [
+            'Single-level living — no stairs',
+            'Quiet Timau neighbourhood',
+            'Mature trees and garden space',
+            'Ready to move with clear utilities',
+        ],
         agent: {
             name: 'Highland Homes Agency',
             phone: '+254 722 445 668',
@@ -787,7 +802,45 @@ export const listingDetailsById = {
     e17: {
         about:
             'An evening of live jazz under highland skies — local ensembles, soft lighting, and a crowd that shows up for the music.',
-        address: 'Town terrace venue, Nanyuki',
+        address: 'Town Terrace, Nanyuki CBD',
+        venue: 'Town Terrace',
+        organiser: 'Nanyuki Now Live',
+        startDate: '2026-09-28T19:30:00+03:00',
+        endDate: '2026-09-28T22:15:00+03:00',
+        ticketPrice: 'From KES 1,200',
+        earlyBirdPrice: 'KES 1,200',
+        gatePrice: 'KES 1,500',
+        ticketUrl: 'https://pay.nanyukinow.co.ke/tickets/nanyuki-jazz-night',
+        ageLimit: '18+',
+        eventPoster:
+            'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=900&q=80',
+        amenities: [
+            'parking',
+            'wifi',
+            'alcohol',
+            'cards',
+            'wheelchair',
+            'security',
+            'outdoor',
+        ],
+        sponsors: [
+            {
+                name: 'Safaricom',
+                logo: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&w=200&q=80',
+            },
+            {
+                name: 'Tusker',
+                logo: 'https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?auto=format&fit=crop&w=200&q=80',
+            },
+            {
+                name: 'Nanyuki Club',
+                logo: 'https://images.unsplash.com/photo-1560179707-f14f90ef2aca?auto=format&fit=crop&w=200&q=80',
+            },
+            {
+                name: 'Mount Kenya Radio',
+                logo: 'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?auto=format&fit=crop&w=200&q=80',
+            },
+        ],
         gallery: [
             {
                 label: 'Stage',
@@ -820,12 +873,13 @@ export const listingDetailsById = {
             title: 'Last season highlights',
         },
         facts: [
-            { label: 'Date', value: 'Sat 28 Sep' },
-            { label: 'Doors', value: '18:30' },
-            { label: 'Starts', value: '19:30' },
-            { label: 'Venue', value: 'Town terrace' },
+            { label: 'Starts', value: 'Sat 28 Sep, 7:30 pm' },
+            { label: 'Ends', value: 'Sat 28 Sep, 10:15 pm' },
+            { label: 'Venue', value: 'Town Terrace' },
+            { label: 'Location', value: 'Nanyuki' },
             { label: 'Age', value: '18+' },
-            { label: 'Tickets', value: 'KES 1,500' },
+            { label: 'Early bird', value: 'KES 1,200' },
+            { label: 'Gate ticket', value: 'KES 1,500' },
         ],
         agenda: [
             { time: '18:30', title: 'Doors & welcome drink' },
@@ -846,6 +900,211 @@ export const listingDetailsById = {
         },
         reviewSummary: { count: 67, highlight: 'Intimate sound and a great local crowd.' },
         relatedIds: ['e18', 'e19', 'e20'],
+    },
+
+    e18: {
+        about:
+            'A weekend fair celebrating highland harvest — produce stalls, kids’ games, live folk sets, and picnic lawns for the whole family.',
+        address: 'Naromoru Community Grounds',
+        venue: 'Naromoru Community Grounds',
+        organiser: 'Naromoru Farmers Collective',
+        startDate: '2026-10-11T09:00:00+03:00',
+        endDate: '2026-10-12T17:00:00+03:00',
+        ticketPrice: 'Free entry',
+        earlyBirdPrice: 'Free',
+        gatePrice: 'Free',
+        ticketUrl: 'https://pay.nanyukinow.co.ke/tickets/community-harvest-fair',
+        ageLimit: 'All ages',
+        eventPoster:
+            'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=900&q=80',
+        amenities: [
+            'parking',
+            'family',
+            'outdoor',
+            'garden',
+            'wheelchair',
+            'cards',
+        ],
+        sponsors: [
+            {
+                name: 'Brookside',
+                logo: 'https://images.unsplash.com/photo-1628088062854-d1870b4553da?auto=format&fit=crop&w=200&q=80',
+            },
+            {
+                name: 'County Tourism',
+                logo: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=200&q=80',
+            },
+            {
+                name: 'Farmers Co-op',
+                logo: 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=200&q=80',
+            },
+        ],
+        facts: [
+            { label: 'Starts', value: 'Sat 11 Oct, 9:00 am' },
+            { label: 'Ends', value: 'Sun 12 Oct, 5:00 pm' },
+            { label: 'Venue', value: 'Community Grounds' },
+            { label: 'Location', value: 'Naromoru' },
+            { label: 'Age', value: 'All ages' },
+            { label: 'Early bird', value: 'Free' },
+            { label: 'Gate ticket', value: 'Free' },
+        ],
+        agenda: [
+            { time: '09:00', title: 'Gates open & market stalls' },
+            { time: '11:00', title: 'Kids zone & games' },
+            { time: '14:00', title: 'Folk music set' },
+            { time: '16:30', title: 'Prize draw' },
+        ],
+        eventSchedule: [
+            { label: 'Day 1', value: 'Sat 09:00 – 17:00' },
+            { label: 'Day 2', value: 'Sun 09:00 – 17:00' },
+            { label: 'Parking', value: 'On-site, free' },
+        ],
+        payments: ['Cash', 'M-Pesa (vendors)'],
+        chips: {
+            region: 'Naromoru',
+            categories: ['Events', 'Family & Kids'],
+            tags: ['Weekend', 'Free'],
+        },
+        reviewSummary: { count: 41, highlight: 'Great for families — lots to do.' },
+        relatedIds: ['e17', 'e19', 'e20'],
+    },
+
+    e19: {
+        about:
+            'A charity 10K through conservancy trails raising funds for wildlife protection — finish-line music, medals, and a community brunch.',
+        address: 'Ol Pejeta Conservancy Gate, Nanyuki',
+        venue: 'Ol Pejeta Conservancy Gate',
+        organiser: 'Laikipia Wildlife Trust',
+        startDate: '2026-11-08T06:30:00+03:00',
+        endDate: '2026-11-08T12:00:00+03:00',
+        ticketPrice: 'From KES 2,000',
+        earlyBirdPrice: 'KES 2,000',
+        gatePrice: 'KES 2,500',
+        ticketUrl: 'https://pay.nanyukinow.co.ke/tickets/conservancy-charity-run',
+        ageLimit: '16+',
+        eventPoster:
+            'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?auto=format&fit=crop&w=900&q=80',
+        amenities: [
+            'parking',
+            'family',
+            'outdoor',
+            'wheelchair',
+            'security',
+            'cards',
+        ],
+        sponsors: [
+            {
+                name: 'Ol Pejeta',
+                logo: 'https://images.unsplash.com/photo-1549366021-9f761d450615?auto=format&fit=crop&w=200&q=80',
+            },
+            {
+                name: 'Sportpesa',
+                logo: 'https://images.unsplash.com/photo-1461896836934-ffe607ba6851?auto=format&fit=crop&w=200&q=80',
+            },
+            {
+                name: 'Equity Bank',
+                logo: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=200&q=80',
+            },
+            {
+                name: 'Water Bottle Co.',
+                logo: 'https://images.unsplash.com/photo-1523362628745-0c100150b504?auto=format&fit=crop&w=200&q=80',
+            },
+        ],
+        facts: [
+            { label: 'Starts', value: 'Sun 8 Nov, 6:30 am' },
+            { label: 'Ends', value: 'Sun 8 Nov, 12:00 pm' },
+            { label: 'Venue', value: 'Ol Pejeta Gate' },
+            { label: 'Location', value: 'Nanyuki' },
+            { label: 'Age', value: '16+' },
+            { label: 'Early bird', value: 'KES 2,000' },
+            { label: 'Gate ticket', value: 'KES 2,500' },
+        ],
+        agenda: [
+            { time: '05:45', title: 'Registration & warm-up' },
+            { time: '06:30', title: 'Race start' },
+            { time: '09:30', title: 'Medal ceremony' },
+            { time: '10:00', title: 'Community brunch' },
+        ],
+        eventSchedule: [
+            { label: 'Check-in', value: '05:45 – 06:20' },
+            { label: 'Race', value: '06:30 – 09:00' },
+            { label: 'Brunch', value: '10:00 – 12:00' },
+        ],
+        payments: ['M-Pesa', 'Card'],
+        chips: {
+            region: 'Nanyuki',
+            categories: ['Events', 'Wildlife & Conservation'],
+            tags: ['Charity', 'Outdoors'],
+        },
+        reviewSummary: { count: 112, highlight: 'Well organised and for a great cause.' },
+        relatedIds: ['e17', 'e18', 'e20'],
+    },
+
+    e20: {
+        about:
+            'An after-work mixer for highland founders, hoteliers, and creatives — short intros, open networking, and light bites.',
+        address: 'Timau Club Lounge',
+        venue: 'Timau Club Lounge',
+        organiser: 'Laikipia Business Circle',
+        startDate: '2026-10-02T17:00:00+03:00',
+        endDate: '2026-10-02T20:00:00+03:00',
+        ticketPrice: 'From KES 600',
+        earlyBirdPrice: 'KES 600',
+        gatePrice: 'KES 800',
+        ticketUrl: 'https://pay.nanyukinow.co.ke/tickets/business-networking-mixer',
+        ageLimit: '21+',
+        eventPoster:
+            'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=900&q=80',
+        amenities: [
+            'parking',
+            'wifi',
+            'alcohol',
+            'cards',
+            'workspace',
+            'security',
+        ],
+        sponsors: [
+            {
+                name: 'KCB',
+                logo: 'https://images.unsplash.com/photo-1541354329998-f4d9a9f9301b?auto=format&fit=crop&w=200&q=80',
+            },
+            {
+                name: 'Safaricom Business',
+                logo: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&w=200&q=80',
+            },
+            {
+                name: 'Timau Club',
+                logo: 'https://images.unsplash.com/photo-1560179707-f14f90ef2aca?auto=format&fit=crop&w=200&q=80',
+            },
+        ],
+        facts: [
+            { label: 'Starts', value: 'Fri 2 Oct, 5:00 pm' },
+            { label: 'Ends', value: 'Fri 2 Oct, 8:00 pm' },
+            { label: 'Venue', value: 'Timau Club Lounge' },
+            { label: 'Location', value: 'Timau' },
+            { label: 'Age', value: '21+' },
+            { label: 'Early bird', value: 'KES 600' },
+            { label: 'Gate ticket', value: 'KES 800' },
+        ],
+        agenda: [
+            { time: '17:00', title: 'Check-in & drinks' },
+            { time: '17:30', title: 'Welcome & lightning intros' },
+            { time: '18:15', title: 'Open networking' },
+            { time: '19:45', title: 'Wrap & photo moment' },
+        ],
+        eventSchedule: [
+            { label: 'Doors', value: '17:00' },
+            { label: 'Programme', value: '17:30 – 19:45' },
+            { label: 'Dress code', value: 'Smart casual' },
+        ],
+        payments: ['M-Pesa', 'Card'],
+        chips: {
+            region: 'Timau',
+            categories: ['Events', 'Business & Networking'],
+            tags: ['After-work', 'Networking'],
+        },
+        reviewSummary: { count: 28, highlight: 'Useful connections without the stiff vibe.' },
+        relatedIds: ['e17', 'e18', 'e19'],
     },
 };
 
@@ -1553,20 +1812,30 @@ const DEFAULTS_BY_CATEGORY = {
             { label: 'Baths', value: '—' },
             { label: 'Price', value: 'On request' },
         ],
+        highlights: [
+            'Close to local shops and services',
+            'Easy road access to Nanyuki town',
+            'Quiet residential setting',
+            'Suitable for family living',
+        ],
     },
     events: {
         galleryKinds: EVENT_GALLERY,
+        amenities: ['parking', 'wifi', 'family', 'wheelchair', 'cards', 'security'],
         payments: ['M-Pesa', 'Cash'],
         withHours: false,
         facts: [
-            { label: 'Date', value: 'See organiser' },
+            { label: 'Starts', value: 'See organiser' },
+            { label: 'Ends', value: 'See organiser' },
             { label: 'Venue', value: 'Nanyuki' },
+            { label: 'Location', value: 'Nanyuki' },
         ],
         agenda: [{ time: 'TBA', title: 'Programme announced closer to the date' }],
         eventSchedule: [
             { label: 'Doors', value: 'TBA' },
             { label: 'Event', value: 'TBA' },
         ],
+        sponsors: [],
     },
 };
 
@@ -1682,7 +1951,18 @@ export function getListingDetail(listing) {
         docs: [],
         menus: [],
         products: productsForShoppingListing(listing),
-        floorPlan: null,
+        highlights: defaults.highlights ?? [],
+        sponsors: defaults.sponsors ?? [],
+        eventPoster: listing.eventPoster || null,
+        startDate: listing.startDate || null,
+        endDate: listing.endDate || null,
+        venue: listing.venue || null,
+        ticketPrice: listing.ticketPrice || null,
+        earlyBirdPrice: listing.earlyBirdPrice || null,
+        gatePrice: listing.gatePrice || null,
+        ticketUrl: listing.ticketUrl || null,
+        ageLimit: listing.ageLimit || null,
+        organiser: listing.organiser || null,
         agent:
             listing.categoryKey === 'properties'
                 ? {
@@ -1741,13 +2021,34 @@ export function getListingDetail(listing) {
         mergedChips.categories = [...new Set(chipCats)];
     }
 
+    const posterSrc =
+        explicit?.eventPoster || listing.eventPoster || null;
+    let gallery = ensureGalleryDepth(explicit?.gallery ?? base.gallery);
+    if (listing.categoryKey === 'events' && posterSrc) {
+        const spaces = normalizeGallerySpaces(gallery);
+        const hasPosterSpace = spaces.some(
+            (space) => space.kind === 'poster' || space.label === 'Poster',
+        );
+        if (!hasPosterSpace) {
+            gallery = [
+                {
+                    label: 'Poster',
+                    kind: 'poster',
+                    images: [posterSrc],
+                    cover: posterSrc,
+                },
+                ...spaces,
+            ];
+        }
+    }
+
     return {
         ...listing,
         ...base,
         ...explicit,
         propertyType: propertyType || explicit?.propertyType || null,
         facts: listing.categoryKey === 'properties' ? facts : explicit?.facts ?? base.facts,
-        gallery: ensureGalleryDepth(explicit?.gallery ?? base.gallery),
+        gallery,
         chips: mergedChips,
         reviewSummary: { ...base.reviewSummary, ...explicit?.reviewSummary },
         products:
