@@ -1,10 +1,13 @@
 import { Link } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
 import SiteLayout from '@/Layouts/SiteLayout';
 import ListingHero from '@/Components/listing/ListingHero';
 import ListingSubnav from '@/Components/listing/ListingSubnav';
 import ListingActionBar from '@/Components/listing/ListingActionBar';
 import MobileStickyCta from '@/Components/listing/MobileStickyCta';
 import RelatedListings from '@/Components/listing/RelatedListings';
+import ContactInfoPage from '@/Components/listing/ContactInfoPage';
+import ReviewsPage from '@/Components/listing/ReviewsPage';
 import { renderListingSection } from '@/Components/listing/renderListingSection';
 import { getListingDetail } from '@/data/listingDetails';
 import { getLayoutForCategory } from '@/data/listingLayouts';
@@ -13,9 +16,32 @@ import {
     getRelatedListings,
 } from '@/data/listings';
 
+const VALID_TABS = new Set(['overview', 'contact', 'reviews']);
+
+function readTabFromHash() {
+    if (typeof window === 'undefined') return 'overview';
+    const hash = window.location.hash.replace('#', '');
+    return VALID_TABS.has(hash) ? hash : 'overview';
+}
+
 export default function ListingShow({ id }) {
     const base = getListingById(id);
     const listing = getListingDetail(base);
+    const [tab, setTab] = useState(readTabFromHash);
+
+    useEffect(() => {
+        const onHash = () => setTab(readTabFromHash());
+        window.addEventListener('hashchange', onHash);
+        return () => window.removeEventListener('hashchange', onHash);
+    }, []);
+
+    const changeTab = (next) => {
+        setTab(next);
+        if (typeof window !== 'undefined') {
+            window.history.replaceState(null, '', `#${next}`);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    };
 
     if (!listing) {
         return (
@@ -51,25 +77,41 @@ export default function ListingShow({ id }) {
                 listing={listing}
                 secondaryCta={layout.ctaSecondary}
             />
-            <ListingSubnav items={layout.subnav} />
+            <ListingSubnav
+                items={layout.subnav}
+                active={tab}
+                onChange={changeTab}
+            />
             <ListingActionBar listing={listing} />
 
             <div className="bg-earth-sand pb-24 pt-6 sm:pt-8 lg:pb-14">
-                <div className="mx-auto grid max-w-[1400px] gap-5 px-4 sm:px-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(280px,1fr)] lg:items-start lg:gap-6">
-                    <div className="flex flex-col gap-5">
-                        {layout.main.map((key) =>
-                            renderListingSection(key, listing),
-                        )}
+                {tab === 'overview' ? (
+                    <div className="mx-auto grid max-w-[1400px] gap-5 px-4 sm:px-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(280px,1fr)] lg:items-start lg:gap-6">
+                        <div className="flex flex-col gap-5">
+                            {layout.main.map((key) =>
+                                renderListingSection(key, listing),
+                            )}
+                        </div>
+                        <aside className="flex flex-col gap-5 lg:sticky lg:top-36">
+                            {layout.side.map((key) =>
+                                renderListingSection(key, listing),
+                            )}
+                        </aside>
                     </div>
-                    <aside className="flex flex-col gap-5 lg:sticky lg:top-36">
-                        {layout.side.map((key) =>
-                            renderListingSection(key, listing),
-                        )}
-                    </aside>
-                </div>
+                ) : null}
+
+                {tab === 'contact' ? (
+                    <ContactInfoPage listing={listing} />
+                ) : null}
+
+                {tab === 'reviews' ? (
+                    <ReviewsPage listing={listing} />
+                ) : null}
             </div>
 
-            <RelatedListings listings={related} />
+            {tab === 'overview' ? (
+                <RelatedListings listings={related} />
+            ) : null}
             <MobileStickyCta listing={listing} />
         </SiteLayout>
     );
