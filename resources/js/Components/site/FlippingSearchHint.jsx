@@ -16,7 +16,7 @@ const FLIP_WORDS = [
  */
 export default function FlippingSearchHint({
     visible = true,
-    prefix = 'Search ',
+    prefix = 'Search',
     className = '',
 }) {
     const [index, setIndex] = useState(0);
@@ -33,7 +33,7 @@ export default function FlippingSearchHint({
 
     return (
         <span
-            className={`pointer-events-none absolute inset-y-0 left-7 flex items-center overflow-hidden text-[15px] text-white/65 sm:text-base ${className}`}
+            className={`pointer-events-none absolute inset-y-0 left-7 flex items-center gap-1.5 overflow-hidden text-[15px] text-white/65 sm:text-base ${className}`}
             aria-hidden
         >
             <span className="shrink-0">{prefix}</span>

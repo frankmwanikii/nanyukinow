@@ -8,10 +8,11 @@ import {
     X,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import AuthModal from './AuthModal';
 import FlippingSearchHint from './FlippingSearchHint';
 import Logo from './Logo';
+import SearchSuggestions from './SearchSuggestions';
 import { explorePath, getCategoryByKey, mainCategories } from '@/data/categories';
 
 const MORE_KEYS = ['services', 'shopping', 'properties', 'events'];
@@ -265,14 +266,34 @@ export default function Navbar({ compact = false }) {
     const [mobileAccordion, setMobileAccordion] = useState(null);
     const [mobileMoreAccordion, setMobileMoreAccordion] = useState(null);
     const [query, setQuery] = useState('');
+    const [searchOpen, setSearchOpen] = useState(false);
     const [authOpen, setAuthOpen] = useState(false);
     const [authTab, setAuthTab] = useState('login');
+    const searchRef = useRef(null);
 
     const openAuth = (tab = 'login') => {
         setAuthTab(tab);
         setAuthOpen(true);
         setOpen(false);
     };
+
+    useEffect(() => {
+        if (!searchOpen) return undefined;
+        const onPointerDown = (e) => {
+            if (!searchRef.current?.contains(e.target)) {
+                setSearchOpen(false);
+            }
+        };
+        const onKey = (e) => {
+            if (e.key === 'Escape') setSearchOpen(false);
+        };
+        document.addEventListener('pointerdown', onPointerDown);
+        document.addEventListener('keydown', onKey);
+        return () => {
+            document.removeEventListener('pointerdown', onPointerDown);
+            document.removeEventListener('keydown', onKey);
+        };
+    }, [searchOpen]);
 
     useEffect(() => {
         if (compact) {
@@ -327,8 +348,11 @@ export default function Navbar({ compact = false }) {
         [],
     );
 
+    const closeSearch = () => setSearchOpen(false);
+
     const submitSearch = (e) => {
         e.preventDefault();
+        closeSearch();
         router.get(
             '/explore',
             query.trim() ? { q: query.trim() } : {},
@@ -387,20 +411,44 @@ export default function Navbar({ compact = false }) {
                 <Logo className="hidden shrink-0 lg:inline-flex" />
 
                 <form
+                    ref={searchRef}
                     className="relative ml-1 hidden min-w-0 flex-1 items-center lg:flex"
                     onSubmit={submitSearch}
                     role="search"
                 >
                     <Search className="pointer-events-none absolute left-0 z-10 h-4 w-4 text-white/80" />
-                    <FlippingSearchHint visible={!query.trim()} />
+                    <FlippingSearchHint visible={!query.trim() && !searchOpen} />
                     <input
                         type="search"
                         value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                        placeholder={query.trim() ? 'What are you looking for?' : ''}
+                        onChange={(e) => {
+                            setQuery(e.target.value);
+                            setSearchOpen(true);
+                            setActiveMenu(null);
+                        }}
+                        onFocus={() => {
+                            setSearchOpen(true);
+                            setActiveMenu(null);
+                        }}
+                        placeholder={
+                            query.trim() || searchOpen
+                                ? 'What are you looking for?'
+                                : ''
+                        }
                         aria-label="Search"
+                        aria-expanded={searchOpen}
+                        aria-controls="nav-search-suggestions"
+                        autoComplete="off"
                         className="w-full border-0 bg-transparent py-2 pl-7 pr-2 text-[15px] text-white placeholder:text-white/65 focus:outline-none focus:ring-0 sm:text-base"
                     />
+                    {searchOpen ? (
+                        <SearchSuggestions
+                            query={query}
+                            onSelect={closeSearch}
+                            className="min-w-[min(100%,22rem)] max-w-md"
+                            id="nav-search-suggestions"
+                        />
+                    ) : null}
                 </form>
 
                 <nav className="hidden items-center gap-1 font-display lg:flex xl:gap-2">
