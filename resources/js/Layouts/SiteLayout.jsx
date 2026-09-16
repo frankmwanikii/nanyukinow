@@ -13,7 +13,7 @@ export default function SiteLayout({
         <>
             <Head title={title} />
             <div
-                className={`overflow-x-hidden bg-earth-sand font-sans text-earth-dusk antialiased ${
+                className={`overflow-x-clip bg-earth-sand font-sans text-earth-dusk antialiased ${
                     hideFooter
                         ? 'h-svh overflow-hidden'
                         : 'min-h-screen pb-[4.75rem] lg:pb-0'
