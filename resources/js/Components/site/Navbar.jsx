@@ -270,6 +270,8 @@ export default function Navbar({ compact = false }) {
     const [authOpen, setAuthOpen] = useState(false);
     const [authTab, setAuthTab] = useState('login');
     const searchRef = useRef(null);
+    const headerRef = useRef(null);
+    const suggestionsRef = useRef(null);
 
     const openAuth = (tab = 'login') => {
         setAuthTab(tab);
@@ -280,7 +282,9 @@ export default function Navbar({ compact = false }) {
     useEffect(() => {
         if (!searchOpen) return undefined;
         const onPointerDown = (e) => {
-            if (!searchRef.current?.contains(e.target)) {
+            const inSearch = searchRef.current?.contains(e.target);
+            const inPanel = suggestionsRef.current?.contains(e.target);
+            if (!inSearch && !inPanel) {
                 setSearchOpen(false);
             }
         };
@@ -363,6 +367,7 @@ export default function Navbar({ compact = false }) {
 
     return (
         <header
+            ref={headerRef}
             className={`fixed inset-x-0 top-0 z-[1100] transition-all duration-300 ${
                 scrolled || compact
                     ? 'bg-[#4f5a3e]/95 shadow-lg shadow-earth-dusk/20 backdrop-blur-md'
@@ -445,7 +450,9 @@ export default function Navbar({ compact = false }) {
                         <SearchSuggestions
                             query={query}
                             onSelect={closeSearch}
-                            className="min-w-[min(100%,22rem)] max-w-md"
+                            anchorRef={searchRef}
+                            headerRef={headerRef}
+                            panelRef={suggestionsRef}
                             id="nav-search-suggestions"
                         />
                     ) : null}

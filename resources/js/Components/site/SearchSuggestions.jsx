@@ -8,7 +8,8 @@ import {
     ShoppingCart,
     UtensilsCrossed,
 } from 'lucide-react';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { explorePath } from '@/data/categories';
 import {
     allListings,
@@ -23,7 +24,7 @@ const FEATURED = [
         label: 'Airbnbs',
         Icon: BedDouble,
         href: explorePath({ category: 'stay', subcategory: 'Airbnbs' }),
-        keywords: ['airbnb', 'stay', 'cabin', 'lodge', 'home'],
+        keywords: ['airbnb', 'stay', 'cabin', 'lodge', 'home', 'hotel', 'hotels'],
     },
     {
         id: 'properties',
@@ -104,10 +105,37 @@ function SuggestionRow({ href, Icon, label, meta, onSelect }) {
 export default function SearchSuggestions({
     query = '',
     onSelect,
-    className = '',
+    anchorRef,
+    headerRef,
+    panelRef,
     id,
 }) {
     const q = query.trim().toLowerCase();
+    const [coords, setCoords] = useState(null);
+
+    useEffect(() => {
+        const update = () => {
+            const searchEl = anchorRef?.current;
+            const headerEl = headerRef?.current;
+            if (!searchEl) return;
+            const searchRect = searchEl.getBoundingClientRect();
+            const headerBottom = headerEl
+                ? headerEl.getBoundingClientRect().bottom
+                : searchRect.bottom;
+            setCoords({
+                top: headerBottom,
+                left: searchRect.left,
+                width: Math.max(searchRect.width, 280),
+            });
+        };
+        update();
+        window.addEventListener('resize', update);
+        window.addEventListener('scroll', update, true);
+        return () => {
+            window.removeEventListener('resize', update);
+            window.removeEventListener('scroll', update, true);
+        };
+    }, [anchorRef, headerRef]);
 
     const featured = useMemo(
         () => FEATURED.filter((item) => matchesQuery(item, q)),
@@ -125,10 +153,20 @@ export default function SearchSuggestions({
     const hasListings = listings.length > 0;
     const empty = q && !hasFeatured && !hasListings;
 
-    return (
+    if (!coords || typeof document === 'undefined') return null;
+
+    return createPortal(
         <div
+            ref={panelRef}
             id={id}
-            className={`absolute left-0 right-0 top-full z-[1200] mt-0 overflow-hidden rounded-b-md border border-olive-100/80 bg-white shadow-[0_12px_28px_rgba(28,23,18,0.18)] ${className}`}
+            style={{
+                position: 'fixed',
+                top: coords.top,
+                left: coords.left,
+                width: Math.min(coords.width, window.innerWidth - 24),
+                maxWidth: '28rem',
+            }}
+            className="z-[1200] border-t-[3px] border-mustard bg-white font-display shadow-lift"
             role="listbox"
             aria-label="Search suggestions"
         >
@@ -203,6 +241,7 @@ export default function SearchSuggestions({
                     </Link>
                 </div>
             ) : null}
-        </div>
+        </div>,
+        document.body,
     );
 }
