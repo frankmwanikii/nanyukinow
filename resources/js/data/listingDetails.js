@@ -66,6 +66,63 @@ const ROOM_GALLERY = [
     },
 ];
 
+/** Hotels: no private bathroom/kitchen aisles — use a general gallery instead. */
+const HOTEL_GALLERY = [
+    {
+        label: 'General gallery',
+        kind: 'general',
+        images: [
+            'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1400&q=80',
+        ],
+    },
+    {
+        label: 'Living room',
+        kind: 'living',
+        images: [
+            'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1400&q=80',
+        ],
+    },
+    {
+        label: 'Bedroom',
+        kind: 'bedroom',
+        images: [
+            'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=1400&q=80',
+        ],
+    },
+    {
+        label: 'Outdoor area',
+        kind: 'outdoor',
+        images: [
+            'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=1400&q=80',
+        ],
+    },
+];
+
+const HOTEL_SUBCATEGORIES = new Set([
+    'Hotels',
+    'Boutique Hotels',
+    'Conference Hotels',
+]);
+
+function isHotelListing(listing) {
+    return (
+        listing?.categoryKey === 'stay' &&
+        HOTEL_SUBCATEGORIES.has(listing.subcategory)
+    );
+}
+
 const DINING_GALLERY = [
     {
         label: 'Dining room',
@@ -157,12 +214,7 @@ export const listingDetailsById = {
         about:
             'A Nanyuki classic on the edge of town — garden rooms, a busy restaurant terrace, and easy access to Mount Kenya adventures. Ideal for stopovers, family weekends, and conference groups that still want highland air.',
         address: 'Nanyuki–Meru Highway, Nanyuki',
-        gallery: ROOM_GALLERY,
-        video: {
-            poster: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80',
-            src: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
-            title: 'Tour the grounds',
-        },
+        gallery: HOTEL_GALLERY,
         amenities: [
             'wifi',
             'parking',
@@ -1519,9 +1571,14 @@ const DEFAULTS_BY_CATEGORY = {
 };
 
 function buildGallery(listing, defaults) {
-    if (defaults.galleryKinds?.length) {
+    const kinds =
+        isHotelListing(listing) && !defaults?.forceRoomGallery
+            ? HOTEL_GALLERY
+            : defaults.galleryKinds;
+
+    if (kinds?.length) {
         return ensureGalleryDepth(
-            defaults.galleryKinds.map((space, i) => {
+            kinds.map((space, i) => {
                 const images = Array.isArray(space.images)
                     ? [...space.images]
                     : space.src
@@ -1538,11 +1595,15 @@ function buildGallery(listing, defaults) {
             }),
         );
     }
-    if (!listing.image) return ensureGalleryDepth(ROOM_GALLERY);
+    if (!listing.image) {
+        return ensureGalleryDepth(
+            isHotelListing(listing) ? HOTEL_GALLERY : ROOM_GALLERY,
+        );
+    }
     return ensureGalleryDepth([
         {
-            label: 'Gallery',
-            kind: 'main',
+            label: isHotelListing(listing) ? 'General gallery' : 'Gallery',
+            kind: isHotelListing(listing) ? 'general' : 'main',
             images: [listing.image],
         },
         {
