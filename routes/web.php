@@ -33,6 +33,12 @@ Route::get('/stories/{slug}', function (string $slug) {
     ]);
 })->name('stories.show');
 
+Route::get('/listings/{id}', function (string $id) {
+    return Inertia::render('Listings/Show', [
+        'id' => $id,
+    ]);
+})->name('listings.show');
+
 Route::get('/terms', function () {
     return Inertia::render('Terms');
 })->name('terms');

@@ -1170,6 +1170,48 @@ export const goldList = (() => {
     return [...ranked, ...filler];
 })();
 
+export function getListingById(id) {
+    if (id == null || id === '') return null;
+    const index = allListings.findIndex((item) => String(item.id) === String(id));
+    if (index === -1) return null;
+    return enrichListing(allListings[index], index);
+}
+
+export function getRelatedListings(listing, relatedIds = [], limit = 3) {
+    if (!listing) return [];
+    const byId = new Map(
+        allListings.map((item, index) => [
+            String(item.id),
+            enrichListing(item, index),
+        ]),
+    );
+    const picked = [];
+    const seen = new Set([String(listing.id)]);
+
+    for (const rid of relatedIds) {
+        const item = byId.get(String(rid));
+        if (item && !seen.has(String(item.id))) {
+            picked.push(item);
+            seen.add(String(item.id));
+        }
+        if (picked.length >= limit) return picked;
+    }
+
+    for (const item of byId.values()) {
+        if (seen.has(String(item.id))) continue;
+        if (
+            item.categoryKey === listing.categoryKey ||
+            item.location === listing.location
+        ) {
+            picked.push(item);
+            seen.add(String(item.id));
+        }
+        if (picked.length >= limit) break;
+    }
+
+    return picked;
+}
+
 export function filterListings(
     items,
     {
