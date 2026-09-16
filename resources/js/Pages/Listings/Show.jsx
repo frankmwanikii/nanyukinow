@@ -4,7 +4,6 @@ import SiteLayout from '@/Layouts/SiteLayout';
 import ListingHero from '@/Components/listing/ListingHero';
 import ListingSubnav from '@/Components/listing/ListingSubnav';
 import ListingActionBar from '@/Components/listing/ListingActionBar';
-import MobileStickyCta from '@/Components/listing/MobileStickyCta';
 import RelatedListings from '@/Components/listing/RelatedListings';
 import ContactInfoPage from '@/Components/listing/ContactInfoPage';
 import ProductsPage from '@/Components/listing/ProductsPage';
@@ -92,7 +91,7 @@ export default function ListingShow({ slug, id }) {
             />
             <ListingActionBar listing={listing} />
 
-            <div className="bg-earth-sand pb-24 pt-4 sm:pt-6 lg:pb-14">
+            <div className="bg-earth-sand pb-8 pt-4 sm:pt-6 lg:pb-14">
                 {tab === 'overview' ? (
                     <div className="mx-auto grid max-w-[1400px] gap-4 px-4 sm:px-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(280px,1fr)] lg:items-start lg:gap-5">
                         <div className="flex flex-col gap-4">
@@ -122,7 +121,6 @@ export default function ListingShow({ slug, id }) {
             </div>
 
             <RelatedListings listings={related} />
-            <MobileStickyCta listing={listing} />
         </SiteLayout>
     );
 }

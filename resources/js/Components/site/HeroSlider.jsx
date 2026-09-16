@@ -7,9 +7,10 @@ const SLIDES = [
     {
         id: 1,
         image: '/images/hero/slide_1.jpeg',
+        imageMobile: '/images/hero/slide_1_mobile.jpg',
         alt: 'Nanyuki Now — Mount Kenya, wildlife, and town life',
-        layout: 'image',
-        overlay: 'from-earth-dusk/20 via-transparent to-earth-dusk/45',
+        layout: 'brand',
+        overlay: 'from-earth-dusk/15 via-transparent to-earth-dusk/40',
     },
     {
         id: 2,
@@ -42,7 +43,7 @@ const SLIDES = [
         layout: 'safari',
         overlay: 'from-earth-dusk/55 via-earth-dusk/40 to-earth-dusk/70',
         eyebrow: 'A Taste of the Equator',
-        eyebrowClass: 'uppercase tracking-[0.18em]',
+        eyebrowClass: 'uppercase tracking-[0.14em] sm:tracking-[0.18em]',
         titleLead: "Nanyuki's Finest Flavors",
         titleAccent: 'Redefined',
         cta: 'See more',
@@ -71,7 +72,7 @@ export default function HeroSlider() {
 
     return (
         <section
-            className="relative flex min-h-[100svh] items-center justify-center overflow-hidden pt-16"
+            className="relative flex min-h-[100svh] items-center justify-center overflow-hidden pt-20 sm:pt-16"
             onMouseEnter={() => setPaused(true)}
             onMouseLeave={() => setPaused(false)}
             aria-roledescription="carousel"
@@ -80,20 +81,28 @@ export default function HeroSlider() {
             <AnimatePresence mode="wait" initial={false}>
                 <motion.div
                     key={slide.id}
-                    className="absolute inset-0 overflow-hidden"
+                    className="absolute inset-0 overflow-hidden bg-[#1c1712]"
                     initial={reduce ? false : { opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={reduce ? undefined : { opacity: 0 }}
                     transition={{ duration: 0.9, ease: 'easeInOut' }}
                 >
-                    <img
-                        src={slide.image}
-                        alt={slide.alt}
-                        className={`h-full w-full object-cover will-change-transform ${
-                            reduce ? '' : 'animate-ken-burns-slide'
-                        }`}
-                        fetchPriority={index === 0 ? 'high' : 'auto'}
-                    />
+                    <picture>
+                        {slide.imageMobile ? (
+                            <source
+                                media="(max-width: 639px)"
+                                srcSet={slide.imageMobile}
+                            />
+                        ) : null}
+                        <img
+                            src={slide.image}
+                            alt={slide.alt}
+                            className={`h-full w-full object-cover object-center will-change-transform ${
+                                reduce ? '' : 'animate-ken-burns-slide'
+                            }`}
+                            fetchPriority={index === 0 ? 'high' : 'auto'}
+                        />
+                    </picture>
                     <div
                         className={`absolute inset-0 bg-gradient-to-b ${slide.overlay}`}
                     />
@@ -101,13 +110,13 @@ export default function HeroSlider() {
             </AnimatePresence>
 
             {slide.layout === 'safari' ? (
-                <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col items-center px-4 pb-20 pt-10 text-center sm:px-6">
+                <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col items-center px-5 pb-28 pt-6 text-center sm:px-6 sm:pb-20 sm:pt-10">
                     <motion.p
                         key={`eyebrow-${slide.id}`}
                         initial={reduce ? false : { opacity: 0, y: 18 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6 }}
-                        className={`text-sm font-medium text-white/90 sm:text-base ${
+                        className={`max-w-[18rem] text-[11px] font-semibold leading-snug text-white/90 sm:max-w-none sm:text-sm sm:font-medium md:text-base ${
                             slide.eyebrowClass || 'tracking-wide'
                         }`}
                     >
@@ -119,12 +128,12 @@ export default function HeroSlider() {
                         initial={reduce ? false : { opacity: 0, y: 22 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1, duration: 0.7 }}
-                        className="mt-3 max-w-none font-display text-3xl font-bold leading-[1.15] tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl"
+                        className="mt-3 w-full max-w-[20rem] font-display text-[1.55rem] font-bold leading-[1.18] tracking-tight text-white sm:mt-3 sm:max-w-3xl sm:text-5xl md:text-6xl lg:text-7xl"
                     >
-                        <span className="block whitespace-nowrap">
+                        <span className="block text-balance">
                             {slide.titleLead}
                         </span>
-                        <span className="mt-1 block whitespace-nowrap text-mint">
+                        <span className="mt-1.5 block text-balance text-[1.25rem] leading-snug text-mint sm:mt-1 sm:text-[length:inherit] sm:leading-[inherit]">
                             {slide.titleAccent}
                         </span>
                     </motion.h1>
@@ -134,38 +143,55 @@ export default function HeroSlider() {
                         initial={reduce ? false : { opacity: 0, y: 16 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.22, duration: 0.6 }}
-                        className="mt-8"
+                        className="mt-5 sm:mt-8"
                     >
                         <Link
                             href={slide.ctaHref}
-                            className="group inline-flex items-center gap-3 rounded-full bg-mustard px-7 py-3.5 text-sm font-bold uppercase tracking-wide text-olive-950 shadow-lg transition hover:bg-white hover:text-mustard hover:shadow-md sm:text-base"
+                            className="group inline-flex items-center gap-2 rounded-full bg-mustard px-4 py-2.5 text-[11px] font-bold uppercase tracking-wide text-olive-950 shadow-lg transition hover:bg-white hover:text-mustard hover:shadow-md sm:gap-3 sm:px-7 sm:py-3.5 sm:text-sm md:text-base"
                         >
                             {slide.cta}
-                            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-olive-950/10 transition group-hover:bg-mustard/15">
-                                <ArrowRight className="h-4 w-4" />
+                            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-olive-950/10 transition group-hover:bg-mustard/15 sm:h-7 sm:w-7">
+                                <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4" />
                             </span>
                         </Link>
                     </motion.div>
                 </div>
             ) : null}
 
-            <div className="pointer-events-none absolute inset-y-0 left-0 right-0 z-20 flex items-center justify-between px-2 sm:px-4">
+            <div className="pointer-events-none absolute inset-y-0 left-0 right-0 z-20 flex items-center justify-between px-1.5 sm:px-4">
                 <button
                     type="button"
                     onClick={() => step(-1)}
-                    className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-full bg-black/25 text-white backdrop-blur transition hover:bg-mustard hover:text-olive-950 sm:h-12 sm:w-12"
+                    className="pointer-events-auto flex h-8 w-8 items-center justify-center rounded-full bg-black/35 text-white backdrop-blur transition hover:bg-mustard hover:text-olive-950 sm:h-12 sm:w-12"
                     aria-label="Previous slide"
                 >
-                    <ChevronLeft className="h-5 w-5" />
+                    <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
                 </button>
                 <button
                     type="button"
                     onClick={() => step(1)}
-                    className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-full bg-black/25 text-white backdrop-blur transition hover:bg-mustard hover:text-olive-950 sm:h-12 sm:w-12"
+                    className="pointer-events-auto flex h-8 w-8 items-center justify-center rounded-full bg-black/35 text-white backdrop-blur transition hover:bg-mustard hover:text-olive-950 sm:h-12 sm:w-12"
                     aria-label="Next slide"
                 >
-                    <ChevronRight className="h-5 w-5" />
+                    <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
                 </button>
+            </div>
+
+            <div className="absolute bottom-[5.25rem] left-1/2 z-20 flex -translate-x-1/2 gap-1.5 sm:bottom-8">
+                {SLIDES.map((item, i) => (
+                    <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => setIndex(i)}
+                        aria-label={`Go to slide ${i + 1}`}
+                        aria-current={i === index}
+                        className={`h-1.5 rounded-full transition-all ${
+                            i === index
+                                ? 'w-5 bg-mustard sm:w-6'
+                                : 'w-1.5 bg-white/50 hover:bg-white/80'
+                        }`}
+                    />
+                ))}
             </div>
         </section>
     );

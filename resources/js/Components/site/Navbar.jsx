@@ -3,13 +3,14 @@ import {
     Menu,
     Plus,
     Search,
-    ShoppingCart,
+    ShoppingBag,
     User,
     X,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useMemo, useState } from 'react';
 import AuthModal from './AuthModal';
+import FlippingSearchHint from './FlippingSearchHint';
 import Logo from './Logo';
 import { explorePath, getCategoryByKey, mainCategories } from '@/data/categories';
 
@@ -140,20 +141,63 @@ export default function Navbar({ compact = false }) {
                     : 'bg-transparent'
             }`}
         >
-            <div className="mx-auto flex max-w-[1400px] items-center gap-3 px-3 py-4 sm:px-5 sm:py-5 lg:px-6 xl:gap-5">
-                <Logo className="shrink-0" />
+            <div className="mx-auto flex max-w-[1400px] items-center gap-3 px-3 py-3.5 sm:px-5 sm:py-5 lg:px-6 xl:gap-5">
+                {/* Mobile skeleton: menu · logo · account/cart */}
+                <div className="relative flex w-full items-center justify-between lg:hidden">
+                    <button
+                        type="button"
+                        className="inline-flex rounded-lg p-2 text-white transition hover:bg-white/10"
+                        onClick={() => setOpen((v) => !v)}
+                        aria-expanded={open}
+                        aria-label={open ? 'Close menu' : 'Open menu'}
+                    >
+                        {open ? (
+                            <X className="h-6 w-6" strokeWidth={1.85} />
+                        ) : (
+                            <Menu className="h-6 w-6" strokeWidth={1.85} />
+                        )}
+                    </button>
+
+                    <Logo className="absolute left-1/2 -translate-x-1/2" />
+
+                    <div className="flex items-center gap-0.5">
+                        <button
+                            type="button"
+                            onClick={() => openAuth('login')}
+                            className="inline-flex rounded-lg p-2 text-white transition hover:bg-white/10"
+                            aria-label="Sign in or register"
+                        >
+                            <User className="h-5 w-5" strokeWidth={1.85} />
+                        </button>
+                        <button
+                            type="button"
+                            className="inline-flex rounded-lg p-2 text-white transition hover:bg-white/10"
+                            aria-label="Bag"
+                        >
+                            <ShoppingBag
+                                className="h-5 w-5"
+                                strokeWidth={1.75}
+                            />
+                        </button>
+                    </div>
+                </div>
+
+                {/* Desktop / tablet bar */}
+                <Logo className="hidden shrink-0 lg:inline-flex" />
 
                 <form
-                    className="relative ml-1 hidden min-w-0 flex-1 items-center md:flex"
+                    className="relative ml-1 hidden min-w-0 flex-1 items-center lg:flex"
                     onSubmit={submitSearch}
                     role="search"
                 >
-                    <Search className="pointer-events-none absolute left-0 h-4 w-4 text-white/80" />
+                    <Search className="pointer-events-none absolute left-0 z-10 h-4 w-4 text-white/80" />
+                    <FlippingSearchHint visible={!query.trim()} />
                     <input
                         type="search"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
-                        placeholder="What are you looking for?"
+                        placeholder={query.trim() ? 'What are you looking for?' : ''}
+                        aria-label="Search"
                         className="w-full border-0 bg-transparent py-2 pl-7 pr-2 text-[15px] text-white placeholder:text-white/65 focus:outline-none focus:ring-0 sm:text-base"
                     />
                 </form>
@@ -330,11 +374,11 @@ export default function Navbar({ compact = false }) {
                     })}
                 </nav>
 
-                <div className="ml-auto flex shrink-0 items-center gap-1.5 font-display sm:gap-2.5">
+                <div className="ml-auto hidden shrink-0 items-center gap-1.5 font-display sm:gap-2.5 lg:flex">
                     <button
                         type="button"
                         onClick={() => openAuth('login')}
-                        className="hidden items-center gap-2 rounded-lg px-2.5 py-2 text-base font-semibold text-white/95 transition hover:bg-white/10 hover:text-white sm:text-[17px] lg:inline-flex"
+                        className="inline-flex items-center gap-2 rounded-lg px-2.5 py-2 text-base font-semibold text-white/95 transition hover:bg-white/10 hover:text-white sm:text-[17px]"
                     >
                         <User className="h-4 w-4" strokeWidth={1.85} />
                         <span className="max-w-[10rem] truncate">
@@ -344,20 +388,10 @@ export default function Navbar({ compact = false }) {
 
                     <button
                         type="button"
-                        className="hidden rounded-lg p-2 text-white transition hover:bg-white/10 sm:inline-flex"
-                        aria-label="Cart"
+                        className="rounded-lg p-2 text-white transition hover:bg-white/10"
+                        aria-label="Bag"
                     >
-                        <ShoppingCart className="h-5 w-5" strokeWidth={1.75} />
-                    </button>
-
-                    <button
-                        type="button"
-                        className="inline-flex rounded-lg p-2 text-white transition hover:bg-white/10 lg:hidden"
-                        onClick={() => setOpen((v) => !v)}
-                        aria-expanded={open}
-                        aria-label={open ? 'Close menu' : 'Open menu'}
-                    >
-                        {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                        <ShoppingBag className="h-5 w-5" strokeWidth={1.75} />
                     </button>
 
                     <Link
@@ -380,15 +414,24 @@ export default function Navbar({ compact = false }) {
                     >
                         <div className="space-y-4 px-4 py-4">
                             <form
-                                className="flex items-center gap-2 rounded-xl bg-white/10 px-3 py-2"
+                                className="relative flex items-center gap-2 rounded-xl bg-white/10 px-3 py-2"
                                 onSubmit={submitSearch}
                             >
-                                <Search className="h-4 w-4 text-white/80" />
+                                <Search className="relative z-10 h-4 w-4 shrink-0 text-white/80" />
+                                <FlippingSearchHint
+                                    visible={!query.trim()}
+                                    className="left-9 text-sm"
+                                />
                                 <input
                                     type="search"
                                     value={query}
                                     onChange={(e) => setQuery(e.target.value)}
-                                    placeholder="What are you looking for?"
+                                    placeholder={
+                                        query.trim()
+                                            ? 'What are you looking for?'
+                                            : ''
+                                    }
+                                    aria-label="Search"
                                     className="w-full border-0 bg-transparent font-sans text-sm text-white placeholder:text-white/65 focus:outline-none focus:ring-0"
                                 />
                             </form>

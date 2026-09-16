@@ -7,7 +7,7 @@ export default function MobileStickyCta({ listing }) {
         : null;
 
     return (
-        <div className="fixed inset-x-0 bottom-0 z-[1080] border-t border-olive-200 bg-white/95 p-3 backdrop-blur lg:hidden">
+        <div className="fixed inset-x-0 bottom-[4.75rem] z-[1080] border-t border-olive-200 bg-white/95 p-3 backdrop-blur lg:hidden">
             <div className="mx-auto flex max-w-lg gap-2">
                 {tel ? (
                     <a
