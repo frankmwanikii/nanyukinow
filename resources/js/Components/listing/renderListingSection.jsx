@@ -25,10 +25,12 @@ export function renderListingSection(key, listing) {
                     key={key}
                     gallery={listing.gallery}
                     title={
-                        listing.categoryKey === 'stay' ||
-                        listing.categoryKey === 'properties'
-                            ? 'Rooms & spaces'
-                            : 'Visual tour'
+                        listing.categoryKey === 'thingsToDo'
+                            ? 'Gallery'
+                            : listing.categoryKey === 'stay' ||
+                                listing.categoryKey === 'properties'
+                              ? 'Rooms & spaces'
+                              : 'Visual tour'
                     }
                 />
             );

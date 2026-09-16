@@ -260,6 +260,34 @@ export default function VisualTour({ gallery = [], title = 'Visual tour' }) {
                             );
                         })}
                     </div>
+                ) : images.length > 1 ? (
+                    <div className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8">
+                        {images.map((src, index) => {
+                            const selected = index === safeImageIndex;
+                            return (
+                                <button
+                                    key={`${src}-${index}`}
+                                    type="button"
+                                    onClick={() => setImageIndex(index)}
+                                    onDoubleClick={() =>
+                                        openLightbox(safeSpaceIndex, index)
+                                    }
+                                    className={`group overflow-hidden rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard ${
+                                        selected
+                                            ? 'ring-2 ring-mustard ring-offset-2 ring-offset-white'
+                                            : ''
+                                    }`}
+                                >
+                                    <img
+                                        src={src}
+                                        alt=""
+                                        className="aspect-[4/3] w-full object-cover transition duration-300 group-hover:scale-105"
+                                        loading="lazy"
+                                    />
+                                </button>
+                            );
+                        })}
+                    </div>
                 ) : null}
             </DetailSection>
 
@@ -355,10 +383,12 @@ export default function VisualTour({ gallery = [], title = 'Visual tour' }) {
                             <div className="mx-auto flex max-w-6xl items-center gap-3 overflow-x-auto pb-1">
                                 {flat.map((item, index) => {
                                     const active = index === lightbox;
+                                    const multiSpace = spaces.length > 1;
                                     const showLabel =
-                                        index === 0 ||
-                                        flat[index - 1]?.spaceIndex !==
-                                            item.spaceIndex;
+                                        multiSpace &&
+                                        (index === 0 ||
+                                            flat[index - 1]?.spaceIndex !==
+                                                item.spaceIndex);
                                     return (
                                         <button
                                             key={`${item.src}-${index}`}

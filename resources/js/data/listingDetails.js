@@ -251,28 +251,17 @@ export const listingDetailsById = {
         address: 'Mount Kenya Wildlife Conservancy, Nanyuki',
         gallery: [
             {
-                label: 'Wildlife',
-                kind: 'wildlife',
+                label: 'Gallery',
+                kind: 'gallery',
                 images: [
                     'https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=1400&q=80',
                     'https://images.unsplash.com/photo-1549366021-9f761d450615?auto=format&fit=crop&w=1400&q=80',
-                    'https://images.unsplash.com/photo-1456926638090-c60cd07ea953?auto=format&fit=crop&w=1400&q=80',
-                ],
-            },
-            {
-                label: 'Trails',
-                kind: 'outdoor',
-                images: [
                     'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&w=1400&q=80',
                     'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1400&q=80',
-                ],
-            },
-            {
-                label: 'Visitor centre',
-                kind: 'facility',
-                images: [
+                    'https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&w=1400&q=80',
                     'https://images.unsplash.com/photo-1456926638090-c60cd07ea953?auto=format&fit=crop&w=1400&q=80',
-                    'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1400&q=80',
+                    'https://images.unsplash.com/photo-1474044159687-1ee9f38a6762?auto=format&fit=crop&w=1400&q=80',
+                    'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=1400&q=80',
                 ],
             },
         ],
@@ -537,27 +526,15 @@ export const listingDetailsById = {
 
 const ACTIVITY_GALLERY = [
     {
-        label: 'Experience',
-        kind: 'experience',
+        label: 'Gallery',
+        kind: 'gallery',
         images: [
             'https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=1400&q=80',
             'https://images.unsplash.com/photo-1549366021-9f761d450615?auto=format&fit=crop&w=1400&q=80',
             'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&w=1400&q=80',
-        ],
-    },
-    {
-        label: 'Outdoors',
-        kind: 'outdoor',
-        images: [
             'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1400&q=80',
             'https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&w=1400&q=80',
             'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=1400&q=80',
-        ],
-    },
-    {
-        label: 'Highlights',
-        kind: 'highlights',
-        images: [
             'https://images.unsplash.com/photo-1456926638090-c60cd07ea953?auto=format&fit=crop&w=1400&q=80',
             'https://images.unsplash.com/photo-1474044159687-1ee9f38a6762?auto=format&fit=crop&w=1400&q=80',
         ],
