@@ -4,7 +4,7 @@ import Reveal from './Reveal';
 
 export default function Newsletter() {
     const [sent, setSent] = useState(false);
-    const [form, setForm] = useState({ name: '', email: '', message: '' });
+    const [email, setEmail] = useState('');
 
     const onSubmit = (e) => {
         e.preventDefault();
@@ -31,71 +31,40 @@ export default function Newsletter() {
                             </p>
                         </div>
 
-                        <div className="px-6 py-8 sm:px-10 sm:py-12">
+                        <div className="flex flex-col justify-center px-6 py-8 sm:px-10 sm:py-12">
                             {sent ? (
                                 <motion.p
                                     initial={{ opacity: 0, y: 8 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     className="font-display text-lg text-olive-700"
                                 >
-                                    Thanks — we will be in touch.
+                                    Thanks — you’re on the list.
                                 </motion.p>
                             ) : (
-                                <form onSubmit={onSubmit} className="space-y-4">
-                                    <label className="block">
-                                        <span className="mb-1.5 block text-sm font-medium text-olive-800">
-                                            Name
-                                        </span>
-                                        <input
-                                            required
-                                            value={form.name}
-                                            onChange={(e) =>
-                                                setForm({
-                                                    ...form,
-                                                    name: e.target.value,
-                                                })
-                                            }
-                                            className="w-full rounded-xl border-olive-200 bg-earth-sand/40 focus:border-olive-500 focus:ring-olive-500"
-                                        />
-                                    </label>
-                                    <label className="block">
+                                <form
+                                    onSubmit={onSubmit}
+                                    className="flex flex-col gap-4 sm:flex-row sm:items-end"
+                                >
+                                    <label className="block min-w-0 flex-1">
                                         <span className="mb-1.5 block text-sm font-medium text-olive-800">
                                             Email
                                         </span>
                                         <input
                                             required
                                             type="email"
-                                            value={form.email}
+                                            value={email}
                                             onChange={(e) =>
-                                                setForm({
-                                                    ...form,
-                                                    email: e.target.value,
-                                                })
+                                                setEmail(e.target.value)
                                             }
-                                            className="w-full rounded-xl border-olive-200 bg-earth-sand/40 focus:border-olive-500 focus:ring-olive-500"
-                                        />
-                                    </label>
-                                    <label className="block">
-                                        <span className="mb-1.5 block text-sm font-medium text-olive-800">
-                                            Message
-                                        </span>
-                                        <textarea
-                                            rows={4}
-                                            value={form.message}
-                                            onChange={(e) =>
-                                                setForm({
-                                                    ...form,
-                                                    message: e.target.value,
-                                                })
-                                            }
+                                            placeholder="you@email.com"
                                             className="w-full rounded-xl border-olive-200 bg-earth-sand/40 focus:border-olive-500 focus:ring-olive-500"
                                         />
                                     </label>
                                     <button
                                         type="submit"
-                                        className="inline-flex rounded-full bg-olive-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-olive-700"
+                                        className="inline-flex shrink-0 rounded-full bg-olive-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-olive-700"
                                     >
-                                        Submit
+                                        Subscribe
                                     </button>
                                 </form>
                             )}

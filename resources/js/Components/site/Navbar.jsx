@@ -140,7 +140,7 @@ export default function Navbar({ compact = false }) {
                     : 'bg-transparent'
             }`}
         >
-            <div className="mx-auto flex max-w-[1400px] items-center gap-3 px-3 py-3.5 sm:px-5 sm:py-4 lg:px-6 xl:gap-5">
+            <div className="mx-auto flex max-w-[1400px] items-center gap-3 px-3 py-4 sm:px-5 sm:py-5 lg:px-6 xl:gap-5">
                 <Logo className="shrink-0" />
 
                 <form
@@ -187,7 +187,7 @@ export default function Navbar({ compact = false }) {
                             >
                                 <Link
                                     href={link.href}
-                                    className="inline-flex items-center gap-1 rounded-lg px-2.5 py-2 text-[15px] font-semibold text-white/95 transition hover:bg-white/10 hover:text-white sm:text-base"
+                                    className="inline-flex items-center gap-1 rounded-lg px-2.5 py-2 text-base font-semibold text-white/95 transition hover:bg-white/10 hover:text-white sm:text-[17px]"
                                 >
                                     {link.label}
                                     {link.menu ? (
@@ -262,7 +262,7 @@ export default function Navbar({ compact = false }) {
                                                         >
                                                             <Link
                                                                 href={itemHref}
-                                                                className={`flex items-center justify-between border-b border-olive-100/80 px-5 py-3.5 text-[15px] font-semibold text-earth-dusk transition last:border-b-0 hover:bg-olive-50 hover:text-olive-800 ${
+                                                                className={`flex items-center justify-between border-b border-olive-100/80 px-5 py-3.5 text-base font-semibold text-earth-dusk transition last:border-b-0 hover:bg-olive-50 hover:text-olive-800 ${
                                                                     flyoutOpen
                                                                         ? 'bg-olive-50 text-olive-800'
                                                                         : ''
@@ -313,7 +313,7 @@ export default function Navbar({ compact = false }) {
                                                                                 child,
                                                                         },
                                                                     )}
-                                                                    className="block border-b border-olive-100/80 px-5 py-3.5 text-[15px] font-semibold text-earth-dusk transition last:border-b-0 hover:bg-olive-50 hover:text-olive-800"
+                                                                    className="block border-b border-olive-100/80 px-5 py-3.5 text-base font-semibold text-earth-dusk transition last:border-b-0 hover:bg-olive-50 hover:text-olive-800"
                                                                 >
                                                                     {child}
                                                                 </Link>
@@ -334,7 +334,7 @@ export default function Navbar({ compact = false }) {
                     <button
                         type="button"
                         onClick={() => openAuth('login')}
-                        className="hidden items-center gap-2 rounded-lg px-2.5 py-2 text-[15px] font-semibold text-white/95 transition hover:bg-white/10 hover:text-white sm:text-base lg:inline-flex"
+                        className="hidden items-center gap-2 rounded-lg px-2.5 py-2 text-base font-semibold text-white/95 transition hover:bg-white/10 hover:text-white sm:text-[17px] lg:inline-flex"
                     >
                         <User className="h-4 w-4" strokeWidth={1.85} />
                         <span className="max-w-[10rem] truncate">
@@ -362,7 +362,7 @@ export default function Navbar({ compact = false }) {
 
                     <Link
                         href="/register"
-                        className="inline-flex items-center gap-2 rounded-xl bg-mustard px-3.5 py-2.5 text-sm font-bold text-olive-950 shadow-[0_8px_20px_-8px_rgba(242,184,46,0.7)] transition hover:bg-white hover:text-mustard hover:shadow-md sm:px-4 sm:text-[15px]"
+                        className="inline-flex items-center gap-2 rounded-xl bg-mustard px-3.5 py-2.5 text-[15px] font-bold text-olive-950 shadow-[0_8px_20px_-8px_rgba(242,184,46,0.7)] transition hover:bg-white hover:text-mustard hover:shadow-md sm:px-4 sm:text-base"
                     >
                         <Plus className="h-4 w-4 stroke-[2.5]" />
                         Add Business
@@ -398,7 +398,7 @@ export default function Navbar({ compact = false }) {
                                         key={link.key}
                                         href={link.href}
                                         onClick={() => setOpen(false)}
-                                        className="rounded-lg px-3 py-3 text-base font-semibold text-white hover:bg-white/10"
+                                        className="rounded-lg px-3 py-3 text-lg font-semibold text-white hover:bg-white/10"
                                     >
                                         {link.label}
                                     </Link>
@@ -408,14 +408,14 @@ export default function Navbar({ compact = false }) {
                                 <button
                                     type="button"
                                     onClick={() => openAuth('login')}
-                                    className="inline-flex items-center gap-2 rounded-lg px-3 py-3 text-left font-semibold text-white transition hover:bg-white/10"
+                                    className="inline-flex items-center gap-2 rounded-lg px-3 py-3 text-left text-base font-semibold text-white transition hover:bg-white/10"
                                 >
                                     <User className="h-4 w-4" />
                                     Sign in or register
                                 </button>
                                 <Link
                                     href="/register"
-                                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-mustard px-4 py-3 font-bold text-olive-950 transition hover:bg-white hover:text-mustard"
+                                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-mustard px-4 py-3 text-base font-bold text-olive-950 transition hover:bg-white hover:text-mustard"
                                     onClick={() => setOpen(false)}
                                 >
                                     <Plus className="h-4 w-4 stroke-[2.5]" />
