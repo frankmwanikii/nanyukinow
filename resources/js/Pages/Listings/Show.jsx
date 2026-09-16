@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import SiteLayout from '@/Layouts/SiteLayout';
 import ListingHero from '@/Components/listing/ListingHero';
 import ListingSubnav from '@/Components/listing/ListingSubnav';
@@ -7,6 +7,7 @@ import ListingActionBar from '@/Components/listing/ListingActionBar';
 import MobileStickyCta from '@/Components/listing/MobileStickyCta';
 import RelatedListings from '@/Components/listing/RelatedListings';
 import ContactInfoPage from '@/Components/listing/ContactInfoPage';
+import ProductsPage from '@/Components/listing/ProductsPage';
 import ReviewsPage from '@/Components/listing/ReviewsPage';
 import { renderListingSection } from '@/Components/listing/renderListingSection';
 import { getListingDetail } from '@/data/listingDetails';
@@ -16,26 +17,34 @@ import {
     getRelatedListings,
 } from '@/data/listings';
 
-const VALID_TABS = new Set(['overview', 'contact', 'reviews']);
-
-function readTabFromHash() {
+function readTabFromHash(allowed) {
     if (typeof window === 'undefined') return 'overview';
     const hash = window.location.hash.replace('#', '');
-    return VALID_TABS.has(hash) ? hash : 'overview';
+    return allowed.has(hash) ? hash : 'overview';
 }
 
 export default function ListingShow({ slug, id }) {
     const base = getListingBySlug(slug || id);
     const listing = getListingDetail(base);
-    const [tab, setTab] = useState(readTabFromHash);
+    const layout = listing
+        ? getLayoutForCategory(listing.categoryKey)
+        : null;
+    const allowedTabs = useMemo(() => {
+        const ids = (layout?.subnav || []).map((t) => t.id);
+        return new Set(ids.length ? ids : ['overview', 'contact', 'reviews']);
+    }, [layout]);
+
+    const [tab, setTab] = useState(() => readTabFromHash(allowedTabs));
 
     useEffect(() => {
-        const onHash = () => setTab(readTabFromHash());
+        setTab(readTabFromHash(allowedTabs));
+        const onHash = () => setTab(readTabFromHash(allowedTabs));
         window.addEventListener('hashchange', onHash);
         return () => window.removeEventListener('hashchange', onHash);
-    }, []);
+    }, [allowedTabs]);
 
     const changeTab = (next) => {
+        if (!allowedTabs.has(next)) return;
         setTab(next);
         if (typeof window !== 'undefined') {
             window.history.replaceState(null, '', `#${next}`);
@@ -64,7 +73,6 @@ export default function ListingShow({ slug, id }) {
         );
     }
 
-    const layout = getLayoutForCategory(listing.categoryKey);
     const related = getRelatedListings(
         listing,
         listing.relatedIds || [],
@@ -102,6 +110,10 @@ export default function ListingShow({ slug, id }) {
 
                 {tab === 'contact' ? (
                     <ContactInfoPage listing={listing} />
+                ) : null}
+
+                {tab === 'products' ? (
+                    <ProductsPage listing={listing} />
                 ) : null}
 
                 {tab === 'reviews' ? (

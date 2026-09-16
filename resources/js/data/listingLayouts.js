@@ -10,6 +10,14 @@ export const listingPageTabs = [
     { id: 'reviews', label: 'Reviews' },
 ];
 
+/** Shopping adds a Products tab between Contact and Reviews. */
+export const shoppingPageTabs = [
+    { id: 'overview', label: 'Overview' },
+    { id: 'contact', label: 'Contact info' },
+    { id: 'products', label: 'Products' },
+    { id: 'reviews', label: 'Reviews' },
+];
+
 export const categoryLayouts = {
     eatDrink: {
         subnav: listingPageTabs,
@@ -65,7 +73,7 @@ export const categoryLayouts = {
         ctaSecondary: 'Request service',
     },
     shopping: {
-        subnav: listingPageTabs,
+        subnav: shoppingPageTabs,
         main: ['visualTour', 'video', 'chips', 'amenities', 'brands'],
         side: ['about', 'map', 'hours', 'payments'],
         ctaSecondary: 'Call store',
