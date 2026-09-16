@@ -1,5 +1,5 @@
-import { Mail, MapPin, Paperclip, Phone, Send, X } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { CloudUpload, FileText, Mail, MapPin, Phone, Send, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import DetailSection from './DetailSection';
 import DirectionsMap from './DirectionsMap';
 import HoursList from './HoursList';
@@ -7,6 +7,43 @@ import EventSchedule from './EventSchedule';
 import AgentCard from './AgentCard';
 import WaysToPay from './WaysToPay';
 import RecaptchaField from './RecaptchaField';
+
+const MAX_FILES = 5;
+const MAX_BYTES = 8 * 1024 * 1024;
+const ACCEPT =
+    '.jpg,.jpeg,.png,.webp,.gif,.pdf,.doc,.docx,image/jpeg,image/png,image/webp,image/gif,application/pdf';
+
+function isImage(file) {
+    return String(file.type || '').startsWith('image/');
+}
+
+function formatBytes(size) {
+    if (size < 1024) return `${size} B`;
+    if (size < 1024 * 1024) return `${(size / 1024).toFixed(0)} KB`;
+    return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function simulateUpload(docId, setDocs) {
+    let progress = 0;
+    const tick = () => {
+        progress = Math.min(100, progress + Math.floor(8 + Math.random() * 18));
+        setDocs((prev) =>
+            prev.map((doc) =>
+                doc.id === docId
+                    ? {
+                          ...doc,
+                          progress,
+                          status: progress >= 100 ? 'done' : 'uploading',
+                      }
+                    : doc,
+            ),
+        );
+        if (progress < 100) {
+            window.setTimeout(tick, 120 + Math.random() * 160);
+        }
+    };
+    window.setTimeout(tick, 80);
+}
 
 function InstagramIcon({ className = '' }) {
     return (
@@ -68,69 +105,86 @@ function ContactMessageForm({ listing }) {
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
     const [message, setMessage] = useState('');
-    const [attachments, setAttachments] = useState([]);
+    const [docs, setDocs] = useState([]);
     const [captchaToken, setCaptchaToken] = useState('');
     const [captchaError, setCaptchaError] = useState('');
     const [fileError, setFileError] = useState('');
     const [sent, setSent] = useState(false);
 
-    const onFileChange = (e) => {
-        const picked = Array.from(e.target.files || []);
+    useEffect(() => {
+        return () => {
+            docs.forEach((doc) => {
+                if (doc.previewUrl) URL.revokeObjectURL(doc.previewUrl);
+            });
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const clearDocs = () => {
+        setDocs((prev) => {
+            prev.forEach((doc) => {
+                if (doc.previewUrl) URL.revokeObjectURL(doc.previewUrl);
+            });
+            return [];
+        });
         setFileError('');
-        if (!picked.length) return;
+        if (fileInputRef.current) fileInputRef.current.value = '';
+    };
 
-        const maxBytes = 5 * 1024 * 1024;
-        const maxFiles = 5;
-        const allowed = [
-            'image/jpeg',
-            'image/png',
-            'image/webp',
-            'application/pdf',
-            'application/msword',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        ];
+    const addFiles = (picked) => {
+        if (!picked?.length) return;
 
-        const next = [...attachments];
-        const rejected = [];
+        setFileError('');
+        const incoming = [];
 
         for (const file of picked) {
-            if (next.length >= maxFiles) {
-                rejected.push(`${file.name} (max ${maxFiles} files)`);
+            if (docs.length + incoming.length >= MAX_FILES) {
+                setFileError(`You can upload up to ${MAX_FILES} files.`);
+                break;
+            }
+            if (file.size > MAX_BYTES) {
+                setFileError(`${file.name} is larger than 8MB.`);
                 continue;
             }
-            if (!allowed.includes(file.type)) {
-                rejected.push(`${file.name} (type not allowed)`);
-                continue;
-            }
-            if (file.size > maxBytes) {
-                rejected.push(`${file.name} (over 5MB)`);
-                continue;
-            }
-            const duplicate = next.some(
-                (f) => f.name === file.name && f.size === file.size,
-            );
-            if (duplicate) continue;
-            next.push(file);
+
+            const id = `${file.name}-${file.size}-${file.lastModified}-${Math.random().toString(36).slice(2, 8)}`;
+            const previewUrl = isImage(file) ? URL.createObjectURL(file) : null;
+            incoming.push({
+                id,
+                file,
+                previewUrl,
+                progress: 0,
+                status: 'uploading',
+            });
         }
 
-        setAttachments(next);
-        if (rejected.length) {
-            setFileError(`Skipped: ${rejected.slice(0, 3).join(', ')}`);
-        }
+        if (!incoming.length) return;
+
+        setDocs((prev) => [...prev, ...incoming]);
+        incoming.forEach((doc) => simulateUpload(doc.id, setDocs));
+    };
+
+    const onFileChange = (e) => {
+        addFiles(Array.from(e.target.files || []));
         e.target.value = '';
     };
 
-    const removeFile = (index) => {
-        setAttachments((prev) => prev.filter((_, i) => i !== index));
-        setFileError('');
-        if (fileInputRef.current) fileInputRef.current.value = '';
+    const onDrop = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        addFiles(Array.from(e.dataTransfer.files || []));
     };
 
-    const clearFiles = () => {
-        setAttachments([]);
+    const removeFile = (id) => {
+        setDocs((prev) => {
+            const target = prev.find((doc) => doc.id === id);
+            if (target?.previewUrl) URL.revokeObjectURL(target.previewUrl);
+            return prev.filter((doc) => doc.id !== id);
+        });
         setFileError('');
-        if (fileInputRef.current) fileInputRef.current.value = '';
     };
+
+    const uploading = docs.some((doc) => doc.status === 'uploading');
 
     const submit = (e) => {
         e.preventDefault();
@@ -140,13 +194,14 @@ function ContactMessageForm({ listing }) {
             setCaptchaError('Please complete the security check.');
             return;
         }
+        if (uploading) return;
         setSent(true);
         setFirstName('');
         setLastName('');
         setEmail('');
         setPhone('');
         setMessage('');
-        clearFiles();
+        clearDocs();
         setCaptchaToken('');
         window.setTimeout(() => setSent(false), 2800);
     };
@@ -246,50 +301,106 @@ function ContactMessageForm({ listing }) {
                 </div>
 
                 <div>
-                    <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-olive-500">
+                    <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-olive-500">
                         Attach files
-                    </label>
-                    <div className="flex flex-wrap items-center gap-3">
-                        <label
-                            htmlFor="contact-file"
-                            className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-olive-50 px-4 py-2.5 text-sm font-semibold text-olive-800 ring-1 ring-olive-200 transition hover:bg-white hover:ring-mustard"
-                        >
-                            <Paperclip className="h-4 w-4 text-mustard" />
-                            Choose files
-                        </label>
-                        <input
-                            ref={fileInputRef}
-                            id="contact-file"
-                            type="file"
-                            multiple
-                            accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx,image/jpeg,image/png,image/webp,application/pdf"
-                            onChange={onFileChange}
-                            className="sr-only"
+                    </p>
+                    <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        onDragOver={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }}
+                        onDrop={onDrop}
+                        className="flex w-full flex-col items-center justify-center rounded-xl border border-dashed border-mustard/70 bg-white px-4 py-8 text-center transition hover:border-mustard hover:bg-olive-50/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard"
+                    >
+                        <CloudUpload
+                            className="h-10 w-10 text-mustard"
+                            strokeWidth={1.5}
                         />
-                        <span className="text-xs text-olive-500">
-                            Optional · up to 5 files · JPG, PNG, PDF, DOC · 5MB each
+                        <span className="mt-3 text-sm font-semibold text-earth-dusk">
+                            Drop files here or click to upload
                         </span>
-                    </div>
-                    {attachments.length > 0 ? (
-                        <ul className="mt-3 flex flex-wrap gap-2">
-                            {attachments.map((file, index) => (
+                        <span className="mt-1 text-xs text-olive-500">
+                            JPG, PNG, WEBP, GIF, PDF · max 8MB · up to 5 files
+                        </span>
+                    </button>
+                    <input
+                        ref={fileInputRef}
+                        id="contact-file"
+                        type="file"
+                        multiple
+                        accept={ACCEPT}
+                        onChange={onFileChange}
+                        className="sr-only"
+                    />
+
+                    {docs.length > 0 ? (
+                        <ul className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                            {docs.map((doc) => (
                                 <li
-                                    key={`${file.name}-${file.size}-${index}`}
-                                    className="inline-flex max-w-full items-center gap-2 rounded-full bg-mustard/15 px-3 py-1.5 text-xs font-semibold text-olive-900"
+                                    key={doc.id}
+                                    className="relative overflow-hidden rounded-xl border border-olive-200/80 bg-olive-50"
                                 >
-                                    <span className="truncate">{file.name}</span>
-                                    <button
-                                        type="button"
-                                        onClick={() => removeFile(index)}
-                                        className="rounded-full p-0.5 hover:bg-white/80"
-                                        aria-label={`Remove ${file.name}`}
-                                    >
-                                        <X className="h-3.5 w-3.5" />
-                                    </button>
+                                    <div className="relative aspect-[4/3] bg-olive-100">
+                                        {doc.previewUrl ? (
+                                            <img
+                                                src={doc.previewUrl}
+                                                alt=""
+                                                className="h-full w-full object-cover"
+                                            />
+                                        ) : (
+                                            <div className="flex h-full flex-col items-center justify-center gap-2 px-3 text-olive-600">
+                                                <FileText className="h-8 w-8 text-mustard" />
+                                                <span className="line-clamp-2 text-center text-[11px] font-semibold">
+                                                    {doc.file.name}
+                                                </span>
+                                            </div>
+                                        )}
+
+                                        {doc.status === 'uploading' ? (
+                                            <div className="absolute inset-0 flex flex-col justify-end bg-earth-dusk/45 p-2.5">
+                                                <div className="mb-1 flex items-center justify-between text-[11px] font-semibold text-white">
+                                                    <span>Uploading…</span>
+                                                    <span>{doc.progress}%</span>
+                                                </div>
+                                                <div className="h-1.5 overflow-hidden rounded-full bg-white/30">
+                                                    <div
+                                                        className="h-full rounded-full bg-mustard transition-[width] duration-150"
+                                                        style={{
+                                                            width: `${doc.progress}%`,
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        ) : null}
+                                    </div>
+
+                                    <div className="flex items-start justify-between gap-2 px-2.5 py-2">
+                                        <div className="min-w-0">
+                                            <p className="truncate text-xs font-semibold text-olive-900">
+                                                {doc.file.name}
+                                            </p>
+                                            <p className="text-[11px] text-olive-500">
+                                                {doc.status === 'done'
+                                                    ? formatBytes(doc.file.size)
+                                                    : `Uploading ${doc.progress}%`}
+                                            </p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => removeFile(doc.id)}
+                                            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white text-olive-700 ring-1 ring-olive-200 transition hover:bg-mustard"
+                                            aria-label={`Remove ${doc.file.name}`}
+                                        >
+                                            <X className="h-3.5 w-3.5" />
+                                        </button>
+                                    </div>
                                 </li>
                             ))}
                         </ul>
                     ) : null}
+
                     {fileError ? (
                         <p className="mt-1.5 text-xs font-medium text-red-600">
                             {fileError}
@@ -309,10 +420,11 @@ function ContactMessageForm({ listing }) {
                 <div className="flex flex-wrap items-center gap-3">
                     <button
                         type="submit"
-                        className="inline-flex items-center gap-2 rounded-full bg-olive-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-mustard hover:text-olive-950"
+                        disabled={uploading}
+                        className="inline-flex items-center gap-2 rounded-full bg-olive-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-mustard hover:text-olive-950 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         <Send className="h-4 w-4" />
-                        Send message
+                        {uploading ? 'Uploading…' : 'Send message'}
                     </button>
                     {sent ? (
                         <span className="text-sm font-semibold text-olive-700">
