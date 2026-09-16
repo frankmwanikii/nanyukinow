@@ -229,12 +229,29 @@ export default function AuthModal({ open, onClose, initialTab = 'login' }) {
                             duration: 0.25,
                             ease: [0.22, 1, 0.36, 1],
                         }}
-                        className="relative z-10 flex w-full max-w-4xl max-h-[min(90svh,44rem)] overflow-hidden rounded-2xl bg-white shadow-[0_25px_80px_-12px_rgba(0,0,0,0.45)] ring-1 ring-black/10"
+                        className="relative z-10 flex w-full max-w-4xl max-h-[min(90svh,44rem)] flex-col overflow-hidden rounded-2xl bg-white shadow-[0_25px_80px_-12px_rgba(0,0,0,0.45)] ring-1 ring-black/10 md:flex-row"
                     >
+                        {/* Mobile brand bar — logo designed for olive */}
+                        <div className="flex shrink-0 items-center justify-between gap-3 bg-[#4f5a3e] px-4 py-3.5 md:hidden">
+                            <img
+                                src="/images/logo.png"
+                                alt="Nanyuki Now"
+                                className="h-9 w-auto object-contain"
+                            />
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
+                                aria-label="Close"
+                            >
+                                <X className="h-5 w-5" strokeWidth={2.25} />
+                            </button>
+                        </div>
+
                         <button
                             type="button"
                             onClick={onClose}
-                            className="absolute right-3 top-3 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-white text-olive-600 shadow-md ring-1 ring-olive-100 transition hover:bg-olive-50 hover:text-olive-900 md:right-4 md:top-4"
+                            className="absolute right-3 top-3 z-30 hidden h-10 w-10 items-center justify-center rounded-full bg-white text-olive-600 shadow-md ring-1 ring-olive-100 transition hover:bg-olive-50 hover:text-olive-900 md:right-4 md:top-4 md:flex"
                             aria-label="Close"
                         >
                             <X className="h-5 w-5" strokeWidth={2.25} />
@@ -245,7 +262,7 @@ export default function AuthModal({ open, onClose, initialTab = 'login' }) {
                                 <img
                                     src="/images/logo.png"
                                     alt="Nanyuki Now"
-                                    className="h-10 w-auto object-contain brightness-0 invert"
+                                    className="h-10 w-auto object-contain"
                                 />
                                 <h2
                                     id={titleId}
@@ -266,12 +283,7 @@ export default function AuthModal({ open, onClose, initialTab = 'login' }) {
                         </div>
 
                         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-7 sm:px-9 sm:py-9">
-                            <div className="mb-6 pr-10 md:hidden">
-                                <img
-                                    src="/images/logo.png"
-                                    alt=""
-                                    className="mb-4 h-8 w-auto object-contain"
-                                />
+                            <div className="mb-6 md:hidden">
                                 <h2 className="font-display text-2xl font-semibold text-earth-dusk">
                                     {isForgot
                                         ? 'Forgot password'

@@ -15,6 +15,7 @@ const SLIDES = [
     {
         id: 2,
         image: '/images/hero/slide-2.webp',
+        imageMobile: '/images/hero/slide_2_mobile.jpg',
         alt: 'Black rhinos on the Laikipia plains near Nanyuki',
         layout: 'safari',
         overlay: 'from-earth-dusk/50 via-earth-dusk/35 to-earth-dusk/65',
@@ -73,7 +74,7 @@ export default function HeroSlider() {
 
     return (
         <section
-            className="relative flex min-h-[100svh] items-center justify-center overflow-hidden pt-20 sm:pt-16"
+            className="relative flex min-h-[100svh] items-center justify-center overflow-hidden bg-[#1c1712] pt-20 sm:pt-16"
             onMouseEnter={() => setPaused(true)}
             onMouseLeave={() => setPaused(false)}
             aria-roledescription="carousel"

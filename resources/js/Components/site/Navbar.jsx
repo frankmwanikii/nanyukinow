@@ -59,11 +59,211 @@ function NavCaret({ open = false }) {
     );
 }
 
+function MobileDrawerNav({
+    navLinks,
+    accordion,
+    setAccordion,
+    moreAccordion,
+    setMoreAccordion,
+    onNavigate,
+}) {
+    return (
+        <nav className="flex-1 overflow-y-auto px-3 py-4">
+            <ul className="flex flex-col gap-0.5">
+                {navLinks.map((link) => {
+                    const items = link.menu ? dropdownItems[link.menu] : [];
+                    const hasMenu = Boolean(link.menu && items?.length);
+                    const isOpen = accordion === link.menu;
+
+                    if (!hasMenu) {
+                        return (
+                            <li key={link.key}>
+                                <Link
+                                    href={link.href}
+                                    onClick={onNavigate}
+                                    className="block rounded-xl px-3 py-3.5 text-lg font-semibold text-white transition hover:bg-white/10"
+                                >
+                                    {link.label}
+                                </Link>
+                            </li>
+                        );
+                    }
+
+                    return (
+                        <li key={link.key}>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setAccordion(isOpen ? null : link.menu);
+                                    setMoreAccordion(null);
+                                }}
+                                className="flex w-full items-center justify-between gap-2 rounded-xl px-3 py-3.5 text-left text-lg font-semibold text-white transition hover:bg-white/10"
+                                aria-expanded={isOpen}
+                            >
+                                <span>{link.label}</span>
+                                <NavCaret open={isOpen} />
+                            </button>
+
+                            <AnimatePresence initial={false}>
+                                {isOpen ? (
+                                    <motion.ul
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: 'auto', opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        transition={{ duration: 0.22 }}
+                                        className="ml-3 overflow-hidden border-l-2 border-mustard/70"
+                                    >
+                                        {items.map((item) => {
+                                            const label =
+                                                typeof item === 'string'
+                                                    ? item
+                                                    : item.label;
+                                            const children =
+                                                typeof item === 'string'
+                                                    ? null
+                                                    : item.children;
+                                            const hasChildren = Boolean(
+                                                children?.length,
+                                            );
+                                            const childOpen =
+                                                hasChildren &&
+                                                moreAccordion === label;
+                                            const categoryKey =
+                                                typeof item === 'string'
+                                                    ? link.menu
+                                                    : item.key ||
+                                                      moreLabelToKey[label];
+                                            const itemHref =
+                                                typeof item === 'string'
+                                                    ? explorePath({
+                                                          category: link.menu,
+                                                          subcategory: item,
+                                                      })
+                                                    : explorePath({
+                                                          category: categoryKey,
+                                                      });
+
+                                            if (!hasChildren) {
+                                                return (
+                                                    <li key={label}>
+                                                        <Link
+                                                            href={itemHref}
+                                                            onClick={onNavigate}
+                                                            className="block px-3 py-2.5 text-[15px] font-semibold text-white/90 transition hover:bg-white/10 hover:text-white"
+                                                        >
+                                                            {label}
+                                                        </Link>
+                                                    </li>
+                                                );
+                                            }
+
+                                            return (
+                                                <li key={label}>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            setMoreAccordion(
+                                                                childOpen
+                                                                    ? null
+                                                                    : label,
+                                                            )
+                                                        }
+                                                        className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left text-[15px] font-semibold text-white/90 transition hover:bg-white/10 hover:text-white"
+                                                        aria-expanded={childOpen}
+                                                    >
+                                                        <span>{label}</span>
+                                                        <NavCaret
+                                                            open={childOpen}
+                                                        />
+                                                    </button>
+                                                    <AnimatePresence
+                                                        initial={false}
+                                                    >
+                                                        {childOpen ? (
+                                                            <motion.ul
+                                                                initial={{
+                                                                    height: 0,
+                                                                    opacity: 0,
+                                                                }}
+                                                                animate={{
+                                                                    height: 'auto',
+                                                                    opacity: 1,
+                                                                }}
+                                                                exit={{
+                                                                    height: 0,
+                                                                    opacity: 0,
+                                                                }}
+                                                                transition={{
+                                                                    duration: 0.2,
+                                                                }}
+                                                                className="overflow-hidden bg-black/15"
+                                                            >
+                                                                <li>
+                                                                    <Link
+                                                                        href={
+                                                                            itemHref
+                                                                        }
+                                                                        onClick={
+                                                                            onNavigate
+                                                                        }
+                                                                        className="block px-4 py-2 text-sm font-semibold text-mustard transition hover:bg-white/10"
+                                                                    >
+                                                                        All{' '}
+                                                                        {label}
+                                                                    </Link>
+                                                                </li>
+                                                                {children.map(
+                                                                    (child) => (
+                                                                        <li
+                                                                            key={
+                                                                                child
+                                                                            }
+                                                                        >
+                                                                            <Link
+                                                                                href={explorePath(
+                                                                                    {
+                                                                                        category:
+                                                                                            categoryKey,
+                                                                                        subcategory:
+                                                                                            child,
+                                                                                    },
+                                                                                )}
+                                                                                onClick={
+                                                                                    onNavigate
+                                                                                }
+                                                                                className="block px-4 py-2 text-sm font-medium text-white/85 transition hover:bg-white/10 hover:text-white"
+                                                                            >
+                                                                                {
+                                                                                    child
+                                                                                }
+                                                                            </Link>
+                                                                        </li>
+                                                                    ),
+                                                                )}
+                                                            </motion.ul>
+                                                        ) : null}
+                                                    </AnimatePresence>
+                                                </li>
+                                            );
+                                        })}
+                                    </motion.ul>
+                                ) : null}
+                            </AnimatePresence>
+                        </li>
+                    );
+                })}
+            </ul>
+        </nav>
+    );
+}
+
 export default function Navbar({ compact = false }) {
     const [open, setOpen] = useState(false);
     const [scrolled, setScrolled] = useState(compact);
     const [activeMenu, setActiveMenu] = useState(null);
     const [activeFlyout, setActiveFlyout] = useState(null);
+    const [mobileAccordion, setMobileAccordion] = useState(null);
+    const [mobileMoreAccordion, setMobileMoreAccordion] = useState(null);
     const [query, setQuery] = useState('');
     const [authOpen, setAuthOpen] = useState(false);
     const [authTab, setAuthTab] = useState('login');
@@ -87,6 +287,10 @@ export default function Navbar({ compact = false }) {
 
     useEffect(() => {
         document.body.style.overflow = open ? 'hidden' : '';
+        if (!open) {
+            setMobileAccordion(null);
+            setMobileMoreAccordion(null);
+        }
         return () => {
             document.body.style.overflow = '';
         };
@@ -442,21 +646,14 @@ export default function Navbar({ compact = false }) {
                                 </button>
                             </div>
 
-                            <nav className="flex-1 overflow-y-auto px-3 py-4">
-                                <ul className="flex flex-col gap-0.5">
-                                    {navLinks.map((link) => (
-                                        <li key={link.key}>
-                                            <Link
-                                                href={link.href}
-                                                onClick={() => setOpen(false)}
-                                                className="block rounded-xl px-3 py-3.5 text-lg font-semibold text-white transition hover:bg-white/10"
-                                            >
-                                                {link.label}
-                                            </Link>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </nav>
+                            <MobileDrawerNav
+                                navLinks={navLinks}
+                                accordion={mobileAccordion}
+                                setAccordion={setMobileAccordion}
+                                moreAccordion={mobileMoreAccordion}
+                                setMoreAccordion={setMobileMoreAccordion}
+                                onNavigate={() => setOpen(false)}
+                            />
 
                             <div className="border-t border-white/10 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
                                 <Link
