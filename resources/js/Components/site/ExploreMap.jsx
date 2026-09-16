@@ -197,7 +197,7 @@ export default function ExploreMap({
 
     return (
         <div
-            className={`relative h-full min-h-[280px] overflow-hidden bg-olive-100 ${className}`}
+            className={`relative z-0 h-full min-h-[280px] isolate overflow-hidden bg-olive-100 ${className}`}
         >
             {provider === 'google' ? (
                 <GoogleMapsPlaceholder

@@ -121,7 +121,7 @@ export default function DirectionsMap({ listing }) {
     return (
         <section
             id="contact"
-            className="overflow-hidden rounded-2xl bg-white shadow-soft"
+            className="relative z-0 overflow-hidden rounded-2xl bg-white shadow-soft isolate"
         >
             <div className="px-5 pt-5 sm:px-6 sm:pt-6">
                 <h2 className="font-display text-lg font-semibold text-earth-dusk sm:text-xl">
@@ -129,11 +129,11 @@ export default function DirectionsMap({ listing }) {
                 </h2>
             </div>
 
-            <div className="relative mt-4 bg-olive-100">
+            <div className="relative z-0 mt-4 overflow-hidden bg-olive-100">
                 {hasCoords ? (
                     <div
                         ref={containerRef}
-                        className="h-56 w-full sm:h-64 [&_.leaflet-container]:!bg-olive-100 [&_.leaflet-control-zoom]:!border-0 [&_.leaflet-control-zoom]:!shadow-soft [&_.leaflet-control-zoom-in]:!rounded-t-lg [&_.leaflet-control-zoom-out]:!rounded-b-lg"
+                        className="nn-directions-map h-56 w-full sm:h-64 [&_.leaflet-container]:!z-0 [&_.leaflet-container]:!bg-olive-100 [&_.leaflet-pane]:!z-auto [&_.leaflet-top]:!z-10 [&_.leaflet-bottom]:!z-10 [&_.leaflet-control-zoom]:!border-0 [&_.leaflet-control-zoom]:!shadow-soft [&_.leaflet-control-zoom-in]:!rounded-t-lg [&_.leaflet-control-zoom-out]:!rounded-b-lg"
                     />
                 ) : (
                     <div className="flex h-56 items-center justify-center text-sm text-olive-600 sm:h-64">

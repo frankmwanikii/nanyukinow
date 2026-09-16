@@ -7,7 +7,7 @@ export default function ListingSubnav({
 
     return (
         <nav
-            className="sticky top-[4.25rem] z-40 w-full border-b border-olive-200 bg-white shadow-[0_1px_0_rgba(28,23,18,0.06)] sm:top-[4.75rem]"
+            className="sticky top-[4.25rem] z-[1090] w-full border-b border-olive-200 bg-white shadow-[0_1px_0_rgba(28,23,18,0.06)] sm:top-[4.75rem]"
             style={{ backgroundColor: '#ffffff' }}
             aria-label="Listing pages"
         >
