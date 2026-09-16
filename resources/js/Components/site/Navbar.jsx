@@ -3,7 +3,7 @@ import {
     Menu,
     Plus,
     Search,
-    ShoppingBag,
+    ShoppingCart,
     User,
     X,
 } from 'lucide-react';
@@ -138,29 +138,30 @@ export default function Navbar({ compact = false }) {
             className={`fixed inset-x-0 top-0 z-[1100] transition-all duration-300 ${
                 scrolled || compact
                     ? 'bg-[#4f5a3e]/95 shadow-lg shadow-earth-dusk/20 backdrop-blur-md'
-                    : 'bg-transparent'
+                    : 'bg-[#4f5a3e] lg:bg-transparent'
             }`}
         >
             <div className="mx-auto flex max-w-[1400px] items-center gap-3 px-3 py-3.5 sm:px-5 sm:py-5 lg:px-6 xl:gap-5">
-                {/* Mobile skeleton: menu · logo · account/cart */}
-                <div className="relative flex w-full items-center justify-between lg:hidden">
-                    <button
-                        type="button"
-                        className="inline-flex rounded-lg p-2 text-white transition hover:bg-white/10"
-                        onClick={() => setOpen((v) => !v)}
-                        aria-expanded={open}
-                        aria-label={open ? 'Close menu' : 'Open menu'}
-                    >
-                        {open ? (
-                            <X className="h-6 w-6" strokeWidth={1.85} />
-                        ) : (
-                            <Menu className="h-6 w-6" strokeWidth={1.85} />
-                        )}
-                    </button>
+                {/* Mobile: menu + logo · account/cart */}
+                <div className="flex w-full items-center justify-between lg:hidden">
+                    <div className="flex min-w-0 items-center gap-1.5">
+                        <button
+                            type="button"
+                            className="inline-flex shrink-0 rounded-lg p-2 text-white transition hover:bg-white/10"
+                            onClick={() => setOpen((v) => !v)}
+                            aria-expanded={open}
+                            aria-label={open ? 'Close menu' : 'Open menu'}
+                        >
+                            {open ? (
+                                <X className="h-6 w-6" strokeWidth={1.85} />
+                            ) : (
+                                <Menu className="h-6 w-6" strokeWidth={1.85} />
+                            )}
+                        </button>
+                        <Logo className="min-w-0" />
+                    </div>
 
-                    <Logo className="absolute left-1/2 -translate-x-1/2" />
-
-                    <div className="flex items-center gap-0.5">
+                    <div className="flex shrink-0 items-center gap-0.5">
                         <button
                             type="button"
                             onClick={() => openAuth('login')}
@@ -172,9 +173,9 @@ export default function Navbar({ compact = false }) {
                         <button
                             type="button"
                             className="inline-flex rounded-lg p-2 text-white transition hover:bg-white/10"
-                            aria-label="Bag"
+                            aria-label="Cart"
                         >
-                            <ShoppingBag
+                            <ShoppingCart
                                 className="h-5 w-5"
                                 strokeWidth={1.75}
                             />
@@ -391,7 +392,7 @@ export default function Navbar({ compact = false }) {
                         className="rounded-lg p-2 text-white transition hover:bg-white/10"
                         aria-label="Bag"
                     >
-                        <ShoppingBag className="h-5 w-5" strokeWidth={1.75} />
+                        <ShoppingCart className="h-5 w-5" strokeWidth={1.75} />
                     </button>
 
                     <Link

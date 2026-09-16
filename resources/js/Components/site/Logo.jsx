@@ -15,7 +15,7 @@ export default function Logo({ variant = 'nav', className = '' }) {
                 className={`w-auto object-contain ${
                     isHero
                         ? 'h-28 drop-shadow-lg sm:h-40 md:h-48'
-                        : 'h-12 sm:h-14'
+                        : 'h-10 sm:h-14'
                 }`}
                 width={969}
                 height={542}

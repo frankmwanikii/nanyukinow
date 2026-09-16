@@ -69,6 +69,7 @@ export default function HeroSlider() {
     }, [step, paused, reduce, index]);
 
     const slide = SLIDES[index];
+    const isBrand = slide.layout === 'brand';
 
     return (
         <section
@@ -98,7 +99,9 @@ export default function HeroSlider() {
                             src={slide.image}
                             alt={slide.alt}
                             className={`h-full w-full object-cover object-center will-change-transform ${
-                                reduce ? '' : 'animate-ken-burns-slide'
+                                reduce || isBrand
+                                    ? ''
+                                    : 'animate-ken-burns-slide'
                             }`}
                             fetchPriority={index === 0 ? 'high' : 'auto'}
                         />
