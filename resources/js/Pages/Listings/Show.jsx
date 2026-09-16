@@ -109,9 +109,7 @@ export default function ListingShow({ id }) {
                 ) : null}
             </div>
 
-            {tab === 'overview' ? (
-                <RelatedListings listings={related} />
-            ) : null}
+            <RelatedListings listings={related} />
             <MobileStickyCta listing={listing} />
         </SiteLayout>
     );

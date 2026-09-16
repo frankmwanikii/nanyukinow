@@ -1,9 +1,10 @@
-import { Star } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Star } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import DetailSection from './DetailSection';
 
+const PAGE_SIZE = 5;
+
 function buildSeedReviews(listing) {
-    const count = Math.min(6, Math.max(3, Math.round((listing.rating || 4.5) * 1.2)));
     const names = [
         'Amina K.',
         'James O.',
@@ -11,6 +12,12 @@ function buildSeedReviews(listing) {
         'David N.',
         'Grace W.',
         'Peter L.',
+        'Njeri T.',
+        'Brian M.',
+        'Faith K.',
+        'Samuel R.',
+        'Lucy A.',
+        'Kevin O.',
     ];
     const bodies = [
         'Great experience overall — clear communication and exactly as described.',
@@ -19,13 +26,36 @@ function buildSeedReviews(listing) {
         'Solid value for Nanyuki. Recommend booking ahead on weekends.',
         'Beautiful spot. A few small wait times, but still worth it.',
         'Easy to find and well organised. Photos matched reality.',
+        'Clean, welcoming, and the staff went the extra mile.',
+        'Perfect stop between Nairobi and the mountain — highly recommend.',
+        'Came with family and everyone enjoyed it. Will book again.',
+        'Good communication on WhatsApp and fair pricing.',
+        'Atmosphere was lovely in the evening. Food was fresh.',
+        'Quiet nights and a great base for exploring Timau.',
     ];
+    const dates = [
+        '2 days ago',
+        '1 week ago',
+        '2 weeks ago',
+        '3 weeks ago',
+        'Last month',
+        '6 weeks ago',
+        '2 months ago',
+    ];
+
+    const count = Math.max(
+        12,
+        Math.min(18, Math.round((listing.reviewSummary?.count || 24) / 2)),
+    );
 
     return Array.from({ length: count }, (_, i) => ({
         id: `r-${listing.id}-${i}`,
         name: names[i % names.length],
-        rating: Math.min(5, Math.max(3, Math.round((listing.rating || 4.5) - (i % 3) * 0.3))),
-        date: ['2 days ago', '1 week ago', '2 weeks ago', 'Last month'][i % 4],
+        rating: Math.min(
+            5,
+            Math.max(3, Math.round((listing.rating || 4.5) - (i % 4) * 0.25)),
+        ),
+        date: dates[i % dates.length],
         text: bodies[i % bodies.length],
     }));
 }
@@ -42,7 +72,9 @@ function Stars({ value = 0, onChange = null, size = 'md' }) {
                         key={n}
                         type={onChange ? 'button' : undefined}
                         onClick={onChange ? () => onChange(n) : undefined}
-                        className={onChange ? 'rounded p-0.5 transition hover:scale-110' : ''}
+                        className={
+                            onChange ? 'rounded p-0.5 transition hover:scale-110' : ''
+                        }
                         aria-label={onChange ? `Rate ${n} stars` : undefined}
                     >
                         <Star
@@ -62,10 +94,18 @@ function Stars({ value = 0, onChange = null, size = 'md' }) {
 export default function ReviewsPage({ listing }) {
     const seed = useMemo(() => buildSeedReviews(listing), [listing]);
     const [reviews, setReviews] = useState(seed);
+    const [page, setPage] = useState(1);
     const [name, setName] = useState('');
     const [text, setText] = useState('');
     const [rating, setRating] = useState(5);
     const [submitted, setSubmitted] = useState(false);
+
+    const totalPages = Math.max(1, Math.ceil(reviews.length / PAGE_SIZE));
+    const safePage = Math.min(page, totalPages);
+    const pageItems = useMemo(() => {
+        const start = (safePage - 1) * PAGE_SIZE;
+        return reviews.slice(start, start + PAGE_SIZE);
+    }, [reviews, safePage]);
 
     const avg =
         reviews.length > 0
@@ -88,11 +128,18 @@ export default function ReviewsPage({ listing }) {
             },
             ...prev,
         ]);
+        setPage(1);
         setName('');
         setText('');
         setRating(5);
         setSubmitted(true);
         window.setTimeout(() => setSubmitted(false), 2500);
+    };
+
+    const goTo = (next) => {
+        setPage(Math.min(totalPages, Math.max(1, next)));
+        const list = document.getElementById('reviews-list');
+        list?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
 
     return (
@@ -175,8 +222,8 @@ export default function ReviewsPage({ listing }) {
                 </form>
             </DetailSection>
 
-            <div className="flex flex-col gap-4">
-                {reviews.map((review) => (
+            <div id="reviews-list" className="flex flex-col gap-4">
+                {pageItems.map((review) => (
                     <article
                         key={review.id}
                         className="rounded-2xl bg-white p-5 shadow-soft sm:p-6"
@@ -198,6 +245,62 @@ export default function ReviewsPage({ listing }) {
                     </article>
                 ))}
             </div>
+
+            {totalPages > 1 ? (
+                <div className="flex flex-col items-center gap-3 pb-2">
+                    <nav
+                        className="inline-flex items-center gap-1 rounded-2xl border border-olive-200/80 bg-white p-1.5 shadow-soft"
+                        aria-label="Reviews pagination"
+                    >
+                        <button
+                            type="button"
+                            disabled={safePage <= 1}
+                            onClick={() => goTo(safePage - 1)}
+                            className="inline-flex h-9 items-center gap-1 rounded-xl px-3 text-sm font-semibold text-olive-700 transition hover:bg-olive-50 disabled:cursor-not-allowed disabled:opacity-35"
+                            aria-label="Previous page"
+                        >
+                            <ChevronLeft className="h-4 w-4" />
+                            <span className="hidden sm:inline">Prev</span>
+                        </button>
+
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                            (n) => {
+                                const active = n === safePage;
+                                return (
+                                    <button
+                                        key={n}
+                                        type="button"
+                                        onClick={() => goTo(n)}
+                                        className={`inline-flex h-9 min-w-9 items-center justify-center rounded-xl px-2.5 text-sm font-semibold transition ${
+                                            active
+                                                ? 'bg-olive-700 text-white'
+                                                : 'text-olive-700 hover:bg-olive-50'
+                                        }`}
+                                        aria-current={active ? 'page' : undefined}
+                                    >
+                                        {n}
+                                    </button>
+                                );
+                            },
+                        )}
+
+                        <button
+                            type="button"
+                            disabled={safePage >= totalPages}
+                            onClick={() => goTo(safePage + 1)}
+                            className="inline-flex h-9 items-center gap-1 rounded-xl px-3 text-sm font-semibold text-olive-700 transition hover:bg-olive-50 disabled:cursor-not-allowed disabled:opacity-35"
+                            aria-label="Next page"
+                        >
+                            <span className="hidden sm:inline">Next</span>
+                            <ChevronRight className="h-4 w-4" />
+                        </button>
+                    </nav>
+                    <p className="text-xs font-medium text-olive-500">
+                        Page {safePage} of {totalPages} · showing {pageItems.length}{' '}
+                        of {reviews.length}
+                    </p>
+                </div>
+            ) : null}
         </div>
     );
 }
