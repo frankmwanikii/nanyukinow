@@ -3,19 +3,18 @@ import { Zap } from 'lucide-react';
 const TIER_META = {
     premium: {
         label: 'Premium',
-        frame: 'border-mint text-mint',
+        frame: 'border-mustard text-mustard',
         title: 'Premium listing',
     },
     featured: {
         label: 'Featured',
-        frame: 'border-mustard text-mustard',
+        frame: 'border-mint text-mint',
         title: 'Featured listing',
     },
 };
 
 /**
- * Outline bolt-in-rounded-square badge (premium = mint, featured = mustard).
- * Free listings render nothing.
+ * Bolt icon always visible. "Premium" / "Featured" wording appears on card hover.
  */
 export default function ListingTierBadge({
     tier,
@@ -34,11 +33,21 @@ export default function ListingTierBadge({
 
     return (
         <span
-            className={`inline-flex items-center justify-center ${box} ${border} ${meta.frame} ${className}`}
-            title={meta.title}
+            className={`inline-flex items-center gap-0 ${className}`}
             aria-label={meta.title}
         >
-            <Zap className={icon} strokeWidth={2.35} fill="none" />
+            <span
+                className={`inline-flex shrink-0 items-center justify-center ${box} ${border} ${meta.frame} bg-black/25 backdrop-blur-[2px]`}
+            >
+                <Zap className={icon} strokeWidth={2.35} fill="none" />
+            </span>
+            <span
+                className={`max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-200 ease-out group-hover:ml-2 group-hover:max-w-[7rem] group-hover:opacity-100`}
+            >
+                <span className="inline-flex rounded-md bg-black/75 px-2 py-1 text-[11px] font-bold tracking-wide text-white ring-1 ring-white/25">
+                    {meta.label}
+                </span>
+            </span>
         </span>
     );
 }

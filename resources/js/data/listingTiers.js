@@ -1,7 +1,7 @@
 /**
  * Listing plan tiers:
- * - premium → mint bolt badge
- * - featured → mustard bolt badge
+ * - premium → mustard bolt badge
+ * - featured → mint bolt badge
  * - free → no badge
  */
 export const LISTING_TIERS = ['premium', 'featured', 'free'];
