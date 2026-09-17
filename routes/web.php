@@ -1,25 +1,13 @@
 <?php
 
+use App\Http\Controllers\ListingController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/', function () {
-    return Inertia::render('Home');
-})->name('home');
+Route::get('/', [ListingController::class, 'home'])->name('home');
 
-Route::get('/explore', function () {
-    $location = request()->string('location')->toString() ?: null;
-    $allowed = ['Nanyuki', 'Timau', 'Naromoru'];
-
-    return Inertia::render('Explore', [
-        'category' => request()->string('category')->toString() ?: null,
-        'subcategory' => request()->string('subcategory')->toString() ?: null,
-        'propertyType' => request()->string('propertyType')->toString() ?: null,
-        'q' => request()->string('q')->toString() ?: null,
-        'location' => in_array($location, $allowed, true) ? $location : null,
-    ]);
-})->name('explore');
+Route::get('/explore', [ListingController::class, 'explore'])->name('explore');
 
 Route::get('/stories', function () {
     return Inertia::render('Stories/Index', [
@@ -34,11 +22,7 @@ Route::get('/stories/{slug}', function (string $slug) {
     ]);
 })->name('stories.show');
 
-Route::get('/listings/{slug}', function (string $slug) {
-    return Inertia::render('Listings/Show', [
-        'slug' => $slug,
-    ]);
-})->name('listings.show');
+Route::get('/listings/{slug}', [ListingController::class, 'show'])->name('listings.show');
 
 Route::get('/terms', function () {
     return Inertia::render('Terms');

@@ -14,7 +14,6 @@ import ListingCard from '@/Components/site/ListingCard';
 import SiteLayout from '@/Layouts/SiteLayout';
 import { explorePath } from '@/data/categories';
 import {
-    allListings,
     enrichListing,
     filterListings,
     LOOK_LOCATIONS,
@@ -22,10 +21,6 @@ import {
 
 const PAGE_SIZE = 12;
 const MAX_PAGE_BUTTONS = 12;
-
-const catalogue = allListings.map((item, index) =>
-    enrichListing(item, index),
-);
 
 function syncUrl({ category, subcategory, propertyType, q, location }) {
     const next = explorePath({
@@ -42,6 +37,7 @@ function syncUrl({ category, subcategory, propertyType, q, location }) {
 }
 
 function ExploreContent({
+    catalogue = [],
     initialCategory = null,
     initialSubcategory = null,
     initialPropertyType = null,
@@ -100,12 +96,12 @@ function ExploreContent({
             location,
             minRating,
             openNow,
-        });
+        }).map((item, index) => enrichListing(item, index));
 
         return [...items].sort(
             (a, b) => (b.rating ?? 0) - (a.rating ?? 0),
         );
-    }, [categoryKey, subcategory, propertyType, query, location, minRating, openNow]);
+    }, [catalogue, categoryKey, subcategory, propertyType, query, location, minRating, openNow]);
 
     const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
     const safePage = Math.min(page, totalPages);
@@ -461,15 +457,22 @@ function ExploreContent({
 }
 
 export default function Explore({
+    listings = [],
     category,
     subcategory,
     propertyType,
     q,
     location,
 }) {
+    const catalogue = useMemo(
+        () => listings.map((item, index) => enrichListing(item, index)),
+        [listings],
+    );
+
     return (
         <SiteLayout title="Explore Nanyuki" hideFooter compactNav>
             <ExploreContent
+                catalogue={catalogue}
                 initialCategory={category || null}
                 initialSubcategory={subcategory || null}
                 initialPropertyType={propertyType || null}

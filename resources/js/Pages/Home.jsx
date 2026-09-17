@@ -10,22 +10,15 @@ import HeroSlider from '@/Components/site/HeroSlider';
 import FeaturedMarquee from '@/Components/site/FeaturedMarquee';
 import TrendingCarousel from '@/Components/site/TrendingCarousel';
 import StoriesSection from '@/Components/site/StoriesSection';
-import {
-    airbnbs,
-    featured,
-    goldList,
-    testimonials,
-    trending,
-    wildlifeSafaris,
-} from '@/data/listings';
+import { testimonials } from '@/data/listings';
 
 const CTA_IMAGE = '/images/designed-for-you.webp';
 const PAGE_SIZE = 9;
 
-function GoldListSection() {
+function GoldListSection({ items = [] }) {
     const [visible, setVisible] = useState(PAGE_SIZE);
-    const shown = useMemo(() => goldList.slice(0, visible), [visible]);
-    const hasMore = visible < goldList.length;
+    const shown = useMemo(() => items.slice(0, visible), [items, visible]);
+    const hasMore = visible < items.length;
 
     return (
         <section id="listings" className="bg-olive-600 py-14 sm:py-20">
@@ -51,7 +44,7 @@ function GoldListSection() {
                             type="button"
                             onClick={() =>
                                 setVisible((n) =>
-                                    Math.min(n + PAGE_SIZE, goldList.length),
+                                    Math.min(n + PAGE_SIZE, items.length),
                                 )
                             }
                             className="inline-flex rounded-full bg-mustard px-8 py-3.5 text-sm font-bold text-olive-950 shadow-lift transition hover:bg-white hover:text-mustard sm:px-10 sm:text-base"
@@ -65,10 +58,10 @@ function GoldListSection() {
     );
 }
 
-function AirbnbsSection() {
+function AirbnbsSection({ items = [] }) {
     const [visible, setVisible] = useState(PAGE_SIZE);
-    const shown = useMemo(() => airbnbs.slice(0, visible), [visible]);
-    const hasMore = visible < airbnbs.length;
+    const shown = useMemo(() => items.slice(0, visible), [items, visible]);
+    const hasMore = visible < items.length;
 
     return (
         <section
@@ -97,7 +90,7 @@ function AirbnbsSection() {
                             type="button"
                             onClick={() =>
                                 setVisible((n) =>
-                                    Math.min(n + PAGE_SIZE, airbnbs.length),
+                                    Math.min(n + PAGE_SIZE, items.length),
                                 )
                             }
                             className="inline-flex rounded-full bg-mustard px-8 py-3.5 text-sm font-bold text-olive-950 shadow-lift transition hover:bg-white hover:text-mustard sm:px-10 sm:text-base"
@@ -111,13 +104,10 @@ function AirbnbsSection() {
     );
 }
 
-function WildlifeSafarisSection() {
+function WildlifeSafarisSection({ items = [] }) {
     const [visible, setVisible] = useState(PAGE_SIZE);
-    const shown = useMemo(
-        () => wildlifeSafaris.slice(0, visible),
-        [visible],
-    );
-    const hasMore = visible < wildlifeSafaris.length;
+    const shown = useMemo(() => items.slice(0, visible), [items, visible]);
+    const hasMore = visible < items.length;
 
     return (
         <section
@@ -145,10 +135,7 @@ function WildlifeSafarisSection() {
                             type="button"
                             onClick={() =>
                                 setVisible((n) =>
-                                    Math.min(
-                                        n + PAGE_SIZE,
-                                        wildlifeSafaris.length,
-                                    ),
+                                    Math.min(n + PAGE_SIZE, items.length),
                                 )
                             }
                             className="inline-flex rounded-full bg-olive-600 px-8 py-3.5 text-sm font-bold text-white shadow-lift transition hover:bg-mustard hover:text-olive-950 sm:px-10 sm:text-base"
@@ -162,7 +149,13 @@ function WildlifeSafarisSection() {
     );
 }
 
-function HomeContent() {
+function HomeContent({
+    featured = [],
+    trending = [],
+    goldList = [],
+    airbnbs = [],
+    wildlifeSafaris = [],
+}) {
     return (
         <>
             <HeroSlider />
@@ -200,7 +193,7 @@ function HomeContent() {
                 </div>
             </section>
 
-            <GoldListSection />
+            <GoldListSection items={goldList} />
 
             <CategoryGrid />
 
@@ -248,11 +241,11 @@ function HomeContent() {
                 </div>
             </section>
 
-            <WildlifeSafarisSection />
+            <WildlifeSafarisSection items={wildlifeSafaris} />
 
             <StoriesSection />
 
-            <AirbnbsSection />
+            <AirbnbsSection items={airbnbs} />
 
             {/* Testimonials */}
             <section className="relative z-10 bg-earth-clay py-14 sm:py-20">
@@ -299,10 +292,35 @@ function HomeContent() {
     );
 }
 
-export default function Home() {
+export default function Home({
+    featured = [],
+    trending = [],
+    goldList = [],
+    listings = [],
+}) {
+    const airbnbs = useMemo(
+        () =>
+            listings.filter(
+                (item) =>
+                    item.categoryKey === 'stay' ||
+                    item.categoryKey === 'properties',
+            ),
+        [listings],
+    );
+    const wildlifeSafaris = useMemo(
+        () => listings.filter((item) => item.categoryKey === 'thingsToDo'),
+        [listings],
+    );
+
     return (
         <SiteLayout title="Your city, right now">
-            <HomeContent />
+            <HomeContent
+                featured={featured}
+                trending={trending}
+                goldList={goldList}
+                airbnbs={airbnbs}
+                wildlifeSafaris={wildlifeSafaris}
+            />
         </SiteLayout>
     );
 }

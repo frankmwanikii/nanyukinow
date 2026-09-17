@@ -11,10 +11,6 @@ import ReviewsPage from '@/Components/listing/ReviewsPage';
 import { renderListingSection } from '@/Components/listing/renderListingSection';
 import { getListingDetail } from '@/data/listingDetails';
 import { getLayoutForCategory } from '@/data/listingLayouts';
-import {
-    getListingBySlug,
-    getRelatedListings,
-} from '@/data/listings';
 
 function readTabFromHash(allowed) {
     if (typeof window === 'undefined') return 'overview';
@@ -22,9 +18,15 @@ function readTabFromHash(allowed) {
     return allowed.has(hash) ? hash : 'overview';
 }
 
-export default function ListingShow({ slug, id }) {
-    const base = getListingBySlug(slug || id);
-    const listing = getListingDetail(base);
+export default function ListingShow({
+    slug,
+    listing: serverListing = null,
+    related: serverRelated = [],
+}) {
+    const listing = useMemo(() => {
+        if (!serverListing) return null;
+        return getListingDetail(serverListing);
+    }, [serverListing]);
     const layout = listing
         ? getLayoutForCategory(listing.categoryKey)
         : null;
@@ -40,7 +42,7 @@ export default function ListingShow({ slug, id }) {
         const onHash = () => setTab(readTabFromHash(allowedTabs));
         window.addEventListener('hashchange', onHash);
         return () => window.removeEventListener('hashchange', onHash);
-    }, [allowedTabs]);
+    }, [allowedTabs, slug]);
 
     const changeTab = (next) => {
         if (!allowedTabs.has(next)) return;
@@ -63,7 +65,7 @@ export default function ListingShow({ slug, id }) {
                     </p>
                     <Link
                         href="/explore"
-                        className="mt-8 inline-flex rounded-full bg-olive-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-mustard hover:text-olive-950"
+                        className="inline-flex mt-8 rounded-full bg-olive-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-mustard hover:text-olive-950"
                     >
                         Back to explore
                     </Link>
@@ -72,10 +74,8 @@ export default function ListingShow({ slug, id }) {
         );
     }
 
-    const related = getRelatedListings(
-        listing,
-        listing.relatedIds || [],
-        3,
+    const related = (serverRelated || []).slice(0, 3).map((item) =>
+        getListingDetail(item),
     );
 
     return (
