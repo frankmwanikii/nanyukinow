@@ -1,18 +1,16 @@
-import { MapPin } from 'lucide-react';
 import { useEffect, useMemo, useRef } from 'react';
 
 /**
  * Map panel for Explore.
  *
- * Today: Leaflet + OSM (no API key).
- * Later: set VITE_GOOGLE_MAPS_API_KEY and provider will switch to Google Maps
- * using the same listings / activeId / onSelect contract.
+ * Uses Google Maps when VITE_GOOGLE_MAPS_API_KEY is set; otherwise Leaflet + OSM.
  */
 const NANYUKI = { lat: -0.0167, lng: 37.0728 };
 const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
 const LEAFLET_JS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
 
 let leafletLoader = null;
+let googleLoader = null;
 
 function loadLeaflet() {
     if (typeof window === 'undefined') {
@@ -48,6 +46,36 @@ function loadLeaflet() {
     return leafletLoader;
 }
 
+function loadGoogleMaps(apiKey) {
+    if (typeof window === 'undefined') {
+        return Promise.reject(new Error('No window'));
+    }
+    if (window.google?.maps) return Promise.resolve(window.google.maps);
+    if (googleLoader) return googleLoader;
+
+    googleLoader = new Promise((resolve, reject) => {
+        const src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}`;
+        const existing = document.querySelector(`script[src^="https://maps.googleapis.com/maps/api/js"]`);
+
+        if (existing) {
+            existing.addEventListener('load', () => resolve(window.google.maps));
+            existing.addEventListener('error', reject);
+            if (window.google?.maps) resolve(window.google.maps);
+            return;
+        }
+
+        const script = document.createElement('script');
+        script.src = src;
+        script.async = true;
+        script.defer = true;
+        script.onload = () => resolve(window.google.maps);
+        script.onerror = reject;
+        document.head.appendChild(script);
+    });
+
+    return googleLoader;
+}
+
 function pinHtml(active) {
     const bg = active ? '#f2b82e' : '#4b533a';
     const ring = active ? '#1c1712' : '#ffffff';
@@ -64,9 +92,29 @@ function pinHtml(active) {
     `;
 }
 
+function googlePinSvg(active) {
+    const bg = active ? '#f2b82e' : '#4b533a';
+    const ring = active ? '#1c1712' : '#ffffff';
+    return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+      <svg xmlns="http://www.w3.org/2000/svg" width="30" height="34" viewBox="0 0 30 34">
+        <circle cx="15" cy="15" r="13" fill="${bg}" stroke="${ring}" stroke-width="2.5"/>
+        <circle cx="15" cy="15" r="4" fill="#ffffff"/>
+      </svg>
+    `)}`;
+}
+
 function useMapProvider() {
     const googleKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
     return googleKey ? 'google' : 'leaflet';
+}
+
+function destroyMap(provider, map) {
+    if (!map) return;
+    if (provider === 'leaflet') {
+        map.remove();
+        return;
+    }
+    // Google Maps: clear listeners; DOM node is reused/unmounted by React
 }
 
 export default function ExploreMap({
@@ -78,9 +126,11 @@ export default function ExploreMap({
     className = '',
 }) {
     const provider = useMapProvider();
+    const googleKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
     const containerRef = useRef(null);
     const mapRef = useRef(null);
     const markersRef = useRef(new Map());
+    const infoWindowRef = useRef(null);
     const onSelectRef = useRef(onSelect);
     onSelectRef.current = onSelect;
 
@@ -94,7 +144,7 @@ export default function ExploreMap({
         [listings],
     );
 
-    // Leaflet implementation (default until Google key is configured)
+    // Init Leaflet
     useEffect(() => {
         if (provider !== 'leaflet' || !visible) return undefined;
 
@@ -133,17 +183,53 @@ export default function ExploreMap({
         };
     }, [provider, visible]);
 
+    // Init Google Maps
+    useEffect(() => {
+        if (provider !== 'google' || !visible || !googleKey) return undefined;
+
+        let cancelled = false;
+
+        loadGoogleMaps(googleKey)
+            .then((maps) => {
+                if (cancelled || !containerRef.current || mapRef.current) return;
+
+                mapRef.current = new maps.Map(containerRef.current, {
+                    center: NANYUKI,
+                    zoom: 12,
+                    mapTypeControl: false,
+                    streetViewControl: false,
+                    fullscreenControl: false,
+                    clickableIcons: false,
+                    gestureHandling: 'greedy',
+                });
+                infoWindowRef.current = new maps.InfoWindow();
+            })
+            .catch(() => {});
+
+        return () => {
+            cancelled = true;
+        };
+    }, [provider, visible, googleKey]);
+
     useEffect(() => {
         if (!visible) return undefined;
         return () => {
             if (mapRef.current) {
-                mapRef.current.remove();
+                if (provider === 'leaflet') {
+                    markersRef.current.forEach((marker) => marker.remove());
+                } else {
+                    markersRef.current.forEach((marker) => marker.setMap(null));
+                    infoWindowRef.current?.close();
+                }
+                destroyMap(provider, mapRef.current);
                 mapRef.current = null;
                 markersRef.current.clear();
+                infoWindowRef.current = null;
             }
         };
-    }, [visible]);
+    }, [visible, provider]);
 
+    // Leaflet markers
     useEffect(() => {
         if (provider !== 'leaflet' || !visible) return;
         const map = mapRef.current;
@@ -187,11 +273,71 @@ export default function ExploreMap({
         setTimeout(() => map.invalidateSize(), 80);
     }, [points, activeId, provider, visible]);
 
+    // Google markers
+    useEffect(() => {
+        if (provider !== 'google' || !visible) return;
+        const map = mapRef.current;
+        const maps = typeof window !== 'undefined' ? window.google?.maps : null;
+        if (!map || !maps) return;
+
+        markersRef.current.forEach((marker) => marker.setMap(null));
+        markersRef.current.clear();
+
+        const bounds = new maps.LatLngBounds();
+
+        points.forEach((item) => {
+            const active = String(item.id) === String(activeId);
+            const position = { lat: item.lat, lng: item.lng };
+            const marker = new maps.Marker({
+                map,
+                position,
+                title: item.title,
+                icon: {
+                    url: googlePinSvg(active),
+                    scaledSize: new maps.Size(30, 34),
+                    anchor: new maps.Point(15, 30),
+                },
+                zIndex: active ? 1000 : 1,
+            });
+
+            marker.addListener('click', () => {
+                onSelectRef.current?.(item.id);
+                if (infoWindowRef.current) {
+                    infoWindowRef.current.setContent(
+                        `<div style="font:600 13px/1.3 system-ui,sans-serif;color:#1c1712;padding:2px 4px;">${item.title ?? ''}</div>`,
+                    );
+                    infoWindowRef.current.open({ map, anchor: marker });
+                }
+            });
+
+            markersRef.current.set(String(item.id), marker);
+            bounds.extend(position);
+        });
+
+        if (points.length > 1) {
+            map.fitBounds(bounds, 48);
+        } else if (points.length === 1) {
+            map.setCenter({ lat: points[0].lat, lng: points[0].lng });
+            map.setZoom(13);
+        } else {
+            map.setCenter(NANYUKI);
+            map.setZoom(12);
+        }
+    }, [points, activeId, provider, visible]);
+
     useEffect(() => {
         if (!visible || !activeId || !mapRef.current) return;
         const marker = markersRef.current.get(String(activeId));
-        if (marker) mapRef.current.panTo(marker.getLatLng(), { animate: true });
-    }, [activeId, visible]);
+        if (!marker) return;
+
+        if (provider === 'leaflet') {
+            mapRef.current.panTo(marker.getLatLng(), { animate: true });
+            return;
+        }
+
+        const position = marker.getPosition();
+        if (position) mapRef.current.panTo(position);
+    }, [activeId, visible, provider]);
 
     if (!visible) return null;
 
@@ -199,25 +345,12 @@ export default function ExploreMap({
         <div
             className={`relative z-0 h-full min-h-[280px] isolate overflow-hidden bg-olive-100 ${className}`}
         >
-            {provider === 'google' ? (
-                <GoogleMapsPlaceholder
-                    points={points}
-                    activeId={activeId}
-                    onSelect={onSelect}
-                />
-            ) : (
-                <div ref={containerRef} className="absolute inset-0 z-0" />
-            )}
+            <div ref={containerRef} className="absolute inset-0 z-0" />
 
             <div className="pointer-events-none absolute left-3 top-3 z-[400] flex items-center gap-2">
                 <span className="rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-olive-800 shadow-soft">
                     {points.length} on map
                 </span>
-                {provider === 'leaflet' ? (
-                    <span className="rounded-full bg-olive-800/90 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white/90">
-                        Preview map · Google later
-                    </span>
-                ) : null}
             </div>
 
             {onClose ? (
@@ -229,28 +362,6 @@ export default function ExploreMap({
                     Close map
                 </button>
             ) : null}
-        </div>
-    );
-}
-
-/**
- * Stub for Google Maps — wire Maps JS API here when
- * VITE_GOOGLE_MAPS_API_KEY is available.
- */
-function GoogleMapsPlaceholder({ points }) {
-    return (
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-olive-100 via-earth-sand to-olive-200 px-6 text-center">
-            <MapPin className="h-10 w-10 text-olive-600" />
-            <div>
-                <p className="font-display text-lg font-semibold text-earth-dusk">
-                    Google Maps ready
-                </p>
-                <p className="mt-1 max-w-sm text-sm text-olive-600">
-                    API key detected. Connect the Maps JavaScript SDK to plot{' '}
-                    {points.length} listing pin
-                    {points.length === 1 ? '' : 's'}.
-                </p>
-            </div>
         </div>
     );
 }

@@ -5,6 +5,12 @@ const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
 const LEAFLET_JS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
 
 let leafletLoader = null;
+let googleLoader = null;
+
+function parseCoord(value) {
+    const n = typeof value === 'number' ? value : Number.parseFloat(value);
+    return Number.isFinite(n) ? n : null;
+}
 
 function loadLeaflet() {
     if (typeof window === 'undefined') {
@@ -40,6 +46,38 @@ function loadLeaflet() {
     return leafletLoader;
 }
 
+function loadGoogleMaps(apiKey) {
+    if (typeof window === 'undefined') {
+        return Promise.reject(new Error('No window'));
+    }
+    if (window.google?.maps) return Promise.resolve(window.google.maps);
+    if (googleLoader) return googleLoader;
+
+    googleLoader = new Promise((resolve, reject) => {
+        const src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}`;
+        const existing = document.querySelector(
+            `script[src^="https://maps.googleapis.com/maps/api/js"]`,
+        );
+
+        if (existing) {
+            existing.addEventListener('load', () => resolve(window.google.maps));
+            existing.addEventListener('error', reject);
+            if (window.google?.maps) resolve(window.google.maps);
+            return;
+        }
+
+        const script = document.createElement('script');
+        script.src = src;
+        script.async = true;
+        script.defer = true;
+        script.onload = () => resolve(window.google.maps);
+        script.onerror = reject;
+        document.head.appendChild(script);
+    });
+
+    return googleLoader;
+}
+
 function pinHtml() {
     return `
       <div style="position:relative;width:32px;height:40px;transform:translateY(-6px);">
@@ -53,21 +91,75 @@ function pinHtml() {
     `;
 }
 
+function googlePinSvg() {
+    return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="40" viewBox="0 0 32 40">
+        <path d="M16 0C8.268 0 2 6.268 2 14c0 9.5 12.2 24.4 13.1 25.5a1.2 1.2 0 0 0 1.8 0C17.8 38.4 30 23.5 30 14 30 6.268 23.732 0 16 0z" fill="#f2b82e" stroke="#1c1712" stroke-width="1.6"/>
+        <circle cx="16" cy="14" r="5.5" fill="#1c1712"/>
+        <circle cx="16" cy="14" r="2.4" fill="#ffffff"/>
+      </svg>
+    `)}`;
+}
+
 export default function DirectionsMap({ listing }) {
     const containerRef = useRef(null);
     const mapRef = useRef(null);
-    const hasCoords =
-        typeof listing?.lat === 'number' && typeof listing?.lng === 'number';
+    const googleKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    const provider = googleKey ? 'google' : 'leaflet';
+
+    const lat = parseCoord(listing?.lat);
+    const lng = parseCoord(listing?.lng);
+    const hasCoords = lat !== null && lng !== null;
 
     useEffect(() => {
         if (!hasCoords) return undefined;
         let cancelled = false;
 
+        if (provider === 'google') {
+            loadGoogleMaps(googleKey)
+                .then((maps) => {
+                    if (cancelled || !containerRef.current) return;
+
+                    if (mapRef.current?.setMap) {
+                        mapRef.current = null;
+                    }
+
+                    const map = new maps.Map(containerRef.current, {
+                        center: { lat, lng },
+                        zoom: 14,
+                        mapTypeControl: false,
+                        streetViewControl: false,
+                        fullscreenControl: false,
+                        clickableIcons: false,
+                        gestureHandling: 'cooperative',
+                    });
+
+                    new maps.Marker({
+                        map,
+                        position: { lat, lng },
+                        title: listing?.title || listing?.address || '',
+                        icon: {
+                            url: googlePinSvg(),
+                            scaledSize: new maps.Size(32, 40),
+                            anchor: new maps.Point(16, 38),
+                        },
+                    });
+
+                    mapRef.current = map;
+                })
+                .catch(() => {});
+
+            return () => {
+                cancelled = true;
+                mapRef.current = null;
+            };
+        }
+
         loadLeaflet()
             .then((L) => {
                 if (cancelled || !containerRef.current) return;
 
-                if (mapRef.current) {
+                if (mapRef.current?.remove) {
                     mapRef.current.remove();
                     mapRef.current = null;
                 }
@@ -75,7 +167,7 @@ export default function DirectionsMap({ listing }) {
                 const map = L.map(containerRef.current, {
                     zoomControl: false,
                     scrollWheelZoom: false,
-                }).setView([listing.lat, listing.lng], 14);
+                }).setView([lat, lng], 14);
 
                 L.tileLayer(
                     'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -95,7 +187,7 @@ export default function DirectionsMap({ listing }) {
                     iconAnchor: [16, 38],
                 });
 
-                L.marker([listing.lat, listing.lng], { icon }).addTo(map);
+                L.marker([lat, lng], { icon }).addTo(map);
                 mapRef.current = map;
                 setTimeout(() => map.invalidateSize(), 120);
             })
@@ -103,17 +195,17 @@ export default function DirectionsMap({ listing }) {
 
         return () => {
             cancelled = true;
-            if (mapRef.current) {
+            if (mapRef.current?.remove) {
                 mapRef.current.remove();
-                mapRef.current = null;
             }
+            mapRef.current = null;
         };
-    }, [hasCoords, listing?.lat, listing?.lng]);
+    }, [hasCoords, lat, lng, provider, googleKey, listing?.title, listing?.address]);
 
     if (!listing) return null;
 
     const directionsUrl = hasCoords
-        ? `https://www.google.com/maps/dir/?api=1&destination=${listing.lat},${listing.lng}`
+        ? `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`
         : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
               listing.address || listing.title || 'Nanyuki',
           )}`;

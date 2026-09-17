@@ -3,6 +3,12 @@
  * Listings without an entry get a category-aware default via getListingDetail().
  */
 
+import {
+    enrichListing,
+    getListingById,
+    getListingBySlug,
+} from '@/data/listings';
+
 const WEEKDAY_HOURS = [
     { day: 'Monday', open: '08:00', close: '22:00' },
     { day: 'Tuesday', open: '08:00', close: '22:00' },
@@ -1891,11 +1897,29 @@ function buildGallery(listing, defaults) {
     ]);
 }
 
+function parseCoord(value) {
+    const n = typeof value === 'number' ? value : Number.parseFloat(value);
+    return Number.isFinite(n) ? n : null;
+}
+
 /**
  * Merge base listing with rich detail (or category defaults).
  */
 export function getListingDetail(listing) {
     if (!listing) return null;
+
+    const catalog =
+        (listing.slug ? getListingBySlug(listing.slug) : null) ||
+        getListingById(listing.id) ||
+        null;
+
+    // Server payloads currently omit coords; pull from catalogue / area centers.
+    listing = enrichListing({
+        ...catalog,
+        ...listing,
+        lat: parseCoord(listing.lat) ?? parseCoord(catalog?.lat),
+        lng: parseCoord(listing.lng) ?? parseCoord(catalog?.lng),
+    });
 
     const explicit = listingDetailsById[listing.id] ?? listingDetailsById[String(listing.id)];
     const defaults = DEFAULTS_BY_CATEGORY[listing.categoryKey] ?? DEFAULTS_BY_CATEGORY.eatDrink;
