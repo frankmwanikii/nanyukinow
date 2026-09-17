@@ -1,7 +1,7 @@
 import { Link } from '@inertiajs/react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 const SLIDES = [
     {
@@ -53,13 +53,16 @@ const SLIDES = [
 ];
 
 const INTERVAL_MS = 6500;
+const REVEAL_MS = 0.95;
 
 export default function HeroSlider() {
     const reduce = useReducedMotion();
     const [index, setIndex] = useState(0);
     const [paused, setPaused] = useState(false);
+    const directionRef = useRef(1);
 
     const step = useCallback((delta) => {
+        directionRef.current = delta >= 0 ? 1 : -1;
         setIndex((prev) => (prev + delta + SLIDES.length) % SLIDES.length);
     }, []);
 
@@ -71,6 +74,7 @@ export default function HeroSlider() {
 
     const slide = SLIDES[index];
     const isBrand = slide.layout === 'brand';
+    const direction = directionRef.current;
 
     return (
         <section
@@ -80,14 +84,49 @@ export default function HeroSlider() {
             aria-roledescription="carousel"
             aria-label="Nanyuki Now highlights"
         >
-            <AnimatePresence mode="wait" initial={false}>
+            {/* Incoming slide fades in over a still current slide — no exit fade. */}
+            <AnimatePresence initial={false}>
                 <motion.div
                     key={slide.id}
                     className="absolute inset-0 overflow-hidden bg-[#1c1712]"
-                    initial={reduce ? false : { opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={reduce ? undefined : { opacity: 0 }}
-                    transition={{ duration: 0.9, ease: 'easeInOut' }}
+                    initial={
+                        reduce
+                            ? false
+                            : {
+                                  opacity: 0,
+                                  scale: 1.045,
+                                  x: direction * 28,
+                              }
+                    }
+                    animate={{
+                        opacity: 1,
+                        scale: 1,
+                        x: 0,
+                    }}
+                    exit={{
+                        opacity: 1,
+                        scale: 1,
+                        x: 0,
+                    }}
+                    transition={
+                        reduce
+                            ? { duration: 0 }
+                            : {
+                                  opacity: {
+                                      duration: REVEAL_MS,
+                                      ease: [0.22, 1, 0.36, 1],
+                                  },
+                                  scale: {
+                                      duration: REVEAL_MS,
+                                      ease: [0.22, 1, 0.36, 1],
+                                  },
+                                  x: {
+                                      duration: REVEAL_MS,
+                                      ease: [0.22, 1, 0.36, 1],
+                                  },
+                              }
+                    }
+                    style={{ zIndex: 1 }}
                 >
                     <picture>
                         {slide.imageMobile ? (
@@ -119,7 +158,7 @@ export default function HeroSlider() {
                         key={`eyebrow-${slide.id}`}
                         initial={reduce ? false : { opacity: 0, y: 18 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6 }}
+                        transition={{ duration: 0.55, delay: 0.12 }}
                         className={`max-w-[18rem] text-[11px] font-semibold leading-snug text-white/90 sm:max-w-none sm:text-sm sm:font-medium md:text-base ${
                             slide.eyebrowClass || 'tracking-wide'
                         }`}
@@ -131,7 +170,7 @@ export default function HeroSlider() {
                         key={`title-${slide.id}`}
                         initial={reduce ? false : { opacity: 0, y: 22 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1, duration: 0.7 }}
+                        transition={{ delay: 0.2, duration: 0.65 }}
                         className="mt-3 w-full max-w-[20rem] font-display text-[1.55rem] font-bold leading-[1.18] tracking-tight text-white sm:mt-3 sm:max-w-3xl sm:text-5xl md:text-6xl lg:text-7xl"
                     >
                         <span className="block text-balance">
@@ -146,7 +185,7 @@ export default function HeroSlider() {
                         key={`cta-${slide.id}`}
                         initial={reduce ? false : { opacity: 0, y: 16 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.22, duration: 0.6 }}
+                        transition={{ delay: 0.32, duration: 0.55 }}
                         className="mt-5 sm:mt-8"
                     >
                         <Link
@@ -186,7 +225,10 @@ export default function HeroSlider() {
                     <button
                         key={item.id}
                         type="button"
-                        onClick={() => setIndex(i)}
+                        onClick={() => {
+                            directionRef.current = i > index ? 1 : -1;
+                            setIndex(i);
+                        }}
                         aria-label={`Go to slide ${i + 1}`}
                         aria-current={i === index}
                         className={`h-1.5 rounded-full transition-all ${

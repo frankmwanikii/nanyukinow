@@ -135,10 +135,17 @@ export function getCategoryBySlug(slug) {
     return mainCategories.find((c) => c.slug === slug) ?? null;
 }
 
-export function explorePath({ category, subcategory, q, location } = {}) {
+export function explorePath({
+    category,
+    subcategory,
+    propertyType,
+    q,
+    location,
+} = {}) {
     const params = new URLSearchParams();
     if (category) params.set('category', category);
     if (subcategory) params.set('subcategory', subcategory);
+    if (propertyType) params.set('propertyType', propertyType);
     if (q) params.set('q', q);
     if (location) params.set('location', location);
     const query = params.toString();

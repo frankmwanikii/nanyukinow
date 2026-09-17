@@ -15,6 +15,7 @@ Route::get('/explore', function () {
     return Inertia::render('Explore', [
         'category' => request()->string('category')->toString() ?: null,
         'subcategory' => request()->string('subcategory')->toString() ?: null,
+        'propertyType' => request()->string('propertyType')->toString() ?: null,
         'q' => request()->string('q')->toString() ?: null,
         'location' => in_array($location, $allowed, true) ? $location : null,
     ]);

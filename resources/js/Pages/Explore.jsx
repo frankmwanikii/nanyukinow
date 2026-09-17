@@ -27,10 +27,11 @@ const catalogue = allListings.map((item, index) =>
     enrichListing(item, index),
 );
 
-function syncUrl({ category, subcategory, q, location }) {
+function syncUrl({ category, subcategory, propertyType, q, location }) {
     const next = explorePath({
         category,
         subcategory,
+        propertyType,
         q,
         location: location || undefined,
     });
@@ -43,6 +44,7 @@ function syncUrl({ category, subcategory, q, location }) {
 function ExploreContent({
     initialCategory = null,
     initialSubcategory = null,
+    initialPropertyType = null,
     initialQuery = '',
     initialLocation = null,
 }) {
@@ -50,7 +52,7 @@ function ExploreContent({
     const [location, setLocation] = useState(initialLocation);
     const [categoryKey, setCategoryKey] = useState(initialCategory);
     const [subcategory, setSubcategory] = useState(initialSubcategory);
-    const [propertyType, setPropertyType] = useState(null);
+    const [propertyType, setPropertyType] = useState(initialPropertyType);
     const [minRating, setMinRating] = useState(0);
     const [openNow, setOpenNow] = useState(false);
     const [activeId, setActiveId] = useState(null);
@@ -61,21 +63,29 @@ function ExploreContent({
     useEffect(() => {
         setCategoryKey(initialCategory);
         setSubcategory(initialSubcategory);
+        setPropertyType(initialPropertyType);
         setQuery(initialQuery);
         setLocation(initialLocation);
-    }, [initialCategory, initialSubcategory, initialQuery, initialLocation]);
+    }, [
+        initialCategory,
+        initialSubcategory,
+        initialPropertyType,
+        initialQuery,
+        initialLocation,
+    ]);
 
     useEffect(() => {
         const handle = window.setTimeout(() => {
             syncUrl({
                 category: categoryKey,
                 subcategory,
+                propertyType,
                 q: query.trim() || null,
                 location,
             });
         }, 220);
         return () => window.clearTimeout(handle);
-    }, [categoryKey, subcategory, query, location]);
+    }, [categoryKey, subcategory, propertyType, query, location]);
 
     useEffect(() => {
         setPage(1);
@@ -450,12 +460,19 @@ function ExploreContent({
     );
 }
 
-export default function Explore({ category, subcategory, q, location }) {
+export default function Explore({
+    category,
+    subcategory,
+    propertyType,
+    q,
+    location,
+}) {
     return (
         <SiteLayout title="Explore Nanyuki" hideFooter compactNav>
             <ExploreContent
                 initialCategory={category || null}
                 initialSubcategory={subcategory || null}
+                initialPropertyType={propertyType || null}
                 initialQuery={q || ''}
                 initialLocation={location || null}
             />
