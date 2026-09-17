@@ -68,7 +68,7 @@ export default function Index({ groupedSettings }) {
                                             rows={item.type === 'textarea' ? 4 : undefined}
                                         />
                                         {item.help && (
-                                            <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
+                                            <p className="mt-1.5 text-sm text-olive-500 dark:text-olive-400">
                                                 {item.help}
                                             </p>
                                         )}

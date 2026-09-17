@@ -16,14 +16,15 @@ import {
     Th,
 } from '@/Components/Admin/ui';
 import { Head, router, useForm } from '@inertiajs/react';
-import { Pencil, Plus, Search, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 
 export default function Index({ users, filters }) {
     const [editing, setEditing] = useState(null);
     const [showCreate, setShowCreate] = useState(false);
     const [q, setQ] = useState(filters.q || '');
     const [role, setRole] = useState(filters.role || '');
+    const skipDebounce = useRef(true);
 
     const createForm = useForm({
         name: '',
@@ -41,10 +42,27 @@ export default function Index({ users, filters }) {
         is_admin: false,
     });
 
-    const search = (e) => {
-        e.preventDefault();
-        router.get(route('admin.users.index'), { q, role }, { preserveState: true, replace: true });
+    const pushFilters = (next) => {
+        router.get(route('admin.users.index'), next, {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true,
+        });
     };
+
+    useEffect(() => {
+        if (skipDebounce.current) {
+            skipDebounce.current = false;
+            return undefined;
+        }
+
+        const timer = setTimeout(() => {
+            pushFilters({ q, role });
+        }, 350);
+
+        return () => clearTimeout(timer);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [q]);
 
     const startEdit = (user) => {
         setEditing(user.id);
@@ -70,16 +88,28 @@ export default function Index({ users, filters }) {
         >
             <Head title="Admin users" />
 
-            <FilterBar onSubmit={search}>
-                <AdminInput label="Search" value={q} onChange={(e) => setQ(e.target.value)} className="min-w-[200px] flex-1" placeholder="Name, email, username" />
-                <AdminSelect label="Role" value={role} onChange={(e) => setRole(e.target.value)} className="w-36">
+            <FilterBar>
+                <AdminInput
+                    label="Search"
+                    value={q}
+                    onChange={(e) => setQ(e.target.value)}
+                    className="min-w-[200px] flex-1"
+                    placeholder="Name, email, username"
+                />
+                <AdminSelect
+                    label="Role"
+                    value={role}
+                    onChange={(e) => {
+                        const next = e.target.value;
+                        setRole(next);
+                        pushFilters({ q, role: next });
+                    }}
+                    className="w-36"
+                >
                     <option value="">All</option>
                     <option value="admin">Admins</option>
                     <option value="user">Members</option>
                 </AdminSelect>
-                <div className="flex items-end pb-0.5">
-                    <AdminButton type="submit" size="sm"><Search className="h-3.5 w-3.5" /> Filter</AdminButton>
-                </div>
             </FilterBar>
 
             {showCreate && (
@@ -164,10 +194,10 @@ export default function Index({ users, filters }) {
                                                 </span>
                                             </Td>
                                             <Td align="center">
-                                                <span className="tabular-nums text-xs text-slate-600">{user.listings_count}</span>
+                                                <span className="tabular-nums text-sm text-olive-700 dark:text-olive-200">{user.listings_count}</span>
                                             </Td>
                                             <Td>
-                                                <span className="text-xs text-slate-500">
+                                                <span className="text-sm text-olive-500 dark:text-olive-400">
                                                     {user.created_at ? new Date(user.created_at).toLocaleDateString() : '—'}
                                                 </span>
                                             </Td>

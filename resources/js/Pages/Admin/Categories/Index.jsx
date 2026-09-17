@@ -105,21 +105,21 @@ export default function Index({ categories }) {
                                             ) : (
                                                 <>
                                                     <Td align="center">
-                                                        <span className="tabular-nums text-xs text-slate-500 dark:text-slate-400">{category.sort_order}</span>
+                                                        <span className="tabular-nums text-sm text-olive-500 dark:text-olive-400">{category.sort_order}</span>
                                                     </Td>
                                                     <Td>
-                                                        <span className="text-sm font-medium text-slate-800 dark:text-slate-100">{category.name}</span>
+                                                        <span className="text-base font-medium text-olive-900 dark:text-olive-50">{category.name}</span>
                                                         {category.icon && (
-                                                            <span className="ml-1.5 text-[11px] text-slate-400">{category.icon}</span>
+                                                            <span className="ml-2 text-sm text-olive-400">{category.icon}</span>
                                                         )}
                                                     </Td>
                                                     <Td>
-                                                        <code className="rounded bg-slate-100 px-1.5 py-0.5 text-[11px] text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                                                        <code className="rounded bg-olive-100 px-2 py-1 text-sm text-olive-700 dark:bg-olive-800 dark:text-olive-200">
                                                             {category.slug}
                                                         </code>
                                                     </Td>
                                                     <Td align="center">
-                                                        <span className="tabular-nums text-xs font-medium text-slate-700 dark:text-slate-200">
+                                                        <span className="tabular-nums text-sm font-medium text-olive-800 dark:text-olive-100">
                                                             {category.listings_count}
                                                         </span>
                                                     </Td>

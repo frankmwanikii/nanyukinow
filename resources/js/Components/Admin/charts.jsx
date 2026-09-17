@@ -58,7 +58,7 @@ export function ActivityAreaChart({ data, isDark }) {
                     <CartesianGrid stroke={grid} strokeDasharray="3 3" vertical={false} />
                     <XAxis
                         dataKey="label"
-                        tick={{ fill: axis, fontSize: 11 }}
+                        tick={{ fill: axis, fontSize: 13 }}
                         tickLine={false}
                         axisLine={false}
                         interval="preserveStartEnd"
@@ -66,7 +66,7 @@ export function ActivityAreaChart({ data, isDark }) {
                     />
                     <YAxis
                         allowDecimals={false}
-                        tick={{ fill: axis, fontSize: 11 }}
+                        tick={{ fill: axis, fontSize: 13 }}
                         tickLine={false}
                         axisLine={false}
                         width={36}
@@ -111,12 +111,12 @@ export function HorizontalBarChart({ data, isDark, dataKey = 'count', nameKey = 
                     margin={{ top: 4, right: 12, left: 4, bottom: 0 }}
                 >
                     <CartesianGrid stroke={isDark ? '#3d4430' : '#e4e7dc'} strokeDasharray="3 3" horizontal={false} />
-                    <XAxis type="number" allowDecimals={false} tick={{ fill: axis, fontSize: 11 }} tickLine={false} axisLine={false} />
+                    <XAxis type="number" allowDecimals={false} tick={{ fill: axis, fontSize: 13 }} tickLine={false} axisLine={false} />
                     <YAxis
                         type="category"
                         dataKey={nameKey}
                         width={88}
-                        tick={{ fill: axis, fontSize: 11 }}
+                        tick={{ fill: axis, fontSize: 13 }}
                         tickLine={false}
                         axisLine={false}
                     />
@@ -139,8 +139,8 @@ export function DistributionBars({ data, isDark }) {
             <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data} margin={{ top: 4, right: 8, left: -18, bottom: 0 }}>
                     <CartesianGrid stroke={isDark ? '#3d4430' : '#e4e7dc'} strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="name" tick={{ fill: axis, fontSize: 11 }} tickLine={false} axisLine={false} />
-                    <YAxis allowDecimals={false} tick={{ fill: axis, fontSize: 11 }} tickLine={false} axisLine={false} width={28} />
+                    <XAxis dataKey="name" tick={{ fill: axis, fontSize: 13 }} tickLine={false} axisLine={false} />
+                    <YAxis allowDecimals={false} tick={{ fill: axis, fontSize: 13 }} tickLine={false} axisLine={false} width={28} />
                     <Tooltip
                         content={<ChartTooltip />}
                         cursor={{ fill: isDark ? 'rgba(242,184,46,0.08)' : 'rgba(75,83,58,0.06)' }}

@@ -89,7 +89,7 @@ function DashboardBody({ stats, recentListings, expiringListings, charts }) {
                     <DataCard
                         title="Activity · last 30 days"
                         tools={
-                            <div className="flex items-center gap-3 text-[11px] text-olive-600 dark:text-olive-300">
+                            <div className="flex items-center gap-3 text-sm text-olive-600 dark:text-olive-300">
                                 <span className="inline-flex items-center gap-1.5">
                                     <span className="h-2 w-2 rounded-full bg-olive-600" />
                                     Listings
@@ -167,11 +167,11 @@ function DashboardBody({ stats, recentListings, expiringListings, charts }) {
                                         <Td>
                                             <Link
                                                 href={route('admin.listings.edit', listing.id)}
-                                                className="text-sm font-medium text-olive-900 hover:text-earth-dusk dark:text-olive-100 dark:hover:text-white"
+                                                className="text-base font-medium text-olive-900 hover:text-earth-dusk dark:text-olive-100 dark:hover:text-white"
                                             >
                                                 {listing.title}
                                             </Link>
-                                            <p className="text-[11px] text-olive-400 dark:text-olive-500">
+                                            <p className="text-sm text-olive-500 dark:text-olive-400">
                                                 {listing.category || 'Uncategorized'}
                                             </p>
                                         </Td>
@@ -227,11 +227,11 @@ function DashboardBody({ stats, recentListings, expiringListings, charts }) {
                                     <Td>
                                         <Link
                                             href={route('admin.listings.edit', listing.id)}
-                                            className="text-sm font-medium text-olive-900 hover:text-earth-dusk dark:text-olive-100"
+                                            className="text-base font-medium text-olive-900 hover:text-earth-dusk dark:text-olive-100"
                                         >
                                             {listing.title}
                                         </Link>
-                                        <p className="text-[11px] text-olive-400">
+                                        <p className="text-sm text-olive-500">
                                             {listing.category || '—'}
                                         </p>
                                     </Td>

@@ -1,5 +1,5 @@
-import { Head, useForm } from '@inertiajs/react';
-import { Eye, EyeOff, Lock, ShieldCheck } from 'lucide-react';
+import { Head, Link, useForm } from '@inertiajs/react';
+import { Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
 
 export default function Login({ status }) {
@@ -16,138 +16,187 @@ export default function Login({ status }) {
     };
 
     return (
-        <div className="relative min-h-screen overflow-hidden bg-olive-950 text-olive-50">
+        <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-10 sm:px-6">
             <Head title="Admin sign in" />
 
+            {/* Soft brand wash behind the card */}
             <div
-                className="pointer-events-none absolute inset-0 opacity-50"
+                className="pointer-events-none absolute inset-0"
                 style={{
-                    backgroundImage:
-                        'radial-gradient(ellipse at 20% 20%, rgba(242,184,46,0.22), transparent 45%), radial-gradient(ellipse at 80% 0%, rgba(168,225,144,0.12), transparent 40%), linear-gradient(160deg, #161911 0%, #2a2e23 45%, #1c1712 100%)',
+                    background:
+                        'radial-gradient(ellipse at 12% 18%, rgba(242,184,46,0.35), transparent 42%), radial-gradient(ellipse at 88% 82%, rgba(168,225,144,0.28), transparent 40%), linear-gradient(145deg, #ebe4d6 0%, #e4e7dc 45%, #f9e8b8 100%)',
                 }}
             />
-            <div className="pointer-events-none absolute inset-0 bg-grain opacity-60" />
+            <div className="pointer-events-none absolute inset-0 bg-grain opacity-40" />
 
-            <div className="relative mx-auto grid min-h-screen max-w-6xl items-center gap-10 px-4 py-10 lg:grid-cols-2 lg:px-8">
-                <section className="hidden lg:block">
-                    <p className="font-brand text-5xl tracking-tight text-mustard">
-                        Nanyuki Now
-                    </p>
-                    <h1 className="mt-6 max-w-md font-display text-4xl leading-tight text-white">
-                        Command center for your directory.
-                    </h1>
-                    <p className="mt-4 max-w-md text-base leading-relaxed text-olive-200">
-                        Manage listings, expiry dates, categories, stories, and site
-                        surfaces from one operator console.
-                    </p>
-                    <ul className="mt-10 space-y-3 text-sm text-olive-200">
-                        {[
-                            'Listing packages, priorities & expirations',
-                            'Categories, stories & page content',
-                            'Role-gated admin access only',
-                        ].map((item) => (
-                            <li key={item} className="flex items-start gap-3">
-                                <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-mustard" />
-                                {item}
-                            </li>
-                        ))}
-                    </ul>
-                </section>
+            <div className="relative w-full max-w-5xl overflow-hidden rounded-[2rem] border border-olive-200/60 bg-white shadow-lift sm:rounded-[2.5rem]">
+                <div className="grid min-h-[640px] lg:grid-cols-12">
+                    {/* Left brand panel */}
+                    <aside className="relative hidden overflow-hidden bg-olive-950 text-white lg:col-span-5 lg:block">
+                        <div
+                            className="absolute inset-0 opacity-[0.18]"
+                            style={{
+                                backgroundImage:
+                                    "url(\"data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23a8e190' stroke-width='1.2'%3E%3Cpath d='M20 60c8-18 16-28 24-36 6 8 12 20 16 36'/%3E%3Cpath d='M8 55c10-14 18-22 28-30'/%3E%3Cpath d='M48 62c6-12 12-20 20-28'/%3E%3C/g%3E%3C/svg%3E\")",
+                            }}
+                        />
+                        <div
+                            className="absolute inset-0 opacity-70"
+                            style={{
+                                backgroundImage:
+                                    'radial-gradient(ellipse at 30% 20%, rgba(242,184,46,0.28), transparent 50%), radial-gradient(ellipse at 70% 80%, rgba(168,225,144,0.18), transparent 45%)',
+                            }}
+                        />
 
-                <section className="mx-auto w-full max-w-md">
-                    <div className="mb-8 lg:hidden">
-                        <p className="font-brand text-3xl text-mustard">Nanyuki Now</p>
-                        <p className="mt-1 text-sm uppercase tracking-[0.2em] text-olive-300">
-                            Admin
-                        </p>
-                    </div>
-
-                    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-7 shadow-lift backdrop-blur-md">
-                        <div className="mb-6 flex items-center gap-3">
-                            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-mustard/15 text-mustard">
-                                <Lock className="h-5 w-5" />
-                            </div>
-                            <div>
-                                <h2 className="font-display text-2xl text-white">Sign in</h2>
-                                <p className="text-sm text-olive-300">Authorized operators only</p>
-                            </div>
+                        <div className="relative z-10 flex h-full flex-col justify-center px-10 py-14 xl:px-12">
+                            <p className="text-sm font-semibold uppercase tracking-[0.28em] text-mustard">
+                                My dashboard
+                            </p>
+                            <h1 className="mt-4 font-display text-4xl font-semibold uppercase leading-tight tracking-wide text-white xl:text-5xl">
+                                Admin
+                                <br />
+                                Login
+                            </h1>
+                            <p className="mt-6 max-w-xs text-base leading-relaxed text-olive-200">
+                                Manage listings, stories, categories, and site
+                                surfaces for Nanyuki Now.
+                            </p>
                         </div>
 
-                        {status && (
-                            <div className="mb-4 rounded-xl border border-mustard/30 bg-mustard/10 px-3 py-2 text-sm text-mustard">
-                                {status}
-                            </div>
-                        )}
+                        {/* Curved edge into the form panel */}
+                        <svg
+                            className="pointer-events-none absolute inset-y-0 -right-px h-full w-16 text-olive-50 xl:w-20"
+                            viewBox="0 0 80 640"
+                            preserveAspectRatio="none"
+                            aria-hidden
+                        >
+                            <path
+                                d="M80 0 C 28 160, 28 480, 80 640 L 80 640 L 80 0 Z"
+                                fill="currentColor"
+                            />
+                        </svg>
+                    </aside>
 
-                        <form onSubmit={submit} className="space-y-4">
-                            <label className="block">
-                                <span className="mb-1.5 block text-xs uppercase tracking-wide text-olive-300">
-                                    Email or username
-                                </span>
-                                <input
-                                    type="text"
-                                    value={data.login}
-                                    autoComplete="username"
-                                    autoFocus
-                                    onChange={(e) => setData('login', e.target.value)}
-                                    className="w-full rounded-xl border border-white/10 bg-olive-950/60 px-3 py-3 text-sm text-white outline-none ring-mustard/40 placeholder:text-olive-500 focus:border-mustard/50 focus:ring-2"
-                                    placeholder="admin@nanyukinow.co.ke"
-                                />
-                                {errors.login && (
-                                    <span className="mt-1 block text-xs text-red-300">{errors.login}</span>
-                                )}
-                            </label>
+                    {/* Right form panel */}
+                    <section className="relative flex flex-col justify-center bg-olive-50 px-6 py-10 sm:px-10 lg:col-span-7 lg:px-14 xl:px-16">
+                        <div className="mx-auto w-full max-w-md text-center">
+                            <img
+                                src="/images/logo.png"
+                                alt="Nanyuki Now"
+                                width={969}
+                                height={542}
+                                decoding="async"
+                                className="mx-auto h-16 w-auto object-contain mix-blend-multiply sm:h-20"
+                            />
 
-                            <label className="block">
-                                <span className="mb-1.5 block text-xs uppercase tracking-wide text-olive-300">
-                                    Password
-                                </span>
-                                <div className="relative">
-                                    <input
-                                        type={showPassword ? 'text' : 'password'}
-                                        value={data.password}
-                                        autoComplete="current-password"
-                                        onChange={(e) => setData('password', e.target.value)}
-                                        className="w-full rounded-xl border border-white/10 bg-olive-950/60 px-3 py-3 pr-11 text-sm text-white outline-none ring-mustard/40 focus:border-mustard/50 focus:ring-2"
-                                    />
-                                    <button
-                                        type="button"
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-olive-400 hover:text-olive-200"
-                                        onClick={() => setShowPassword((v) => !v)}
-                                        aria-label="Toggle password"
-                                    >
-                                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                    </button>
+                            <h2 className="mt-8 font-display text-3xl font-semibold uppercase tracking-wide text-olive-950 sm:text-4xl">
+                                Welcome back!
+                            </h2>
+                            <p className="mt-2 text-base text-olive-600">
+                                Please login to view your dashboard
+                            </p>
+
+                            {status && (
+                                <div className="mt-6 rounded-lg border border-mustard/40 bg-mustard/15 px-3 py-2 text-sm text-olive-900">
+                                    {status}
                                 </div>
-                                {errors.password && (
-                                    <span className="mt-1 block text-xs text-red-300">{errors.password}</span>
-                                )}
-                            </label>
+                            )}
 
-                            <label className="flex items-center gap-2 text-sm text-olive-300">
-                                <input
-                                    type="checkbox"
-                                    checked={data.remember}
-                                    onChange={(e) => setData('remember', e.target.checked)}
-                                    className="rounded border-olive-600 bg-olive-900 text-mustard focus:ring-mustard"
-                                />
-                                Keep me signed in on this device
-                            </label>
+                            <form onSubmit={submit} className="mt-8 space-y-4 text-left">
+                                <label className="block">
+                                    <span className="sr-only">Email or username</span>
+                                    <input
+                                        type="text"
+                                        value={data.login}
+                                        autoComplete="username"
+                                        autoFocus
+                                        onChange={(e) => setData('login', e.target.value)}
+                                        className="w-full rounded-md border border-olive-300 bg-white px-4 py-3.5 text-base text-olive-900 outline-none transition placeholder:text-olive-400 focus:border-mustard focus:ring-2 focus:ring-mustard/30"
+                                        placeholder="Email or username"
+                                    />
+                                    {errors.login && (
+                                        <span className="mt-1.5 block text-sm text-rose-600">
+                                            {errors.login}
+                                        </span>
+                                    )}
+                                </label>
 
-                            <button
-                                type="submit"
-                                disabled={processing}
-                                className="mt-2 w-full rounded-xl bg-mustard px-4 py-3 text-sm font-semibold text-earth-dusk transition hover:bg-mustard-soft disabled:opacity-60"
-                            >
-                                {processing ? 'Signing in…' : 'Enter dashboard'}
-                            </button>
-                        </form>
-                    </div>
+                                <label className="block">
+                                    <span className="sr-only">Password</span>
+                                    <div className="relative">
+                                        <input
+                                            type={showPassword ? 'text' : 'password'}
+                                            value={data.password}
+                                            autoComplete="current-password"
+                                            onChange={(e) => setData('password', e.target.value)}
+                                            className="w-full rounded-md border border-olive-300 bg-white px-4 py-3.5 pr-12 text-base text-olive-900 outline-none transition placeholder:text-olive-400 focus:border-mustard focus:ring-2 focus:ring-mustard/30"
+                                            placeholder="Password"
+                                        />
+                                        <button
+                                            type="button"
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-olive-400 hover:text-olive-700"
+                                            onClick={() => setShowPassword((v) => !v)}
+                                            aria-label="Toggle password"
+                                        >
+                                            {showPassword ? (
+                                                <EyeOff className="h-5 w-5" />
+                                            ) : (
+                                                <Eye className="h-5 w-5" />
+                                            )}
+                                        </button>
+                                    </div>
+                                    {errors.password && (
+                                        <span className="mt-1.5 block text-sm text-rose-600">
+                                            {errors.password}
+                                        </span>
+                                    )}
+                                </label>
 
-                    <p className="mt-6 text-center text-xs text-olive-400">
-                        Protected area · {new Date().getFullYear()} Nanyuki Now
-                    </p>
-                </section>
+                                <div className="flex items-center justify-between gap-3 pt-1 text-sm">
+                                    <label className="inline-flex items-center gap-2 text-olive-700">
+                                        <input
+                                            type="checkbox"
+                                            checked={data.remember}
+                                            onChange={(e) =>
+                                                setData('remember', e.target.checked)
+                                            }
+                                            className="rounded border-olive-300 text-mustard focus:ring-mustard"
+                                        />
+                                        Keep me logged in
+                                    </label>
+                                    <Link
+                                        href={route('password.request')}
+                                        className="font-medium text-olive-700 underline-offset-2 hover:text-olive-950 hover:underline"
+                                    >
+                                        Forgot password?
+                                    </Link>
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    disabled={processing}
+                                    className="mt-2 w-full rounded-md bg-mustard px-4 py-3.5 text-base font-bold uppercase tracking-wide text-earth-dusk transition hover:bg-mustard-soft disabled:opacity-60"
+                                >
+                                    {processing ? 'Signing in…' : 'Login'}
+                                </button>
+                            </form>
+
+                            <p className="mt-8 text-xs leading-relaxed text-olive-500">
+                                Protected operator access for Nanyuki Now. By signing in you
+                                agree to use this area only for authorized directory management.
+                                See our{' '}
+                                <Link href={route('privacy')} className="underline underline-offset-2 hover:text-olive-800">
+                                    Privacy Policy
+                                </Link>{' '}
+                                and{' '}
+                                <Link href={route('terms')} className="underline underline-offset-2 hover:text-olive-800">
+                                    Terms
+                                </Link>
+                                .
+                            </p>
+                        </div>
+                    </section>
+                </div>
             </div>
         </div>
     );

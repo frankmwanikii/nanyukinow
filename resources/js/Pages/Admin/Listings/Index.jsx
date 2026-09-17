@@ -3,7 +3,6 @@ import {
     ActionGroup,
     ActionIcon,
     AdminButton,
-    AdminCheckbox,
     AdminInput,
     AdminLink,
     AdminSelect,
@@ -19,8 +18,8 @@ import {
     Th,
 } from '@/Components/Admin/ui';
 import { Head, router } from '@inertiajs/react';
-import { Eye, Pencil, Plus, Search, Trash2 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { Eye, Pencil, Plus, Trash2 } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 export default function Index({ listings, filters, categories, statuses, tiers }) {
     const [selected, setSelected] = useState([]);
@@ -30,20 +29,41 @@ export default function Index({ listings, filters, categories, statuses, tiers }
         tier: filters.tier || '',
         category_id: filters.category_id || '',
         expiry: filters.expiry || '',
-        featured: filters.featured || false,
         sort: filters.sort || 'updated_at',
         direction: filters.direction || 'desc',
     });
+    const skipDebounce = useRef(true);
 
     const allIds = useMemo(() => listings.data.map((l) => l.id), [listings.data]);
     const allSelected = allIds.length > 0 && selected.length === allIds.length;
 
-    const applyFilters = (e) => {
-        e?.preventDefault();
-        router.get(route('admin.listings.index'), local, {
+    const pushFilters = (next) => {
+        router.get(route('admin.listings.index'), next, {
             preserveState: true,
+            preserveScroll: true,
             replace: true,
         });
+    };
+
+    useEffect(() => {
+        if (skipDebounce.current) {
+            skipDebounce.current = false;
+            return undefined;
+        }
+
+        const timer = setTimeout(() => {
+            pushFilters(local);
+        }, 350);
+
+        return () => clearTimeout(timer);
+        // Debounce search typing only; selects call pushFilters immediately.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [local.q]);
+
+    const setSelect = (key, value) => {
+        const next = { ...local, [key]: value };
+        setLocal(next);
+        pushFilters(next);
     };
 
     const toggleSort = (column) => {
@@ -53,7 +73,7 @@ export default function Index({ listings, filters, categories, statuses, tiers }
             direction: local.sort === column && local.direction === 'asc' ? 'desc' : 'asc',
         };
         setLocal(next);
-        router.get(route('admin.listings.index'), next, { preserveState: true, replace: true });
+        pushFilters(next);
     };
 
     const toggleOne = (id) => {
@@ -84,7 +104,7 @@ export default function Index({ listings, filters, categories, statuses, tiers }
         >
             <Head title="Admin listings" />
 
-            <FilterBar onSubmit={applyFilters}>
+            <FilterBar>
                 <AdminInput
                     label="Search"
                     value={local.q}
@@ -95,7 +115,7 @@ export default function Index({ listings, filters, categories, statuses, tiers }
                 <AdminSelect
                     label="Status"
                     value={local.status}
-                    onChange={(e) => setLocal({ ...local, status: e.target.value })}
+                    onChange={(e) => setSelect('status', e.target.value)}
                     className="w-[140px]"
                 >
                     <option value="">All</option>
@@ -106,7 +126,7 @@ export default function Index({ listings, filters, categories, statuses, tiers }
                 <AdminSelect
                     label="Tier"
                     value={local.tier}
-                    onChange={(e) => setLocal({ ...local, tier: e.target.value })}
+                    onChange={(e) => setSelect('tier', e.target.value)}
                     className="w-[130px]"
                 >
                     <option value="">All</option>
@@ -117,7 +137,7 @@ export default function Index({ listings, filters, categories, statuses, tiers }
                 <AdminSelect
                     label="Category"
                     value={local.category_id}
-                    onChange={(e) => setLocal({ ...local, category_id: e.target.value })}
+                    onChange={(e) => setSelect('category_id', e.target.value)}
                     className="w-[150px]"
                 >
                     <option value="">All</option>
@@ -128,7 +148,7 @@ export default function Index({ listings, filters, categories, statuses, tiers }
                 <AdminSelect
                     label="Expiry"
                     value={local.expiry}
-                    onChange={(e) => setLocal({ ...local, expiry: e.target.value })}
+                    onChange={(e) => setSelect('expiry', e.target.value)}
                     className="w-[150px]"
                 >
                     <option value="">Any</option>
@@ -136,17 +156,6 @@ export default function Index({ listings, filters, categories, statuses, tiers }
                     <option value="expired">Expired</option>
                     <option value="none">No expiry</option>
                 </AdminSelect>
-                <div className="flex items-end gap-3 pb-0.5">
-                    <AdminCheckbox
-                        label="Featured"
-                        checked={local.featured}
-                        onChange={(e) => setLocal({ ...local, featured: e.target.checked })}
-                    />
-                    <AdminButton type="submit" size="sm">
-                        <Search className="h-3.5 w-3.5" />
-                        Filter
-                    </AdminButton>
-                </div>
             </FilterBar>
 
             {selected.length > 0 && (
@@ -265,14 +274,14 @@ export default function Index({ listings, filters, categories, statuses, tiers }
                                             />
                                         </Td>
                                         <Td>
-                                            <span className="text-xs text-slate-600">
+                                            <span className="text-sm text-olive-600 dark:text-olive-300">
                                                 {listing.category || '—'}
                                             </span>
                                         </Td>
                                         <Td><StatusBadge status={listing.status} /></Td>
                                         <Td><StatusBadge status={listing.tier} /></Td>
                                         <Td align="center">
-                                            <span className="tabular-nums text-xs text-slate-600">
+                                            <span className="tabular-nums text-sm text-olive-700 dark:text-olive-200">
                                                 {listing.priority}
                                             </span>
                                         </Td>
@@ -284,7 +293,7 @@ export default function Index({ listings, filters, categories, statuses, tiers }
                                             />
                                         </Td>
                                         <Td>
-                                            <span className="text-xs text-slate-500">
+                                            <span className="text-sm text-olive-500 dark:text-olive-400">
                                                 {listing.updated_at
                                                     ? new Date(listing.updated_at).toLocaleDateString()
                                                     : '—'}
