@@ -18,7 +18,7 @@ const SLIDES = [
         imageMobile: '/images/hero/slide_2_mobile.jpg',
         alt: 'Black rhinos on the Laikipia plains near Nanyuki',
         layout: 'safari',
-        overlay: 'from-earth-dusk/50 via-earth-dusk/35 to-earth-dusk/65',
+        overlay: 'from-black/65 via-black/45 to-black/55',
         eyebrow: 'Your Ultimate Safari guide',
         titleLead: "Discover Nanyuki's",
         titleAccent: 'Wild side',
@@ -30,7 +30,8 @@ const SLIDES = [
         image: '/images/hero/bnb3.webp',
         alt: 'A-frame cabin stay in Nanyuki at dusk',
         layout: 'safari',
-        overlay: 'from-earth-dusk/55 via-earth-dusk/35 to-earth-dusk/70',
+        contentVariant: 'stay',
+        overlay: 'from-black/65 via-black/45 to-black/55',
         eyebrow: 'Your Home Away From Home',
         titleLead: 'Unwind in the Heart Of Nanyuki',
         titleAccent: 'Stay. Relax. Explore',
@@ -42,7 +43,7 @@ const SLIDES = [
         image: '/images/hero/slide_4.webp',
         alt: 'Dining with a view of Mount Kenya at dusk',
         layout: 'safari',
-        overlay: 'from-earth-dusk/55 via-earth-dusk/40 to-earth-dusk/70',
+        overlay: 'from-black/65 via-black/45 to-black/60',
         eyebrow: 'A Taste of the Equator',
         eyebrowClass: 'uppercase tracking-[0.14em] sm:tracking-[0.18em]',
         titleLead: "Nanyuki's Finest Flavors",
@@ -149,55 +150,107 @@ export default function HeroSlider() {
                     <div
                         className={`absolute inset-0 bg-gradient-to-b ${slide.overlay}`}
                     />
+                    {slide.layout !== 'brand' ? (
+                        <div className="absolute inset-0 bg-black/40" />
+                    ) : null}
                 </motion.div>
             </AnimatePresence>
 
             {slide.layout === 'safari' ? (
                 <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col items-center px-5 pb-28 pt-6 text-center sm:px-6 sm:pb-20 sm:pt-10">
-                    <motion.p
-                        key={`eyebrow-${slide.id}`}
-                        initial={reduce ? false : { opacity: 0, y: 18 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.55, delay: 0.12 }}
-                        className={`max-w-[18rem] text-[11px] font-semibold leading-snug text-white/90 sm:max-w-none sm:text-sm sm:font-medium md:text-base ${
-                            slide.eyebrowClass || 'tracking-wide'
-                        }`}
-                    >
-                        {slide.eyebrow}
-                    </motion.p>
+                    {slide.contentVariant === 'stay' ? (
+                        <>
+                            <motion.p
+                                key={`eyebrow-${slide.id}`}
+                                initial={reduce ? false : { opacity: 0, y: 18 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.55, delay: 0.12 }}
+                                className="max-w-xl text-sm font-medium tracking-wide text-white sm:text-base md:text-lg lg:text-xl"
+                            >
+                                {slide.eyebrow}
+                            </motion.p>
 
-                    <motion.h1
-                        key={`title-${slide.id}`}
-                        initial={reduce ? false : { opacity: 0, y: 22 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2, duration: 0.65 }}
-                        className="mt-3 w-full max-w-[20rem] font-display text-[1.55rem] font-bold leading-[1.18] tracking-tight text-white sm:mt-3 sm:max-w-3xl sm:text-5xl md:text-6xl lg:text-7xl"
-                    >
-                        <span className="block text-balance">
-                            {slide.titleLead}
-                        </span>
-                        <span className="mt-1.5 block text-balance text-[1.25rem] leading-snug text-mint sm:mt-1 sm:text-[length:inherit] sm:leading-[inherit]">
-                            {slide.titleAccent}
-                        </span>
-                    </motion.h1>
+                            <motion.h1
+                                key={`title-${slide.id}`}
+                                initial={reduce ? false : { opacity: 0, y: 22 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.2, duration: 0.65 }}
+                                className="mt-4 w-full max-w-[min(94vw,58rem)] text-center font-display font-bold leading-none tracking-tight text-white sm:mt-5"
+                            >
+                                <span className="block whitespace-nowrap text-[clamp(0.95rem,3.9vw,3.65rem)]">
+                                    {slide.titleLead}
+                                </span>
+                                <span className="mt-2 block whitespace-nowrap text-[clamp(0.95rem,3.9vw,3.65rem)] text-mint sm:mt-2.5">
+                                    {slide.titleAccent}
+                                </span>
+                            </motion.h1>
 
-                    <motion.div
-                        key={`cta-${slide.id}`}
-                        initial={reduce ? false : { opacity: 0, y: 16 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.32, duration: 0.55 }}
-                        className="mt-5 sm:mt-8"
-                    >
-                        <Link
-                            href={slide.ctaHref}
-                            className="group inline-flex items-center gap-2 rounded-full bg-mustard px-4 py-2.5 text-[11px] font-bold uppercase tracking-wide text-olive-950 shadow-lg transition hover:bg-white hover:text-mustard hover:shadow-md sm:gap-3 sm:px-7 sm:py-3.5 sm:text-sm md:text-base"
-                        >
-                            {slide.cta}
-                            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-olive-950/10 transition group-hover:bg-mustard/15 sm:h-7 sm:w-7">
-                                <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4" />
-                            </span>
-                        </Link>
-                    </motion.div>
+                            <motion.div
+                                key={`cta-${slide.id}`}
+                                initial={reduce ? false : { opacity: 0, y: 16 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.32, duration: 0.55 }}
+                                className="mt-7 sm:mt-9"
+                            >
+                                <Link
+                                    href={slide.ctaHref}
+                                    className="group inline-flex items-center gap-2.5 rounded-full bg-mustard px-5 py-3 text-xs font-bold uppercase tracking-wide text-olive-950 shadow-lg transition hover:bg-white hover:text-mustard hover:shadow-md sm:gap-3 sm:px-8 sm:py-3.5 sm:text-sm md:text-base"
+                                >
+                                    {slide.cta}
+                                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-olive-950/10 transition group-hover:bg-mustard/15 sm:h-7 sm:w-7">
+                                        <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                                    </span>
+                                </Link>
+                            </motion.div>
+                        </>
+                    ) : (
+                        <>
+                            <motion.p
+                                key={`eyebrow-${slide.id}`}
+                                initial={reduce ? false : { opacity: 0, y: 18 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.55, delay: 0.12 }}
+                                className={`max-w-[18rem] text-[11px] font-semibold leading-snug text-white/90 sm:max-w-none sm:text-sm sm:font-medium md:text-base ${
+                                    slide.eyebrowClass || 'tracking-wide'
+                                }`}
+                            >
+                                {slide.eyebrow}
+                            </motion.p>
+
+                            <motion.h1
+                                key={`title-${slide.id}`}
+                                initial={reduce ? false : { opacity: 0, y: 22 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.2, duration: 0.65 }}
+                                className="mt-3 w-full max-w-[20rem] font-display text-[1.55rem] font-bold leading-[1.18] tracking-tight text-white sm:mt-3 sm:max-w-3xl sm:text-5xl md:text-6xl lg:text-7xl"
+                            >
+                                <span className="block text-balance">
+                                    {slide.titleLead}
+                                </span>
+                                <span className="mt-1.5 block text-balance text-[1.25rem] leading-snug text-mint sm:mt-1 sm:text-[length:inherit] sm:leading-[inherit]">
+                                    {slide.titleAccent}
+                                </span>
+                            </motion.h1>
+
+                            <motion.div
+                                key={`cta-${slide.id}`}
+                                initial={reduce ? false : { opacity: 0, y: 16 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.32, duration: 0.55 }}
+                                className="mt-5 sm:mt-8"
+                            >
+                                <Link
+                                    href={slide.ctaHref}
+                                    className="group inline-flex items-center gap-2 rounded-full bg-mustard px-4 py-2.5 text-[11px] font-bold uppercase tracking-wide text-olive-950 shadow-lg transition hover:bg-white hover:text-mustard hover:shadow-md sm:gap-3 sm:px-7 sm:py-3.5 sm:text-sm md:text-base"
+                                >
+                                    {slide.cta}
+                                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-olive-950/10 transition group-hover:bg-mustard/15 sm:h-7 sm:w-7">
+                                        <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4" />
+                                    </span>
+                                </Link>
+                            </motion.div>
+                        </>
+                    )}
                 </div>
             ) : null}
 

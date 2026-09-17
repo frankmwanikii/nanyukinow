@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
+import ListingTierBadge from '@/Components/site/ListingTierBadge';
 import { explorePath } from '@/data/categories';
 import { listingHref } from '@/data/listings';
 import { eventDateRangeLabel } from '@/Components/listing/eventDates';
@@ -74,6 +75,9 @@ export default function ListingCard({
     const oliveFooter = footerTone === 'olive';
     const footerText = oliveFooter ? 'text-white' : 'text-black';
     const footerMuted = oliveFooter ? 'text-white/90' : 'text-black';
+    const tier = listing.tier || 'free';
+    const hasTierBadge = tier === 'premium' || tier === 'featured';
+    const leftBadgeOffset = hasTierBadge ? 'left-14 sm:left-[3.75rem]' : 'left-3';
 
     return (
         <motion.article
@@ -104,14 +108,24 @@ export default function ListingCard({
                     <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
                     <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/55 to-transparent" />
 
+                    {hasTierBadge ? (
+                        <ListingTierBadge
+                            tier={tier}
+                            className="absolute left-3 top-3 z-[1] drop-shadow-sm"
+                        />
+                    ) : null}
                     {listing.categoryKey === 'properties' &&
                     listing.propertyType ? (
-                        <span className="absolute left-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-olive-900 shadow-sm">
+                        <span
+                            className={`absolute top-3 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-olive-900 shadow-sm ${leftBadgeOffset}`}
+                        >
                             {listing.propertyType}
                         </span>
                     ) : null}
                     {isEvent && dateLabel ? (
-                        <span className="absolute left-3 top-3 inline-flex max-w-[75%] items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-bold text-olive-900 shadow-sm">
+                        <span
+                            className={`absolute top-3 inline-flex max-w-[70%] items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-bold text-olive-900 shadow-sm ${leftBadgeOffset}`}
+                        >
                             <CalendarDays className="h-3 w-3 shrink-0 text-mustard-deep" />
                             <span className="truncate font-semibold">
                                 {dateLabel}

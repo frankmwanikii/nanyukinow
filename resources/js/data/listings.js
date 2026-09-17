@@ -1,3 +1,5 @@
+import { resolveListingTier } from '@/data/listingTiers';
+
 /** Featured hero marquee — resolved to real listings below (see `featured`). */
 export const FEATURED_LISTING_IDS = ['w1', 't4', 2];
 
@@ -27,6 +29,7 @@ export const listings = [
         image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=900&q=80',
         logo: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=120&q=80',
         badge: 'top',
+        tier: 'featured',
         lat: 0.0214,
         lng: 37.0682,
     },
@@ -136,6 +139,7 @@ export const trending = [
         categoryKey: 'stay',
         subcategory: 'Safari Lodges',
         rating: 4.8,
+        tier: 'premium',
         image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=1000&q=80',
         logo: 'https://images.unsplash.com/photo-1560179707-f14f90ef2aca?auto=format&fit=crop&w=120&q=80',
         lat: -0.002,
@@ -220,6 +224,7 @@ export const wildlifeSafaris = [
         categoryKey: 'thingsToDo',
         subcategory: 'Wildlife & Nature',
         rating: 4.9,
+        tier: 'premium',
         image: 'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&w=900&q=80',
         logo: 'https://images.unsplash.com/photo-1552410260-0fd9b577afa6?auto=format&fit=crop&w=120&q=80',
         lat: 0.018,
@@ -1345,6 +1350,7 @@ export function enrichListing(item, index = 0) {
         score:
             item.score ??
             (item.rating != null ? (item.rating * 2).toFixed(1) : null),
+        tier: resolveListingTier(item, index),
     };
 }
 
