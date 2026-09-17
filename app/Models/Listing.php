@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -14,9 +15,30 @@ class Listing extends Model
         'slug',
         'location',
         'description',
+        'tagline',
+        'phone',
+        'email',
+        'website',
+        'whatsapp',
+        'address',
+        'city',
+        'latitude',
+        'longitude',
         'image_url',
         'logo_url',
         'rating',
+        'status',
+        'tier',
+        'priority',
+        'views_count',
+        'price_range',
+        'gallery',
+        'hours',
+        'amenities',
+        'social_links',
+        'expires_at',
+        'published_at',
+        'claim_status',
         'is_featured',
         'is_trending',
         'is_published',
@@ -26,6 +48,16 @@ class Listing extends Model
     {
         return [
             'rating' => 'float',
+            'latitude' => 'float',
+            'longitude' => 'float',
+            'priority' => 'integer',
+            'views_count' => 'integer',
+            'gallery' => 'array',
+            'hours' => 'array',
+            'amenities' => 'array',
+            'social_links' => 'array',
+            'expires_at' => 'datetime',
+            'published_at' => 'datetime',
             'is_featured' => 'boolean',
             'is_trending' => 'boolean',
             'is_published' => 'boolean',
@@ -40,5 +72,34 @@ class Listing extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function scopePublished(Builder $query): Builder
+    {
+        return $query->where('is_published', true)
+            ->where(function (Builder $q) {
+                $q->whereNull('status')->orWhere('status', 'published');
+            })
+            ->where(function (Builder $q) {
+                $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
+            });
+    }
+
+    public function isExpired(): bool
+    {
+        return $this->expires_at !== null && $this->expires_at->isPast();
+    }
+
+    public function expiryLabel(): string
+    {
+        if ($this->expires_at === null) {
+            return 'No expiry';
+        }
+
+        if ($this->isExpired()) {
+            return 'Expired';
+        }
+
+        return 'Expires '.$this->expires_at->diffForHumans();
     }
 }

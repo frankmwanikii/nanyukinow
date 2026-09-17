@@ -15,6 +15,7 @@ class ListingPayload
     public static function fromModel(Listing $listing): array
     {
         $category = $listing->category;
+        $tier = $listing->tier ?: ($listing->is_featured ? 'featured' : 'free');
 
         return [
             'id' => $listing->id,
@@ -22,7 +23,7 @@ class ListingPayload
             'slug' => $listing->slug,
             'location' => $listing->location,
             'description' => $listing->description,
-            'tagline' => $listing->description,
+            'tagline' => $listing->tagline ?: $listing->description,
             'image' => $listing->image_url,
             'logo' => $listing->logo_url,
             'rating' => $listing->rating !== null ? (float) $listing->rating : null,
@@ -30,7 +31,14 @@ class ListingPayload
             'categoryKey' => $category?->slug,
             'is_featured' => (bool) $listing->is_featured,
             'is_trending' => (bool) $listing->is_trending,
-            'tier' => $listing->is_featured ? 'featured' : 'free',
+            'tier' => $tier,
+            'phone' => $listing->phone,
+            'email' => $listing->email,
+            'website' => $listing->website,
+            'latitude' => $listing->latitude,
+            'longitude' => $listing->longitude,
+            'expires_at' => $listing->expires_at?->toIso8601String(),
+            'priority' => $listing->priority,
         ];
     }
 

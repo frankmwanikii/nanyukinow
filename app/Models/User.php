@@ -7,10 +7,11 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'username', 'email', 'password', 'email_verified_at'])]
+#[Fillable(['name', 'username', 'email', 'password', 'email_verified_at', 'is_admin'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -20,13 +21,29 @@ class User extends Authenticatable
     /**
      * Get the attributes that should be cast.
      *
-     * @return array<string, string>
+     * @return array<string, mixed>
      */
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_admin' => 'boolean',
         ];
+    }
+
+    public function listings(): HasMany
+    {
+        return $this->hasMany(Listing::class);
+    }
+
+    public function stories(): HasMany
+    {
+        return $this->hasMany(Story::class);
+    }
+
+    public function isAdmin(): bool
+    {
+        return (bool) $this->is_admin;
     }
 }
