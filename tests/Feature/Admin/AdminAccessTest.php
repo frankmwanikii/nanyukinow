@@ -31,7 +31,16 @@ class AdminAccessTest extends TestCase
 
         $this->actingAs($admin)
             ->get(route('admin.dashboard'))
-            ->assertOk();
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Admin/Dashboard')
+                ->has('stats')
+                ->has('charts.activity')
+                ->has('charts.categories')
+                ->has('charts.statuses')
+                ->has('charts.tiers')
+                ->has('recentListings')
+                ->has('expiringListings'));
     }
 
     public function test_admin_login_rejects_non_admin(): void

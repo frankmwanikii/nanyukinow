@@ -25,18 +25,7 @@ import {
     Users,
 } from 'lucide-react';
 
-export default function Dashboard({
-    stats,
-    recentListings,
-    expiringListings,
-    charts,
-}) {
-    const { isDark } = useAdminTheme();
-    const activity = charts?.activity || [];
-    const categories = charts?.categories || [];
-    const statuses = charts?.statuses || [];
-    const tiers = charts?.tiers || [];
-
+export default function Dashboard(props) {
     return (
         <AdminLayout
             title="Overview"
@@ -48,7 +37,20 @@ export default function Dashboard({
             }
         >
             <Head title="Admin overview" />
+            <DashboardBody {...props} />
+        </AdminLayout>
+    );
+}
 
+function DashboardBody({ stats, recentListings, expiringListings, charts }) {
+    const { isDark } = useAdminTheme();
+    const activity = charts?.activity || [];
+    const categories = charts?.categories || [];
+    const statuses = charts?.statuses || [];
+    const tiers = charts?.tiers || [];
+
+    return (
+        <>
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
                 <StatCard
                     label="Listings"
@@ -87,13 +89,13 @@ export default function Dashboard({
                     <DataCard
                         title="Activity · last 30 days"
                         tools={
-                            <div className="flex items-center gap-3 text-[11px] text-slate-500 dark:text-slate-400">
+                            <div className="flex items-center gap-3 text-[11px] text-olive-600 dark:text-olive-300">
                                 <span className="inline-flex items-center gap-1.5">
-                                    <span className="h-2 w-2 rounded-full bg-slate-700 dark:bg-slate-400" />
+                                    <span className="h-2 w-2 rounded-full bg-olive-600" />
                                     Listings
                                 </span>
                                 <span className="inline-flex items-center gap-1.5">
-                                    <span className="h-2 w-2 rounded-full bg-indigo-600 dark:bg-indigo-400" />
+                                    <span className="h-2 w-2 rounded-full bg-mustard" />
                                     Users
                                 </span>
                             </div>
@@ -102,7 +104,7 @@ export default function Dashboard({
                         {activity.length > 0 ? (
                             <ActivityAreaChart data={activity} isDark={isDark} />
                         ) : (
-                            <p className="px-4 py-10 text-center text-sm text-slate-400">
+                            <p className="px-4 py-10 text-center text-sm text-olive-400">
                                 No activity data yet.
                             </p>
                         )}
@@ -113,7 +115,7 @@ export default function Dashboard({
                     {categories.length > 0 ? (
                         <HorizontalBarChart data={categories} isDark={isDark} />
                     ) : (
-                        <p className="px-4 py-10 text-center text-sm text-slate-400">
+                        <p className="px-4 py-10 text-center text-sm text-olive-400">
                             No categories yet.
                         </p>
                     )}
@@ -125,14 +127,14 @@ export default function Dashboard({
                     {statuses.length > 0 ? (
                         <DistributionBars data={statuses} isDark={isDark} />
                     ) : (
-                        <p className="px-4 py-8 text-center text-sm text-slate-400">No status data.</p>
+                        <p className="px-4 py-8 text-center text-sm text-olive-400">No status data.</p>
                     )}
                 </DataCard>
                 <DataCard title="Package / tier mix">
                     {tiers.length > 0 ? (
                         <DistributionBars data={tiers} isDark={isDark} />
                     ) : (
-                        <p className="px-4 py-8 text-center text-sm text-slate-400">No tier data.</p>
+                        <p className="px-4 py-8 text-center text-sm text-olive-400">No tier data.</p>
                     )}
                 </DataCard>
             </div>
@@ -144,7 +146,7 @@ export default function Dashboard({
                         tools={
                             <Link
                                 href={route('admin.listings.index')}
-                                className="text-xs font-medium text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100"
+                                className="text-xs font-medium text-olive-500 hover:text-olive-800 dark:text-olive-300 dark:hover:text-olive-100"
                             >
                                 View all
                             </Link>
@@ -165,11 +167,11 @@ export default function Dashboard({
                                         <Td>
                                             <Link
                                                 href={route('admin.listings.edit', listing.id)}
-                                                className="text-sm font-medium text-slate-800 hover:text-slate-950 dark:text-slate-100 dark:hover:text-white"
+                                                className="text-sm font-medium text-olive-900 hover:text-earth-dusk dark:text-olive-100 dark:hover:text-white"
                                             >
                                                 {listing.title}
                                             </Link>
-                                            <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                                            <p className="text-[11px] text-olive-400 dark:text-olive-500">
                                                 {listing.category || 'Uncategorized'}
                                             </p>
                                         </Td>
@@ -190,10 +192,7 @@ export default function Dashboard({
                                 ))}
                                 {recentListings.length === 0 && (
                                     <tr>
-                                        <Td
-                                            colSpan={4}
-                                            className="py-8 text-center text-slate-400"
-                                        >
+                                        <Td colSpan={4} className="py-8 text-center text-olive-400">
                                             No listings yet.
                                         </Td>
                                     </tr>
@@ -208,7 +207,7 @@ export default function Dashboard({
                     tools={
                         <Link
                             href={route('admin.listings.index', { expiry: 'soon' })}
-                            className="text-xs font-medium text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100"
+                            className="text-xs font-medium text-olive-500 hover:text-olive-800 dark:text-olive-300 dark:hover:text-olive-100"
                         >
                             Filter
                         </Link>
@@ -228,11 +227,11 @@ export default function Dashboard({
                                     <Td>
                                         <Link
                                             href={route('admin.listings.edit', listing.id)}
-                                            className="text-sm font-medium text-slate-800 hover:text-slate-950 dark:text-slate-100"
+                                            className="text-sm font-medium text-olive-900 hover:text-earth-dusk dark:text-olive-100"
                                         >
                                             {listing.title}
                                         </Link>
-                                        <p className="text-[11px] text-slate-400">
+                                        <p className="text-[11px] text-olive-400">
                                             {listing.category || '—'}
                                         </p>
                                     </Td>
@@ -254,7 +253,7 @@ export default function Dashboard({
                             ))}
                             {expiringListings.length === 0 && (
                                 <tr>
-                                    <Td colSpan={3} className="py-8 text-center text-slate-400">
+                                    <Td colSpan={3} className="py-8 text-center text-olive-400">
                                         Nothing in the watch window.
                                     </Td>
                                 </tr>
@@ -263,6 +262,6 @@ export default function Dashboard({
                     </DataTable>
                 </DataCard>
             </div>
-        </AdminLayout>
+        </>
     );
 }

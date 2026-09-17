@@ -5,8 +5,10 @@ import {
     AdminInput,
     AdminSelect,
     AdminTextarea,
+    AdminLink,
+    FormPanel,
 } from '@/Components/Admin/ui';
-import { Head, Link, router, useForm } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
 import { ArrowLeft, Save, Trash2 } from 'lucide-react';
 
 function toLines(value) {
@@ -98,13 +100,10 @@ export default function Form({ listing, categories, owners, statuses, tiers, cla
             title={isEdit ? 'Edit listing' : 'New listing'}
             actions={
                 <div className="flex items-center gap-2">
-                    <Link
-                        href={route('admin.listings.index')}
-                        className="inline-flex items-center gap-2 rounded-xl border border-olive-200 bg-white px-3 py-2 text-sm text-olive-800"
-                    >
+                    <AdminLink href={route('admin.listings.index')} variant="secondary">
                         <ArrowLeft className="h-4 w-4" />
                         Back
-                    </Link>
+                    </AdminLink>
                     {isEdit && (
                         <AdminButton variant="danger" onClick={remove}>
                             <Trash2 className="h-4 w-4" />
@@ -116,9 +115,8 @@ export default function Form({ listing, categories, owners, statuses, tiers, cla
         >
             <Head title={isEdit ? `Edit · ${listing.title}` : 'New listing'} />
 
-            <form onSubmit={save} className="space-y-6">
-                <section className="rounded-2xl border border-olive-200/80 bg-white p-5 shadow-soft">
-                    <h2 className="mb-4 font-display text-lg text-olive-950">Basics</h2>
+            <form onSubmit={save} className="space-y-4">
+                <FormPanel title="Basics">
                     <div className="grid gap-4 md:grid-cols-2">
                         <AdminInput label="Title" value={data.title} onChange={(e) => setData('title', e.target.value)} error={errors.title} className="md:col-span-2" required />
                         <AdminInput label="Slug" value={data.slug} onChange={(e) => setData('slug', e.target.value)} error={errors.slug} placeholder="auto from title if empty" />
@@ -133,10 +131,9 @@ export default function Form({ listing, categories, owners, statuses, tiers, cla
                             {owners.map((o) => <option key={o.id} value={o.id}>{o.name} · {o.email}</option>)}
                         </AdminSelect>
                     </div>
-                </section>
+                </FormPanel>
 
-                <section className="rounded-2xl border border-olive-200/80 bg-white p-5 shadow-soft">
-                    <h2 className="mb-4 font-display text-lg text-olive-950">Visibility & package</h2>
+                <FormPanel title="Visibility & package">
                     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                         <AdminSelect label="Status" value={data.status} onChange={(e) => setData('status', e.target.value)} error={errors.status}>
                             {statuses.map((s) => <option key={s} value={s}>{s}</option>)}
@@ -158,10 +155,9 @@ export default function Form({ listing, categories, owners, statuses, tiers, cla
                         <AdminCheckbox label="Featured" checked={data.is_featured} onChange={(e) => setData('is_featured', e.target.checked)} />
                         <AdminCheckbox label="Trending" checked={data.is_trending} onChange={(e) => setData('is_trending', e.target.checked)} />
                     </div>
-                </section>
+                </FormPanel>
 
-                <section className="rounded-2xl border border-olive-200/80 bg-white p-5 shadow-soft">
-                    <h2 className="mb-4 font-display text-lg text-olive-950">Contact & location</h2>
+                <FormPanel title="Contact & location">
                     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                         <AdminInput label="Phone" value={data.phone} onChange={(e) => setData('phone', e.target.value)} error={errors.phone} />
                         <AdminInput label="WhatsApp" value={data.whatsapp} onChange={(e) => setData('whatsapp', e.target.value)} error={errors.whatsapp} />
@@ -173,17 +169,16 @@ export default function Form({ listing, categories, owners, statuses, tiers, cla
                         <AdminInput label="Latitude" value={data.latitude} onChange={(e) => setData('latitude', e.target.value)} error={errors.latitude} />
                         <AdminInput label="Longitude" value={data.longitude} onChange={(e) => setData('longitude', e.target.value)} error={errors.longitude} />
                     </div>
-                </section>
+                </FormPanel>
 
-                <section className="rounded-2xl border border-olive-200/80 bg-white p-5 shadow-soft">
-                    <h2 className="mb-4 font-display text-lg text-olive-950">Media & details</h2>
+                <FormPanel title="Media & details">
                     <div className="grid gap-4 md:grid-cols-2">
                         <AdminInput label="Cover image URL" value={data.image_url} onChange={(e) => setData('image_url', e.target.value)} error={errors.image_url} />
                         <AdminInput label="Logo URL" value={data.logo_url} onChange={(e) => setData('logo_url', e.target.value)} error={errors.logo_url} />
                         {(data.image_url || data.logo_url) && (
                             <div className="flex gap-3 md:col-span-2">
-                                {data.image_url && <img src={data.image_url} alt="" className="h-24 w-40 rounded-xl object-cover ring-1 ring-olive-200" />}
-                                {data.logo_url && <img src={data.logo_url} alt="" className="h-24 w-24 rounded-xl object-cover ring-1 ring-olive-200" />}
+                                {data.image_url && <img src={data.image_url} alt="" className="h-24 w-40 rounded-md object-cover ring-1 ring-slate-200 dark:ring-slate-700" />}
+                                {data.logo_url && <img src={data.logo_url} alt="" className="h-24 w-24 rounded-md object-cover ring-1 ring-slate-200 dark:ring-slate-700" />}
                             </div>
                         )}
                         <AdminTextarea label="Gallery image URLs (one per line)" value={data.gallery} onChange={(e) => setData('gallery', e.target.value)} error={errors.gallery} rows={4} />
@@ -191,13 +186,13 @@ export default function Form({ listing, categories, owners, statuses, tiers, cla
                         <AdminTextarea label="Opening hours (JSON)" value={data.hours} onChange={(e) => setData('hours', e.target.value)} error={errors.hours} rows={5} className="font-mono text-xs" />
                         <AdminTextarea label="Social links (JSON)" value={data.social_links} onChange={(e) => setData('social_links', e.target.value)} error={errors.social_links} rows={5} className="font-mono text-xs" />
                     </div>
-                </section>
+                </FormPanel>
 
-                <div className="flex justify-end gap-3">
-                    <Link href={route('admin.listings.index')} className="rounded-xl border border-olive-200 bg-white px-4 py-2 text-sm text-olive-800">
+                <div className="flex justify-end gap-2">
+                    <AdminLink href={route('admin.listings.index')} variant="secondary">
                         Cancel
-                    </Link>
-                    <AdminButton type="submit" variant="mustard" disabled={processing}>
+                    </AdminLink>
+                    <AdminButton type="submit" disabled={processing}>
                         <Save className="h-4 w-4" />
                         {processing ? 'Saving…' : 'Save listing'}
                     </AdminButton>

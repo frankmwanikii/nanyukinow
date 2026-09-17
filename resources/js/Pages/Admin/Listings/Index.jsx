@@ -5,6 +5,7 @@ import {
     AdminButton,
     AdminCheckbox,
     AdminInput,
+    AdminLink,
     AdminSelect,
     DataCard,
     DataTable,
@@ -17,7 +18,7 @@ import {
     Td,
     Th,
 } from '@/Components/Admin/ui';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { Eye, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
@@ -75,13 +76,10 @@ export default function Index({ listings, filters, categories, statuses, tiers }
         <AdminLayout
             title="Listings"
             actions={
-                <Link
-                    href={route('admin.listings.create')}
-                    className="inline-flex items-center gap-1.5 rounded-md bg-slate-800 px-3 py-2 text-sm font-medium text-white hover:bg-slate-900"
-                >
+                <AdminLink href={route('admin.listings.create')}>
                     <Plus className="h-4 w-4" />
                     Add listing
-                </Link>
+                </AdminLink>
             }
         >
             <Head title="Admin listings" />
@@ -152,8 +150,8 @@ export default function Index({ listings, filters, categories, statuses, tiers }
             </FilterBar>
 
             {selected.length > 0 && (
-                <div className="mb-3 flex flex-wrap items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm">
-                    <span className="text-xs font-semibold text-slate-700">{selected.length} selected</span>
+                <div className="mb-3 flex flex-wrap items-center gap-2 rounded-md border border-olive-200 bg-olive-50 px-3 py-2 text-sm dark:border-olive-700 dark:bg-olive-900">
+                    <span className="text-xs font-semibold text-olive-800 dark:text-olive-100">{selected.length} selected</span>
                     <AdminButton size="sm" variant="secondary" onClick={() => runBulk('publish')}>Publish</AdminButton>
                     <AdminButton size="sm" variant="secondary" onClick={() => runBulk('unpublish')}>Unpublish</AdminButton>
                     <AdminButton size="sm" variant="secondary" onClick={() => runBulk('feature')}>Feature</AdminButton>
@@ -169,12 +167,9 @@ export default function Index({ listings, filters, categories, statuses, tiers }
                     title="No listings match"
                     description="Adjust filters or create a new listing for the directory."
                     action={
-                        <Link
-                            href={route('admin.listings.create')}
-                            className="inline-flex rounded-md bg-slate-800 px-3 py-2 text-sm text-white"
-                        >
+                        <AdminLink href={route('admin.listings.create')}>
                             Create listing
-                        </Link>
+                        </AdminLink>
                     }
                 />
             ) : (

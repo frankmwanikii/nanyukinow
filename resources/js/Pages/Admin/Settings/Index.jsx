@@ -1,5 +1,5 @@
 import AdminLayout from '@/Layouts/AdminLayout';
-import { AdminButton, AdminInput, AdminTextarea } from '@/Components/Admin/ui';
+import { AdminButton, AdminInput, AdminTextarea, FormPanel } from '@/Components/Admin/ui';
 import { Head, useForm } from '@inertiajs/react';
 import { Save } from 'lucide-react';
 import { useMemo } from 'react';
@@ -48,17 +48,14 @@ export default function Index({ groupedSettings }) {
         <AdminLayout title="Site & pages">
             <Head title="Admin settings" />
 
-            <p className="mb-6 max-w-2xl text-sm text-olive-700">
+            <p className="mb-5 max-w-2xl text-sm text-slate-500 dark:text-slate-400">
                 Edit site-wide content, hero imagery, contact details, and social links.
                 Changes here power the public surfaces without redeploying code.
             </p>
 
-            <form onSubmit={save} className="space-y-6">
+            <form onSubmit={save} className="space-y-4">
                 {groups.map((group) => (
-                    <section key={group} className="rounded-2xl border border-olive-200/80 bg-white p-5 shadow-soft">
-                        <h2 className="mb-4 font-display text-lg text-olive-950">
-                            {groupLabels[group] || group}
-                        </h2>
+                    <FormPanel key={group} title={groupLabels[group] || group}>
                         <div className="grid gap-4 md:grid-cols-2">
                             {(groupedSettings[group] || []).map((item) => {
                                 const Field = item.type === 'textarea' ? AdminTextarea : AdminInput;
@@ -71,24 +68,26 @@ export default function Index({ groupedSettings }) {
                                             rows={item.type === 'textarea' ? 4 : undefined}
                                         />
                                         {item.help && (
-                                            <p className="mt-1 text-xs text-olive-500">{item.help}</p>
+                                            <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
+                                                {item.help}
+                                            </p>
                                         )}
                                         {item.type === 'image' && valueFor(item.key) && (
                                             <img
                                                 src={valueFor(item.key)}
                                                 alt=""
-                                                className="mt-2 h-24 rounded-xl object-cover ring-1 ring-olive-200"
+                                                className="mt-2 h-24 rounded-md object-cover ring-1 ring-slate-200 dark:ring-slate-700"
                                             />
                                         )}
                                     </div>
                                 );
                             })}
                         </div>
-                    </section>
+                    </FormPanel>
                 ))}
 
                 <div className="flex justify-end">
-                    <AdminButton type="submit" variant="mustard" disabled={form.processing}>
+                    <AdminButton type="submit" disabled={form.processing}>
                         <Save className="h-4 w-4" />
                         {form.processing ? 'Saving…' : 'Save settings'}
                     </AdminButton>

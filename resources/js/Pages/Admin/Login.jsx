@@ -20,7 +20,7 @@ export default function Login({ status }) {
             <Head title="Admin sign in" />
 
             <div
-                className="pointer-events-none absolute inset-0 opacity-40"
+                className="pointer-events-none absolute inset-0 opacity-50"
                 style={{
                     backgroundImage:
                         'radial-gradient(ellipse at 20% 20%, rgba(242,184,46,0.22), transparent 45%), radial-gradient(ellipse at 80% 0%, rgba(168,225,144,0.12), transparent 40%), linear-gradient(160deg, #161911 0%, #2a2e23 45%, #1c1712 100%)',
@@ -38,16 +38,7 @@ export default function Login({ status }) {
                     </h1>
                     <p className="mt-4 max-w-md text-base leading-relaxed text-olive-200">
                         Manage listings, expiry dates, categories, stories, and site
-                        surfaces — inspired by the depth of tools like{' '}
-                        <a
-                            href="https://mylistingtheme.com/"
-                            className="text-mustard underline-offset-2 hover:underline"
-                            target="_blank"
-                            rel="noreferrer"
-                        >
-                            MyListing
-                        </a>
-                        .
+                        surfaces from one operator console.
                     </p>
                     <ul className="mt-10 space-y-3 text-sm text-olive-200">
                         {[
@@ -71,9 +62,9 @@ export default function Login({ status }) {
                         </p>
                     </div>
 
-                    <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-7 shadow-lift backdrop-blur-md">
+                    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-7 shadow-lift backdrop-blur-md">
                         <div className="mb-6 flex items-center gap-3">
-                            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-mustard/15 text-mustard">
+                            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-mustard/15 text-mustard">
                                 <Lock className="h-5 w-5" />
                             </div>
                             <div>

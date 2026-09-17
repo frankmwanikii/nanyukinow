@@ -41,7 +41,7 @@ function FlashBanner() {
 
     const tone = flash?.error
         ? 'border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-200'
-        : 'border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200';
+        : 'border-mint/40 bg-mint/20 text-olive-900 dark:border-mint/30 dark:bg-mint/10 dark:text-mint-soft';
 
     return (
         <div className={`mb-4 rounded-md border px-3 py-2 text-sm ${tone}`}>
@@ -57,19 +57,19 @@ function AdminShell({ title, children, actions }) {
 
     return (
         <div className={isDark ? 'dark' : ''}>
-            <div className="min-h-screen bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100">
+            <div className="min-h-screen bg-earth-sand text-earth-dusk dark:bg-olive-950 dark:text-olive-50">
                 <div className="flex min-h-screen">
                     <aside
-                        className={`fixed inset-y-0 left-0 z-40 flex w-60 flex-col border-r border-slate-800 bg-slate-900 text-slate-100 transition-transform dark:border-slate-800 dark:bg-slate-950 lg:static lg:translate-x-0 ${
+                        className={`fixed inset-y-0 left-0 z-40 flex w-60 flex-col border-r border-olive-900 bg-olive-950 text-olive-50 transition-transform dark:border-olive-900 dark:bg-earth-dusk lg:static lg:translate-x-0 ${
                             open ? 'translate-x-0' : '-translate-x-full'
                         }`}
                     >
                         <div className="border-b border-white/10 px-5 py-4">
                             <Link href={route('admin.dashboard')} className="block">
-                                <p className="text-base font-semibold tracking-tight text-white">
+                                <p className="font-brand text-lg tracking-tight text-mustard">
                                     Nanyuki Now
                                 </p>
-                                <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                                <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-olive-400">
                                     Admin
                                 </p>
                             </Link>
@@ -97,8 +97,8 @@ function AdminShell({ title, children, actions }) {
                                         onClick={() => setOpen(false)}
                                         className={`flex items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] font-medium transition ${
                                             active
-                                                ? 'bg-white/10 text-white'
-                                                : 'text-slate-400 hover:bg-white/5 hover:text-white'
+                                                ? 'bg-mustard/15 text-mustard'
+                                                : 'text-olive-300 hover:bg-white/5 hover:text-white'
                                         }`}
                                     >
                                         <Icon className="h-4 w-4 shrink-0 opacity-80" />
@@ -113,7 +113,7 @@ function AdminShell({ title, children, actions }) {
                                 href={route('home')}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="mb-2 flex items-center gap-2 rounded-md px-2.5 py-1.5 text-xs text-slate-400 hover:bg-white/5 hover:text-white"
+                                className="mb-2 flex items-center gap-2 rounded-md px-2.5 py-1.5 text-xs text-olive-400 hover:bg-white/5 hover:text-white"
                             >
                                 <ExternalLink className="h-3.5 w-3.5" />
                                 View live site
@@ -122,14 +122,14 @@ function AdminShell({ title, children, actions }) {
                                 <p className="truncate text-xs font-medium text-white">
                                     {auth?.user?.name}
                                 </p>
-                                <p className="truncate text-[11px] text-slate-400">
+                                <p className="truncate text-[11px] text-olive-400">
                                     {auth?.user?.email}
                                 </p>
                                 <Link
                                     href={route('admin.logout')}
                                     method="post"
                                     as="button"
-                                    className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-300 hover:text-white"
+                                    className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-medium text-olive-300 hover:text-mustard"
                                 >
                                     <LogOut className="h-3 w-3" />
                                     Sign out
@@ -142,18 +142,18 @@ function AdminShell({ title, children, actions }) {
                         <button
                             type="button"
                             aria-label="Close menu"
-                            className="fixed inset-0 z-30 bg-slate-900/40 lg:hidden"
+                            className="fixed inset-0 z-30 bg-olive-950/50 lg:hidden"
                             onClick={() => setOpen(false)}
                         />
                     )}
 
                     <div className="flex min-w-0 flex-1 flex-col">
-                        <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/90 backdrop-blur dark:border-slate-800 dark:bg-slate-900/90">
+                        <header className="sticky top-0 z-20 border-b border-olive-200/80 bg-white/90 backdrop-blur dark:border-olive-800 dark:bg-olive-900/90">
                             <div className="flex items-center justify-between gap-4 px-4 py-3 sm:px-6">
                                 <div className="flex items-center gap-3">
                                     <button
                                         type="button"
-                                        className="rounded-md border border-slate-200 bg-white p-1.5 text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 lg:hidden"
+                                        className="rounded-md border border-olive-200 bg-white p-1.5 text-olive-800 dark:border-olive-700 dark:bg-olive-900 dark:text-olive-100 lg:hidden"
                                         onClick={() => setOpen(true)}
                                     >
                                         {open ? (
@@ -163,7 +163,7 @@ function AdminShell({ title, children, actions }) {
                                         )}
                                     </button>
                                     <div>
-                                        <h1 className="text-lg font-semibold tracking-tight text-slate-900 dark:text-white">
+                                        <h1 className="font-display text-lg font-semibold tracking-tight text-olive-950 dark:text-white">
                                             {title}
                                         </h1>
                                     </div>
@@ -176,7 +176,7 @@ function AdminShell({ title, children, actions }) {
                                             isDark ? 'Switch to light mode' : 'Switch to dark mode'
                                         }
                                         title={isDark ? 'Light mode' : 'Dark mode'}
-                                        className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+                                        className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-olive-200 bg-white text-olive-700 transition hover:bg-olive-50 hover:text-olive-950 dark:border-olive-700 dark:bg-olive-900 dark:text-olive-200 dark:hover:bg-olive-800 dark:hover:text-mustard"
                                     >
                                         {isDark ? (
                                             <Sun className="h-4 w-4" />

@@ -4,8 +4,10 @@ import {
     AdminCheckbox,
     AdminInput,
     AdminTextarea,
+    AdminLink,
+    FormPanel,
 } from '@/Components/Admin/ui';
-import { Head, Link, router, useForm } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
 import { ArrowLeft, Save, Trash2 } from 'lucide-react';
 
 export default function Form({ story }) {
@@ -47,13 +49,10 @@ export default function Form({ story }) {
             title={isEdit ? 'Edit story' : 'New story'}
             actions={
                 <div className="flex gap-2">
-                    <Link
-                        href={route('admin.stories.index')}
-                        className="inline-flex items-center gap-2 rounded-xl border border-olive-200 bg-white px-3 py-2 text-sm text-olive-800"
-                    >
+                    <AdminLink href={route('admin.stories.index')} variant="secondary">
                         <ArrowLeft className="h-4 w-4" />
                         Back
-                    </Link>
+                    </AdminLink>
                     {isEdit && (
                         <AdminButton
                             variant="danger"
@@ -72,8 +71,8 @@ export default function Form({ story }) {
         >
             <Head title={isEdit ? `Edit · ${story.title}` : 'New story'} />
 
-            <form onSubmit={save} className="space-y-6">
-                <section className="rounded-2xl border border-olive-200/80 bg-white p-5 shadow-soft">
+            <form onSubmit={save} className="space-y-4">
+                <FormPanel title="Story content">
                     <div className="grid gap-4 md:grid-cols-2">
                         <AdminInput label="Title" value={data.title} onChange={(e) => setData('title', e.target.value)} error={errors.title} className="md:col-span-2" required />
                         <AdminInput label="Slug" value={data.slug} onChange={(e) => setData('slug', e.target.value)} error={errors.slug} />
@@ -82,7 +81,7 @@ export default function Form({ story }) {
                         <AdminInput label="Read minutes" type="number" min="1" value={data.read_minutes} onChange={(e) => setData('read_minutes', e.target.value)} error={errors.read_minutes} />
                         <AdminInput label="Cover image URL" value={data.image_url} onChange={(e) => setData('image_url', e.target.value)} error={errors.image_url} className="md:col-span-2" />
                         {data.image_url && (
-                            <img src={data.image_url} alt="" className="h-40 w-full rounded-xl object-cover ring-1 ring-olive-200 md:col-span-2" />
+                            <img src={data.image_url} alt="" className="h-40 w-full rounded-md object-cover ring-1 ring-slate-200 dark:ring-slate-700 md:col-span-2" />
                         )}
                         <AdminTextarea label="Excerpt" value={data.excerpt} onChange={(e) => setData('excerpt', e.target.value)} error={errors.excerpt} rows={3} className="md:col-span-2" />
                         <AdminTextarea label="Body" value={data.body} onChange={(e) => setData('body', e.target.value)} error={errors.body} rows={8} className="md:col-span-2" />
@@ -92,13 +91,13 @@ export default function Form({ story }) {
                             <AdminCheckbox label="Published" checked={data.is_published} onChange={(e) => setData('is_published', e.target.checked)} />
                         </div>
                     </div>
-                </section>
+                </FormPanel>
 
-                <div className="flex justify-end gap-3">
-                    <Link href={route('admin.stories.index')} className="rounded-xl border border-olive-200 bg-white px-4 py-2 text-sm text-olive-800">
+                <div className="flex justify-end gap-2">
+                    <AdminLink href={route('admin.stories.index')} variant="secondary">
                         Cancel
-                    </Link>
-                    <AdminButton type="submit" variant="mustard" disabled={processing}>
+                    </AdminLink>
+                    <AdminButton type="submit" disabled={processing}>
                         <Save className="h-4 w-4" />
                         {processing ? 'Saving…' : 'Save story'}
                     </AdminButton>

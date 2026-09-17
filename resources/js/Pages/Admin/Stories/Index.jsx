@@ -4,6 +4,7 @@ import {
     ActionIcon,
     AdminButton,
     AdminInput,
+    AdminLink,
     AdminSelect,
     DataCard,
     DataTable,
@@ -15,7 +16,7 @@ import {
     Td,
     Th,
 } from '@/Components/Admin/ui';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { Pencil, Plus, Search } from 'lucide-react';
 import { useState } from 'react';
 
@@ -32,13 +33,10 @@ export default function Index({ stories, filters }) {
         <AdminLayout
             title="Stories"
             actions={
-                <Link
-                    href={route('admin.stories.create')}
-                    className="inline-flex items-center gap-1.5 rounded-md bg-slate-800 px-3 py-2 text-sm font-medium text-white hover:bg-slate-900"
-                >
+                <AdminLink href={route('admin.stories.create')}>
                     <Plus className="h-4 w-4" />
                     New story
-                </Link>
+                </AdminLink>
             }
         >
             <Head title="Admin stories" />
@@ -60,9 +58,9 @@ export default function Index({ stories, filters }) {
                     title="No stories yet"
                     description="Publish guides and editorial content for the Stories section."
                     action={
-                        <Link href={route('admin.stories.create')} className="inline-flex rounded-md bg-slate-800 px-3 py-2 text-sm text-white">
+                        <AdminLink href={route('admin.stories.create')}>
                             Write a story
-                        </Link>
+                        </AdminLink>
                     }
                 />
             ) : (

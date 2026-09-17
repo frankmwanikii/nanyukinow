@@ -7,6 +7,7 @@ import {
     DataCard,
     DataTable,
     EmptyState,
+    FormPanel,
     Td,
     Th,
 } from '@/Components/Admin/ui';
@@ -55,8 +56,8 @@ export default function Index({ categories }) {
             <Head title="Admin categories" />
 
             <div className="grid gap-4 xl:grid-cols-3">
-                <form onSubmit={saveCreate} className="rounded-md border border-slate-200 bg-white p-4 shadow-sm xl:col-span-1">
-                    <h2 className="mb-3 text-sm font-semibold text-slate-800">Add category</h2>
+                <FormPanel title="Add category" className="xl:col-span-1">
+                    <form onSubmit={saveCreate}>
                     <div className="space-y-2.5">
                         <AdminInput label="Name" value={createForm.data.name} onChange={(e) => createForm.setData('name', e.target.value)} error={createForm.errors.name} required />
                         <AdminInput label="Slug" value={createForm.data.slug} onChange={(e) => createForm.setData('slug', e.target.value)} error={createForm.errors.slug} placeholder="optional" />
@@ -67,7 +68,8 @@ export default function Index({ categories }) {
                             Create
                         </AdminButton>
                     </div>
-                </form>
+                    </form>
+                </FormPanel>
 
                 <div className="xl:col-span-2">
                     {categories.length === 0 ? (
@@ -103,21 +105,21 @@ export default function Index({ categories }) {
                                             ) : (
                                                 <>
                                                     <Td align="center">
-                                                        <span className="tabular-nums text-xs text-slate-500">{category.sort_order}</span>
+                                                        <span className="tabular-nums text-xs text-slate-500 dark:text-slate-400">{category.sort_order}</span>
                                                     </Td>
                                                     <Td>
-                                                        <span className="text-sm font-medium text-slate-800">{category.name}</span>
+                                                        <span className="text-sm font-medium text-slate-800 dark:text-slate-100">{category.name}</span>
                                                         {category.icon && (
                                                             <span className="ml-1.5 text-[11px] text-slate-400">{category.icon}</span>
                                                         )}
                                                     </Td>
                                                     <Td>
-                                                        <code className="rounded bg-slate-100 px-1.5 py-0.5 text-[11px] text-slate-600">
+                                                        <code className="rounded bg-slate-100 px-1.5 py-0.5 text-[11px] text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                                                             {category.slug}
                                                         </code>
                                                     </Td>
                                                     <Td align="center">
-                                                        <span className="tabular-nums text-xs font-medium text-slate-700">
+                                                        <span className="tabular-nums text-xs font-medium text-slate-700 dark:text-slate-200">
                                                             {category.listings_count}
                                                         </span>
                                                     </Td>

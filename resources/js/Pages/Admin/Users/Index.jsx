@@ -93,7 +93,7 @@ export default function Index({ users, filters }) {
                             },
                         });
                     }}
-                    className="mb-4 grid gap-2.5 rounded-md border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-2 xl:grid-cols-3"
+                    className="mb-4 grid gap-2.5 rounded-lg border border-olive-200/80 bg-white p-4 dark:border-olive-800 dark:bg-olive-900 md:grid-cols-2 xl:grid-cols-3"
                 >
                     <AdminInput label="Name" value={createForm.data.name} onChange={(e) => createForm.setData('name', e.target.value)} error={createForm.errors.name} />
                     <AdminInput label="Username" value={createForm.data.username} onChange={(e) => createForm.setData('username', e.target.value)} error={createForm.errors.username} />
@@ -158,8 +158,8 @@ export default function Index({ users, filters }) {
                                                 />
                                             </Td>
                                             <Td>
-                                                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700">
-                                                    <span className={`h-1.5 w-1.5 rounded-full ${user.is_admin ? 'bg-violet-500' : 'bg-slate-400'}`} />
+                                                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700 dark:text-slate-200">
+                                                    <span className={`h-1.5 w-1.5 rounded-full ${user.is_admin ? 'bg-indigo-500' : 'bg-slate-400'}`} />
                                                     {user.is_admin ? 'Admin' : 'Member'}
                                                 </span>
                                             </Td>
