@@ -1,7 +1,6 @@
 import AdminLayout from '@/Layouts/AdminLayout';
 import {
-    ActionGroup,
-    ActionIcon,
+    ActionMenu,
     AdminButton,
     AdminCheckbox,
     AdminInput,
@@ -16,7 +15,7 @@ import {
     Th,
 } from '@/Components/Admin/ui';
 import { Head, router, useForm } from '@inertiajs/react';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 export default function Index({ users, filters }) {
@@ -202,22 +201,26 @@ export default function Index({ users, filters }) {
                                                 </span>
                                             </Td>
                                             <Td align="right">
-                                                <ActionGroup>
-                                                    <ActionIcon title="Edit" onClick={() => startEdit(user)}>
-                                                        <Pencil className="h-3.5 w-3.5" />
-                                                    </ActionIcon>
-                                                    <ActionIcon
-                                                        title="Delete"
-                                                        danger
-                                                        onClick={() => {
-                                                            if (confirm(`Delete ${user.name}?`)) {
+                                                <ActionMenu
+                                                    items={[
+                                                        {
+                                                            label: 'Edit',
+                                                            onClick: () => startEdit(user),
+                                                        },
+                                                        {
+                                                            label: 'View',
+                                                            href: route('admin.listings.index', { q: user.name }),
+                                                        },
+                                                        {
+                                                            label: 'Delete',
+                                                            danger: true,
+                                                            onClick: () => {
+                                                                if (!confirm(`Delete ${user.name}?`)) return;
                                                                 router.delete(route('admin.users.destroy', user.id));
-                                                            }
-                                                        }}
-                                                    >
-                                                        <Trash2 className="h-3.5 w-3.5" />
-                                                    </ActionIcon>
-                                                </ActionGroup>
+                                                            },
+                                                        },
+                                                    ]}
+                                                />
                                             </Td>
                                         </>
                                     )}

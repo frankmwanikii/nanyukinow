@@ -24,7 +24,7 @@ function fromLines(value) {
         .filter(Boolean);
 }
 
-export default function Form({ listing, categories, owners, statuses, tiers, claimStatuses }) {
+export default function Form({ listing, categories, locations = [], owners, statuses, tiers, claimStatuses }) {
     const isEdit = Boolean(listing?.id);
 
     const form = useForm({
@@ -163,7 +163,24 @@ export default function Form({ listing, categories, owners, statuses, tiers, cla
                         <AdminInput label="WhatsApp" value={data.whatsapp} onChange={(e) => setData('whatsapp', e.target.value)} error={errors.whatsapp} />
                         <AdminInput label="Email" type="email" value={data.email} onChange={(e) => setData('email', e.target.value)} error={errors.email} />
                         <AdminInput label="Website" value={data.website} onChange={(e) => setData('website', e.target.value)} error={errors.website} placeholder="https://" className="xl:col-span-2" />
-                        <AdminInput label="Location label" value={data.location} onChange={(e) => setData('location', e.target.value)} error={errors.location} />
+                        {locations.length > 0 ? (
+                            <AdminSelect
+                                label="Location"
+                                value={data.location}
+                                onChange={(e) => setData('location', e.target.value)}
+                                error={errors.location}
+                            >
+                                <option value="">Select location</option>
+                                {locations.map((loc) => (
+                                    <option key={loc.id} value={loc.name}>{loc.name}</option>
+                                ))}
+                                {data.location && !locations.some((loc) => loc.name === data.location) && (
+                                    <option value={data.location}>{data.location} (current)</option>
+                                )}
+                            </AdminSelect>
+                        ) : (
+                            <AdminInput label="Location label" value={data.location} onChange={(e) => setData('location', e.target.value)} error={errors.location} />
+                        )}
                         <AdminInput label="Address" value={data.address} onChange={(e) => setData('address', e.target.value)} error={errors.address} className="md:col-span-2" />
                         <AdminInput label="City" value={data.city} onChange={(e) => setData('city', e.target.value)} error={errors.city} />
                         <AdminInput label="Latitude" value={data.latitude} onChange={(e) => setData('latitude', e.target.value)} error={errors.latitude} />

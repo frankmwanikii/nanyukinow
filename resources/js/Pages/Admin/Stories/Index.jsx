@@ -1,7 +1,6 @@
 import AdminLayout from '@/Layouts/AdminLayout';
 import {
-    ActionGroup,
-    ActionIcon,
+    ActionMenu,
     AdminInput,
     AdminLink,
     AdminSelect,
@@ -16,7 +15,7 @@ import {
     Th,
 } from '@/Components/Admin/ui';
 import { Head, router } from '@inertiajs/react';
-import { Pencil, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 export default function Index({ stories, filters }) {
@@ -133,11 +132,27 @@ export default function Index({ stories, filters }) {
                                         </span>
                                     </Td>
                                     <Td align="right">
-                                        <ActionGroup>
-                                            <ActionIcon href={route('admin.stories.edit', story.id)} title="Edit">
-                                                <Pencil className="h-3.5 w-3.5" />
-                                            </ActionIcon>
-                                        </ActionGroup>
+                                        <ActionMenu
+                                            items={[
+                                                {
+                                                    label: 'Edit',
+                                                    href: route('admin.stories.edit', story.id),
+                                                },
+                                                {
+                                                    label: 'View',
+                                                    href: route('stories.show', story.slug),
+                                                    external: true,
+                                                },
+                                                {
+                                                    label: 'Delete',
+                                                    danger: true,
+                                                    onClick: () => {
+                                                        if (!confirm(`Delete “${story.title}”?`)) return;
+                                                        router.delete(route('admin.stories.destroy', story.id));
+                                                    },
+                                                },
+                                            ]}
+                                        />
                                     </Td>
                                 </tr>
                             ))}

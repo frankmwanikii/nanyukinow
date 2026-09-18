@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ListingController;
+use App\Http\Controllers\Admin\LocationController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\StoryController;
 use App\Http\Controllers\Admin\UserController;
@@ -30,6 +31,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
         Route::delete('categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
         Route::post('categories/reorder', [CategoryController::class, 'reorder'])->name('categories.reorder');
+
+        Route::get('locations', [LocationController::class, 'index'])->name('locations.index');
+        Route::post('locations', [LocationController::class, 'store'])->name('locations.store');
+        Route::put('locations/{location}', [LocationController::class, 'update'])->name('locations.update');
+        Route::delete('locations/{location}', [LocationController::class, 'destroy'])->name('locations.destroy');
 
         Route::get('users', [UserController::class, 'index'])->name('users.index');
         Route::post('users', [UserController::class, 'store'])->name('users.store');

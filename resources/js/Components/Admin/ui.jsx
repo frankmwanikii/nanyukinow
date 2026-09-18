@@ -1,5 +1,7 @@
 import { Link } from '@inertiajs/react';
-import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 export function StatCard({ label, value, hint, icon: Icon }) {
     return (
@@ -348,6 +350,121 @@ export function ActionIcon({ href, onClick, title, children, danger, external })
         <button type="button" title={title} onClick={onClick} className={classes}>
             {children}
         </button>
+    );
+}
+
+/** Compact “View” dropdown for table row actions. */
+export function ActionMenu({ label = 'View', items = [] }) {
+    const [open, setOpen] = useState(false);
+    const triggerRef = useRef(null);
+    const menuRef = useRef(null);
+    const [coords, setCoords] = useState({ top: 0, right: 0 });
+
+    const updatePosition = () => {
+        const el = triggerRef.current;
+        if (!el) return;
+        const rect = el.getBoundingClientRect();
+        setCoords({
+            top: rect.bottom + 4,
+            right: Math.max(8, window.innerWidth - rect.right),
+        });
+    };
+
+    useEffect(() => {
+        if (!open) return undefined;
+
+        updatePosition();
+
+        const onKey = (e) => {
+            if (e.key === 'Escape') setOpen(false);
+        };
+        const onReposition = () => updatePosition();
+
+        window.addEventListener('keydown', onKey);
+        window.addEventListener('resize', onReposition);
+        window.addEventListener('scroll', onReposition, true);
+
+        return () => {
+            window.removeEventListener('keydown', onKey);
+            window.removeEventListener('resize', onReposition);
+            window.removeEventListener('scroll', onReposition, true);
+        };
+    }, [open]);
+
+    const itemClass = (danger) =>
+        `block w-full px-3 py-2 text-left text-sm transition ${
+            danger
+                ? 'text-rose-600 hover:bg-rose-50 dark:text-rose-300 dark:hover:bg-rose-950/40'
+                : 'text-olive-800 hover:bg-olive-50 dark:text-olive-100 dark:hover:bg-olive-800'
+        }`;
+
+    return (
+        <div className="relative inline-flex justify-end">
+            <button
+                ref={triggerRef}
+                type="button"
+                aria-haspopup="menu"
+                aria-expanded={open}
+                onClick={() => setOpen((v) => !v)}
+                className="inline-flex h-9 items-center gap-1.5 rounded border border-olive-200 bg-white px-2.5 text-sm font-medium text-olive-700 transition hover:bg-olive-50 hover:text-olive-950 dark:border-olive-700 dark:bg-olive-900 dark:text-olive-200 dark:hover:bg-olive-800 dark:hover:text-olive-50"
+            >
+                {label}
+                <ChevronDown className={`h-3.5 w-3.5 opacity-70 transition ${open ? 'rotate-180' : ''}`} />
+            </button>
+
+            {open &&
+                createPortal(
+                    <>
+                        <button
+                            type="button"
+                            aria-label="Close menu"
+                            className="fixed inset-0 z-40 cursor-default"
+                            onClick={() => setOpen(false)}
+                        />
+                        <div
+                            ref={menuRef}
+                            role="menu"
+                            style={{ top: coords.top, right: coords.right }}
+                            className="fixed z-50 min-w-[8.5rem] overflow-hidden rounded-lg border border-olive-200 bg-white py-1 shadow-lift dark:border-olive-700 dark:bg-olive-900"
+                        >
+                            {items.map((item) => {
+                                const close = () => setOpen(false);
+                                if (item.href) {
+                                    return (
+                                        <Link
+                                            key={item.label}
+                                            href={item.href}
+                                            role="menuitem"
+                                            target={item.external ? '_blank' : undefined}
+                                            rel={item.external ? 'noreferrer' : undefined}
+                                            className={itemClass(item.danger)}
+                                            onClick={close}
+                                        >
+                                            {item.label}
+                                        </Link>
+                                    );
+                                }
+
+                                return (
+                                    <button
+                                        key={item.label}
+                                        type="button"
+                                        role="menuitem"
+                                        className={itemClass(item.danger)}
+                                        onClick={() => {
+                                            close();
+                                            item.onClick?.();
+                                        }}
+                                    >
+                                        {item.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </>,
+                    document.body,
+                )}
+        </div>
     );
 }
 

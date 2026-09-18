@@ -1,7 +1,6 @@
 import AdminLayout from '@/Layouts/AdminLayout';
 import {
-    ActionGroup,
-    ActionIcon,
+    ActionMenu,
     AdminButton,
     AdminInput,
     AdminLink,
@@ -18,7 +17,7 @@ import {
     Th,
 } from '@/Components/Admin/ui';
 import { Head, router } from '@inertiajs/react';
-import { Eye, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 export default function Index({ listings, filters, categories, statuses, tiers }) {
@@ -151,15 +150,17 @@ export default function Index({ listings, filters, categories, statuses, tiers }
             </FilterBar>
 
             {selected.length > 0 && (
-                <div className="mb-3 flex flex-wrap items-center gap-2 rounded-md border border-olive-200 bg-olive-50 px-3 py-2 text-sm dark:border-olive-700 dark:bg-olive-900">
-                    <span className="text-xs font-semibold text-olive-800 dark:text-olive-100">{selected.length} selected</span>
-                    <AdminButton size="sm" variant="secondary" onClick={() => runBulk('publish')}>Publish</AdminButton>
-                    <AdminButton size="sm" variant="secondary" onClick={() => runBulk('unpublish')}>Unpublish</AdminButton>
-                    <AdminButton size="sm" variant="secondary" onClick={() => runBulk('feature')}>Feature</AdminButton>
-                    <AdminButton size="sm" variant="secondary" onClick={() => runBulk('archive')}>Archive</AdminButton>
-                    <AdminButton size="sm" variant="danger" onClick={() => runBulk('delete')}>
-                        <Trash2 className="h-3.5 w-3.5" /> Delete
-                    </AdminButton>
+                <div className="sticky top-0 z-20 -mx-4 mb-3 border-b border-olive-200/80 bg-earth-sand/95 px-4 py-2.5 backdrop-blur-sm sm:-mx-6 sm:px-6 dark:border-olive-800 dark:bg-olive-950/95">
+                    <div className="flex flex-wrap items-center gap-2 rounded-md border border-olive-200 bg-olive-50 px-3 py-2 text-sm shadow-soft dark:border-olive-700 dark:bg-olive-900">
+                        <span className="text-xs font-semibold text-olive-800 dark:text-olive-100">{selected.length} selected</span>
+                        <AdminButton size="sm" variant="secondary" onClick={() => runBulk('publish')}>Publish</AdminButton>
+                        <AdminButton size="sm" variant="secondary" onClick={() => runBulk('unpublish')}>Unpublish</AdminButton>
+                        <AdminButton size="sm" variant="secondary" onClick={() => runBulk('feature')}>Feature</AdminButton>
+                        <AdminButton size="sm" variant="secondary" onClick={() => runBulk('archive')}>Archive</AdminButton>
+                        <AdminButton size="sm" variant="danger" onClick={() => runBulk('delete')}>
+                            <Trash2 className="h-3.5 w-3.5" /> Delete
+                        </AdminButton>
+                    </div>
                 </div>
             )}
 
@@ -298,21 +299,27 @@ export default function Index({ listings, filters, categories, statuses, tiers }
                                             </span>
                                         </Td>
                                         <Td align="right">
-                                            <ActionGroup>
-                                                <ActionIcon
-                                                    href={route('admin.listings.edit', listing.id)}
-                                                    title="Edit"
-                                                >
-                                                    <Pencil className="h-3.5 w-3.5" />
-                                                </ActionIcon>
-                                                <ActionIcon
-                                                    href={route('listings.show', listing.slug)}
-                                                    title="View"
-                                                    external
-                                                >
-                                                    <Eye className="h-3.5 w-3.5" />
-                                                </ActionIcon>
-                                            </ActionGroup>
+                                            <ActionMenu
+                                                items={[
+                                                    {
+                                                        label: 'Edit',
+                                                        href: route('admin.listings.edit', listing.id),
+                                                    },
+                                                    {
+                                                        label: 'View',
+                                                        href: route('listings.show', listing.slug),
+                                                        external: true,
+                                                    },
+                                                    {
+                                                        label: 'Delete',
+                                                        danger: true,
+                                                        onClick: () => {
+                                                            if (!confirm(`Delete “${listing.title}”?`)) return;
+                                                            router.delete(route('admin.listings.destroy', listing.id));
+                                                        },
+                                                    },
+                                                ]}
+                                            />
                                         </Td>
                                     </tr>
                                 );

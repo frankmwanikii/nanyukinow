@@ -3,6 +3,7 @@ import {
     LayoutDashboard,
     LayoutList,
     FolderTree,
+    MapPin,
     Users,
     Newspaper,
     Settings2,
@@ -21,6 +22,7 @@ const nav = [
     { label: 'Overview', href: 'admin.dashboard', icon: LayoutDashboard },
     { label: 'Listings', href: 'admin.listings.index', icon: LayoutList },
     { label: 'Categories', href: 'admin.categories.index', icon: FolderTree },
+    { label: 'Locations', href: 'admin.locations.index', icon: MapPin },
     { label: 'Stories', href: 'admin.stories.index', icon: Newspaper },
     { label: 'Users', href: 'admin.users.index', icon: Users },
     { label: 'Site & pages', href: 'admin.settings.index', icon: Settings2 },
@@ -213,17 +215,31 @@ function UserMenu({ user }) {
                     />
                     <div
                         role="menu"
-                        className="absolute right-0 z-40 mt-2 w-48 overflow-hidden rounded-xl bg-white py-1 shadow-lift dark:bg-olive-900"
+                        className="absolute right-0 z-40 mt-2 w-56 overflow-hidden rounded-xl bg-white py-1 shadow-lift dark:bg-olive-900"
                     >
+                        <div className="border-b border-olive-100 px-3 py-2.5 dark:border-olive-800">
+                            <p className="truncate text-sm font-semibold text-olive-950 dark:text-olive-50">
+                                {user?.name || 'Admin'}
+                            </p>
+                            <p className="truncate text-xs text-olive-500 dark:text-olive-400">
+                                {user?.email}
+                            </p>
+                        </div>
                         <Link
-                            href={route('admin.logout')}
-                            method="post"
-                            as="button"
+                            href={route('admin.profile.edit')}
                             role="menuitem"
-                            className="flex w-full items-center gap-2.5 px-3 py-2.5 text-sm font-medium text-olive-800 transition hover:bg-rose-50 hover:text-rose-700 dark:text-olive-100 dark:hover:bg-rose-500/10 dark:hover:text-rose-300"
+                            onClick={() => setOpen(false)}
+                            className="flex w-full items-center gap-2.5 px-3 py-2.5 text-sm font-medium text-olive-800 transition hover:bg-olive-50 dark:text-olive-100 dark:hover:bg-olive-800"
                         >
-                            <SignOutIcon className="h-4 w-4" />
-                            Sign out
+                            Edit profile
+                        </Link>
+                        <Link
+                            href={`${route('admin.profile.edit')}#password`}
+                            role="menuitem"
+                            onClick={() => setOpen(false)}
+                            className="flex w-full items-center gap-2.5 px-3 py-2.5 text-sm font-medium text-olive-800 transition hover:bg-olive-50 dark:text-olive-100 dark:hover:bg-olive-800"
+                        >
+                            Change password
                         </Link>
                     </div>
                 </>
@@ -275,6 +291,8 @@ function AdminShell({ title, children, actions }) {
                                         route().current('admin.stories.*')) ||
                                     (item.href === 'admin.categories.index' &&
                                         route().current('admin.categories.*')) ||
+                                    (item.href === 'admin.locations.index' &&
+                                        route().current('admin.locations.*')) ||
                                     (item.href === 'admin.users.index' &&
                                         route().current('admin.users.*')) ||
                                     (item.href === 'admin.settings.index' &&

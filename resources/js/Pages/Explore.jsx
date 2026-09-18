@@ -43,6 +43,7 @@ function ExploreContent({
     initialPropertyType = null,
     initialQuery = '',
     initialLocation = null,
+    locations = LOOK_LOCATIONS,
 }) {
     const [query, setQuery] = useState(initialQuery);
     const [location, setLocation] = useState(initialLocation);
@@ -147,7 +148,7 @@ function ExploreContent({
         onQueryChange: setQuery,
         location,
         onLocationChange: setLocation,
-        locations: LOOK_LOCATIONS,
+        locations: locations?.length ? locations : LOOK_LOCATIONS,
         categoryKey,
         onCategoryChange: handleCategoryChange,
         subcategory,
@@ -458,6 +459,7 @@ function ExploreContent({
 
 export default function Explore({
     listings = [],
+    locations = LOOK_LOCATIONS,
     category,
     subcategory,
     propertyType,
@@ -478,6 +480,7 @@ export default function Explore({
                 initialPropertyType={propertyType || null}
                 initialQuery={q || ''}
                 initialLocation={location || null}
+                locations={locations}
             />
         </SiteLayout>
     );

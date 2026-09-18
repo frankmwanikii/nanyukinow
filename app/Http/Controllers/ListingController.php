@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Listing;
+use App\Models\Location;
 use App\Support\ListingPayload;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -47,7 +48,15 @@ class ListingController extends Controller
     public function explore(Request $request): Response
     {
         $location = $request->string('location')->toString() ?: null;
-        $allowed = ['Nanyuki', 'Timau', 'Naromoru'];
+        $allowed = Location::query()
+            ->active()
+            ->ordered()
+            ->pluck('name')
+            ->all();
+
+        if ($allowed === []) {
+            $allowed = ['Nanyuki', 'Timau', 'Naromoru'];
+        }
 
         $listings = Listing::query()
             ->with('category')
@@ -57,6 +66,7 @@ class ListingController extends Controller
 
         return Inertia::render('Explore', [
             'listings' => ListingPayload::collection($listings),
+            'locations' => $allowed,
             'category' => $request->string('category')->toString() ?: null,
             'subcategory' => $request->string('subcategory')->toString() ?: null,
             'propertyType' => $request->string('propertyType')->toString() ?: null,

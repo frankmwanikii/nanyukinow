@@ -1,7 +1,6 @@
 import AdminLayout from '@/Layouts/AdminLayout';
 import {
-    ActionGroup,
-    ActionIcon,
+    ActionMenu,
     AdminButton,
     AdminInput,
     DataCard,
@@ -12,7 +11,7 @@ import {
     Th,
 } from '@/Components/Admin/ui';
 import { Head, router, useForm } from '@inertiajs/react';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useState } from 'react';
 
 const blank = { name: '', slug: '', icon: '', sort_order: 0 };
@@ -124,14 +123,24 @@ export default function Index({ categories }) {
                                                         </span>
                                                     </Td>
                                                     <Td align="right">
-                                                        <ActionGroup>
-                                                            <ActionIcon title="Edit" onClick={() => startEdit(category)}>
-                                                                <Pencil className="h-3.5 w-3.5" />
-                                                            </ActionIcon>
-                                                            <ActionIcon title="Delete" danger onClick={() => remove(category)}>
-                                                                <Trash2 className="h-3.5 w-3.5" />
-                                                            </ActionIcon>
-                                                        </ActionGroup>
+                                                        <ActionMenu
+                                                            items={[
+                                                                {
+                                                                    label: 'Edit',
+                                                                    onClick: () => startEdit(category),
+                                                                },
+                                                                {
+                                                                    label: 'View',
+                                                                    href: `/explore?category=${encodeURIComponent(category.slug)}`,
+                                                                    external: true,
+                                                                },
+                                                                {
+                                                                    label: 'Delete',
+                                                                    danger: true,
+                                                                    onClick: () => remove(category),
+                                                                },
+                                                            ]}
+                                                        />
                                                     </Td>
                                                 </>
                                             )}

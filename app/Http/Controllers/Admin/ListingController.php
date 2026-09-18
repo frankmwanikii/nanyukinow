@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ListingRequest;
 use App\Models\Category;
 use App\Models\Listing;
+use App\Models\Location;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -94,6 +95,7 @@ class ListingController extends Controller
         return Inertia::render('Admin/Listings/Form', [
             'listing' => null,
             'categories' => Category::query()->orderBy('sort_order')->orderBy('name')->get(['id', 'name']),
+            'locations' => Location::query()->active()->ordered()->get(['id', 'name']),
             'owners' => User::query()->orderBy('name')->get(['id', 'name', 'email']),
             'statuses' => ['draft', 'pending', 'published', 'expired', 'archived'],
             'tiers' => ['free', 'featured', 'premium'],
@@ -153,6 +155,7 @@ class ListingController extends Controller
                 'is_published' => $listing->is_published,
             ],
             'categories' => Category::query()->orderBy('sort_order')->orderBy('name')->get(['id', 'name']),
+            'locations' => Location::query()->active()->ordered()->get(['id', 'name']),
             'owners' => User::query()->orderBy('name')->get(['id', 'name', 'email']),
             'statuses' => ['draft', 'pending', 'published', 'expired', 'archived'],
             'tiers' => ['free', 'featured', 'premium'],
