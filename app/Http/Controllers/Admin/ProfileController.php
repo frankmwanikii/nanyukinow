@@ -23,7 +23,7 @@ class ProfileController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'avatar_url' => $user->avatar_url,
+                'avatar_url' => $this->normalizeAvatarUrl($user->avatar_url),
             ],
         ]);
     }
@@ -63,7 +63,8 @@ class ProfileController extends Controller
         if ($request->hasFile('avatar')) {
             $this->deleteStoredAvatar($user->avatar_url);
             $path = $request->file('avatar')->store('avatars', 'public');
-            $user->avatar_url = Storage::disk('public')->url($path);
+            // Store a same-origin relative path so crop/preview always works.
+            $user->avatar_url = '/storage/'.$path;
         }
 
         $user->save();
@@ -83,6 +84,21 @@ class ProfileController extends Controller
         ]);
 
         return back()->with('success', 'Password updated.');
+    }
+
+    private function normalizeAvatarUrl(?string $url): ?string
+    {
+        if (! $url) {
+            return null;
+        }
+
+        $marker = '/storage/';
+        $pos = strpos($url, $marker);
+        if ($pos === false) {
+            return $url;
+        }
+
+        return substr($url, $pos);
     }
 
     private function deleteStoredAvatar(?string $url): void

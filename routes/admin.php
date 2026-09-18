@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ListingController;
 use App\Http\Controllers\Admin\LocationController;
+use App\Http\Controllers\Admin\PricingController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\StoryController;
@@ -53,6 +54,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('stories/{story}/edit', [StoryController::class, 'edit'])->name('stories.edit');
         Route::put('stories/{story}', [StoryController::class, 'update'])->name('stories.update');
         Route::delete('stories/{story}', [StoryController::class, 'destroy'])->name('stories.destroy');
+
+        Route::get('pricing', [PricingController::class, 'index'])->name('pricing.index');
+        Route::put('pricing/{pricing}', [PricingController::class, 'update'])->name('pricing.update');
 
         Route::get('settings', [SettingController::class, 'index'])->name('settings.index');
         Route::put('settings', [SettingController::class, 'update'])->name('settings.update');

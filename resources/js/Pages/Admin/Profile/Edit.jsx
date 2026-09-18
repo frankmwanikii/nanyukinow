@@ -6,8 +6,9 @@ import {
     AdminPasswordInput,
     FormPanel,
 } from '@/Components/Admin/ui';
+import { srcToDataUrl } from '@/utils/cropImage';
 import { Head, useForm, usePage } from '@inertiajs/react';
-import { CloudUpload, KeyRound, Save, Trash2 } from 'lucide-react';
+import { CloudUpload, Crop, KeyRound, Save, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 const ACCEPT = 'image/jpeg,image/png,image/webp,image/gif';
@@ -16,7 +17,9 @@ const MAX_BYTES = 15 * 1024 * 1024;
 function ProfileForm({ user }) {
     const fileRef = useRef(null);
     const [preview, setPreview] = useState(null);
+    const [cropOpen, setCropOpen] = useState(false);
     const [cropSrc, setCropSrc] = useState(null);
+    const [cropLoading, setCropLoading] = useState(false);
     const [cropName, setCropName] = useState('avatar.jpg');
     const [dragOver, setDragOver] = useState(false);
     const [localError, setLocalError] = useState(null);
@@ -58,6 +61,12 @@ function ProfileForm({ user }) {
         return user.avatar_url || null;
     }, [data.remove_avatar, preview, user.avatar_url]);
 
+    const closeCropper = () => {
+        setCropOpen(false);
+        setCropSrc(null);
+        setCropLoading(false);
+    };
+
     const openCropper = (file) => {
         if (!file) return;
         if (!file.type.startsWith('image/')) {
@@ -71,9 +80,50 @@ function ProfileForm({ user }) {
         setLocalError(null);
         const base = file.name.replace(/\.[^.]+$/, '') || 'avatar';
         setCropName(`${base}.jpg`);
+        setCropOpen(true);
+        setCropLoading(true);
+        setCropSrc(null);
+
         const reader = new FileReader();
-        reader.onload = () => setCropSrc(String(reader.result));
+        reader.onload = () => {
+            setCropSrc(String(reader.result));
+            setCropLoading(false);
+        };
+        reader.onerror = () => {
+            setCropLoading(false);
+            setCropOpen(false);
+            setLocalError('Could not read that image.');
+        };
         reader.readAsDataURL(file);
+    };
+
+    const editCurrentPhoto = async (e) => {
+        e?.preventDefault?.();
+        e?.stopPropagation?.();
+
+        if (data.avatar instanceof File) {
+            openCropper(data.avatar);
+            return;
+        }
+
+        const src = displaySrc;
+        if (!src) return;
+
+        setLocalError(null);
+        setCropName('avatar.jpg');
+        setCropOpen(true);
+        setCropLoading(true);
+        setCropSrc(null);
+
+        try {
+            const dataUrl = await srcToDataUrl(src);
+            setCropSrc(dataUrl);
+        } catch {
+            setCropOpen(false);
+            setLocalError('Could not open this photo for cropping. Try replacing it.');
+        } finally {
+            setCropLoading(false);
+        }
     };
 
     const onPickFile = (e) => {
@@ -82,18 +132,18 @@ function ProfileForm({ user }) {
         e.target.value = '';
     };
 
-    const onDrop = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
+    const onDrop = (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
         setDragOver(false);
-        const file = e.dataTransfer.files?.[0] || null;
+        const file = ev.dataTransfer.files?.[0] || null;
         openCropper(file);
     };
 
     const onCropComplete = (file) => {
         setData('avatar', file);
         setData('remove_avatar', false);
-        setCropSrc(null);
+        closeCropper();
     };
 
     const clearAvatar = () => {
@@ -123,48 +173,97 @@ function ProfileForm({ user }) {
                             Profile image
                         </p>
 
-                        <button
-                            type="button"
-                            onClick={() => fileRef.current?.click()}
-                            onDragOver={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                setDragOver(true);
-                            }}
-                            onDragLeave={() => setDragOver(false)}
-                            onDrop={onDrop}
-                            className={`flex w-full flex-col items-center justify-center rounded-2xl border border-dashed bg-gradient-to-b from-white to-olive-50/40 px-4 py-10 text-center transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard dark:from-olive-950/50 dark:to-olive-950/20 ${
-                                dragOver
-                                    ? 'border-mustard bg-mustard/10 scale-[1.01]'
-                                    : 'border-mustard/70 hover:border-mustard hover:bg-mustard/5'
-                            }`}
-                        >
-                            {displaySrc ? (
-                                <div className="flex flex-col items-center">
-                                    <div className="h-28 w-28 overflow-hidden rounded-full shadow-soft ring-4 ring-mustard/25">
-                                        <img src={displaySrc} alt="" className="h-full w-full object-cover" />
+                        {displaySrc ? (
+                            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                                <button
+                                    type="button"
+                                    onClick={editCurrentPhoto}
+                                    aria-label="Crop and zoom profile photo"
+                                    title="Click to crop & zoom"
+                                    className="group relative mx-auto h-28 w-28 shrink-0 overflow-hidden rounded-full bg-olive-100 shadow-soft ring-2 ring-olive-200 transition hover:ring-mustard focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard sm:mx-0 dark:bg-olive-800 dark:ring-olive-700"
+                                >
+                                    <img
+                                        src={displaySrc}
+                                        alt=""
+                                        className="pointer-events-none h-full w-full object-cover"
+                                        draggable={false}
+                                    />
+                                    <span className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1 bg-earth-dusk/55 text-white opacity-0 transition group-hover:opacity-100 group-focus-visible:opacity-100">
+                                        <Crop className="h-5 w-5" strokeWidth={2} />
+                                        <span className="text-[11px] font-semibold uppercase tracking-wide">
+                                            Crop
+                                        </span>
+                                    </span>
+                                </button>
+                                <div className="min-w-0 flex-1 space-y-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => fileRef.current?.click()}
+                                        onDragOver={(ev) => {
+                                            ev.preventDefault();
+                                            ev.stopPropagation();
+                                            setDragOver(true);
+                                        }}
+                                        onDragLeave={() => setDragOver(false)}
+                                        onDrop={onDrop}
+                                        className={`flex w-full items-center gap-3 rounded-2xl border border-dashed px-4 py-4 text-left transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard ${
+                                            dragOver
+                                                ? 'border-mustard bg-mustard/10'
+                                                : 'border-mustard/70 bg-olive-50/50 hover:border-mustard hover:bg-mustard/5 dark:bg-olive-950/40'
+                                        }`}
+                                    >
+                                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-mustard/15 text-mustard">
+                                            <CloudUpload className="h-5 w-5" strokeWidth={1.75} />
+                                        </span>
+                                        <span className="min-w-0">
+                                            <span className="block text-sm font-semibold text-earth-dusk dark:text-olive-50">
+                                                Replace photo
+                                            </span>
+                                            <span className="mt-0.5 block text-xs text-olive-500 dark:text-olive-400">
+                                                Drop a new image or click · max 15MB
+                                            </span>
+                                        </span>
+                                    </button>
+                                    <div className="flex flex-wrap gap-2">
+                                        <AdminButton type="button" size="sm" variant="secondary" onClick={editCurrentPhoto}>
+                                            <Crop className="h-3.5 w-3.5" />
+                                            Crop & zoom
+                                        </AdminButton>
+                                        <AdminButton type="button" size="sm" variant="ghost" onClick={clearAvatar}>
+                                            <Trash2 className="h-3.5 w-3.5" />
+                                            Remove photo
+                                        </AdminButton>
                                     </div>
-                                    <span className="mt-4 text-sm font-semibold text-earth-dusk dark:text-olive-50">
-                                        Drop a new image or click to replace
-                                    </span>
-                                    <span className="mt-1 text-xs text-olive-500 dark:text-olive-400">
-                                        You’ll crop and resize before it saves
-                                    </span>
                                 </div>
-                            ) : (
-                                <>
-                                    <span className="flex h-14 w-14 items-center justify-center rounded-full bg-mustard/15 text-mustard">
-                                        <CloudUpload className="h-7 w-7" strokeWidth={1.5} />
-                                    </span>
-                                    <span className="mt-4 text-sm font-semibold text-earth-dusk dark:text-olive-50">
-                                        Drop files here or click to upload
-                                    </span>
-                                    <span className="mt-1 text-xs text-olive-500 dark:text-olive-400">
-                                        JPG, PNG, WEBP, GIF · max 15MB
-                                    </span>
-                                </>
-                            )}
-                        </button>
+                            </div>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={() => fileRef.current?.click()}
+                                onDragOver={(ev) => {
+                                    ev.preventDefault();
+                                    ev.stopPropagation();
+                                    setDragOver(true);
+                                }}
+                                onDragLeave={() => setDragOver(false)}
+                                onDrop={onDrop}
+                                className={`flex w-full flex-col items-center justify-center rounded-2xl border border-dashed bg-gradient-to-b from-white to-olive-50/40 px-4 py-10 text-center transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard dark:from-olive-950/50 dark:to-olive-950/20 ${
+                                    dragOver
+                                        ? 'border-mustard bg-mustard/10 scale-[1.01]'
+                                        : 'border-mustard/70 hover:border-mustard hover:bg-mustard/5'
+                                }`}
+                            >
+                                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-mustard/15 text-mustard">
+                                    <CloudUpload className="h-7 w-7" strokeWidth={1.5} />
+                                </span>
+                                <span className="mt-4 text-sm font-semibold text-earth-dusk dark:text-olive-50">
+                                    Drop files here or click to upload
+                                </span>
+                                <span className="mt-1 text-xs text-olive-500 dark:text-olive-400">
+                                    JPG, PNG, WEBP, GIF · max 15MB
+                                </span>
+                            </button>
+                        )}
 
                         <input
                             ref={fileRef}
@@ -173,15 +272,6 @@ function ProfileForm({ user }) {
                             className="sr-only"
                             onChange={onPickFile}
                         />
-
-                        {(displaySrc || user.avatar_url) && !data.remove_avatar && (
-                            <div className="mt-3 flex justify-end">
-                                <AdminButton type="button" size="sm" variant="ghost" onClick={clearAvatar}>
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                    Remove photo
-                                </AdminButton>
-                            </div>
-                        )}
 
                         {(localError || errors.avatar) && (
                             <span className="mt-2 block text-sm text-rose-600 dark:text-rose-400">
@@ -218,11 +308,12 @@ function ProfileForm({ user }) {
             </FormPanel>
 
             <ImageCropModal
-                show={Boolean(cropSrc)}
+                show={cropOpen}
                 imageSrc={cropSrc}
+                loading={cropLoading}
                 fileName={cropName}
                 aspect={1}
-                onCancel={() => setCropSrc(null)}
+                onCancel={closeCropper}
                 onComplete={onCropComplete}
             />
         </>

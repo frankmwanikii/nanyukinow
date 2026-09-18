@@ -38,7 +38,16 @@ class HandleInertiaRequests extends Middleware
                         'name' => $request->user()->name,
                         'username' => $request->user()->username,
                         'email' => $request->user()->email,
-                        'avatar_url' => $request->user()->avatar_url,
+                        'avatar_url' => (function () use ($request) {
+                            $url = $request->user()->avatar_url;
+                            if (! $url) {
+                                return null;
+                            }
+                            $marker = '/storage/';
+                            $pos = strpos($url, $marker);
+
+                            return $pos === false ? $url : substr($url, $pos);
+                        })(),
                         'is_admin' => (bool) $request->user()->is_admin,
                     ]
                     : null,

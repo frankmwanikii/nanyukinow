@@ -1,7 +1,7 @@
 import Modal from '@/Components/Modal';
 import { AdminButton } from '@/Components/Admin/ui';
 import { getCroppedImage } from '@/utils/cropImage';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Cropper from 'react-easy-crop';
 
 export default function ImageCropModal({
@@ -9,6 +9,7 @@ export default function ImageCropModal({
     imageSrc,
     fileName = 'avatar.jpg',
     aspect = 1,
+    loading = false,
     onCancel,
     onComplete,
 }) {
@@ -17,6 +18,15 @@ export default function ImageCropModal({
     const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState(null);
+
+    useEffect(() => {
+        if (!show) return;
+        setCrop({ x: 0, y: 0 });
+        setZoom(1);
+        setCroppedAreaPixels(null);
+        setBusy(false);
+        setError(null);
+    }, [show, imageSrc]);
 
     const onCropComplete = useCallback((_area, pixels) => {
         setCroppedAreaPixels(pixels);
@@ -53,8 +63,13 @@ export default function ImageCropModal({
             </div>
 
             <div className="relative h-72 bg-olive-950 sm:h-80">
-                {imageSrc && (
+                {loading || !imageSrc ? (
+                    <div className="flex h-full items-center justify-center text-sm text-olive-200">
+                        Loading image…
+                    </div>
+                ) : (
                     <Cropper
+                        key={imageSrc.slice(0, 64)}
                         image={imageSrc}
                         crop={crop}
                         zoom={zoom}
@@ -80,8 +95,9 @@ export default function ImageCropModal({
                         max={3}
                         step={0.05}
                         value={zoom}
+                        disabled={loading || !imageSrc}
                         onChange={(e) => setZoom(Number(e.target.value))}
-                        className="h-2 w-full cursor-pointer appearance-none rounded-full bg-olive-200 accent-mustard dark:bg-olive-700"
+                        className="h-2 w-full cursor-pointer appearance-none rounded-full bg-olive-200 accent-mustard disabled:opacity-40 dark:bg-olive-700"
                     />
                 </label>
 
@@ -93,7 +109,12 @@ export default function ImageCropModal({
                     <AdminButton type="button" size="sm" variant="secondary" onClick={onCancel} disabled={busy}>
                         Cancel
                     </AdminButton>
-                    <AdminButton type="button" size="sm" onClick={apply} disabled={busy || !croppedAreaPixels}>
+                    <AdminButton
+                        type="button"
+                        size="sm"
+                        onClick={apply}
+                        disabled={busy || loading || !croppedAreaPixels}
+                    >
                         {busy ? 'Applying…' : 'Use photo'}
                     </AdminButton>
                 </div>
