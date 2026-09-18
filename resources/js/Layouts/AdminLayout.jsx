@@ -119,7 +119,7 @@ function ThemeToggle() {
         <div
             role="group"
             aria-label="Color theme"
-            className="relative inline-grid h-8 grid-cols-2 items-center rounded-full bg-white/[0.06] p-0.5 ring-1 ring-inset ring-white/10"
+            className="relative inline-grid h-8 shrink-0 grid-cols-2 items-center rounded-full bg-olive-950 p-0.5 ring-1 ring-inset ring-white/10 dark:bg-white/[0.08]"
         >
             <span
                 aria-hidden
@@ -247,7 +247,7 @@ function AdminShell({ title, children, actions }) {
                             open ? 'translate-x-0' : '-translate-x-full'
                         }`}
                     >
-                        <div className="flex shrink-0 items-end justify-between gap-3 border-b border-white/10 px-4 py-4">
+                        <div className="flex shrink-0 items-end border-b border-white/10 px-4 py-4">
                             <Link
                                 href={route('admin.dashboard')}
                                 className="min-w-0 block"
@@ -262,9 +262,6 @@ function AdminShell({ title, children, actions }) {
                                     className="h-12 w-auto max-w-full object-contain object-left mix-blend-lighten sm:h-14"
                                 />
                             </Link>
-                            <div className="mb-0.5 shrink-0">
-                                <ThemeToggle />
-                            </div>
                         </div>
 
                         <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
@@ -351,6 +348,8 @@ function AdminShell({ title, children, actions }) {
                                             {actions}
                                         </div>
                                     )}
+
+                                    <ThemeToggle />
 
                                     <Link
                                         href={route('admin.listings.index', { status: 'pending' })}

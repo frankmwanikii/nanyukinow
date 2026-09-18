@@ -93,15 +93,7 @@ export default function Index({ listings, filters, categories, statuses, tiers }
     };
 
     return (
-        <AdminLayout
-            title="Listings"
-            actions={
-                <AdminLink href={route('admin.listings.create')}>
-                    <Plus className="h-4 w-4" />
-                    Add listing
-                </AdminLink>
-            }
-        >
+        <AdminLayout title="Listings">
             <Head title="Admin listings" />
 
             <FilterBar>
@@ -184,6 +176,12 @@ export default function Index({ listings, filters, categories, statuses, tiers }
             ) : (
                 <DataCard
                     title={`${listings.meta?.total ?? listings.data.length} listings`}
+                    tools={
+                        <AdminLink href={route('admin.listings.create')}>
+                            <Plus className="h-4 w-4" />
+                            Add listing
+                        </AdminLink>
+                    }
                     footer={
                         <Pagination links={listings.links} meta={listings.meta} />
                     }
