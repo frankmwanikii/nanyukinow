@@ -15,16 +15,20 @@ class ListingRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $nullable = [
-            'user_id', 'category_id', 'website', 'email', 'phone', 'whatsapp',
+            'category_id', 'website', 'email', 'phone', 'whatsapp',
             'latitude', 'longitude', 'rating', 'expires_at', 'published_at',
             'image_url', 'logo_url', 'slug', 'tagline', 'price_range',
         ];
 
         $merge = [];
         foreach ($nullable as $key) {
-            if ($this->input($key) === '' || $this->input($key) === null) {
+            if ($this->has($key) && ($this->input($key) === '' || $this->input($key) === null)) {
                 $merge[$key] = null;
             }
+        }
+
+        if ($this->has('user_id') && ($this->input('user_id') === '' || $this->input('user_id') === null)) {
+            $merge['user_id'] = null;
         }
 
         $this->merge($merge);

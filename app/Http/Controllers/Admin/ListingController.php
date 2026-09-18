@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\Listing;
 use App\Models\Location;
 use App\Models\User;
+use App\Notifications\ListingReviewedNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -165,7 +166,27 @@ class ListingController extends Controller
 
     public function update(ListingRequest $request, Listing $listing): RedirectResponse
     {
-        $listing->update($this->prepareData($request->validated(), $listing));
+        $previousStatus = $listing->status;
+        $previousPublished = (bool) $listing->is_published;
+        $ownerId = $listing->user_id;
+
+        $data = $this->prepareData($request->validated(), $listing);
+
+        // Keep existing owner unless the admin explicitly posted a new user_id.
+        if (! array_key_exists('user_id', $request->validated())) {
+            unset($data['user_id']);
+        }
+
+        $listing->update($data);
+
+        $listing = $listing->fresh();
+        if (! $listing->user_id && $ownerId) {
+            $listing->user_id = $ownerId;
+            $listing->save();
+            $listing = $listing->fresh();
+        }
+
+        $this->notifyOwnerOfReview($listing, $previousStatus, $previousPublished);
 
         return redirect()
             ->route('admin.listings.edit', $listing)
@@ -191,14 +212,24 @@ class ListingController extends Controller
 
         $query = Listing::query()->whereIn('id', $data['ids']);
 
-        match ($data['action']) {
-            'publish' => $query->update(['is_published' => true, 'status' => 'published']),
-            'unpublish' => $query->update(['is_published' => false, 'status' => 'draft']),
-            'feature' => $query->update(['is_featured' => true, 'tier' => 'featured']),
-            'unfeature' => $query->update(['is_featured' => false]),
-            'archive' => $query->update(['status' => 'archived', 'is_published' => false]),
-            'delete' => $query->delete(),
-        };
+        if ($data['action'] === 'publish') {
+            $listings = (clone $query)->with('user')->get();
+            $query->update(['is_published' => true, 'status' => 'published']);
+            foreach ($listings as $listing) {
+                if ($listing->user) {
+                    $listing->user->notify(new ListingReviewedNotification($listing, 'published'));
+                }
+            }
+        } else {
+            match ($data['action']) {
+                'unpublish' => $query->update(['is_published' => false, 'status' => 'draft']),
+                'feature' => $query->update(['is_featured' => true, 'tier' => 'featured']),
+                'unfeature' => $query->update(['is_featured' => false]),
+                'archive' => $query->update(['status' => 'archived', 'is_published' => false]),
+                'delete' => $query->delete(),
+                default => null,
+            };
+        }
 
         return back()->with('success', 'Bulk action completed.');
     }
@@ -248,5 +279,24 @@ class ListingController extends Controller
         }
 
         return $data;
+    }
+
+    private function notifyOwnerOfReview(Listing $listing, ?string $previousStatus, bool $previousPublished): void
+    {
+        if (! $listing->user_id || ! $listing->user) {
+            return;
+        }
+
+        $becamePublished = $listing->is_published
+            && $listing->status === 'published'
+            && (! $previousPublished || $previousStatus !== 'published');
+
+        $becameArchived = $listing->status === 'archived' && $previousStatus !== 'archived';
+
+        if ($becamePublished) {
+            $listing->user->notify(new ListingReviewedNotification($listing, 'published'));
+        } elseif ($becameArchived) {
+            $listing->user->notify(new ListingReviewedNotification($listing, 'archived'));
+        }
     }
 }

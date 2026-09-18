@@ -3,7 +3,6 @@ import {
     Menu,
     Plus,
     Search,
-    ShoppingCart,
     User,
     X,
 } from 'lucide-react';
@@ -12,6 +11,11 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import AuthModal from './AuthModal';
 import FlippingSearchHint from './FlippingSearchHint';
 import Logo from './Logo';
+import {
+    MemberAvatar,
+    MemberNotificationsBell,
+    MemberUserMenu,
+} from './MemberAccountMenu';
 import SearchSuggestions from './SearchSuggestions';
 import { explorePath, getCategoryByKey, mainCategories } from '@/data/categories';
 
@@ -392,15 +396,12 @@ export default function Navbar({ compact = false }) {
                         <Logo className="min-w-0" />
                     </div>
 
-                    <div className="flex shrink-0 items-center gap-0.5">
+                    <div className="flex shrink-0 items-center gap-1.5">
                         {user ? (
-                            <Link
-                                href={route('account.index')}
-                                className="inline-flex rounded-lg p-2 text-white transition hover:bg-white/10"
-                                aria-label="My account"
-                            >
-                                <User className="h-5 w-5" strokeWidth={1.85} />
-                            </Link>
+                            <>
+                                <MemberNotificationsBell />
+                                <MemberUserMenu user={user} compact />
+                            </>
                         ) : (
                             <button
                                 type="button"
@@ -411,16 +412,6 @@ export default function Navbar({ compact = false }) {
                                 <User className="h-5 w-5" strokeWidth={1.85} />
                             </button>
                         )}
-                        <button
-                            type="button"
-                            className="inline-flex rounded-lg p-2 text-white transition hover:bg-white/10"
-                            aria-label="Cart"
-                        >
-                            <ShoppingCart
-                                className="h-5 w-5"
-                                strokeWidth={1.75}
-                            />
-                        </button>
                     </div>
                 </div>
 
@@ -642,17 +633,12 @@ export default function Navbar({ compact = false }) {
                     })}
                 </nav>
 
-                <div className="ml-auto hidden shrink-0 items-center gap-1.5 font-display sm:gap-2.5 lg:flex">
+                <div className="ml-auto hidden shrink-0 items-center gap-2 font-display sm:gap-2.5 lg:flex">
                     {user ? (
-                        <Link
-                            href={route('account.index')}
-                            className="inline-flex items-center gap-2 rounded-lg px-2.5 py-2 text-base font-semibold text-white/95 transition hover:bg-white/10 hover:text-white sm:text-[17px]"
-                        >
-                            <User className="h-4 w-4" strokeWidth={1.85} />
-                            <span className="max-w-[10rem] truncate">
-                                {user.name?.split(' ')[0] || 'Account'}
-                            </span>
-                        </Link>
+                        <>
+                            <MemberNotificationsBell />
+                            <MemberUserMenu user={user} />
+                        </>
                     ) : (
                         <button
                             type="button"
@@ -665,14 +651,6 @@ export default function Navbar({ compact = false }) {
                             </span>
                         </button>
                     )}
-
-                    <button
-                        type="button"
-                        className="rounded-lg p-2 text-white transition hover:bg-white/10"
-                        aria-label="Bag"
-                    >
-                        <ShoppingCart className="h-5 w-5" strokeWidth={1.75} />
-                    </button>
 
                     <Link
                         href={user ? route('account.listings.create') : '/register'}
@@ -735,6 +713,23 @@ export default function Navbar({ compact = false }) {
                             />
 
                             <div className="border-t border-white/10 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+                                {user ? (
+                                    <Link
+                                        href={route('account.index')}
+                                        onClick={() => setOpen(false)}
+                                        className="mb-3 flex items-center gap-3 rounded-xl bg-white/5 px-3 py-2.5 ring-1 ring-white/10 transition hover:bg-white/10"
+                                    >
+                                        <MemberAvatar user={user} />
+                                        <div className="min-w-0 flex-1">
+                                            <p className="truncate text-sm font-semibold text-white">
+                                                {user.name}
+                                            </p>
+                                            <p className="truncate text-xs text-white/60">
+                                                {user.plan_label || 'Free'} plan
+                                            </p>
+                                        </div>
+                                    </Link>
+                                ) : null}
                                 <Link
                                     href={user ? route('account.listings.create') : '/register'}
                                     className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-mustard px-4 py-3.5 text-base font-bold text-olive-950 transition hover:bg-white hover:text-mustard"
@@ -743,13 +738,32 @@ export default function Navbar({ compact = false }) {
                                     <Plus className="h-4 w-4 stroke-[2.5]" />
                                     Add Business
                                 </Link>
-                                <Link
-                                    href={route('pricing')}
-                                    className="mt-2 inline-flex w-full items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
-                                    onClick={() => setOpen(false)}
-                                >
-                                    Pricing
-                                </Link>
+                                {user ? (
+                                    <div className="mt-2 grid grid-cols-2 gap-2">
+                                        <Link
+                                            href={route('account.index')}
+                                            className="inline-flex items-center justify-center rounded-xl px-3 py-2.5 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
+                                            onClick={() => setOpen(false)}
+                                        >
+                                            Account
+                                        </Link>
+                                        <Link
+                                            href={route('account.notifications')}
+                                            className="inline-flex items-center justify-center rounded-xl px-3 py-2.5 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
+                                            onClick={() => setOpen(false)}
+                                        >
+                                            Alerts
+                                        </Link>
+                                    </div>
+                                ) : (
+                                    <Link
+                                        href={route('pricing')}
+                                        className="mt-2 inline-flex w-full items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
+                                        onClick={() => setOpen(false)}
+                                    >
+                                        Pricing
+                                    </Link>
+                                )}
                             </div>
                         </motion.aside>
                     </>

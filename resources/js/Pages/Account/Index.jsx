@@ -131,6 +131,12 @@ export default function Index({ plan, listings = [], pendingUpgrade = null }) {
                             >
                                 Profile settings
                             </Link>
+                            <Link
+                                href={route('account.notifications')}
+                                className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-olive-600 transition hover:bg-olive-50 hover:text-olive-950"
+                            >
+                                Notifications
+                            </Link>
                         </div>
                     </div>
 

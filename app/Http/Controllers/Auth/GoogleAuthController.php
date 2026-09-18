@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Notifications\WelcomeMemberNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -67,6 +68,8 @@ class GoogleAuthController extends Controller
                 'email_verified_at' => now(),
                 'password' => bcrypt(Str::random(40)),
             ]);
+
+            $user->notify(new WelcomeMemberNotification);
         } elseif (! $user->email_verified_at) {
             $user->forceFill(['email_verified_at' => now()])->save();
         }

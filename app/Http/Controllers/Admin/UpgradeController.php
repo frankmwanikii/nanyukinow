@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\PlanUpgrade;
+use App\Notifications\PlanUpgradeReviewedNotification;
 use App\Support\Membership;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -66,6 +67,8 @@ class UpgradeController extends Controller
             'reviewed_at' => now(),
         ]);
 
+        $upgrade->user?->notify(new PlanUpgradeReviewedNotification($upgrade->fresh()));
+
         return back()->with('success', 'Upgrade approved and plan activated.');
     }
 
@@ -83,6 +86,8 @@ class UpgradeController extends Controller
             'reviewed_by' => $request->user()->id,
             'reviewed_at' => now(),
         ]);
+
+        $upgrade->user?->notify(new PlanUpgradeReviewedNotification($upgrade->fresh()));
 
         return back()->with('success', 'Upgrade request rejected.');
     }

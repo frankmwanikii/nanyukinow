@@ -55,6 +55,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/account/upgrade', [AccountUpgradeController::class, 'store'])->name('account.upgrade.store');
     Route::post('/account/upgrade/{upgrade}/cancel', [AccountUpgradeController::class, 'cancel'])->name('account.upgrade.cancel');
 
+    Route::get('/account/notifications', [\App\Http\Controllers\Account\NotificationController::class, 'index'])->name('account.notifications');
+    Route::post('/account/notifications/read-all', [\App\Http\Controllers\Account\NotificationController::class, 'markAllRead'])->name('account.notifications.read-all');
+    Route::post('/account/notifications/{id}/read', [\App\Http\Controllers\Account\NotificationController::class, 'markRead'])->name('account.notifications.read');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
