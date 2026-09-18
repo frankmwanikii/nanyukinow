@@ -23,7 +23,7 @@ export default function Login({ status }) {
                 {/* Left hero — fill panel (no letterbox), keep full wordmark visible */}
                 <aside className="relative hidden min-h-screen overflow-hidden bg-olive-950 lg:col-span-7 lg:block">
                     <img
-                        src="/images/hero/slide_1.jpeg"
+                        src="/images/hero/slide-2.webp"
                         alt="Nanyuki Now — Your city, right now"
                         className="absolute inset-0 h-full w-full object-fill"
                         decoding="async"

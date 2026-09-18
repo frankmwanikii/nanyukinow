@@ -1,4 +1,4 @@
-import { Link, usePage } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import {
     LayoutDashboard,
     LayoutList,
@@ -6,12 +6,13 @@ import {
     Users,
     Newspaper,
     Settings2,
-    LogOut,
     Menu,
     X,
-    ExternalLink,
     Moon,
     Sun,
+    Search,
+    Bell,
+    ChevronDown,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { AdminThemeProvider, useAdminTheme } from '@/hooks/useAdminTheme';
@@ -65,14 +66,14 @@ function UserAvatar({ user }) {
             <img
                 src={user.avatar_url}
                 alt=""
-                className="h-10 w-10 rounded-full object-cover ring-2 ring-mustard/40"
+                className="h-9 w-9 rounded-full object-cover"
             />
         );
     }
 
     return (
         <div
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-mustard text-sm font-bold text-earth-dusk ring-2 ring-mustard/30"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-mustard text-sm font-bold text-earth-dusk"
             aria-hidden
         >
             {initials}
@@ -80,10 +81,161 @@ function UserAvatar({ user }) {
     );
 }
 
+function TopbarSearch() {
+    const [term, setTerm] = useState('');
+
+    const submit = (e) => {
+        e.preventDefault();
+        router.get(route('admin.listings.index'), { q: term.trim() || undefined }, {
+            preserveState: false,
+        });
+    };
+
+    return (
+        <form
+            onSubmit={submit}
+            role="search"
+            className="hidden min-w-0 md:block md:w-64 lg:w-80 xl:w-96"
+        >
+            <label className="relative flex items-center">
+                <span className="sr-only">Search listings</span>
+                <Search className="pointer-events-none absolute left-4 h-4 w-4 text-olive-500 dark:text-olive-400" />
+                <input
+                    type="search"
+                    value={term}
+                    onChange={(e) => setTerm(e.target.value)}
+                    placeholder="Search"
+                    className="h-11 w-full rounded-full border border-olive-200 bg-white pl-11 pr-4 text-sm text-olive-900 shadow-soft placeholder:text-olive-500 focus:border-mustard focus:ring-2 focus:ring-mustard/40 dark:border-olive-700 dark:bg-olive-950/80 dark:text-olive-50 dark:placeholder:text-olive-400 dark:focus:border-mustard"
+                />
+            </label>
+        </form>
+    );
+}
+
+function ThemeToggle() {
+    const { isDark, setTheme } = useAdminTheme();
+
+    return (
+        <div
+            role="group"
+            aria-label="Color theme"
+            className="relative inline-grid h-8 grid-cols-2 items-center rounded-full bg-white/[0.06] p-0.5 ring-1 ring-inset ring-white/10"
+        >
+            <span
+                aria-hidden
+                className="pointer-events-none absolute top-0.5 left-0.5 h-7 w-7 rounded-full bg-mustard shadow-[0_1px_6px_rgba(242,184,46,0.35)] transition-transform duration-300 ease-out"
+                style={{ transform: isDark ? 'translateX(1.75rem)' : 'translateX(0)' }}
+            />
+            <button
+                type="button"
+                onClick={() => setTheme('light')}
+                aria-label="Light mode"
+                aria-pressed={!isDark}
+                className={
+                    'relative z-10 flex h-7 w-7 items-center justify-center rounded-full transition-colors duration-200 ' +
+                    (!isDark ? 'text-earth-dusk' : 'text-olive-400 hover:text-olive-200')
+                }
+            >
+                <Sun className="h-3.5 w-3.5" strokeWidth={2.25} />
+            </button>
+            <button
+                type="button"
+                onClick={() => setTheme('dark')}
+                aria-label="Dark mode"
+                aria-pressed={isDark}
+                className={
+                    'relative z-10 flex h-7 w-7 items-center justify-center rounded-full transition-colors duration-200 ' +
+                    (isDark ? 'text-earth-dusk' : 'text-olive-400 hover:text-olive-200')
+                }
+            >
+                <Moon className="h-3.5 w-3.5" strokeWidth={2.25} />
+            </button>
+        </div>
+    );
+}
+
+
+function SignOutIcon({ className = 'h-4 w-4' }) {
+    return (
+        <svg
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            aria-hidden
+            className={className}
+        >
+            {/* Open door with knob hole */}
+            <path
+                fillRule="evenodd"
+                clipRule="evenodd"
+                d="M3.5 3.2c0-.39.31-.7.7-.7h5.05c.17 0 .34.06.47.18l4.08 3.7c.2.18.31.44.31.71v13.41c0 .39-.31.7-.7.7H4.2a.7.7 0 0 1-.7-.7V3.2ZM7.35 10.65a1.35 1.35 0 1 0 0 2.7 1.35 1.35 0 0 0 0-2.7Z"
+            />
+            {/* Doorway frame */}
+            <path d="M15 5h5.75c.41 0 .75.34.75.75v12.5c0 .41-.34.75-.75.75H15a.75.75 0 0 1 0-1.5h5V6.5H15A.75.75 0 0 1 15 5Z" />
+            {/* Exit arrow */}
+            <path d="M11.25 11.1h5.55l-1.55-1.55a.75.75 0 0 1 1.06-1.06l3.05 3.05c.3.3.3.77 0 1.06l-3.05 3.05a.75.75 0 1 1-1.06-1.06l1.55-1.55h-5.55a.75.75 0 0 1 0-1.5Z" />
+        </svg>
+    );
+}
+
+function UserMenu({ user }) {
+    const [open, setOpen] = useState(false);
+
+    return (
+        <div className="relative shrink-0">
+            <button
+                type="button"
+                onClick={() => setOpen((v) => !v)}
+                aria-expanded={open}
+                aria-haspopup="menu"
+                className="flex items-center gap-2.5 rounded-full bg-white py-1.5 pl-1.5 pr-2.5 text-left transition hover:bg-olive-50 dark:bg-olive-950/60 dark:hover:bg-olive-950"
+            >
+                <UserAvatar user={user} />
+                <div className="hidden min-w-0 sm:block">
+                    <p className="truncate text-sm font-semibold leading-tight text-olive-950 dark:text-olive-50">
+                        {user?.name || 'Admin'}
+                    </p>
+                    <p className="truncate text-xs leading-tight text-olive-500 dark:text-olive-400">
+                        {user?.is_admin ? 'Administrator' : 'Team member'}
+                    </p>
+                </div>
+                <ChevronDown
+                    className={`h-4 w-4 shrink-0 text-olive-400 transition ${open ? 'rotate-180' : ''}`}
+                />
+            </button>
+
+            {open && (
+                <>
+                    <button
+                        type="button"
+                        aria-label="Close menu"
+                        className="fixed inset-0 z-30 cursor-default"
+                        onClick={() => setOpen(false)}
+                    />
+                    <div
+                        role="menu"
+                        className="absolute right-0 z-40 mt-2 w-48 overflow-hidden rounded-xl bg-white py-1 shadow-lift dark:bg-olive-900"
+                    >
+                        <Link
+                            href={route('admin.logout')}
+                            method="post"
+                            as="button"
+                            role="menuitem"
+                            className="flex w-full items-center gap-2.5 px-3 py-2.5 text-sm font-medium text-olive-800 transition hover:bg-rose-50 hover:text-rose-700 dark:text-olive-100 dark:hover:bg-rose-500/10 dark:hover:text-rose-300"
+                        >
+                            <SignOutIcon className="h-4 w-4" />
+                            Sign out
+                        </Link>
+                    </div>
+                </>
+            )}
+        </div>
+    );
+}
+
 function AdminShell({ title, children, actions }) {
     const { auth } = usePage().props;
     const [open, setOpen] = useState(false);
-    const { isDark, toggleTheme } = useAdminTheme();
+    const { isDark } = useAdminTheme();
     const user = auth?.user;
 
     return (
@@ -95,10 +247,10 @@ function AdminShell({ title, children, actions }) {
                             open ? 'translate-x-0' : '-translate-x-full'
                         }`}
                     >
-                        <div className="shrink-0 border-b border-white/10 px-4 py-4">
+                        <div className="flex shrink-0 items-end justify-between gap-3 border-b border-white/10 px-4 py-4">
                             <Link
                                 href={route('admin.dashboard')}
-                                className="block"
+                                className="min-w-0 block"
                                 aria-label="Nanyuki Now admin home"
                             >
                                 <img
@@ -110,6 +262,9 @@ function AdminShell({ title, children, actions }) {
                                     className="h-12 w-auto max-w-full object-contain object-left mix-blend-lighten sm:h-14"
                                 />
                             </Link>
+                            <div className="mb-0.5 shrink-0">
+                                <ThemeToggle />
+                            </div>
                         </div>
 
                         <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
@@ -145,16 +300,16 @@ function AdminShell({ title, children, actions }) {
                             })}
                         </nav>
 
-                        <div className="shrink-0 border-t border-white/10 p-3">
-                            <a
-                                href={route('home')}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="flex items-center gap-2 rounded-md px-3 py-2.5 text-sm text-olive-400 hover:bg-white/5 hover:text-white"
+                        <div className="shrink-0 border-t border-white/[0.08] p-3">
+                            <Link
+                                href={route('admin.logout')}
+                                method="post"
+                                as="button"
+                                className="inline-flex w-full items-center justify-center gap-2.5 rounded-full bg-white/[0.04] px-3 py-2.5 text-sm font-medium text-olive-300 ring-1 ring-inset ring-white/10 transition hover:bg-rose-500/10 hover:text-rose-300 hover:ring-rose-400/20"
                             >
-                                <ExternalLink className="h-4 w-4" />
-                                View live site
-                            </a>
+                                <SignOutIcon className="h-4 w-4 shrink-0 opacity-90" />
+                                <span>Sign out</span>
+                            </Link>
                         </div>
                     </aside>
 
@@ -168,12 +323,12 @@ function AdminShell({ title, children, actions }) {
                     )}
 
                     <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-                        <header className="z-20 shrink-0 border-b border-olive-200/80 bg-white/95 backdrop-blur dark:border-olive-800 dark:bg-olive-900/95">
-                            <div className="flex items-center justify-between gap-4 px-4 py-3 sm:px-6">
-                                <div className="flex min-w-0 items-center gap-3">
+                        <header className="z-20 shrink-0 bg-[#f9f6f1] dark:bg-olive-900">
+                            <div className="flex items-center gap-3 px-4 py-3 sm:gap-5 sm:px-6">
+                                <div className="flex min-w-0 flex-1 items-center gap-3">
                                     <button
                                         type="button"
-                                        className="rounded-md border border-olive-200 bg-white p-2 text-olive-800 dark:border-olive-700 dark:bg-olive-900 dark:text-olive-100 lg:hidden"
+                                        className="shrink-0 rounded-full bg-white p-2 text-olive-800 dark:bg-olive-950/60 dark:text-olive-100 lg:hidden"
                                         onClick={() => setOpen(true)}
                                     >
                                         {open ? (
@@ -182,60 +337,31 @@ function AdminShell({ title, children, actions }) {
                                             <Menu className="h-5 w-5" />
                                         )}
                                     </button>
-                                    <h1 className="truncate font-display text-2xl font-semibold tracking-tight text-olive-950 dark:text-white">
+
+                                    <h1 className="min-w-0 truncate font-display text-2xl font-bold tracking-tight text-olive-950 dark:text-white">
                                         {title}
                                     </h1>
                                 </div>
 
-                                <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-                                    {actions}
+                                <TopbarSearch />
 
-                                    <button
-                                        type="button"
-                                        onClick={toggleTheme}
-                                        aria-label={
-                                            isDark ? 'Switch to light mode' : 'Switch to dark mode'
-                                        }
-                                        title={isDark ? 'Light mode' : 'Dark mode'}
-                                        className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-olive-200 bg-white text-olive-700 transition hover:bg-olive-50 hover:text-olive-950 dark:border-olive-700 dark:bg-olive-900 dark:text-olive-200 dark:hover:bg-olive-800 dark:hover:text-mustard"
+                                <div className="flex min-w-0 flex-1 items-center justify-end gap-2 sm:gap-3">
+                                    {actions && (
+                                        <div className="flex shrink-0 items-center gap-2 [&_a]:rounded-full [&_button]:rounded-full">
+                                            {actions}
+                                        </div>
+                                    )}
+
+                                    <Link
+                                        href={route('admin.listings.index', { status: 'pending' })}
+                                        aria-label="Listings awaiting review"
+                                        title="Listings awaiting review"
+                                        className="relative inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-olive-800 transition hover:bg-olive-50 hover:text-olive-950 dark:bg-olive-950/60 dark:text-olive-200 dark:hover:text-mustard"
                                     >
-                                        {isDark ? (
-                                            <Sun className="h-5 w-5" />
-                                        ) : (
-                                            <Moon className="h-5 w-5" />
-                                        )}
-                                    </button>
+                                        <Bell className="h-[18px] w-[18px]" />
+                                    </Link>
 
-                                    <div className="hidden h-8 w-px bg-olive-200 dark:bg-olive-700 sm:block" />
-
-                                    <div className="flex items-center gap-2.5 rounded-lg border border-olive-200 bg-olive-50/80 py-1.5 pl-1.5 pr-2 dark:border-olive-700 dark:bg-olive-950/60 sm:pr-3">
-                                        <div className="relative">
-                                            <UserAvatar user={user} />
-                                            <span
-                                                className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white bg-mint-deep dark:border-olive-900"
-                                                title="Online"
-                                            />
-                                        </div>
-                                        <div className="hidden min-w-0 sm:block">
-                                            <p className="truncate text-sm font-semibold text-olive-900 dark:text-olive-50">
-                                                {user?.name || 'Admin'}
-                                            </p>
-                                            <p className="flex items-center gap-1.5 text-xs text-olive-500 dark:text-olive-400">
-                                                <span className="inline-block h-1.5 w-1.5 rounded-full bg-mint-deep" />
-                                                {user?.is_admin ? 'Admin · Online' : 'Online'}
-                                            </p>
-                                        </div>
-                                        <Link
-                                            href={route('admin.logout')}
-                                            method="post"
-                                            as="button"
-                                            title="Sign out"
-                                            aria-label="Sign out"
-                                            className="ml-0.5 inline-flex h-9 w-9 items-center justify-center rounded-md text-olive-500 transition hover:bg-rose-50 hover:text-rose-600 dark:text-olive-300 dark:hover:bg-rose-950/40 dark:hover:text-rose-300"
-                                        >
-                                            <LogOut className="h-5 w-5" />
-                                        </Link>
-                                    </div>
+                                    <UserMenu user={user} />
                                 </div>
                             </div>
                         </header>

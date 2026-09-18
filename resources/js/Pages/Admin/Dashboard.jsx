@@ -12,14 +12,12 @@ import {
     StatCard,
     Td,
     Th,
-    AdminLink,
 } from '@/Components/Admin/ui';
 import { useAdminTheme } from '@/hooks/useAdminTheme';
 import { Head, Link } from '@inertiajs/react';
 import {
     Eye,
     LayoutList,
-    Plus,
     Sparkles,
     Timer,
     Users,
@@ -27,15 +25,7 @@ import {
 
 export default function Dashboard(props) {
     return (
-        <AdminLayout
-            title="Overview"
-            actions={
-                <AdminLink href={route('admin.listings.create')}>
-                    <Plus className="h-4 w-4" />
-                    New listing
-                </AdminLink>
-            }
-        >
+        <AdminLayout title="Overview">
             <Head title="Admin overview" />
             <DashboardBody {...props} />
         </AdminLayout>
