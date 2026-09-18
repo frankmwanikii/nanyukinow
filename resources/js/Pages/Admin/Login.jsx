@@ -149,25 +149,11 @@ export default function Login({ status }) {
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="mt-2 w-full rounded-md bg-mustard px-4 py-3.5 text-base font-bold uppercase tracking-wide text-earth-dusk shadow-soft transition hover:bg-mustard-soft disabled:opacity-60"
+                                className="mt-2 w-full rounded-md bg-mustard px-4 py-3.5 text-base font-bold uppercase tracking-wide text-earth-dusk shadow-soft transition duration-200 hover:bg-mint-deep hover:text-white hover:shadow-lift active:scale-[0.99] disabled:opacity-60"
                             >
                                 {processing ? 'Signing in…' : 'Login'}
                             </button>
                         </form>
-
-                        <p className="mt-8 text-xs leading-relaxed text-olive-600">
-                            Protected operator access for Nanyuki Now. By signing in you
-                            agree to use this area only for authorized directory management.
-                            See our{' '}
-                            <Link href={route('privacy')} className="underline underline-offset-2 hover:text-olive-900">
-                                Privacy Policy
-                            </Link>{' '}
-                            and{' '}
-                            <Link href={route('terms')} className="underline underline-offset-2 hover:text-olive-900">
-                                Terms
-                            </Link>
-                            .
-                        </p>
                     </div>
                 </section>
             </div>
