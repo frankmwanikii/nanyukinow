@@ -73,7 +73,7 @@ class GoogleAuthController extends Controller
 
         Auth::login($user, remember: true);
 
-        return redirect()->intended(route('home', absolute: false));
+        return redirect()->intended(route('account.index', absolute: false));
     }
 
     private function credentialsConfigured(): bool

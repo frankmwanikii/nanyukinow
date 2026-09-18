@@ -30,6 +30,7 @@ class PricingPlanUpdateRequest extends FormRequest
             'is_highlighted' => ['sometimes', 'boolean'],
             'is_active' => ['sometimes', 'boolean'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:999'],
+            'listing_limit' => ['required', 'integer', 'min:0', 'max:100'],
         ];
     }
 

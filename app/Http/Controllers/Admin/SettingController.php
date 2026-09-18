@@ -14,6 +14,7 @@ class SettingController extends Controller
     public function index(): Response
     {
         $this->ensureDefaults();
+        $this->ensureBillingDefaults();
 
         $settings = SiteSetting::query()
             ->orderBy('group')
@@ -72,6 +73,10 @@ class SettingController extends Controller
             ['group' => 'pages', 'key' => 'contact_email', 'label' => 'Contact email', 'type' => 'text', 'value' => 'hello@nanyukinow.co.ke', 'help' => null, 'sort_order' => 1],
             ['group' => 'pages', 'key' => 'contact_phone', 'label' => 'Contact phone', 'type' => 'text', 'value' => '', 'help' => null, 'sort_order' => 2],
             ['group' => 'pages', 'key' => 'footer_blurb', 'label' => 'Footer blurb', 'type' => 'textarea', 'value' => 'Nanyuki Now — your local directory for places worth knowing.', 'help' => null, 'sort_order' => 3],
+            ['group' => 'billing', 'key' => 'upgrade_whatsapp', 'label' => 'Upgrade WhatsApp', 'type' => 'text', 'value' => '', 'help' => 'WhatsApp number members can message after paying (e.g. 2547…).', 'sort_order' => 1],
+            ['group' => 'billing', 'key' => 'upgrade_mpesa_paybill', 'label' => 'M-Pesa Paybill / Till', 'type' => 'text', 'value' => '', 'help' => 'Shown on the public pricing & upgrade pages.', 'sort_order' => 2],
+            ['group' => 'billing', 'key' => 'upgrade_mpesa_account', 'label' => 'M-Pesa account reference', 'type' => 'text', 'value' => 'PLAN', 'help' => 'Account number members should use with Paybill.', 'sort_order' => 3],
+            ['group' => 'billing', 'key' => 'upgrade_instructions', 'label' => 'Upgrade instructions', 'type' => 'textarea', 'value' => 'Pay via M-Pesa, then submit your upgrade request with the payment confirmation code. An admin will activate your plan after verifying payment.', 'help' => 'Shown to members when upgrading.', 'sort_order' => 4],
             ['group' => 'social', 'key' => 'facebook_url', 'label' => 'Facebook', 'type' => 'text', 'value' => '', 'help' => null, 'sort_order' => 1],
             ['group' => 'social', 'key' => 'instagram_url', 'label' => 'Instagram', 'type' => 'text', 'value' => '', 'help' => null, 'sort_order' => 2],
             ['group' => 'social', 'key' => 'twitter_url', 'label' => 'X / Twitter', 'type' => 'text', 'value' => '', 'help' => null, 'sort_order' => 3],
@@ -81,6 +86,23 @@ class SettingController extends Controller
 
         foreach ($defaults as $row) {
             SiteSetting::query()->create($row);
+        }
+    }
+
+    private function ensureBillingDefaults(): void
+    {
+        $billing = [
+            ['group' => 'billing', 'key' => 'upgrade_whatsapp', 'label' => 'Upgrade WhatsApp', 'type' => 'text', 'value' => '', 'help' => 'WhatsApp number members can message after paying (e.g. 2547…).', 'sort_order' => 1],
+            ['group' => 'billing', 'key' => 'upgrade_mpesa_paybill', 'label' => 'M-Pesa Paybill / Till', 'type' => 'text', 'value' => '', 'help' => 'Shown on the public pricing & upgrade pages.', 'sort_order' => 2],
+            ['group' => 'billing', 'key' => 'upgrade_mpesa_account', 'label' => 'M-Pesa account reference', 'type' => 'text', 'value' => 'PLAN', 'help' => 'Account number members should use with Paybill.', 'sort_order' => 3],
+            ['group' => 'billing', 'key' => 'upgrade_instructions', 'label' => 'Upgrade instructions', 'type' => 'textarea', 'value' => 'Pay via M-Pesa, then submit your upgrade request with the payment confirmation code. An admin will activate your plan after verifying payment.', 'help' => 'Shown to members when upgrading.', 'sort_order' => 4],
+        ];
+
+        foreach ($billing as $row) {
+            SiteSetting::query()->firstOrCreate(
+                ['key' => $row['key']],
+                $row,
+            );
         }
     }
 }

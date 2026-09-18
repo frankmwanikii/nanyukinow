@@ -8,6 +8,7 @@ const groupLabels = {
     branding: 'Branding',
     home: 'Home page',
     pages: 'Site pages & contact',
+    billing: 'Membership & upgrades',
     social: 'Social links',
     seo: 'SEO & sharing',
 };

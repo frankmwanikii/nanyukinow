@@ -35,6 +35,8 @@ class AdminAccessTest extends TestCase
             ->assertInertia(fn ($page) => $page
                 ->component('Admin/Dashboard')
                 ->has('stats')
+                ->has('stats.pending_upgrades')
+                ->has('stats.pending_listings')
                 ->has('charts.activity')
                 ->has('charts.categories')
                 ->has('charts.statuses')

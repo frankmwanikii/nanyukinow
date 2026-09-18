@@ -81,6 +81,7 @@ function PlanCard({ plan, billingPeriods, editing, onEdit, onCancel }) {
         is_highlighted: Boolean(plan.is_highlighted),
         is_active: Boolean(plan.is_active),
         sort_order: plan.sort_order ?? 0,
+        listing_limit: plan.listing_limit ?? 1,
     });
 
     useEffect(() => {
@@ -97,6 +98,7 @@ function PlanCard({ plan, billingPeriods, editing, onEdit, onCancel }) {
             is_highlighted: Boolean(plan.is_highlighted),
             is_active: Boolean(plan.is_active),
             sort_order: plan.sort_order ?? 0,
+            listing_limit: plan.listing_limit ?? 1,
         });
         form.clearErrors();
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -267,6 +269,15 @@ function PlanCard({ plan, billingPeriods, editing, onEdit, onCancel }) {
                     </div>
 
                     <AdminInput
+                        label="Listing limit"
+                        type="number"
+                        min="0"
+                        value={form.data.listing_limit}
+                        onChange={(e) => form.setData('listing_limit', e.target.value)}
+                        error={form.errors.listing_limit}
+                    />
+
+                    <AdminInput
                         label="Sort order"
                         type="number"
                         min="0"
@@ -332,6 +343,10 @@ function PlanCard({ plan, billingPeriods, editing, onEdit, onCancel }) {
                         </span>
                     )}
                 </div>
+                <p className="mt-2 text-sm font-medium text-olive-600 dark:text-olive-300">
+                    Up to {plan.listing_limit} listing{plan.listing_limit === 1 ? '' : 's'} · card badge:{' '}
+                    {plan.badge_label || plan.name}
+                </p>
 
                 <ul className="mt-7 flex-1 space-y-3">
                     {(plan.inclusions || []).map((item) => (

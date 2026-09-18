@@ -8,6 +8,7 @@ import {
     Newspaper,
     Settings2,
     CircleDollarSign,
+    ArrowUpCircle,
     Menu,
     X,
     Moon,
@@ -27,6 +28,7 @@ const nav = [
     { label: 'Stories', href: 'admin.stories.index', icon: Newspaper },
     { label: 'Users', href: 'admin.users.index', icon: Users },
     { label: 'Pricing', href: 'admin.pricing.index', icon: CircleDollarSign },
+    { label: 'Upgrades', href: 'admin.upgrades.index', icon: ArrowUpCircle },
     { label: 'Site & pages', href: 'admin.settings.index', icon: Settings2 },
 ];
 
@@ -299,6 +301,8 @@ function AdminShell({ title, children, actions }) {
                                         route().current('admin.users.*')) ||
                                     (item.href === 'admin.pricing.index' &&
                                         route().current('admin.pricing.*')) ||
+                                    (item.href === 'admin.upgrades.index' &&
+                                        route().current('admin.upgrades.*')) ||
                                     (item.href === 'admin.settings.index' &&
                                         route().current('admin.settings.*'));
                                 return (

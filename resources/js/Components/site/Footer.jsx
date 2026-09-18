@@ -101,6 +101,22 @@ export default function Footer() {
                         </li>
                         <li>
                             <Link
+                                href="/pricing"
+                                className="transition hover:text-mint"
+                            >
+                                Pricing
+                            </Link>
+                        </li>
+                        <li>
+                            <Link
+                                href="/account"
+                                className="transition hover:text-mint"
+                            >
+                                My account
+                            </Link>
+                        </li>
+                        <li>
+                            <Link
                                 href="/register"
                                 className="transition hover:text-mint"
                             >

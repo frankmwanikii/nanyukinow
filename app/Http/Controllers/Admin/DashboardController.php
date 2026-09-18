@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Listing;
+use App\Models\PlanUpgrade;
 use App\Models\Story;
 use App\Models\User;
 use Carbon\Carbon;
@@ -37,6 +38,8 @@ class DashboardController extends Controller
             'stories' => Story::query()->count(),
             'draft_stories' => Story::query()->where('is_published', false)->count(),
             'views' => (int) Listing::query()->sum('views_count'),
+            'pending_listings' => Listing::query()->where('status', 'pending')->count(),
+            'pending_upgrades' => PlanUpgrade::query()->where('status', PlanUpgrade::STATUS_PENDING)->count(),
         ];
 
         $recentListings = Listing::query()

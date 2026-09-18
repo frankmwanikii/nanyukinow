@@ -21,6 +21,8 @@ import {
     Sparkles,
     Timer,
     Users,
+    ArrowUpCircle,
+    ClipboardList,
 } from 'lucide-react';
 
 export default function Dashboard(props) {
@@ -41,12 +43,24 @@ function DashboardBody({ stats, recentListings, expiringListings, charts }) {
 
     return (
         <>
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-7">
                 <StatCard
                     label="Listings"
                     value={stats.listings}
                     hint={`${stats.published} published`}
                     icon={LayoutList}
+                />
+                <StatCard
+                    label="Pending review"
+                    value={stats.pending_listings ?? 0}
+                    hint="Member submissions"
+                    icon={ClipboardList}
+                />
+                <StatCard
+                    label="Upgrade queue"
+                    value={stats.pending_upgrades ?? 0}
+                    hint="Awaiting payment check"
+                    icon={ArrowUpCircle}
                 />
                 <StatCard
                     label="Featured"
@@ -73,6 +87,29 @@ function DashboardBody({ stats, recentListings, expiringListings, charts }) {
                     icon={Eye}
                 />
             </div>
+
+            {(stats.pending_upgrades > 0 || stats.pending_listings > 0) && (
+                <div className="mt-4 flex flex-wrap gap-3">
+                    {stats.pending_upgrades > 0 && (
+                        <Link
+                            href={route('admin.upgrades.index', { status: 'pending' })}
+                            className="inline-flex items-center gap-2 rounded-full bg-mustard/20 px-4 py-2 text-sm font-semibold text-earth-dusk transition hover:bg-mustard/30 dark:text-mustard"
+                        >
+                            <ArrowUpCircle className="h-4 w-4" />
+                            Review {stats.pending_upgrades} upgrade{stats.pending_upgrades === 1 ? '' : 's'}
+                        </Link>
+                    )}
+                    {stats.pending_listings > 0 && (
+                        <Link
+                            href={route('admin.listings.index', { status: 'pending' })}
+                            className="inline-flex items-center gap-2 rounded-full bg-olive-100 px-4 py-2 text-sm font-semibold text-olive-800 transition hover:bg-olive-200 dark:bg-olive-800 dark:text-olive-100"
+                        >
+                            <ClipboardList className="h-4 w-4" />
+                            Review {stats.pending_listings} listing{stats.pending_listings === 1 ? '' : 's'}
+                        </Link>
+                    )}
+                </div>
+            )}
 
             <div className="mt-5 grid gap-4 xl:grid-cols-3">
                 <div className="xl:col-span-2">

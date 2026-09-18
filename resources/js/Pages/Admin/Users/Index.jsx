@@ -11,6 +11,7 @@ import {
     FilterBar,
     MediaCell,
     Pagination,
+    StatusBadge,
     Td,
     Th,
 } from '@/Components/Admin/ui';
@@ -147,6 +148,7 @@ export default function Index({ users, filters }) {
                         <thead>
                             <tr>
                                 <Th>User</Th>
+                                <Th>Plan</Th>
                                 <Th>Role</Th>
                                 <Th align="center">Listings</Th>
                                 <Th>Joined</Th>
@@ -157,7 +159,7 @@ export default function Index({ users, filters }) {
                             {users.data.map((user) => (
                                 <tr key={user.id}>
                                     {editing === user.id ? (
-                                        <Td colSpan={5}>
+                                        <Td colSpan={6}>
                                             <form
                                                 onSubmit={(e) => {
                                                     e.preventDefault();
@@ -187,6 +189,12 @@ export default function Index({ users, filters }) {
                                                 />
                                             </Td>
                                             <Td>
+                                                <StatusBadge status={user.plan || 'free'} />
+                                                <span className="mt-1 block text-xs text-olive-500">
+                                                    {user.plan_label || 'Free'}
+                                                </span>
+                                            </Td>
+                                            <Td>
                                                 <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700 dark:text-slate-200">
                                                     <span className={`h-1.5 w-1.5 rounded-full ${user.is_admin ? 'bg-indigo-500' : 'bg-slate-400'}`} />
                                                     {user.is_admin ? 'Admin' : 'Member'}
@@ -208,7 +216,33 @@ export default function Index({ users, filters }) {
                                                             onClick: () => startEdit(user),
                                                         },
                                                         {
-                                                            label: 'View',
+                                                            label: 'Set Free plan',
+                                                            onClick: () =>
+                                                                router.post(route('admin.upgrades.assign'), {
+                                                                    user_id: user.id,
+                                                                    plan: 'free',
+                                                                }),
+                                                        },
+                                                        {
+                                                            label: 'Set Standard plan',
+                                                            onClick: () =>
+                                                                router.post(route('admin.upgrades.assign'), {
+                                                                    user_id: user.id,
+                                                                    plan: 'featured',
+                                                                    duration_days: 30,
+                                                                }),
+                                                        },
+                                                        {
+                                                            label: 'Set Premium plan',
+                                                            onClick: () =>
+                                                                router.post(route('admin.upgrades.assign'), {
+                                                                    user_id: user.id,
+                                                                    plan: 'premium',
+                                                                    duration_days: 30,
+                                                                }),
+                                                        },
+                                                        {
+                                                            label: 'View listings',
                                                             href: route('admin.listings.index', { q: user.name }),
                                                         },
                                                         {

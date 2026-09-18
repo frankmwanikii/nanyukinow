@@ -30,6 +30,8 @@ class UserFactory extends Factory
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
+            'plan' => 'free',
+            'plan_started_at' => now(),
             'is_admin' => false,
             'remember_token' => Str::random(10),
         ];
@@ -39,6 +41,24 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'is_admin' => true,
+        ]);
+    }
+
+    public function standard(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'plan' => 'featured',
+            'plan_started_at' => now(),
+            'plan_expires_at' => now()->addDays(30),
+        ]);
+    }
+
+    public function premium(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'plan' => 'premium',
+            'plan_started_at' => now(),
+            'plan_expires_at' => now()->addDays(30),
         ]);
     }
 

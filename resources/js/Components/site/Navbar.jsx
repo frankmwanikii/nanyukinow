@@ -1,4 +1,4 @@
-import { Link, router } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import {
     Menu,
     Plus,
@@ -259,6 +259,8 @@ function MobileDrawerNav({
 }
 
 export default function Navbar({ compact = false }) {
+    const { auth } = usePage().props;
+    const user = auth?.user;
     const [open, setOpen] = useState(false);
     const [scrolled, setScrolled] = useState(compact);
     const [activeMenu, setActiveMenu] = useState(null);
@@ -391,14 +393,24 @@ export default function Navbar({ compact = false }) {
                     </div>
 
                     <div className="flex shrink-0 items-center gap-0.5">
-                        <button
-                            type="button"
-                            onClick={() => openAuth('login')}
-                            className="inline-flex rounded-lg p-2 text-white transition hover:bg-white/10"
-                            aria-label="Sign in or register"
-                        >
-                            <User className="h-5 w-5" strokeWidth={1.85} />
-                        </button>
+                        {user ? (
+                            <Link
+                                href={route('account.index')}
+                                className="inline-flex rounded-lg p-2 text-white transition hover:bg-white/10"
+                                aria-label="My account"
+                            >
+                                <User className="h-5 w-5" strokeWidth={1.85} />
+                            </Link>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={() => openAuth('login')}
+                                className="inline-flex rounded-lg p-2 text-white transition hover:bg-white/10"
+                                aria-label="Sign in or register"
+                            >
+                                <User className="h-5 w-5" strokeWidth={1.85} />
+                            </button>
+                        )}
                         <button
                             type="button"
                             className="inline-flex rounded-lg p-2 text-white transition hover:bg-white/10"
@@ -631,16 +643,28 @@ export default function Navbar({ compact = false }) {
                 </nav>
 
                 <div className="ml-auto hidden shrink-0 items-center gap-1.5 font-display sm:gap-2.5 lg:flex">
-                    <button
-                        type="button"
-                        onClick={() => openAuth('login')}
-                        className="inline-flex items-center gap-2 rounded-lg px-2.5 py-2 text-base font-semibold text-white/95 transition hover:bg-white/10 hover:text-white sm:text-[17px]"
-                    >
-                        <User className="h-4 w-4" strokeWidth={1.85} />
-                        <span className="max-w-[10rem] truncate">
-                            Sign in or register
-                        </span>
-                    </button>
+                    {user ? (
+                        <Link
+                            href={route('account.index')}
+                            className="inline-flex items-center gap-2 rounded-lg px-2.5 py-2 text-base font-semibold text-white/95 transition hover:bg-white/10 hover:text-white sm:text-[17px]"
+                        >
+                            <User className="h-4 w-4" strokeWidth={1.85} />
+                            <span className="max-w-[10rem] truncate">
+                                {user.name?.split(' ')[0] || 'Account'}
+                            </span>
+                        </Link>
+                    ) : (
+                        <button
+                            type="button"
+                            onClick={() => openAuth('login')}
+                            className="inline-flex items-center gap-2 rounded-lg px-2.5 py-2 text-base font-semibold text-white/95 transition hover:bg-white/10 hover:text-white sm:text-[17px]"
+                        >
+                            <User className="h-4 w-4" strokeWidth={1.85} />
+                            <span className="max-w-[10rem] truncate">
+                                Sign in or register
+                            </span>
+                        </button>
+                    )}
 
                     <button
                         type="button"
@@ -651,7 +675,7 @@ export default function Navbar({ compact = false }) {
                     </button>
 
                     <Link
-                        href="/register"
+                        href={user ? route('account.listings.create') : '/register'}
                         className="inline-flex items-center gap-2 rounded-xl bg-mustard px-3.5 py-2.5 text-[15px] font-bold text-olive-950 shadow-[0_8px_20px_-8px_rgba(242,184,46,0.7)] transition hover:bg-white hover:text-mustard hover:shadow-md sm:px-4 sm:text-base"
                     >
                         <Plus className="h-4 w-4 stroke-[2.5]" />
@@ -712,12 +736,19 @@ export default function Navbar({ compact = false }) {
 
                             <div className="border-t border-white/10 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
                                 <Link
-                                    href="/register"
+                                    href={user ? route('account.listings.create') : '/register'}
                                     className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-mustard px-4 py-3.5 text-base font-bold text-olive-950 transition hover:bg-white hover:text-mustard"
                                     onClick={() => setOpen(false)}
                                 >
                                     <Plus className="h-4 w-4 stroke-[2.5]" />
                                     Add Business
+                                </Link>
+                                <Link
+                                    href={route('pricing')}
+                                    className="mt-2 inline-flex w-full items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
+                                    onClick={() => setOpen(false)}
+                                >
+                                    Pricing
                                 </Link>
                             </div>
                         </motion.aside>

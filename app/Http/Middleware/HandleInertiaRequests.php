@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\Membership;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -49,6 +50,9 @@ class HandleInertiaRequests extends Middleware
                             return $pos === false ? $url : substr($url, $pos);
                         })(),
                         'is_admin' => (bool) $request->user()->is_admin,
+                        'plan' => $request->user()->effectivePlan(),
+                        'plan_label' => Membership::label($request->user()->effectivePlan()),
+                        'listings_remaining' => Membership::remainingSlots($request->user()),
                     ]
                     : null,
             ],

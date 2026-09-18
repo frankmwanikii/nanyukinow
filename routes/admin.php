@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\PricingController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\StoryController;
+use App\Http\Controllers\Admin\UpgradeController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -57,6 +58,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::get('pricing', [PricingController::class, 'index'])->name('pricing.index');
         Route::put('pricing/{pricing}', [PricingController::class, 'update'])->name('pricing.update');
+
+        Route::get('upgrades', [UpgradeController::class, 'index'])->name('upgrades.index');
+        Route::post('upgrades/{upgrade}/approve', [UpgradeController::class, 'approve'])->name('upgrades.approve');
+        Route::post('upgrades/{upgrade}/reject', [UpgradeController::class, 'reject'])->name('upgrades.reject');
+        Route::post('upgrades/assign-plan', [UpgradeController::class, 'updateUserPlan'])->name('upgrades.assign');
 
         Route::get('settings', [SettingController::class, 'index'])->name('settings.index');
         Route::put('settings', [SettingController::class, 'update'])->name('settings.update');

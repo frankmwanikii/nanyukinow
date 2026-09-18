@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Membership;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 
@@ -20,6 +21,7 @@ class PricingPlan extends Model
         'is_highlighted',
         'is_active',
         'sort_order',
+        'listing_limit',
     ];
 
     protected function casts(): array
@@ -30,37 +32,26 @@ class PricingPlan extends Model
             'is_highlighted' => 'boolean',
             'is_active' => 'boolean',
             'sort_order' => 'integer',
+            'listing_limit' => 'integer',
         ];
     }
 
     /**
-     * @return list<array{
-     *     key: string,
-     *     name: string,
-     *     tagline: string,
-     *     price_amount: int,
-     *     currency: string,
-     *     billing_period: string,
-     *     price_label: ?string,
-     *     inclusions: list<string>,
-     *     cta_label: string,
-     *     is_highlighted: bool,
-     *     is_active: bool,
-     *     sort_order: int
-     * }>
+     * @return list<array<string, mixed>>
      */
     public static function defaults(): array
     {
         return [
             [
-                'key' => 'free',
+                'key' => Membership::FREE,
                 'name' => 'Free',
-                'tagline' => 'Get listed and start being discovered.',
+                'tagline' => 'One free listing to get discovered in Nanyuki.',
                 'price_amount' => 0,
                 'currency' => 'KES',
                 'billing_period' => 'month',
                 'price_label' => 'Free',
                 'inclusions' => [
+                    '1 free listing',
                     'Basic listing profile',
                     'Appear in search & explore',
                     'Phone, WhatsApp & website links',
@@ -71,38 +62,41 @@ class PricingPlan extends Model
                 'is_highlighted' => false,
                 'is_active' => true,
                 'sort_order' => 1,
+                'listing_limit' => 1,
             ],
             [
-                'key' => 'featured',
-                'name' => 'Featured',
-                'tagline' => 'Stand out with a mint badge and better placement.',
+                'key' => Membership::STANDARD,
+                'name' => 'Standard',
+                'tagline' => 'Featured badge, better placement, and room to grow.',
                 'price_amount' => 2500,
                 'currency' => 'KES',
                 'billing_period' => 'month',
                 'price_label' => null,
                 'inclusions' => [
+                    'Up to 3 listings',
                     'Everything in Free',
                     'Featured badge on cards',
                     'Priority placement in category feeds',
                     'Photo gallery (up to 8 images)',
-                    'Highlighted in “featured” collections',
-                    'Basic performance insights',
+                    'Highlighted in featured collections',
                 ],
-                'cta_label' => 'Go Featured',
+                'cta_label' => 'Go Standard',
                 'is_highlighted' => true,
                 'is_active' => true,
                 'sort_order' => 2,
+                'listing_limit' => 3,
             ],
             [
-                'key' => 'premium',
+                'key' => Membership::PREMIUM,
                 'name' => 'Premium',
-                'tagline' => 'Maximum visibility with top placement and polish.',
+                'tagline' => 'Maximum visibility with premium placement and polish.',
                 'price_amount' => 5500,
                 'currency' => 'KES',
                 'billing_period' => 'month',
                 'price_label' => null,
                 'inclusions' => [
-                    'Everything in Featured',
+                    'Up to 10 listings',
+                    'Everything in Standard',
                     'Premium badge on cards',
                     'Top-of-feed priority boost',
                     'Extended gallery & rich media',
@@ -113,6 +107,7 @@ class PricingPlan extends Model
                 'is_highlighted' => false,
                 'is_active' => true,
                 'sort_order' => 3,
+                'listing_limit' => 10,
             ],
         ];
     }
@@ -144,6 +139,8 @@ class PricingPlan extends Model
             'is_highlighted' => $this->is_highlighted,
             'is_active' => $this->is_active,
             'sort_order' => $this->sort_order,
+            'listing_limit' => (int) ($this->listing_limit ?: Membership::listingLimit($this->key)),
+            'badge_label' => Membership::badgeLabel($this->key),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];
     }

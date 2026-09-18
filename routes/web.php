@@ -1,6 +1,10 @@
 <?php
 
+use App\Http\Controllers\Account\DashboardController as AccountDashboardController;
+use App\Http\Controllers\Account\ListingController as AccountListingController;
+use App\Http\Controllers\Account\UpgradeController as AccountUpgradeController;
 use App\Http\Controllers\ListingController;
+use App\Http\Controllers\PricingPageController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -8,6 +12,8 @@ use Inertia\Inertia;
 Route::get('/', [ListingController::class, 'home'])->name('home');
 
 Route::get('/explore', [ListingController::class, 'explore'])->name('explore');
+
+Route::get('/pricing', PricingPageController::class)->name('pricing');
 
 Route::get('/stories', function () {
     return Inertia::render('Stories/Index', [
@@ -32,11 +38,23 @@ Route::get('/privacy', function () {
     return Inertia::render('Privacy');
 })->name('privacy');
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-
 Route::middleware('auth')->group(function () {
+    Route::get('/dashboard', function () {
+        return redirect()->route('account.index');
+    })->name('dashboard');
+
+    Route::get('/account', AccountDashboardController::class)->name('account.index');
+
+    Route::get('/account/listings/create', [AccountListingController::class, 'create'])->name('account.listings.create');
+    Route::post('/account/listings', [AccountListingController::class, 'store'])->name('account.listings.store');
+    Route::get('/account/listings/{listing}/edit', [AccountListingController::class, 'edit'])->name('account.listings.edit');
+    Route::put('/account/listings/{listing}', [AccountListingController::class, 'update'])->name('account.listings.update');
+    Route::delete('/account/listings/{listing}', [AccountListingController::class, 'destroy'])->name('account.listings.destroy');
+
+    Route::get('/account/upgrade', [AccountUpgradeController::class, 'create'])->name('account.upgrade');
+    Route::post('/account/upgrade', [AccountUpgradeController::class, 'store'])->name('account.upgrade.store');
+    Route::post('/account/upgrade/{upgrade}/cancel', [AccountUpgradeController::class, 'cancel'])->name('account.upgrade.cancel');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

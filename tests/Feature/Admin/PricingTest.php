@@ -56,6 +56,7 @@ class PricingTest extends TestCase
                 'is_highlighted' => true,
                 'is_active' => true,
                 'sort_order' => 2,
+                'listing_limit' => 5,
             ])
             ->assertRedirect();
 
@@ -63,6 +64,7 @@ class PricingTest extends TestCase
 
         $this->assertSame('Featured Plus', $plan->name);
         $this->assertSame(3200, $plan->price_amount);
+        $this->assertSame(5, $plan->listing_limit);
         $this->assertTrue($plan->is_highlighted);
         $this->assertContains('Priority support', $plan->inclusions);
     }
@@ -91,6 +93,7 @@ class PricingTest extends TestCase
                 'is_highlighted' => true,
                 'is_active' => true,
                 'sort_order' => $premium->sort_order,
+                'listing_limit' => $premium->listing_limit ?? 10,
             ])
             ->assertRedirect();
 

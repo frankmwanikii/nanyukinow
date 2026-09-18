@@ -1,6 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Compass, MessageCircle, Plus, Search } from 'lucide-react';
+import { Compass, Plus, Search, User } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { explorePath } from '@/data/categories';
 import { FLIP_WORDS } from './FlippingSearchHint';
@@ -17,29 +17,9 @@ const FLIP_HREFS = {
     }),
 };
 
-const staticItems = [
-    {
-        key: 'explore',
-        label: 'Explore',
-        href: explorePath(),
-        icon: Compass,
-    },
-    {
-        key: 'add',
-        label: 'Add',
-        href: '/register',
-        icon: Plus,
-        circled: true,
-    },
-    {
-        key: 'messages',
-        label: 'Messages',
-        href: '/explore',
-        icon: MessageCircle,
-    },
-];
-
 export default function MobileBottomNav() {
+    const { auth } = usePage().props;
+    const user = auth?.user;
     const [flipIndex, setFlipIndex] = useState(0);
 
     useEffect(() => {
@@ -65,10 +45,32 @@ export default function MobileBottomNav() {
         return (
             path.startsWith('/explore') &&
             (path.includes(q) ||
-                typeof window !== 'undefined' &&
-                    window.location.search.toLowerCase().includes(q))
+                (typeof window !== 'undefined' &&
+                    window.location.search.toLowerCase().includes(q)))
         );
     }, [path, flipWord]);
+
+    const staticItems = [
+        {
+            key: 'explore',
+            label: 'Explore',
+            href: explorePath(),
+            icon: Compass,
+        },
+        {
+            key: 'add',
+            label: 'Add',
+            href: user ? route('account.listings.create') : '/register',
+            icon: Plus,
+            circled: true,
+        },
+        {
+            key: 'account',
+            label: user ? 'Account' : 'Sign in',
+            href: user ? route('account.index') : '/login',
+            icon: User,
+        },
+    ];
 
     return (
         <nav
@@ -117,8 +119,11 @@ export default function MobileBottomNav() {
                         item.key === 'explore'
                             ? path.startsWith('/explore') && !searchActive
                             : item.key === 'add'
-                              ? path.startsWith('/register')
-                              : false;
+                              ? path.startsWith('/account/listings') ||
+                                path.startsWith('/register')
+                              : item.key === 'account'
+                                ? path.startsWith('/account') || path.startsWith('/login')
+                                : false;
 
                     return (
                         <li key={item.key}>

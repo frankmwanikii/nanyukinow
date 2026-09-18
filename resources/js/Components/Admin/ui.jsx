@@ -41,6 +41,9 @@ export function StatusBadge({ status }) {
         premium: { dot: 'bg-earth-clay', text: 'text-olive-800 dark:text-olive-100' },
         claimed: { dot: 'bg-mint-deep', text: 'text-olive-800 dark:text-olive-100' },
         unclaimed: { dot: 'bg-olive-300', text: 'text-olive-500 dark:text-olive-400' },
+        approved: { dot: 'bg-mint-deep', text: 'text-olive-800 dark:text-olive-100' },
+        rejected: { dot: 'bg-rose-500', text: 'text-rose-700 dark:text-rose-300' },
+        cancelled: { dot: 'bg-olive-300', text: 'text-olive-500 dark:text-olive-400' },
     };
 
     const tone = map[status] || { dot: 'bg-olive-300', text: 'text-olive-600 dark:text-olive-300' };
