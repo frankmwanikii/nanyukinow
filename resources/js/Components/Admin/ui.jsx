@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { ArrowDown, ArrowUp, ArrowUpDown, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronDown, ChevronLeft, ChevronRight, Eye, EyeOff } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -89,21 +89,24 @@ export function AdminButton({
     ...props
 }) {
     const sizes = {
-        sm: 'px-3 py-2 text-sm',
+        sm: 'px-3.5 py-2 text-sm',
         md: 'px-4 py-2.5 text-base',
     };
     const variants = {
-        primary: 'bg-mustard text-earth-dusk hover:bg-mustard-soft',
+        primary:
+            'bg-mustard text-earth-dusk shadow-soft transition duration-200 hover:bg-mint-deep hover:text-white hover:shadow-lift active:scale-[0.99]',
         secondary:
-            'border border-olive-200 bg-white text-olive-800 hover:bg-olive-50 dark:border-olive-700 dark:bg-olive-900 dark:text-olive-100 dark:hover:bg-olive-800',
-        danger: 'bg-rose-600 text-white hover:bg-rose-700',
-        ghost: 'text-olive-700 hover:bg-olive-100 dark:text-olive-200 dark:hover:bg-olive-800',
+            'border border-olive-200 bg-white text-olive-800 transition duration-200 hover:border-mustard/50 hover:bg-mustard/10 hover:text-earth-dusk dark:border-olive-700 dark:bg-olive-900 dark:text-olive-100 dark:hover:border-mustard/40 dark:hover:bg-mustard/10',
+        danger:
+            'bg-rose-600 text-white transition duration-200 hover:bg-rose-700 hover:shadow-soft active:scale-[0.99]',
+        ghost:
+            'text-olive-700 transition duration-200 hover:bg-olive-100 hover:text-olive-950 dark:text-olive-200 dark:hover:bg-olive-800',
     };
 
     return (
         <button
             type={type}
-            className={`inline-flex items-center justify-center gap-1.5 rounded-md font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${sizes[size]} ${variants[variant]} ${className}`}
+            className={`inline-flex items-center justify-center gap-1.5 rounded-full font-semibold disabled:cursor-not-allowed disabled:opacity-50 ${sizes[size]} ${variants[variant]} ${className}`}
             {...props}
         >
             {children}
@@ -113,15 +116,16 @@ export function AdminButton({
 
 export function AdminLink({ href, children, className = '', variant = 'primary' }) {
     const variants = {
-        primary: 'bg-mustard text-earth-dusk hover:bg-mustard-soft',
+        primary:
+            'bg-mustard text-earth-dusk shadow-soft transition duration-200 hover:bg-mint-deep hover:text-white hover:shadow-lift',
         secondary:
-            'border border-olive-200 bg-white text-olive-800 hover:bg-olive-50 dark:border-olive-700 dark:bg-olive-900 dark:text-olive-100 dark:hover:bg-olive-800',
+            'border border-olive-200 bg-white text-olive-800 transition duration-200 hover:border-mustard/50 hover:bg-mustard/10 hover:text-earth-dusk dark:border-olive-700 dark:bg-olive-900 dark:text-olive-100 dark:hover:bg-mustard/10',
     };
 
     return (
         <Link
             href={href}
-            className={`inline-flex items-center justify-center gap-1.5 rounded-md px-4 py-2.5 text-base font-medium transition ${variants[variant]} ${className}`}
+            className={`inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-base font-semibold ${variants[variant]} ${className}`}
         >
             {children}
         </Link>
@@ -131,13 +135,39 @@ export function AdminLink({ href, children, className = '', variant = 'primary' 
 const fieldLabel =
     'mb-1.5 block text-sm font-semibold text-olive-600 dark:text-olive-400';
 const fieldControl =
-    'w-full rounded-md border border-olive-200 bg-white px-3.5 py-2.5 text-base text-olive-900 outline-none transition placeholder:text-olive-400 focus:border-olive-400 focus:ring-1 focus:ring-mustard/40 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-50 dark:placeholder:text-olive-500 dark:focus:border-olive-500 dark:focus:ring-mustard/30';
+    'w-full rounded-xl border border-olive-200 bg-white px-3.5 py-3 text-base text-olive-900 outline-none transition placeholder:text-olive-400 focus:border-mustard focus:ring-2 focus:ring-mustard/30 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-50 dark:placeholder:text-olive-500 dark:focus:border-mustard';
 
 export function AdminInput({ label, error, className = '', ...props }) {
     return (
         <label className={`block ${className}`}>
             {label && <span className={fieldLabel}>{label}</span>}
             <input className={fieldControl} {...props} />
+            {error && <span className="mt-1.5 block text-sm text-rose-600 dark:text-rose-400">{error}</span>}
+        </label>
+    );
+}
+
+export function AdminPasswordInput({ label, error, className = '', ...props }) {
+    const [visible, setVisible] = useState(false);
+
+    return (
+        <label className={`block ${className}`}>
+            {label && <span className={fieldLabel}>{label}</span>}
+            <div className="relative">
+                <input
+                    {...props}
+                    type={visible ? 'text' : 'password'}
+                    className={`${fieldControl} pr-12`}
+                />
+                <button
+                    type="button"
+                    onClick={() => setVisible((v) => !v)}
+                    aria-label={visible ? 'Hide password' : 'Show password'}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-olive-500 transition hover:bg-olive-100 hover:text-olive-900 dark:hover:bg-olive-800 dark:hover:text-olive-100"
+                >
+                    {visible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+            </div>
             {error && <span className="mt-1.5 block text-sm text-rose-600 dark:text-rose-400">{error}</span>}
         </label>
     );
@@ -192,15 +222,24 @@ export function EmptyState({ title, description, action }) {
     );
 }
 
-export function FormPanel({ title, children, className = '' }) {
+export function FormPanel({ title, description, children, className = '' }) {
     return (
         <section
-            className={`rounded-lg border border-olive-200/80 bg-white p-6 dark:border-olive-800 dark:bg-olive-900 ${className}`}
+            className={`rounded-2xl border border-olive-200/80 bg-white p-6 shadow-soft dark:border-olive-800 dark:bg-olive-900 sm:p-7 ${className}`}
         >
-            {title && (
-                <h2 className="mb-5 text-base font-semibold text-olive-900 dark:text-olive-50">
-                    {title}
-                </h2>
+            {(title || description) && (
+                <header className="mb-6">
+                    {title && (
+                        <h2 className="text-lg font-semibold tracking-tight text-olive-950 dark:text-olive-50">
+                            {title}
+                        </h2>
+                    )}
+                    {description && (
+                        <p className="mt-1.5 text-sm text-olive-500 dark:text-olive-400">
+                            {description}
+                        </p>
+                    )}
+                </header>
             )}
             {children}
         </section>

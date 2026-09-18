@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
@@ -42,13 +42,28 @@ class ProfileController extends Controller
                 'max:255',
                 Rule::unique(User::class)->ignore($user->id),
             ],
-            'avatar_url' => ['nullable', 'string', 'max:2048'],
+            'avatar' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:15360'],
+            'remove_avatar' => ['sometimes', 'boolean'],
         ]);
 
-        $user->fill($data);
+        $user->fill([
+            'name' => $data['name'],
+            'email' => $data['email'],
+        ]);
 
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
+        }
+
+        if ($request->boolean('remove_avatar')) {
+            $this->deleteStoredAvatar($user->avatar_url);
+            $user->avatar_url = null;
+        }
+
+        if ($request->hasFile('avatar')) {
+            $this->deleteStoredAvatar($user->avatar_url);
+            $path = $request->file('avatar')->store('avatars', 'public');
+            $user->avatar_url = Storage::disk('public')->url($path);
         }
 
         $user->save();
@@ -64,9 +79,27 @@ class ProfileController extends Controller
         ]);
 
         $request->user()->update([
-            'password' => Hash::make($validated['password']),
+            'password' => $validated['password'],
         ]);
 
         return back()->with('success', 'Password updated.');
+    }
+
+    private function deleteStoredAvatar(?string $url): void
+    {
+        if (! $url) {
+            return;
+        }
+
+        $marker = '/storage/';
+        $pos = strpos($url, $marker);
+        if ($pos === false) {
+            return;
+        }
+
+        $relative = substr($url, $pos + strlen($marker));
+        if ($relative !== '' && Storage::disk('public')->exists($relative)) {
+            Storage::disk('public')->delete($relative);
+        }
     }
 }
