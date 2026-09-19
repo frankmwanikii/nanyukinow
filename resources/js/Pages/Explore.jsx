@@ -472,7 +472,7 @@ export default function Explore({
     );
 
     return (
-        <SiteLayout title="Explore Nanyuki" hideFooter compactNav>
+        <SiteLayout title="Explore Nanyuki" hideFooter compactNav lockViewport>
             <ExploreContent
                 catalogue={catalogue}
                 initialCategory={category || null}

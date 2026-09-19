@@ -8,15 +8,19 @@ export default function SiteLayout({
     children,
     hideFooter = false,
     compactNav = false,
+    /** Explore-style map shell: fixed viewport, no page scroll */
+    lockViewport = false,
 }) {
     return (
         <>
             <Head title={title} />
             <div
                 className={`overflow-x-clip bg-earth-sand font-sans text-earth-dusk antialiased ${
-                    hideFooter
+                    lockViewport
                         ? 'h-svh overflow-hidden'
-                        : 'min-h-screen pb-[4.75rem] lg:pb-0'
+                        : hideFooter
+                          ? 'min-h-svh'
+                          : 'min-h-screen pb-[4.75rem] lg:pb-0'
                 }`}
             >
                 <Navbar compact={compactNav} />
