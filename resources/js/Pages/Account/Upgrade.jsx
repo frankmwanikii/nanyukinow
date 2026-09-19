@@ -31,42 +31,31 @@ function displayPrice(plan) {
     return formatMoney(plan.price_amount, plan.currency);
 }
 
-function MpesaIcon({ className = '' }) {
+function MpesaIcon({ className = 'h-8 w-auto max-w-[8rem]' }) {
     return (
-        <svg viewBox="0 0 32 32" className={className} aria-hidden>
-            <rect width="32" height="32" rx="7" fill="#00A651" />
-            <path
-                fill="#fff"
-                d="M8.2 22.5V9.5h3.1l3.35 7.85c.28.66.5 1.3.66 1.92h.06c.1-.42.32-1.04.64-1.86L19.4 9.5h3.05v13h-2.55v-7.55c0-.55.02-1.18.06-1.9h-.06l-3.55 9.45h-2.15L10.7 13.1c-.04.7-.06 1.34-.06 1.9v7.5H8.2z"
-            />
-        </svg>
+        <img
+            src="/images/payments/mpesa.png"
+            alt="M-Pesa"
+            className={`object-contain ${className}`}
+        />
     );
 }
 
-function PaypalIcon({ className = '' }) {
+function PaypalIcon({ className = 'h-7 w-auto max-w-[8rem]' }) {
     return (
-        <svg viewBox="0 0 32 32" className={className} aria-hidden>
-            <rect width="32" height="32" rx="7" fill="#003087" />
-            <path
-                fill="#009CDE"
-                d="M12.1 21.8 13 16.2h3.35c2.05 0 3.45-.72 3.9-2.55.2-.8.12-1.45-.2-1.95-.4-.62-1.15-.95-2.2-.95H14.2l-1.35 8.05H12.1z"
-            />
-            <path
-                fill="#fff"
-                d="M11.35 23.2 12.4 16.8h2.95c1.75 0 2.95-.55 3.35-2.15.18-.72.1-1.28-.2-1.7-.35-.5-1-.75-1.9-.75h-2.6L10.2 23.2h1.15zm6.55-9.95c-.35 1.55-1.55 2.15-3.4 2.15h-1.55l.75-4.55h1.7c1.15 0 1.85.22 2.2.72.28.38.35.9.3 1.68z"
-            />
-            <path
-                fill="#fff"
-                opacity="0.92"
-                d="M18.9 13.35c-.05.85-.55 1.5-1.4 1.88.7-.12 1.25-.45 1.55-1.05.25-.48.28-1.02.12-1.55-.1-.3-.28-.52-.5-.68.08.42.2.9.23 1.4z"
-            />
-        </svg>
+        <img
+            src="/images/payments/paypal.png"
+            alt="PayPal"
+            className={`object-contain ${className}`}
+        />
     );
 }
 
-function MethodIcon({ method, className = 'h-7 w-7' }) {
-    if (method === 'paypal') return <PaypalIcon className={className} />;
-    return <MpesaIcon className={className} />;
+function MethodIcon({ method, className }) {
+    if (method === 'paypal') {
+        return <PaypalIcon className={className || 'h-7 w-auto max-w-[8rem]'} />;
+    }
+    return <MpesaIcon className={className || 'h-8 w-auto max-w-[8rem]'} />;
 }
 
 function planState(plan, currentKey, pending) {
@@ -212,6 +201,36 @@ function PlansMatrix({ plans, currentKey, pending, onUpgrade }) {
     );
 }
 
+function CopyButton({ value, label = 'Copy' }) {
+    const [copied, setCopied] = useState(false);
+    if (!value) return null;
+
+    const copy = async () => {
+        try {
+            await navigator.clipboard.writeText(String(value));
+            setCopied(true);
+            setTimeout(() => setCopied(false), 1600);
+        } catch {
+            /* ignore */
+        }
+    };
+
+    return (
+        <button
+            type="button"
+            onClick={copy}
+            className="text-xs font-semibold text-olive-700 underline-offset-2 hover:underline"
+        >
+            {copied ? 'Copied' : label}
+        </button>
+    );
+}
+
+/**
+ * Checkout modal — UI + payload ready for M-Pesa / PayPal APIs.
+ * Today: submits a pending upgrade for admin review.
+ * Later: swap `submitManualReview` for STK / PayPal redirect initiate calls.
+ */
 function PaymentCheckout({
     plan,
     paymentMethods,
@@ -220,16 +239,17 @@ function PaymentCheckout({
     form,
 }) {
     const method = form.data.payment_method;
+    const [phone, setPhone] = useState('');
+    const amountLabel = `${displayPrice(plan)}${
+        !plan.price_label && Number(plan.price_amount) > 0
+            ? ` ${periodSuffix(plan.billing_period)}`
+            : ''
+    }`;
 
-    const referenceLabel = useMemo(() => {
-        if (method === 'paypal') return 'PayPal transaction ID';
-        return 'M-Pesa confirmation code';
-    }, [method]);
-
-    const referenceHint = useMemo(() => {
-        if (method === 'paypal') return 'e.g. 8AB12345XY678901A';
-        return 'e.g. QJX7…';
-    }, [method]);
+    const referenceLabel =
+        method === 'paypal' ? 'PayPal transaction ID' : 'M-Pesa confirmation code';
+    const referenceHint =
+        method === 'paypal' ? 'e.g. 8AB12345XY678901A' : 'e.g. QJX7ABC123';
 
     useEffect(() => {
         const onKey = (e) => {
@@ -243,11 +263,61 @@ function PaymentCheckout({
         };
     }, [onClose]);
 
-    const submit = (e) => {
+    const selectMethod = (value) => {
+        form.setData('payment_method', value);
+        form.clearErrors('payment_method');
+    };
+
+    const buildNotes = () => {
+        const bits = [];
+        if (method === 'mpesa' && phone.trim()) {
+            bits.push(`Phone: ${phone.trim()}`);
+        }
+        if (form.data.member_notes?.trim()) {
+            bits.push(form.data.member_notes.trim());
+        }
+        return bits.join('\n');
+    };
+
+    /** Manual review path (current). Replace body with API initiate when ready. */
+    const submitManualReview = (e) => {
         e.preventDefault();
-        form.post(route('account.upgrade.store'), {
-            onSuccess: () => onClose(),
-        });
+        form
+            .transform((data) => ({
+                ...data,
+                member_notes: buildNotes(),
+            }))
+            .post(route('account.upgrade.store'), {
+                onSuccess: () => onClose(),
+                onFinish: () => {
+                    form.transform((data) => data);
+                },
+            });
+    };
+
+    /**
+     * API hook — call this from the primary CTA once M-Pesa STK / PayPal are live.
+     * Expected payload shape for either provider:
+     * { to_plan, payment_method, amount, currency, phone?, return_url, cancel_url }
+     */
+    const paymentPayload = () => ({
+        to_plan: form.data.to_plan || plan.key,
+        payment_method: method,
+        amount: Number(plan.price_amount) || 0,
+        currency: plan.currency || 'KES',
+        phone: method === 'mpesa' ? phone.trim() : undefined,
+        return_url: typeof window !== 'undefined' ? `${window.location.origin}/account/billing` : '/account/billing',
+        cancel_url: typeof window !== 'undefined' ? `${window.location.origin}/account/upgrade` : '/account/upgrade',
+    });
+
+    const handlePrimaryPay = (e) => {
+        e.preventDefault();
+        // Plug APIs here:
+        // if (method === 'mpesa') await initiateMpesaStk(paymentPayload())
+        // if (method === 'paypal') await initiatePaypalCheckout(paymentPayload())
+        // Until then, require confirmation reference and submit for review.
+        void paymentPayload();
+        submitManualReview(e);
     };
 
     return (
@@ -255,7 +325,7 @@ function PaymentCheckout({
             <button
                 type="button"
                 aria-label="Close checkout"
-                className="absolute inset-0 bg-olive-950/55 backdrop-blur-[2px]"
+                className="absolute inset-0 bg-olive-950/50 backdrop-blur-[3px]"
                 onClick={onClose}
             />
 
@@ -263,175 +333,292 @@ function PaymentCheckout({
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="checkout-title"
-                className="relative z-10 max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-3xl bg-white shadow-lift sm:mx-4 sm:rounded-3xl"
+                className="relative z-10 flex max-h-[94vh] w-full max-w-md flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:mx-4 sm:rounded-2xl"
             >
-                <div className="sticky top-0 z-10 flex items-start justify-between gap-3 border-b border-olive-100 bg-white/95 px-5 py-4 backdrop-blur sm:px-6">
-                    <div>
-                        <p className="text-xs font-semibold uppercase tracking-wide text-olive-500">
-                            Checkout
+                {/* Header */}
+                <div className="flex shrink-0 items-start justify-between gap-3 border-b border-olive-100 px-5 py-4">
+                    <div className="min-w-0">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-olive-400">
+                            Secure checkout
                         </p>
-                        <h2 id="checkout-title" className="font-display text-xl font-bold text-olive-950">
+                        <h2
+                            id="checkout-title"
+                            className="mt-1 font-display text-xl font-semibold tracking-tight text-olive-950"
+                        >
                             Upgrade to {plan.name}
                         </h2>
-                        <p className="mt-1 text-sm text-olive-600">
-                            {displayPrice(plan)}
-                            {!plan.price_label && Number(plan.price_amount) > 0
-                                ? ` ${periodSuffix(plan.billing_period)}`
-                                : ''}
-                        </p>
                     </div>
                     <button
                         type="button"
                         onClick={onClose}
-                        className="rounded-full p-2 text-olive-500 transition hover:bg-olive-50 hover:text-olive-900"
+                        className="inline-flex h-9 w-9 shrink-0 items-center justify-center text-olive-500 transition hover:bg-olive-50 hover:text-olive-900"
                         aria-label="Close"
                     >
                         <X className="h-5 w-5" />
                     </button>
                 </div>
 
-                <form onSubmit={submit} className="space-y-5 px-5 py-5 sm:px-6 sm:py-6">
-                    <div>
-                        <p className={labelCls}>Pay with</p>
-                        <div
-                            role="radiogroup"
-                            aria-label="Payment method"
-                            className="grid grid-cols-2 gap-2 rounded-2xl bg-olive-50 p-1.5"
-                        >
-                            {paymentMethods.map((opt) => {
-                                const active = method === opt.value;
-                                return (
-                                    <button
-                                        key={opt.value}
-                                        type="button"
-                                        role="radio"
-                                        aria-checked={active}
-                                        onClick={() => form.setData('payment_method', opt.value)}
-                                        className={`flex items-center justify-center gap-2.5 rounded-xl px-3 py-3.5 text-center transition ${
-                                            active
-                                                ? 'bg-white shadow-soft ring-1 ring-olive-200'
-                                                : 'hover:bg-white/70'
-                                        }`}
-                                    >
-                                        <MethodIcon method={opt.value} className="h-8 w-8 shrink-0" />
-                                        <span className="text-sm font-bold text-olive-950">
-                                            {opt.short}
-                                        </span>
-                                    </button>
-                                );
-                            })}
+                <form
+                    onSubmit={handlePrimaryPay}
+                    className="flex min-h-0 flex-1 flex-col"
+                >
+                    <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-5">
+                        {/* Order summary */}
+                        <div className="flex items-center justify-between gap-3 border border-olive-200 bg-[#f4f2ec] px-4 py-3.5">
+                            <div>
+                                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-olive-400">
+                                    Due today
+                                </p>
+                                <p className="mt-1 font-display text-2xl font-semibold tabular-nums text-olive-950">
+                                    {displayPrice(plan)}
+                                </p>
+                            </div>
+                            <div className="text-right text-sm text-olive-600">
+                                <p className="font-semibold text-olive-900">{plan.name}</p>
+                                <p className="text-xs text-olive-500">
+                                    {plan.listing_limit} listing
+                                    {plan.listing_limit === 1 ? '' : 's'}
+                                    {!plan.price_label && Number(plan.price_amount) > 0
+                                        ? periodSuffix(plan.billing_period)
+                                        : ''}
+                                </p>
+                            </div>
                         </div>
-                        {form.errors.payment_method && (
-                            <p className="mt-1.5 text-sm text-rose-600">{form.errors.payment_method}</p>
-                        )}
-                        <p className="mt-2 text-xs text-olive-500">
-                            {paymentMethods.find((m) => m.value === method)?.description}
-                        </p>
-                    </div>
 
-                    <div className="rounded-2xl border border-olive-100 bg-earth-sand/50 p-4">
+                        {/* Methods */}
+                        <div>
+                            <p className={labelCls}>Payment method</p>
+                            <div
+                                role="radiogroup"
+                                aria-label="Payment method"
+                                className="space-y-2"
+                            >
+                                {paymentMethods.map((opt) => {
+                                    const active = method === opt.value;
+                                    return (
+                                        <button
+                                            key={opt.value}
+                                            type="button"
+                                            role="radio"
+                                            aria-checked={active}
+                                            onClick={() => selectMethod(opt.value)}
+                                            className={`flex w-full items-center gap-3 border px-3 py-3 text-left transition ${
+                                                active
+                                                    ? 'border-olive-900 bg-white ring-1 ring-olive-900'
+                                                    : 'border-olive-200 bg-white hover:border-olive-300'
+                                            }`}
+                                        >
+                                            <span className="inline-flex h-11 w-[5.75rem] shrink-0 items-center justify-center overflow-hidden rounded-md bg-black px-1.5">
+                                                <MethodIcon
+                                                    method={opt.value}
+                                                    className={
+                                                        opt.value === 'paypal'
+                                                            ? 'h-6 w-auto max-w-full'
+                                                            : 'h-8 w-auto max-w-full'
+                                                    }
+                                                />
+                                            </span>
+                                            <span className="min-w-0 flex-1">
+                                                <span className="block text-sm font-semibold text-olive-950">
+                                                    {opt.label}
+                                                </span>
+                                                <span className="mt-0.5 block text-xs text-olive-500">
+                                                    {opt.description}
+                                                </span>
+                                            </span>
+                                            <span
+                                                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
+                                                    active
+                                                        ? 'border-olive-900 bg-olive-900'
+                                                        : 'border-olive-300'
+                                                }`}
+                                            >
+                                                {active && (
+                                                    <Check className="h-3 w-3 text-white" strokeWidth={3} />
+                                                )}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            {form.errors.payment_method && (
+                                <p className="mt-1.5 text-sm text-rose-600">
+                                    {form.errors.payment_method}
+                                </p>
+                            )}
+                        </div>
+
+                        {/* Method panel */}
                         {method === 'mpesa' && (
-                            <div className="space-y-3 text-sm">
-                                <div className="flex items-center gap-2">
-                                    <MpesaIcon className="h-6 w-6" />
-                                    <p className="font-semibold text-olive-900">M-Pesa payment</p>
+                            <div className="space-y-4 border border-olive-200 p-4">
+                                <div className="flex items-center gap-2.5">
+                                    <span className="inline-flex h-9 items-center rounded-md bg-black px-2">
+                                        <MpesaIcon className="h-6 w-auto max-w-[4.5rem]" />
+                                    </span>
+                                    <div>
+                                        <p className="text-sm font-semibold text-olive-950">
+                                            Pay with M-Pesa
+                                        </p>
+                                        <p className="text-xs text-olive-500">
+                                            Lipa na M-Pesa · Paybill / Till
+                                        </p>
+                                    </div>
                                 </div>
-                                <p className="text-olive-600">{upgradeContact.instructions}</p>
-                                <dl className="grid gap-2 sm:grid-cols-2">
+
+                                <div className="grid grid-cols-2 gap-2">
                                     {upgradeContact.mpesa_paybill && (
-                                        <div className="rounded-xl bg-white px-3 py-2.5">
-                                            <dt className="text-[11px] font-semibold uppercase text-olive-500">
-                                                Paybill / Till
-                                            </dt>
-                                            <dd className="font-bold text-olive-950">
+                                        <div className="border border-olive-100 bg-[#f4f2ec] px-3 py-2.5">
+                                            <div className="flex items-center justify-between gap-2">
+                                                <p className="text-[10px] font-semibold uppercase tracking-wide text-olive-400">
+                                                    Paybill / Till
+                                                </p>
+                                                <CopyButton value={upgradeContact.mpesa_paybill} />
+                                            </div>
+                                            <p className="mt-1 font-display text-lg font-semibold tabular-nums text-olive-950">
                                                 {upgradeContact.mpesa_paybill}
-                                            </dd>
+                                            </p>
                                         </div>
                                     )}
                                     {upgradeContact.mpesa_account && (
-                                        <div className="rounded-xl bg-white px-3 py-2.5">
-                                            <dt className="text-[11px] font-semibold uppercase text-olive-500">
-                                                Account
-                                            </dt>
-                                            <dd className="font-bold text-olive-950">
+                                        <div className="border border-olive-100 bg-[#f4f2ec] px-3 py-2.5">
+                                            <div className="flex items-center justify-between gap-2">
+                                                <p className="text-[10px] font-semibold uppercase tracking-wide text-olive-400">
+                                                    Account
+                                                </p>
+                                                <CopyButton value={upgradeContact.mpesa_account} />
+                                            </div>
+                                            <p className="mt-1 font-display text-lg font-semibold text-olive-950">
                                                 {upgradeContact.mpesa_account}
-                                            </dd>
+                                            </p>
                                         </div>
                                     )}
-                                </dl>
+                                </div>
+
+                                <div>
+                                    <label className={labelCls} htmlFor="payer_phone">
+                                        M-Pesa phone number
+                                    </label>
+                                    <input
+                                        id="payer_phone"
+                                        type="tel"
+                                        inputMode="tel"
+                                        autoComplete="tel"
+                                        className={field}
+                                        value={phone}
+                                        onChange={(e) => setPhone(e.target.value)}
+                                        placeholder="07XX XXX XXX"
+                                    />
+                                    <p className="mt-1.5 text-xs text-olive-500">
+                                        Used for STK push once M-Pesa API is connected. For now we
+                                        still verify your confirmation code.
+                                    </p>
+                                </div>
                             </div>
                         )}
 
                         {method === 'paypal' && (
-                            <div className="space-y-2 text-sm">
-                                <div className="flex items-center gap-2">
-                                    <PaypalIcon className="h-6 w-6" />
-                                    <p className="font-semibold text-olive-900">PayPal</p>
+                            <div className="space-y-3 border border-olive-200 p-4">
+                                <div className="flex items-center gap-2.5">
+                                    <span className="inline-flex h-9 items-center rounded-md bg-black px-2">
+                                        <PaypalIcon className="h-5 w-auto max-w-[5rem]" />
+                                    </span>
+                                    <div>
+                                        <p className="text-sm font-semibold text-olive-950">
+                                            Pay with PayPal
+                                        </p>
+                                        <p className="text-xs text-olive-500">
+                                            Cards & PayPal balance
+                                        </p>
+                                    </div>
                                 </div>
-                                <p className="text-olive-600">{upgradeContact.paypal_note}</p>
-                                {upgradeContact.paypal_email && (
-                                    <p className="rounded-xl bg-white px-3 py-2.5">
-                                        <span className="block text-[11px] font-semibold uppercase text-olive-500">
-                                            PayPal email
-                                        </span>
-                                        <span className="font-bold text-olive-950">
-                                            {upgradeContact.paypal_email}
-                                        </span>
-                                    </p>
-                                )}
-                                <p className="rounded-xl bg-indigo-50 px-3 py-2 text-xs font-medium text-indigo-900">
-                                    After paying with PayPal, paste your transaction ID below so we
-                                    can confirm your upgrade.
+                                <p className="text-sm text-olive-600">
+                                    {upgradeContact.paypal_note ||
+                                        'Complete payment on PayPal, then paste your transaction ID below.'}
                                 </p>
+                                {upgradeContact.paypal_email && (
+                                    <div className="flex items-center justify-between gap-3 border border-olive-100 bg-[#f4f2ec] px-3 py-2.5">
+                                        <div className="min-w-0">
+                                            <p className="text-[10px] font-semibold uppercase tracking-wide text-olive-400">
+                                                Send to
+                                            </p>
+                                            <p className="truncate font-semibold text-olive-950">
+                                                {upgradeContact.paypal_email}
+                                            </p>
+                                        </div>
+                                        <CopyButton value={upgradeContact.paypal_email} />
+                                    </div>
+                                )}
                             </div>
                         )}
-                    </div>
 
-                    <div>
-                        <label className={labelCls} htmlFor="payment_reference">
-                            {referenceLabel}
-                        </label>
-                        <input
-                            id="payment_reference"
-                            className={field}
-                            value={form.data.payment_reference}
-                            onChange={(e) => form.setData('payment_reference', e.target.value)}
-                            placeholder={referenceHint}
-                            required
-                        />
-                        {form.errors.payment_reference && (
-                            <p className="mt-1.5 text-sm text-rose-600">
-                                {form.errors.payment_reference}
-                            </p>
+                        {/* Confirmation — stays until live payment APIs return a reference */}
+                        <div className="space-y-3">
+                            <div>
+                                <label className={labelCls} htmlFor="payment_reference">
+                                    {referenceLabel}
+                                </label>
+                                <input
+                                    id="payment_reference"
+                                    className={field}
+                                    value={form.data.payment_reference}
+                                    onChange={(e) =>
+                                        form.setData('payment_reference', e.target.value)
+                                    }
+                                    placeholder={referenceHint}
+                                    required
+                                    autoComplete="off"
+                                />
+                                {form.errors.payment_reference && (
+                                    <p className="mt-1.5 text-sm text-rose-600">
+                                        {form.errors.payment_reference}
+                                    </p>
+                                )}
+                                <p className="mt-1.5 text-xs text-olive-500">
+                                    After APIs are plugged in, this field can be filled automatically
+                                    from the payment webhook.
+                                </p>
+                            </div>
+
+                            <div>
+                                <label className={labelCls} htmlFor="member_notes">
+                                    Notes (optional)
+                                </label>
+                                <textarea
+                                    id="member_notes"
+                                    rows={2}
+                                    className={field}
+                                    value={form.data.member_notes}
+                                    onChange={(e) =>
+                                        form.setData('member_notes', e.target.value)
+                                    }
+                                    placeholder="Business name, extra details…"
+                                />
+                            </div>
+                        </div>
+
+                        {form.errors.to_plan && (
+                            <p className="text-sm text-rose-600">{form.errors.to_plan}</p>
                         )}
                     </div>
 
-                    <div>
-                        <label className={labelCls} htmlFor="member_notes">
-                            Notes (optional)
-                        </label>
-                        <textarea
-                            id="member_notes"
-                            rows={2}
-                            className={field}
-                            value={form.data.member_notes}
-                            onChange={(e) => form.setData('member_notes', e.target.value)}
-                            placeholder="Phone used to pay, business name…"
-                        />
+                    {/* Sticky footer CTA */}
+                    <div className="shrink-0 border-t border-olive-100 bg-white px-5 py-4">
+                        <button
+                            type="submit"
+                            disabled={form.processing || !form.data.payment_reference.trim()}
+                            className="inline-flex w-full items-center justify-center gap-2 bg-olive-900 px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-mustard hover:text-earth-dusk disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            <Send className="h-4 w-4" />
+                            {form.processing
+                                ? 'Submitting…'
+                                : method === 'mpesa'
+                                  ? `Confirm M-Pesa · ${amountLabel}`
+                                  : `Confirm PayPal · ${amountLabel}`}
+                        </button>
+                        <p className="mt-2 text-center text-[11px] text-olive-400">
+                            Plan activates after payment is verified
+                        </p>
                     </div>
-
-                    {form.errors.to_plan && (
-                        <p className="text-sm text-rose-600">{form.errors.to_plan}</p>
-                    )}
-
-                    <button
-                        type="submit"
-                        disabled={form.processing}
-                        className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-mustard px-4 py-3.5 text-sm font-bold text-earth-dusk transition hover:bg-olive-800 hover:text-white disabled:opacity-50"
-                    >
-                        <Send className="h-4 w-4" />
-                        {form.processing ? 'Submitting…' : 'Submit payment for review'}
-                    </button>
                 </form>
             </div>
         </div>
@@ -494,6 +681,7 @@ export default function Upgrade({
 
             {checkoutPlan && (
                 <PaymentCheckout
+                    key={checkoutPlan.key}
                     plan={checkoutPlan}
                     paymentMethods={paymentMethods}
                     upgradeContact={upgradeContact}
