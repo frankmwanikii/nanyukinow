@@ -132,6 +132,24 @@ class MembershipFlowTest extends TestCase
             ->assertRedirect(route('account.index'));
     }
 
+    public function test_member_can_view_billing_page(): void
+    {
+        $user = User::factory()->standard()->create([
+            'plan_started_at' => now()->subDays(10),
+            'plan_expires_at' => now()->addDays(20),
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('account.billing'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Account/Billing')
+                ->where('plan.key', Membership::STANDARD)
+                ->where('plan.days_remaining', 20)
+                ->has('history')
+                ->has('pendingUpgrade'));
+    }
+
     public function test_account_dashboard_requires_auth(): void
     {
         $this->get(route('account.index'))

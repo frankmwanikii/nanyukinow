@@ -155,6 +155,37 @@ class Membership
         $plan = $user->effectivePlan();
         $limit = self::listingLimit($plan);
         $used = $user->listings()->count();
+        $startedAt = $user->plan_started_at;
+        $expiresAt = $user->plan_expires_at;
+        $isExpired = $user->planIsExpired();
+        $isPaid = $plan !== self::FREE && $expiresAt !== null;
+
+        $daysRemaining = null;
+        $daysTotal = null;
+        $daysUsed = null;
+        $usagePercent = null;
+
+        if ($isPaid) {
+            if ($expiresAt->isPast()) {
+                $daysRemaining = 0;
+            } else {
+                $daysRemaining = (int) now()->startOfDay()->diffInDays($expiresAt->copy()->startOfDay());
+            }
+
+            if ($startedAt && $expiresAt->greaterThan($startedAt)) {
+                $daysTotal = max(1, (int) $startedAt->copy()->startOfDay()->diffInDays($expiresAt->copy()->startOfDay()));
+                $elapsed = (int) $startedAt->copy()->startOfDay()->diffInDays(now()->startOfDay());
+                $daysUsed = min($daysTotal, max(0, $elapsed));
+                $usagePercent = (int) round(min(100, max(0, ($daysUsed / $daysTotal) * 100)));
+            }
+        }
+
+        $status = match (true) {
+            $plan === self::FREE => 'free',
+            $isExpired => 'expired',
+            $daysRemaining !== null && $daysRemaining <= 7 => 'expiring_soon',
+            default => 'active',
+        };
 
         return [
             'key' => $plan,
@@ -165,9 +196,15 @@ class Membership
             'listings_remaining' => max(0, $limit - $used),
             'can_create' => $used < $limit,
             'allowed_tiers' => self::allowedTiers($plan),
-            'started_at' => $user->plan_started_at?->toIso8601String(),
-            'expires_at' => $user->plan_expires_at?->toIso8601String(),
-            'is_expired' => $user->planIsExpired(),
+            'started_at' => $startedAt?->toIso8601String(),
+            'expires_at' => $expiresAt?->toIso8601String(),
+            'is_expired' => $isExpired,
+            'is_paid' => $isPaid,
+            'status' => $status,
+            'days_remaining' => $daysRemaining,
+            'days_total' => $daysTotal,
+            'days_used' => $daysUsed,
+            'period_percent' => $usagePercent,
         ];
     }
 }

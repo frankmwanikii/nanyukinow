@@ -12,10 +12,10 @@ import {
     Sparkles,
     X,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
-/** Matches fixed site navbar height (compact) */
-const NAV_H = '4.75rem';
+/** Fallback until the real site nav is measured (logo h-14 + py-5 ≈ 96px) */
+const NAV_H_FALLBACK = 96;
 
 function navActive(patterns) {
     return patterns.some((pattern) => {
@@ -27,10 +27,37 @@ function navActive(patterns) {
     });
 }
 
+function useSiteNavHeight() {
+    const [navH, setNavH] = useState(NAV_H_FALLBACK);
+
+    useEffect(() => {
+        const el = document.querySelector('[data-site-nav]');
+        if (!el) return undefined;
+
+        const update = () => {
+            const h = Math.ceil(el.getBoundingClientRect().height);
+            if (h > 0) setNavH(h);
+        };
+
+        update();
+        const ro = new ResizeObserver(update);
+        ro.observe(el);
+        window.addEventListener('resize', update);
+        return () => {
+            ro.disconnect();
+            window.removeEventListener('resize', update);
+        };
+    }, []);
+
+    return navH;
+}
+
 export default function AccountLayout({ title = 'Account', children }) {
     const { auth, messages, notifications } = usePage().props;
     const user = auth?.user;
     const [mobileOpen, setMobileOpen] = useState(false);
+    const navH = useSiteNavHeight();
+    const navPx = `${navH}px`;
 
     const unreadMessages =
         (messages?.unread_count || 0) + (notifications?.unread_count || 0);
@@ -66,9 +93,9 @@ export default function AccountLayout({ title = 'Account', children }) {
                 },
                 {
                     label: 'Billing',
-                    href: route('pricing'),
+                    href: route('account.billing'),
                     icon: CreditCard,
-                    active: navActive(['pricing']),
+                    active: navActive(['account.billing']),
                 },
                 {
                     label: 'Settings',
@@ -81,22 +108,22 @@ export default function AccountLayout({ title = 'Account', children }) {
     );
 
     const Sidebar = ({ onNavigate }) => (
-        <div className="flex h-full flex-col">
+        <div className="flex h-full flex-col overflow-y-auto">
             {user && (
-                <div className="flex items-center gap-3 border-b border-olive-100 px-3 py-4">
-                    <MemberAvatar user={user} size="sm" />
+                <div className="flex shrink-0 items-center gap-3 border-b border-olive-100 px-4 py-5">
+                    <MemberAvatar user={user} size="md" />
                     <div className="min-w-0 flex-1">
-                        <p className="truncate text-[13px] font-semibold leading-tight text-olive-950">
+                        <p className="truncate text-[15px] font-semibold leading-snug text-olive-950">
                             {user.name}
                         </p>
-                        <p className="mt-0.5 truncate text-[11px] text-olive-500">
+                        <p className="mt-0.5 truncate text-sm text-olive-500">
                             {user.plan_label || 'Free'}
                         </p>
                     </div>
                 </div>
             )}
 
-            <nav className="flex-1 space-y-px px-1.5 py-2" aria-label="Account">
+            <nav className="flex-1 space-y-1 px-2.5 py-3" aria-label="Account">
                 {items.map((item) => {
                     const Icon = item.icon;
                     return (
@@ -104,26 +131,26 @@ export default function AccountLayout({ title = 'Account', children }) {
                             key={item.label}
                             href={item.href}
                             onClick={onNavigate}
-                            className={`group relative flex items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] font-medium transition ${
+                            className={`group relative flex items-center gap-3 rounded-lg px-3 py-3 text-[15px] font-semibold transition ${
                                 item.active
                                     ? 'bg-olive-100/80 text-olive-950'
-                                    : 'text-olive-600 hover:bg-olive-50 hover:text-olive-900'
+                                    : 'text-olive-700 hover:bg-olive-50 hover:text-olive-950'
                             }`}
                         >
                             {item.active && (
-                                <span className="absolute inset-y-1.5 left-0 w-[3px] rounded-r-full bg-mustard" />
+                                <span className="absolute inset-y-2 left-0 w-[3px] rounded-r-full bg-mustard" />
                             )}
                             <Icon
-                                className={`h-[18px] w-[18px] shrink-0 ${
+                                className={`h-5 w-5 shrink-0 ${
                                     item.active
                                         ? 'text-olive-900'
-                                        : 'text-olive-400 group-hover:text-olive-700'
+                                        : 'text-olive-500 group-hover:text-olive-800'
                                 }`}
-                                strokeWidth={1.75}
+                                strokeWidth={1.85}
                             />
                             <span className="min-w-0 flex-1 truncate">{item.label}</span>
                             {item.badge > 0 && (
-                                <span className="min-w-[1.25rem] rounded bg-mustard px-1 py-0.5 text-center text-[10px] font-bold leading-none text-earth-dusk">
+                                <span className="min-w-[1.35rem] rounded bg-mustard px-1.5 py-0.5 text-center text-[11px] font-bold leading-none text-earth-dusk">
                                     {item.badge > 9 ? '9+' : item.badge}
                                 </span>
                             )}
@@ -132,13 +159,13 @@ export default function AccountLayout({ title = 'Account', children }) {
                 })}
             </nav>
 
-            <div className="border-t border-olive-100 px-1.5 py-2">
+            <div className="shrink-0 border-t border-olive-100 px-2.5 py-3">
                 <Link
                     href={route('home')}
                     onClick={onNavigate}
-                    className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] font-medium text-olive-600 transition hover:bg-olive-50 hover:text-olive-900"
+                    className="flex items-center gap-3 rounded-lg px-3 py-3 text-[15px] font-semibold text-olive-700 transition hover:bg-olive-50 hover:text-olive-950"
                 >
-                    <Home className="h-[18px] w-[18px] text-olive-400" strokeWidth={1.75} />
+                    <Home className="h-5 w-5 text-olive-500" strokeWidth={1.85} />
                     Browse site
                 </Link>
             </div>
@@ -147,17 +174,14 @@ export default function AccountLayout({ title = 'Account', children }) {
 
     return (
         <SiteLayout hideFooter compactNav>
-            {/* Full-bleed shell under fixed site navbar */}
-            <div style={{ paddingTop: NAV_H }} className="min-h-svh">
-                {/* Desktop: extreme-left fixed sidebar */}
+            <div style={{ paddingTop: navPx }} className="min-h-svh">
                 <aside
-                    className="fixed bottom-0 left-0 z-30 hidden w-[15rem] border-r border-olive-200 bg-white lg:block xl:w-[15.5rem]"
-                    style={{ top: NAV_H }}
+                    className="fixed bottom-0 left-0 z-30 hidden w-60 border-r border-olive-200 bg-white lg:block xl:w-64"
+                    style={{ top: navPx }}
                 >
                     <Sidebar />
                 </aside>
 
-                {/* Mobile drawer — also flush left */}
                 {mobileOpen && (
                     <>
                         <button
@@ -167,15 +191,15 @@ export default function AccountLayout({ title = 'Account', children }) {
                             onClick={() => setMobileOpen(false)}
                         />
                         <aside
-                            className="fixed bottom-0 left-0 z-[1160] flex w-[min(15.5rem,88vw)] flex-col border-r border-olive-200 bg-white shadow-lift lg:hidden"
-                            style={{ top: 0, paddingTop: NAV_H }}
+                            className="fixed bottom-0 left-0 z-[1160] flex w-[min(17rem,90vw)] flex-col border-r border-olive-200 bg-white shadow-lift lg:hidden"
+                            style={{ top: 0, paddingTop: navPx }}
                         >
                             <button
                                 type="button"
                                 onClick={() => setMobileOpen(false)}
-                                className="absolute right-2 top-3 inline-flex h-9 w-9 items-center justify-center text-olive-700"
+                                className="absolute right-2 inline-flex h-9 w-9 items-center justify-center text-olive-700"
                                 aria-label="Close menu"
-                                style={{ top: `calc(${NAV_H} + 0.25rem)` }}
+                                style={{ top: `calc(${navPx} + 0.25rem)` }}
                             >
                                 <X className="h-5 w-5" />
                             </button>
@@ -184,10 +208,10 @@ export default function AccountLayout({ title = 'Account', children }) {
                     </>
                 )}
 
-                <div className="min-w-0 bg-[#f4f2ec] lg:pl-[15rem] xl:pl-[15.5rem]">
+                <div className="min-w-0 bg-[#f4f2ec] lg:pl-60 xl:pl-64">
                     <header
                         className="sticky z-20 flex items-center gap-3 border-b border-olive-200/80 bg-[#f4f2ec]/95 px-4 py-3 backdrop-blur sm:px-6"
-                        style={{ top: NAV_H }}
+                        style={{ top: navPx }}
                     >
                         <button
                             type="button"

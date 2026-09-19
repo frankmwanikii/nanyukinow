@@ -374,6 +374,7 @@ export default function Navbar({ compact = false }) {
     return (
         <header
             ref={headerRef}
+            data-site-nav
             className={`fixed inset-x-0 top-0 z-[1100] transition-all duration-300 ${
                 scrolled || compact
                     ? 'bg-[#4f5a3e]/95 shadow-lg shadow-earth-dusk/20 backdrop-blur-md'

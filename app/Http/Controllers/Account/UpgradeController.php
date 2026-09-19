@@ -30,7 +30,7 @@ class UpgradeController extends Controller
             'plan' => Membership::planSummary($user),
             'plans' => Membership::publicPlans(),
             'pendingUpgrade' => $pending?->toMemberArray(),
-            'paymentMethods' => PaymentMethods::options(),
+            'paymentMethods' => PaymentMethods::memberOptions(),
             'upgradeContact' => [
                 'whatsapp' => SiteSetting::getValue('upgrade_whatsapp', ''),
                 'phone' => SiteSetting::getValue('contact_phone', ''),

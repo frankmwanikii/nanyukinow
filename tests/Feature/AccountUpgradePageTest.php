@@ -26,7 +26,7 @@ class AccountUpgradePageTest extends TestCase
             ->assertInertia(fn ($page) => $page
                 ->component('Account/Upgrade')
                 ->has('plans', 3)
-                ->has('paymentMethods', 3)
+                ->has('paymentMethods', 2)
                 ->has('upgradeContact')
                 ->has('plan'));
     }

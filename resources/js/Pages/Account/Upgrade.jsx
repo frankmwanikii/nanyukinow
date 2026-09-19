@@ -31,23 +31,43 @@ function displayPrice(plan) {
     return formatMoney(plan.price_amount, plan.currency);
 }
 
-const METHOD_META = {
-    mpesa: {
-        color: 'border-emerald-500 bg-emerald-50 text-emerald-900',
-        active: 'ring-2 ring-emerald-500 border-emerald-500 bg-emerald-50',
-        chip: 'bg-emerald-600',
-    },
-    intasend: {
-        color: 'border-sky-500 bg-sky-50 text-sky-900',
-        active: 'ring-2 ring-sky-500 border-sky-500 bg-sky-50',
-        chip: 'bg-sky-600',
-    },
-    paypal: {
-        color: 'border-indigo-500 bg-indigo-50 text-indigo-900',
-        active: 'ring-2 ring-indigo-500 border-indigo-500 bg-indigo-50',
-        chip: 'bg-[#003087]',
-    },
-};
+function MpesaIcon({ className = '' }) {
+    return (
+        <svg viewBox="0 0 32 32" className={className} aria-hidden>
+            <rect width="32" height="32" rx="7" fill="#00A651" />
+            <path
+                fill="#fff"
+                d="M8.2 22.5V9.5h3.1l3.35 7.85c.28.66.5 1.3.66 1.92h.06c.1-.42.32-1.04.64-1.86L19.4 9.5h3.05v13h-2.55v-7.55c0-.55.02-1.18.06-1.9h-.06l-3.55 9.45h-2.15L10.7 13.1c-.04.7-.06 1.34-.06 1.9v7.5H8.2z"
+            />
+        </svg>
+    );
+}
+
+function PaypalIcon({ className = '' }) {
+    return (
+        <svg viewBox="0 0 32 32" className={className} aria-hidden>
+            <rect width="32" height="32" rx="7" fill="#003087" />
+            <path
+                fill="#009CDE"
+                d="M12.1 21.8 13 16.2h3.35c2.05 0 3.45-.72 3.9-2.55.2-.8.12-1.45-.2-1.95-.4-.62-1.15-.95-2.2-.95H14.2l-1.35 8.05H12.1z"
+            />
+            <path
+                fill="#fff"
+                d="M11.35 23.2 12.4 16.8h2.95c1.75 0 2.95-.55 3.35-2.15.18-.72.1-1.28-.2-1.7-.35-.5-1-.75-1.9-.75h-2.6L10.2 23.2h1.15zm6.55-9.95c-.35 1.55-1.55 2.15-3.4 2.15h-1.55l.75-4.55h1.7c1.15 0 1.85.22 2.2.72.28.38.35.9.3 1.68z"
+            />
+            <path
+                fill="#fff"
+                opacity="0.92"
+                d="M18.9 13.35c-.05.85-.55 1.5-1.4 1.88.7-.12 1.25-.45 1.55-1.05.25-.48.28-1.02.12-1.55-.1-.3-.28-.52-.5-.68.08.42.2.9.23 1.4z"
+            />
+        </svg>
+    );
+}
+
+function MethodIcon({ method, className = 'h-7 w-7' }) {
+    if (method === 'paypal') return <PaypalIcon className={className} />;
+    return <MpesaIcon className={className} />;
+}
 
 function planState(plan, currentKey, pending) {
     const isCurrent = currentKey === plan.key;
@@ -203,13 +223,11 @@ function PaymentCheckout({
 
     const referenceLabel = useMemo(() => {
         if (method === 'paypal') return 'PayPal transaction ID';
-        if (method === 'intasend') return 'IntaSend transaction / invoice ID';
         return 'M-Pesa confirmation code';
     }, [method]);
 
     const referenceHint = useMemo(() => {
         if (method === 'paypal') return 'e.g. 8AB12345XY678901A';
-        if (method === 'intasend') return 'e.g. INV-… or TXN-…';
         return 'e.g. QJX7…';
     }, [method]);
 
@@ -278,11 +296,10 @@ function PaymentCheckout({
                         <div
                             role="radiogroup"
                             aria-label="Payment method"
-                            className="grid grid-cols-3 gap-2 rounded-2xl bg-olive-50 p-1.5"
+                            className="grid grid-cols-2 gap-2 rounded-2xl bg-olive-50 p-1.5"
                         >
                             {paymentMethods.map((opt) => {
                                 const active = method === opt.value;
-                                const tone = METHOD_META[opt.value] || METHOD_META.mpesa;
                                 return (
                                     <button
                                         key={opt.value}
@@ -290,18 +307,14 @@ function PaymentCheckout({
                                         role="radio"
                                         aria-checked={active}
                                         onClick={() => form.setData('payment_method', opt.value)}
-                                        className={`rounded-xl px-2 py-3 text-center transition ${
+                                        className={`flex items-center justify-center gap-2.5 rounded-xl px-3 py-3.5 text-center transition ${
                                             active
                                                 ? 'bg-white shadow-soft ring-1 ring-olive-200'
                                                 : 'hover:bg-white/70'
                                         }`}
                                     >
-                                        <span
-                                            className={`mx-auto mb-1.5 flex h-2 w-2 rounded-full ${
-                                                active ? tone.chip : 'bg-olive-300'
-                                            }`}
-                                        />
-                                        <span className="block text-sm font-bold text-olive-950">
+                                        <MethodIcon method={opt.value} className="h-8 w-8 shrink-0" />
+                                        <span className="text-sm font-bold text-olive-950">
                                             {opt.short}
                                         </span>
                                     </button>
@@ -319,7 +332,10 @@ function PaymentCheckout({
                     <div className="rounded-2xl border border-olive-100 bg-earth-sand/50 p-4">
                         {method === 'mpesa' && (
                             <div className="space-y-3 text-sm">
-                                <p className="font-semibold text-olive-900">M-Pesa payment</p>
+                                <div className="flex items-center gap-2">
+                                    <MpesaIcon className="h-6 w-6" />
+                                    <p className="font-semibold text-olive-900">M-Pesa payment</p>
+                                </div>
                                 <p className="text-olive-600">{upgradeContact.instructions}</p>
                                 <dl className="grid gap-2 sm:grid-cols-2">
                                     {upgradeContact.mpesa_paybill && (
@@ -346,22 +362,12 @@ function PaymentCheckout({
                             </div>
                         )}
 
-                        {method === 'intasend' && (
-                            <div className="space-y-2 text-sm">
-                                <p className="font-semibold text-olive-900">IntaSend</p>
-                                <p className="text-olive-600">
-                                    {upgradeContact.intasend_note}
-                                </p>
-                                <p className="rounded-xl bg-sky-50 px-3 py-2 text-xs font-medium text-sky-900">
-                                    After paying with IntaSend, paste your transaction or invoice ID
-                                    below so we can confirm your upgrade.
-                                </p>
-                            </div>
-                        )}
-
                         {method === 'paypal' && (
                             <div className="space-y-2 text-sm">
-                                <p className="font-semibold text-olive-900">PayPal</p>
+                                <div className="flex items-center gap-2">
+                                    <PaypalIcon className="h-6 w-6" />
+                                    <p className="font-semibold text-olive-900">PayPal</p>
+                                </div>
                                 <p className="text-olive-600">{upgradeContact.paypal_note}</p>
                                 {upgradeContact.paypal_email && (
                                     <p className="rounded-xl bg-white px-3 py-2.5">

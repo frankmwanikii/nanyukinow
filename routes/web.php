@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Account\BillingController as AccountBillingController;
 use App\Http\Controllers\Account\DashboardController as AccountDashboardController;
 use App\Http\Controllers\Account\ListingController as AccountListingController;
 use App\Http\Controllers\Account\UpgradeController as AccountUpgradeController;
@@ -53,6 +54,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/account/listings/{listing}/edit', [AccountListingController::class, 'edit'])->name('account.listings.edit');
     Route::put('/account/listings/{listing}', [AccountListingController::class, 'update'])->name('account.listings.update');
     Route::delete('/account/listings/{listing}', [AccountListingController::class, 'destroy'])->name('account.listings.destroy');
+
+    Route::get('/account/billing', AccountBillingController::class)->name('account.billing');
 
     Route::get('/account/upgrade', [AccountUpgradeController::class, 'create'])->name('account.upgrade');
     Route::post('/account/upgrade', [AccountUpgradeController::class, 'store'])->name('account.upgrade.store');

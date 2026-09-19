@@ -19,6 +19,19 @@ class PaymentMethods
     }
 
     /**
+     * Methods shown to members at checkout (admin may still use IntaSend behind the scenes).
+     *
+     * @return list<array{value: string, label: string, short: string, description: string}>
+     */
+    public static function memberOptions(): array
+    {
+        return array_values(array_filter(
+            self::options(),
+            fn (array $option): bool => in_array($option['value'], [self::MPESA, self::PAYPAL], true),
+        ));
+    }
+
+    /**
      * @return list<array{value: string, label: string, short: string, description: string}>
      */
     public static function options(): array
