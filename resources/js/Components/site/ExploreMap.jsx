@@ -1,96 +1,10 @@
 import { useEffect, useMemo, useRef } from 'react';
+import { getMapsApiKey, loadGoogleMaps } from '@/utils/googleMaps';
 
 /**
- * Map panel for Explore.
- *
- * Uses Google Maps when VITE_GOOGLE_MAPS_API_KEY is set; otherwise Leaflet + OSM.
+ * Explore map — Google Maps only.
  */
 const NANYUKI = { lat: -0.0167, lng: 37.0728 };
-const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-const LEAFLET_JS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-
-let leafletLoader = null;
-let googleLoader = null;
-
-function loadLeaflet() {
-    if (typeof window === 'undefined') {
-        return Promise.reject(new Error('No window'));
-    }
-    if (window.L) return Promise.resolve(window.L);
-    if (leafletLoader) return leafletLoader;
-
-    leafletLoader = new Promise((resolve, reject) => {
-        if (!document.querySelector(`link[href="${LEAFLET_CSS}"]`)) {
-            const link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = LEAFLET_CSS;
-            document.head.appendChild(link);
-        }
-
-        const existing = document.querySelector(`script[src="${LEAFLET_JS}"]`);
-        if (existing) {
-            existing.addEventListener('load', () => resolve(window.L));
-            existing.addEventListener('error', reject);
-            if (window.L) resolve(window.L);
-            return;
-        }
-
-        const script = document.createElement('script');
-        script.src = LEAFLET_JS;
-        script.async = true;
-        script.onload = () => resolve(window.L);
-        script.onerror = reject;
-        document.body.appendChild(script);
-    });
-
-    return leafletLoader;
-}
-
-function loadGoogleMaps(apiKey) {
-    if (typeof window === 'undefined') {
-        return Promise.reject(new Error('No window'));
-    }
-    if (window.google?.maps) return Promise.resolve(window.google.maps);
-    if (googleLoader) return googleLoader;
-
-    googleLoader = new Promise((resolve, reject) => {
-        const src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}`;
-        const existing = document.querySelector(`script[src^="https://maps.googleapis.com/maps/api/js"]`);
-
-        if (existing) {
-            existing.addEventListener('load', () => resolve(window.google.maps));
-            existing.addEventListener('error', reject);
-            if (window.google?.maps) resolve(window.google.maps);
-            return;
-        }
-
-        const script = document.createElement('script');
-        script.src = src;
-        script.async = true;
-        script.defer = true;
-        script.onload = () => resolve(window.google.maps);
-        script.onerror = reject;
-        document.head.appendChild(script);
-    });
-
-    return googleLoader;
-}
-
-function pinHtml(active) {
-    const bg = active ? '#f2b82e' : '#4b533a';
-    const ring = active ? '#1c1712' : '#ffffff';
-    return `
-      <div style="
-        width:30px;height:30px;border-radius:9999px;
-        background:${bg};border:2.5px solid ${ring};
-        box-shadow:0 6px 16px rgba(28,23,18,.35);
-        display:flex;align-items:center;justify-content:center;
-        transform:translateY(-4px);
-      ">
-        <span style="width:8px;height:8px;border-radius:9999px;background:#fff;"></span>
-      </div>
-    `;
-}
 
 function googlePinSvg(active) {
     const bg = active ? '#f2b82e' : '#4b533a';
@@ -103,20 +17,6 @@ function googlePinSvg(active) {
     `)}`;
 }
 
-function useMapProvider() {
-    const googleKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-    return googleKey ? 'google' : 'leaflet';
-}
-
-function destroyMap(provider, map) {
-    if (!map) return;
-    if (provider === 'leaflet') {
-        map.remove();
-        return;
-    }
-    // Google Maps: clear listeners; DOM node is reused/unmounted by React
-}
-
 export default function ExploreMap({
     listings = [],
     activeId = null,
@@ -125,8 +25,7 @@ export default function ExploreMap({
     onClose,
     className = '',
 }) {
-    const provider = useMapProvider();
-    const googleKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    const googleKey = getMapsApiKey();
     const containerRef = useRef(null);
     const mapRef = useRef(null);
     const markersRef = useRef(new Map());
@@ -144,52 +43,12 @@ export default function ExploreMap({
         [listings],
     );
 
-    // Init Leaflet
     useEffect(() => {
-        if (provider !== 'leaflet' || !visible) return undefined;
+        if (!visible || !googleKey) return undefined;
 
         let cancelled = false;
 
-        loadLeaflet()
-            .then((L) => {
-                if (cancelled || !containerRef.current) return;
-
-                if (!mapRef.current) {
-                    const map = L.map(containerRef.current, {
-                        zoomControl: false,
-                        attributionControl: true,
-                        scrollWheelZoom: true,
-                    }).setView([NANYUKI.lat, NANYUKI.lng], 12);
-
-                    L.tileLayer(
-                        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                        {
-                            maxZoom: 18,
-                            attribution:
-                                '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
-                        },
-                    ).addTo(map);
-
-                    L.control.zoom({ position: 'topright' }).addTo(map);
-                    mapRef.current = map;
-                }
-
-                setTimeout(() => mapRef.current?.invalidateSize(), 120);
-            })
-            .catch(() => {});
-
-        return () => {
-            cancelled = true;
-        };
-    }, [provider, visible]);
-
-    // Init Google Maps
-    useEffect(() => {
-        if (provider !== 'google' || !visible || !googleKey) return undefined;
-
-        let cancelled = false;
-
-        loadGoogleMaps(googleKey)
+        loadGoogleMaps(googleKey, { libraries: [] })
             .then((maps) => {
                 if (cancelled || !containerRef.current || mapRef.current) return;
 
@@ -209,73 +68,23 @@ export default function ExploreMap({
         return () => {
             cancelled = true;
         };
-    }, [provider, visible, googleKey]);
+    }, [visible, googleKey]);
 
     useEffect(() => {
         if (!visible) return undefined;
         return () => {
             if (mapRef.current) {
-                if (provider === 'leaflet') {
-                    markersRef.current.forEach((marker) => marker.remove());
-                } else {
-                    markersRef.current.forEach((marker) => marker.setMap(null));
-                    infoWindowRef.current?.close();
-                }
-                destroyMap(provider, mapRef.current);
+                markersRef.current.forEach((marker) => marker.setMap(null));
+                infoWindowRef.current?.close();
                 mapRef.current = null;
                 markersRef.current.clear();
                 infoWindowRef.current = null;
             }
         };
-    }, [visible, provider]);
+    }, [visible]);
 
-    // Leaflet markers
     useEffect(() => {
-        if (provider !== 'leaflet' || !visible) return;
-        const map = mapRef.current;
-        const L = typeof window !== 'undefined' ? window.L : null;
-        if (!map || !L) return;
-
-        markersRef.current.forEach((marker) => marker.remove());
-        markersRef.current.clear();
-
-        const bounds = [];
-
-        points.forEach((item) => {
-            const icon = L.divIcon({
-                className: '',
-                html: pinHtml(String(item.id) === String(activeId)),
-                iconSize: [30, 30],
-                iconAnchor: [15, 26],
-            });
-
-            const marker = L.marker([item.lat, item.lng], { icon })
-                .addTo(map)
-                .bindTooltip(item.title, {
-                    direction: 'top',
-                    offset: [0, -18],
-                    opacity: 0.95,
-                });
-
-            marker.on('click', () => onSelectRef.current?.(item.id));
-            markersRef.current.set(String(item.id), marker);
-            bounds.push([item.lat, item.lng]);
-        });
-
-        if (bounds.length > 1) {
-            map.fitBounds(bounds, { padding: [48, 48], maxZoom: 13 });
-        } else if (bounds.length === 1) {
-            map.setView(bounds[0], 13);
-        } else {
-            map.setView([NANYUKI.lat, NANYUKI.lng], 12);
-        }
-
-        setTimeout(() => map.invalidateSize(), 80);
-    }, [points, activeId, provider, visible]);
-
-    // Google markers
-    useEffect(() => {
-        if (provider !== 'google' || !visible) return;
+        if (!visible || !googleKey) return;
         const map = mapRef.current;
         const maps = typeof window !== 'undefined' ? window.google?.maps : null;
         if (!map || !maps) return;
@@ -323,21 +132,15 @@ export default function ExploreMap({
             map.setCenter(NANYUKI);
             map.setZoom(12);
         }
-    }, [points, activeId, provider, visible]);
+    }, [points, activeId, visible, googleKey]);
 
     useEffect(() => {
         if (!visible || !activeId || !mapRef.current) return;
         const marker = markersRef.current.get(String(activeId));
         if (!marker) return;
-
-        if (provider === 'leaflet') {
-            mapRef.current.panTo(marker.getLatLng(), { animate: true });
-            return;
-        }
-
         const position = marker.getPosition();
         if (position) mapRef.current.panTo(position);
-    }, [activeId, visible, provider]);
+    }, [activeId, visible]);
 
     if (!visible) return null;
 
@@ -345,7 +148,13 @@ export default function ExploreMap({
         <div
             className={`relative z-0 h-full min-h-[280px] isolate overflow-hidden bg-olive-100 ${className}`}
         >
-            <div ref={containerRef} className="absolute inset-0 z-0" />
+            {googleKey ? (
+                <div ref={containerRef} className="absolute inset-0 z-0" />
+            ) : (
+                <div className="absolute inset-0 flex items-center justify-center px-4 text-center text-sm text-olive-600">
+                    Google Maps API key required
+                </div>
+            )}
 
             <div className="pointer-events-none absolute left-3 top-3 z-[400] flex items-center gap-2">
                 <span className="rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-olive-800 shadow-soft">

@@ -60,6 +60,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/account/listings/editor-media', [\App\Http\Controllers\Account\EditorMediaController::class, 'store'])
         ->middleware('throttle:40,1')
         ->name('account.listings.editor-media');
+    Route::get('/account/places/search', \App\Http\Controllers\Account\PlaceSearchController::class)
+        ->middleware('throttle:60,1')
+        ->name('account.places.search');
 
     Route::get('/account/billing', AccountBillingController::class)->name('account.billing');
 

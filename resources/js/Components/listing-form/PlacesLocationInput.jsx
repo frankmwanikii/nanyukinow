@@ -1,65 +1,14 @@
 import { field, help, label } from './fieldStyles';
-import { loadGoogleMaps } from '@/utils/googleMaps';
+import { getMapsApiKey, loadGoogleMaps } from '@/utils/googleMaps';
 import { Loader2, MapPin, Search, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 const NANYUKI = { lat: -0.0166, lng: 37.0728 };
 const DEFAULT_ZOOM = 14;
-const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-const LEAFLET_JS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-
-let leafletLoader = null;
 
 function parseCoord(value) {
     const n = typeof value === 'number' ? value : Number.parseFloat(value);
     return Number.isFinite(n) ? n : null;
-}
-
-function loadLeaflet() {
-    if (typeof window === 'undefined') {
-        return Promise.reject(new Error('No window'));
-    }
-    if (window.L) return Promise.resolve(window.L);
-    if (leafletLoader) return leafletLoader;
-
-    leafletLoader = new Promise((resolve, reject) => {
-        if (!document.querySelector(`link[href="${LEAFLET_CSS}"]`)) {
-            const link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = LEAFLET_CSS;
-            document.head.appendChild(link);
-        }
-        const existing = document.querySelector(`script[src="${LEAFLET_JS}"]`);
-        if (existing) {
-            existing.addEventListener('load', () => resolve(window.L));
-            existing.addEventListener('error', reject);
-            if (window.L) resolve(window.L);
-            return;
-        }
-        const script = document.createElement('script');
-        script.src = LEAFLET_JS;
-        script.async = true;
-        script.onload = () => resolve(window.L);
-        script.onerror = reject;
-        document.body.appendChild(script);
-    });
-
-    return leafletLoader;
-}
-
-function leafletPinIcon(L) {
-    return L.divIcon({
-        className: '',
-        html: `<div style="transform:translate(-50%,-100%)">
-          <svg width="36" height="44" viewBox="0 0 32 40" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 4px 8px rgba(28,23,18,.35))">
-            <path d="M16 0C8.268 0 2 6.268 2 14c0 9.5 12.2 24.4 13.1 25.5a1.2 1.2 0 0 0 1.8 0C17.8 38.4 30 23.5 30 14 30 6.268 23.732 0 16 0z" fill="#f2b82e" stroke="#1c1712" stroke-width="1.6"/>
-            <circle cx="16" cy="14" r="5.5" fill="#1c1712"/>
-            <circle cx="16" cy="14" r="2.4" fill="#ffffff"/>
-          </svg>
-        </div>`,
-        iconSize: [36, 44],
-        iconAnchor: [18, 44],
-    });
 }
 
 function googlePinIcon(maps) {
@@ -103,23 +52,8 @@ function placeToFields(place) {
     };
 }
 
-function nominatimToPrediction(item) {
-    const parts = (item.display_name || '').split(', ');
-    return {
-        place_id: `osm-${item.place_id}`,
-        description: item.display_name,
-        structured_formatting: {
-            main_text: parts[0] || item.display_name,
-            secondary_text: parts.slice(1, 4).join(', '),
-        },
-        _osm: item,
-        provider: 'osm',
-    };
-}
-
 /**
- * Live map + search dropdown for listing location.
- * Uses Google when Maps tiles actually load; otherwise Leaflet + Nominatim.
+ * Google Maps + Places location picker for listing forms.
  */
 export default function PlacesLocationInput({
     apiKey,
@@ -135,8 +69,6 @@ export default function PlacesLocationInput({
     const mapRef = useRef(null);
     const markerRef = useRef(null);
     const mapsRef = useRef(null);
-    const leafletRef = useRef(null);
-    const providerRef = useRef(null);
     const autocompleteServiceRef = useRef(null);
     const placesServiceRef = useRef(null);
     const sessionTokenRef = useRef(null);
@@ -149,8 +81,8 @@ export default function PlacesLocationInput({
         onChangeRef.current = onChange;
     }, [onChange]);
 
-    const [status, setStatus] = useState('loading');
-    const [providerLabel, setProviderLabel] = useState('');
+    const key = getMapsApiKey(apiKey);
+    const [status, setStatus] = useState(key ? 'loading' : 'missing');
     const [query, setQuery] = useState(address || location || '');
     const [predictions, setPredictions] = useState([]);
     const [open, setOpen] = useState(false);
@@ -161,37 +93,7 @@ export default function PlacesLocationInput({
     const lat = parseCoord(latitude);
     const lng = parseCoord(longitude);
 
-    const reverseGeocodeOsm = useCallback(async (rLat, rLng) => {
-        try {
-            const res = await fetch(
-                `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${rLat}&lon=${rLng}&addressdetails=1`,
-                { headers: { Accept: 'application/json' } },
-            );
-            if (!res.ok) return;
-            const data = await res.json();
-            const addr = data.address || {};
-            suppressSearchRef.current = true;
-            setQuery(data.display_name || '');
-            onChangeRef.current({
-                location:
-                    addr.suburb ||
-                    addr.neighbourhood ||
-                    addr.village ||
-                    addr.town ||
-                    addr.city ||
-                    addr.county ||
-                    'Nanyuki',
-                city: addr.city || addr.town || addr.county || '',
-                address: data.display_name || '',
-                latitude: rLat,
-                longitude: rLng,
-            });
-        } catch {
-            // ignore
-        }
-    }, []);
-
-    const reverseGeocodeGoogle = useCallback((rLat, rLng) => {
+    const reverseGeocode = useCallback((rLat, rLng) => {
         const maps = mapsRef.current;
         if (!maps) return;
         new maps.Geocoder().geocode(
@@ -213,63 +115,36 @@ export default function PlacesLocationInput({
     const moveMap = useCallback(
         (nextLat, nextLng, { zoom = 16 } = {}) => {
             if (nextLat == null || nextLng == null) return;
+            const maps = mapsRef.current;
+            const map = mapRef.current;
+            if (!maps || !map) return;
 
-            if (providerRef.current === 'google') {
-                const maps = mapsRef.current;
-                const map = mapRef.current;
-                if (!maps || !map) return;
-                const position = { lat: nextLat, lng: nextLng };
-                map.panTo(position);
-                if (map.getZoom() < zoom) map.setZoom(zoom);
+            const position = { lat: nextLat, lng: nextLng };
+            map.panTo(position);
+            if (map.getZoom() < zoom) map.setZoom(zoom);
 
-                if (markerRef.current) {
-                    markerRef.current.setPosition(position);
-                } else {
-                    markerRef.current = new maps.Marker({
-                        map,
-                        position,
-                        draggable: true,
-                        animation: maps.Animation.DROP,
-                        icon: googlePinIcon(maps),
-                        title: 'Drag to fine-tune',
-                    });
-                    markerRef.current.addListener('dragend', () => {
-                        const pos = markerRef.current.getPosition();
-                        if (!pos) return;
-                        const dLat = Number(pos.lat().toFixed(7));
-                        const dLng = Number(pos.lng().toFixed(7));
-                        onChangeRef.current({ latitude: dLat, longitude: dLng });
-                        reverseGeocodeGoogle(dLat, dLng);
-                    });
-                }
-                return;
-            }
-
-            if (providerRef.current === 'leaflet') {
-                const L = leafletRef.current;
-                const map = mapRef.current;
-                if (!L || !map) return;
-                map.setView([nextLat, nextLng], Math.max(map.getZoom(), zoom), {
-                    animate: true,
+            if (markerRef.current) {
+                markerRef.current.setPosition(position);
+            } else {
+                markerRef.current = new maps.Marker({
+                    map,
+                    position,
+                    draggable: true,
+                    animation: maps.Animation.DROP,
+                    icon: googlePinIcon(maps),
+                    title: 'Drag to fine-tune',
                 });
-                if (markerRef.current) {
-                    markerRef.current.setLatLng([nextLat, nextLng]);
-                } else {
-                    markerRef.current = L.marker([nextLat, nextLng], {
-                        draggable: true,
-                        icon: leafletPinIcon(L),
-                    }).addTo(map);
-                    markerRef.current.on('dragend', () => {
-                        const pos = markerRef.current.getLatLng();
-                        const dLat = Number(pos.lat.toFixed(7));
-                        const dLng = Number(pos.lng.toFixed(7));
-                        onChangeRef.current({ latitude: dLat, longitude: dLng });
-                        reverseGeocodeOsm(dLat, dLng);
-                    });
-                }
+                markerRef.current.addListener('dragend', () => {
+                    const pos = markerRef.current.getPosition();
+                    if (!pos) return;
+                    const dLat = Number(pos.lat().toFixed(7));
+                    const dLng = Number(pos.lng().toFixed(7));
+                    onChangeRef.current({ latitude: dLat, longitude: dLng });
+                    reverseGeocode(dLat, dLng);
+                });
             }
         },
-        [reverseGeocodeGoogle, reverseGeocodeOsm],
+        [reverseGeocode],
     );
 
     const applyCoords = useCallback(
@@ -287,30 +162,49 @@ export default function PlacesLocationInput({
 
     const selectPrediction = useCallback(
         (prediction) => {
-            if (prediction.provider === 'osm' && prediction._osm) {
-                const item = prediction._osm;
-                const rLat = Number.parseFloat(item.lat);
-                const rLng = Number.parseFloat(item.lon);
-                const addr = item.address || {};
+            // Local Nanyuki Now listing from hybrid API
+            if (
+                prediction?.latitude != null &&
+                prediction?.longitude != null &&
+                Number.isFinite(Number(prediction.latitude)) &&
+                Number.isFinite(Number(prediction.longitude)) &&
+                prediction.source === 'local'
+            ) {
                 applyCoords({
                     location:
-                        addr.suburb ||
-                        addr.neighbourhood ||
-                        addr.village ||
-                        addr.town ||
-                        addr.city ||
+                        prediction.location_label ||
                         prediction.structured_formatting?.main_text ||
                         'Nanyuki',
-                    city: addr.city || addr.town || addr.county || '',
-                    address: item.display_name || '',
-                    latitude: Number(rLat.toFixed(7)),
-                    longitude: Number(rLng.toFixed(7)),
+                    city: prediction.city || '',
+                    address:
+                        prediction.address || prediction.description || '',
+                    latitude: Number(Number(prediction.latitude).toFixed(7)),
+                    longitude: Number(Number(prediction.longitude).toFixed(7)),
                 });
                 return;
             }
 
             const service = placesServiceRef.current;
             if (!service || !prediction?.place_id) return;
+
+            // Local listing without coords — still fill text, then geocode via Places text
+            if (
+                String(prediction.place_id).startsWith('local-') ||
+                prediction.source === 'local'
+            ) {
+                applyCoords({
+                    location:
+                        prediction.location_label ||
+                        prediction.structured_formatting?.main_text ||
+                        'Nanyuki',
+                    city: prediction.city || '',
+                    address:
+                        prediction.address || prediction.description || '',
+                    latitude: lat ?? NANYUKI.lat,
+                    longitude: lng ?? NANYUKI.lng,
+                });
+                return;
+            }
 
             service.getDetails(
                 {
@@ -333,49 +227,37 @@ export default function PlacesLocationInput({
                 },
             );
         },
-        [applyCoords],
+        [applyCoords, lat, lng],
     );
 
-    const searchOsm = useCallback(
-        async (q) => {
-            setSearching(true);
-            try {
-                const res = await fetch(
-                    `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&countrycodes=ke&q=${encodeURIComponent(q)}`,
-                    { headers: { Accept: 'application/json' } },
-                );
-                const data = res.ok ? await res.json() : [];
-                const list = (data || []).map(nominatimToPrediction);
-                setPredictions(list);
-                setOpen(true);
-                setActiveIndex(list.length ? 0 : -1);
-
-                if (list[0]?._osm && list[0].place_id !== lastPreviewIdRef.current) {
-                    lastPreviewIdRef.current = list[0].place_id;
-                    moveMap(
-                        Number.parseFloat(list[0]._osm.lat),
-                        Number.parseFloat(list[0]._osm.lon),
-                        { zoom: 13 },
-                    );
-                }
-            } catch {
-                setPredictions([]);
-                setOpen(Boolean(q));
-            } finally {
-                setSearching(false);
-            }
-        },
-        [moveMap],
-    );
+    const searchLocalListings = useCallback(async (q) => {
+        try {
+            const res = await fetch(
+                `/account/places/search?q=${encodeURIComponent(q)}`,
+                {
+                    headers: {
+                        Accept: 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    credentials: 'same-origin',
+                },
+            );
+            if (!res.ok) return [];
+            const data = await res.json();
+            return (data.results || []).filter((r) => r.source === 'local');
+        } catch {
+            return [];
+        }
+    }, []);
 
     const searchGoogle = useCallback(
-        (q) => {
+        async (q) => {
             const service = autocompleteServiceRef.current;
-            if (!service) {
-                searchOsm(q);
-                return;
-            }
+            if (!service) return;
+
             setSearching(true);
+            const localHits = await searchLocalListings(q);
+
             const request = {
                 input: q,
                 componentRestrictions: { country: 'ke' },
@@ -393,16 +275,17 @@ export default function PlacesLocationInput({
 
             service.getPlacePredictions(request, (results, s) => {
                 setSearching(false);
-                if (s !== 'OK' || !results?.length) {
-                    // Fall back to OSM results if Google Places returns nothing.
-                    searchOsm(q);
-                    return;
-                }
-                setPredictions(results.map((r) => ({ ...r, provider: 'google' })));
-                setOpen(true);
-                setActiveIndex(0);
+                const googleHits =
+                    s === 'OK' && results?.length
+                        ? results.map((r) => ({ ...r, provider: 'google' }))
+                        : [];
 
-                const first = results[0];
+                const list = [...localHits, ...googleHits].slice(0, 10);
+                setPredictions(list);
+                setOpen(true);
+                setActiveIndex(list.length ? 0 : -1);
+
+                const first = googleHits[0];
                 if (
                     first?.place_id &&
                     placesServiceRef.current &&
@@ -428,7 +311,7 @@ export default function PlacesLocationInput({
                 }
             });
         },
-        [moveMap, searchOsm],
+        [moveMap, searchLocalListings],
     );
 
     const runSearch = useCallback(
@@ -440,109 +323,88 @@ export default function PlacesLocationInput({
                 setSearching(false);
                 return;
             }
-            if (providerRef.current === 'google') searchGoogle(q);
-            else searchOsm(q);
+            searchGoogle(q);
         },
-        [searchGoogle, searchOsm],
+        [searchGoogle],
     );
 
-    const destroyMap = () => {
-        if (providerRef.current === 'leaflet' && mapRef.current?.remove) {
-            mapRef.current.remove();
-        }
-        if (markerRef.current?.setMap) {
-            markerRef.current.setMap(null);
-        }
-        markerRef.current = null;
-        mapRef.current = null;
-        if (mapElRef.current) mapElRef.current.innerHTML = '';
-        providerRef.current = null;
-    };
-
-    const initLeaflet = useCallback(async (signal) => {
-        const L = await loadLeaflet();
-        if (signal?.cancelled || !mapElRef.current) return;
-
-        // Clear any leftover nodes before Leaflet binds the container.
-        if (mapElRef.current._leaflet_id) {
-            delete mapElRef.current._leaflet_id;
-        }
-        mapElRef.current.innerHTML = '';
-
-        leafletRef.current = L;
-        providerRef.current = 'leaflet';
-
-        const startLat = lat ?? NANYUKI.lat;
-        const startLng = lng ?? NANYUKI.lng;
-
-        const map = L.map(mapElRef.current, {
-            zoomControl: true,
-            scrollWheelZoom: true,
-        }).setView([startLat, startLng], lat != null ? 15 : DEFAULT_ZOOM);
-
-        if (signal?.cancelled) {
-            map.remove();
-            return;
-        }
-
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap',
-            maxZoom: 19,
-        }).addTo(map);
-
-        mapRef.current = map;
-        map.on('click', (e) => {
-            const cLat = Number(e.latlng.lat.toFixed(7));
-            const cLng = Number(e.latlng.lng.toFixed(7));
-            moveMap(cLat, cLng);
-            onChangeRef.current({ latitude: cLat, longitude: cLng });
-            reverseGeocodeOsm(cLat, cLng);
-        });
-
-        if (lat != null && lng != null) moveMap(lat, lng, { zoom: 15 });
-
-        setTimeout(() => {
-            if (!signal?.cancelled) map.invalidateSize();
-        }, 50);
-        setTimeout(() => {
-            if (!signal?.cancelled) map.invalidateSize();
-        }, 300);
-
-        if (signal?.cancelled) {
-            map.remove();
-            return;
-        }
-
-        setProviderLabel('OSM');
-        setStatus('ready');
-        setMapNote(
-            apiKey
-                ? 'Google Maps billing is not enabled on this API key — using OpenStreetMap for now. Enable billing to switch to Google.'
-                : null,
-        );
-    }, [apiKey, lat, lng, moveMap, reverseGeocodeOsm]);
-
     useEffect(() => {
+        if (!key) {
+            setStatus('missing');
+            setMapNote(
+                'Add VITE_GOOGLE_MAPS_API_KEY to enable Google Maps & Places.',
+            );
+            return undefined;
+        }
+
         const signal = { cancelled: false };
         setStatus('loading');
 
         (async () => {
             try {
-                await initLeaflet(signal);
+                const maps = await loadGoogleMaps(key, {
+                    libraries: ['places'],
+                });
+                if (signal.cancelled || !mapElRef.current) return;
+
+                mapsRef.current = maps;
+                const startLat = lat ?? NANYUKI.lat;
+                const startLng = lng ?? NANYUKI.lng;
+
+                const map = new maps.Map(mapElRef.current, {
+                    center: { lat: startLat, lng: startLng },
+                    zoom: lat != null ? 15 : DEFAULT_ZOOM,
+                    mapTypeControl: false,
+                    streetViewControl: false,
+                    fullscreenControl: false,
+                    clickableIcons: true,
+                    gestureHandling: 'greedy',
+                });
+
+                mapRef.current = map;
+                placesServiceRef.current = new maps.places.PlacesService(map);
+                autocompleteServiceRef.current =
+                    new maps.places.AutocompleteService();
+                sessionTokenRef.current =
+                    new maps.places.AutocompleteSessionToken();
+
+                map.addListener('click', (e) => {
+                    if (!e.latLng) return;
+                    const cLat = Number(e.latLng.lat().toFixed(7));
+                    const cLng = Number(e.latLng.lng().toFixed(7));
+                    moveMap(cLat, cLng);
+                    onChangeRef.current({ latitude: cLat, longitude: cLng });
+                    reverseGeocode(cLat, cLng);
+                });
+
+                if (lat != null && lng != null) {
+                    moveMap(lat, lng, { zoom: 15 });
+                }
+
+                if (!signal.cancelled) {
+                    setStatus('ready');
+                    setMapNote(null);
+                }
             } catch (err) {
                 if (!signal.cancelled) {
-                    setStatus('fallback');
-                    setMapNote(err?.message || 'Map could not load.');
+                    setStatus('error');
+                    setMapNote(
+                        err?.message ||
+                            'Google Maps could not load. Check API key, Maps JavaScript API, Places API, and billing.',
+                    );
                 }
             }
         })();
 
         return () => {
             signal.cancelled = true;
-            destroyMap();
+            if (markerRef.current?.setMap) markerRef.current.setMap(null);
+            markerRef.current = null;
+            mapRef.current = null;
+            if (mapElRef.current) mapElRef.current.innerHTML = '';
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [apiKey]);
+    }, [key]);
 
     useEffect(() => {
         if (status !== 'ready') return;
@@ -580,7 +442,7 @@ export default function PlacesLocationInput({
         <div className="space-y-4">
             <div>
                 <label className={label} htmlFor="places_search">
-                    Find on the map
+                    Find on Google Maps
                 </label>
                 <div className="relative z-20">
                     <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-olive-500" />
@@ -602,6 +464,7 @@ export default function PlacesLocationInput({
                         aria-expanded={open}
                         aria-controls="places_suggestions"
                         aria-autocomplete="list"
+                        disabled={status !== 'ready'}
                     />
                     {searching || status === 'loading' ? (
                         <Loader2 className="absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-olive-400" />
@@ -641,14 +504,24 @@ export default function PlacesLocationInput({
                                                     : 'hover:bg-olive-50'
                                             }`}
                                             onMouseDown={(e) => e.preventDefault()}
-                                            onMouseEnter={() => setActiveIndex(index)}
+                                            onMouseEnter={() =>
+                                                setActiveIndex(index)
+                                            }
                                             onClick={() => selectPrediction(p)}
                                         >
                                             <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-mustard-deep" />
-                                            <span className="min-w-0">
-                                                <span className="block text-sm font-semibold text-olive-950">
-                                                    {p.structured_formatting
-                                                        ?.main_text || p.description}
+                                            <span className="min-w-0 flex-1">
+                                                <span className="flex items-center gap-2">
+                                                    <span className="block text-sm font-semibold text-olive-950">
+                                                        {p.structured_formatting
+                                                            ?.main_text ||
+                                                            p.description}
+                                                    </span>
+                                                    {p.badge ? (
+                                                        <span className="shrink-0 rounded-md bg-olive-900 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-mustard">
+                                                            {p.badge}
+                                                        </span>
+                                                    ) : null}
                                                 </span>
                                                 {p.structured_formatting
                                                     ?.secondary_text ? (
@@ -673,10 +546,10 @@ export default function PlacesLocationInput({
                 </div>
                 <p className={help}>
                     {status === 'ready'
-                        ? 'Type to search, pick from the dropdown, or tap / drag the pin on the map.'
-                        : status === 'fallback'
-                          ? mapNote || 'Map unavailable — enter details manually below.'
-                          : 'Loading map…'}
+                        ? 'Pick a Google suggestion to fill location, address, and map pin.'
+                        : status === 'loading'
+                          ? 'Loading Google Maps…'
+                          : mapNote || 'Google Maps unavailable.'}
                 </p>
             </div>
 
@@ -691,31 +564,28 @@ export default function PlacesLocationInput({
                     {status === 'loading' ? (
                         <span className="inline-flex items-center gap-2">
                             <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                            Preparing map…
+                            Preparing Google Map…
                         </span>
-                    ) : status === 'fallback' ? (
-                        <span className="text-rose-600">{mapNote}</span>
-                    ) : (
+                    ) : status === 'ready' ? (
                         <>
                             <span>
                                 {lat != null && lng != null
-                                    ? 'Pin set — drag to fine-tune'
-                                    : 'Search or click the map to drop a pin'}
-                                {providerLabel ? ` · ${providerLabel}` : ''}
+                                    ? 'Pin set — drag to fine-tune · Google'
+                                    : 'Search or click the map to drop a pin · Google'}
                             </span>
                             {lat != null && lng != null ? (
                                 <span className="font-semibold tabular-nums text-olive-800">
-                                    {Number(lat).toFixed(5)}, {Number(lng).toFixed(5)}
+                                    {Number(lat).toFixed(5)},{' '}
+                                    {Number(lng).toFixed(5)}
                                 </span>
                             ) : null}
                         </>
+                    ) : (
+                        <span className="text-rose-600">
+                            {mapNote || 'Google Maps not configured'}
+                        </span>
                     )}
                 </div>
-                {mapNote && status === 'ready' ? (
-                    <p className="border-t border-amber-100 bg-amber-50 px-3 py-1.5 text-[11px] text-amber-900">
-                        {mapNote}
-                    </p>
-                ) : null}
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
@@ -749,19 +619,18 @@ export default function PlacesLocationInput({
                         onChange={(e) => onChange({ city: e.target.value })}
                     />
                 </div>
-                <div className="sm:col-span-2">
-                    <label className={label} htmlFor="address">
-                        Full address
-                    </label>
-                    <input
-                        id="address"
-                        className={field}
-                        value={address || ''}
-                        onChange={(e) =>
-                            onChange({ address: e.target.value })
-                        }
-                    />
-                </div>
+            </div>
+
+            <div>
+                <label className={label} htmlFor="address">
+                    Full address
+                </label>
+                <input
+                    id="address"
+                    className={field}
+                    value={address || ''}
+                    onChange={(e) => onChange({ address: e.target.value })}
+                />
             </div>
         </div>
     );

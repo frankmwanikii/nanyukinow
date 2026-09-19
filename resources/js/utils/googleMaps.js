@@ -47,7 +47,7 @@ export function loadGoogleMaps(apiKey, { libraries = ['places'] } = {}) {
 
     googleLoader = new Promise((resolve, reject) => {
         const libs = libraries.join(',');
-        const src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&libraries=${encodeURIComponent(libs)}&v=weekly`;
+        const src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&libraries=${encodeURIComponent(libs)}&v=weekly&loading=async`;
         const existing = document.querySelector(
             `script[src^="https://maps.googleapis.com/maps/api/js"]`,
         );
@@ -85,7 +85,8 @@ export function loadGoogleMaps(apiKey, { libraries = ['places'] } = {}) {
             if (window.google?.maps) resolve(window.google.maps);
             else reject(new Error('Google Maps failed to load'));
         };
-        script.onerror = reject;
+        script.onerror = () =>
+            reject(new Error('Google Maps script failed to load'));
         document.head.appendChild(script);
     });
 

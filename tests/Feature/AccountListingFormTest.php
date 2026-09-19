@@ -173,4 +173,33 @@ class AccountListingFormTest extends TestCase
             str_replace('/storage/', '', $url),
         );
     }
+
+    public function test_place_search_includes_local_listings(): void
+    {
+        $this->seedCategories();
+        $user = User::factory()->create();
+        $category = Category::query()->where('slug', 'stay')->firstOrFail();
+
+        Listing::query()->create([
+            'user_id' => $user->id,
+            'category_id' => $category->id,
+            'title' => 'Sportsman Arms Hotel',
+            'slug' => 'sportsman-arms-hotel-test',
+            'location' => 'Nanyuki',
+            'city' => 'Nanyuki',
+            'address' => 'Mount Kenya Road',
+            'latitude' => 0.0145,
+            'longitude' => 37.082,
+            'status' => 'published',
+            'is_published' => true,
+            'tier' => 'free',
+        ]);
+
+        $this->actingAs($user)
+            ->getJson(route('account.places.search', ['q' => 'Sportsman']))
+            ->assertOk()
+            ->assertJsonPath('results.0.structured_formatting.main_text', 'Sportsman Arms Hotel')
+            ->assertJsonPath('results.0.source', 'local')
+            ->assertJsonPath('results.0.badge', 'Nanyuki Now');
+    }
 }
