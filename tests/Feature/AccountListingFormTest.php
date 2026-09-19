@@ -154,4 +154,23 @@ class AccountListingFormTest extends TestCase
             'category_key' => 'eatDrink',
         ]);
     }
+
+    public function test_user_can_upload_editor_image(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+        $image = UploadedFile::fake()->image('inline.jpg', 640, 480);
+
+        $response = $this->actingAs($user)
+            ->postJson(route('account.listings.editor-media'), [
+                'image' => $image,
+            ]);
+
+        $response->assertCreated()->assertJsonStructure(['url']);
+        $url = $response->json('url');
+        $this->assertStringStartsWith('/storage/listings/editor/', $url);
+        Storage::disk('public')->assertExists(
+            str_replace('/storage/', '', $url),
+        );
+    }
 }

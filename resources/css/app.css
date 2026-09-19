@@ -35,6 +35,60 @@
     }
 }
 
+/* Rich text editor — restore lists (Tailwind Preflight zeros them) + content chrome */
+@layer components {
+    .nn-editor ul {
+        list-style-type: disc !important;
+        list-style-position: outside;
+        margin: 0.5rem 0;
+        padding-left: 1.5rem;
+    }
+
+    .nn-editor ol {
+        list-style-type: decimal !important;
+        list-style-position: outside;
+        margin: 0.5rem 0;
+        padding-left: 1.5rem;
+    }
+
+    .nn-editor li {
+        display: list-item !important;
+        margin: 0.2rem 0;
+    }
+
+    .nn-editor li + li {
+        margin-top: 0.15rem;
+    }
+
+    .nn-editor h3 {
+        @apply mb-2 mt-3 text-lg font-bold text-olive-950;
+    }
+
+    .nn-editor p {
+        margin: 0.4rem 0;
+    }
+
+    .nn-editor a {
+        @apply text-olive-800 underline decoration-mustard underline-offset-2;
+    }
+
+    .nn-editor img,
+    .nn-editor .nn-editor-img {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        margin: 0.75rem 0;
+        border-radius: 0.75rem;
+    }
+
+    .nn-editor:empty:before,
+    .nn-editor:has(> br:only-child):before {
+        pointer-events: none;
+        color: theme('colors.olive.400');
+        content: attr(data-placeholder);
+    }
+}
+
 /* Brand-colored admin data tables */
 @layer components {
     .admin-table {

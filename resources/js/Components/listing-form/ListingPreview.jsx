@@ -1,13 +1,6 @@
 import ListingCard from '@/Components/site/ListingCard';
 import { categoryStepTitle } from './categoryFieldConfig';
 
-function stripHtml(html) {
-    if (!html) return '';
-    const tmp = document.createElement('div');
-    tmp.innerHTML = html;
-    return tmp.textContent || tmp.innerText || '';
-}
-
 export default function ListingPreview({
     formData,
     category,
@@ -89,8 +82,17 @@ export default function ListingPreview({
                     <dt className="text-xs font-semibold uppercase tracking-wide text-olive-500">
                         Description
                     </dt>
-                    <dd className="mt-0.5 line-clamp-4 text-olive-800">
-                        {stripHtml(formData.description) || '—'}
+                    <dd className="mt-0.5">
+                        {formData.description ? (
+                            <div
+                                className="nn-editor line-clamp-6 text-olive-800"
+                                dangerouslySetInnerHTML={{
+                                    __html: formData.description,
+                                }}
+                            />
+                        ) : (
+                            <span className="text-olive-800">—</span>
+                        )}
                     </dd>
                 </div>
                 <div>

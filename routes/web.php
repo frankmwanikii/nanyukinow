@@ -57,6 +57,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/account/amenities', [\App\Http\Controllers\Account\AmenityController::class, 'store'])
         ->middleware('throttle:30,1')
         ->name('account.amenities.store');
+    Route::post('/account/listings/editor-media', [\App\Http\Controllers\Account\EditorMediaController::class, 'store'])
+        ->middleware('throttle:40,1')
+        ->name('account.listings.editor-media');
 
     Route::get('/account/billing', AccountBillingController::class)->name('account.billing');
 
