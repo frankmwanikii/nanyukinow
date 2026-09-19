@@ -4,6 +4,9 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class ProfileTest extends TestCase
@@ -41,6 +44,61 @@ class ProfileTest extends TestCase
         $this->assertSame('Test User', $user->name);
         $this->assertSame('test@example.com', $user->email);
         $this->assertNull($user->email_verified_at);
+    }
+
+    public function test_profile_avatar_can_be_uploaded(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create(['avatar_url' => null]);
+        $file = UploadedFile::fake()->image('avatar.jpg', 200, 200);
+
+        $response = $this
+            ->actingAs($user)
+            ->post('/profile', [
+                '_method' => 'patch',
+                'name' => $user->name,
+                'email' => $user->email,
+                'avatar' => $file,
+            ]);
+
+        $response
+            ->assertSessionHasNoErrors()
+            ->assertRedirect('/profile');
+
+        $user->refresh();
+
+        $this->assertNotNull($user->avatar_url);
+        $this->assertStringStartsWith('/storage/avatars/', $user->avatar_url);
+
+        $relative = Str::after($user->avatar_url, '/storage/');
+        Storage::disk('public')->assertExists($relative);
+    }
+
+    public function test_profile_avatar_can_be_removed(): void
+    {
+        Storage::fake('public');
+
+        $path = UploadedFile::fake()->image('old.jpg')->store('avatars', 'public');
+        $user = User::factory()->create([
+            'avatar_url' => '/storage/'.$path,
+        ]);
+
+        $response = $this
+            ->actingAs($user)
+            ->post('/profile', [
+                '_method' => 'patch',
+                'name' => $user->name,
+                'email' => $user->email,
+                'remove_avatar' => true,
+            ]);
+
+        $response
+            ->assertSessionHasNoErrors()
+            ->assertRedirect('/profile');
+
+        $this->assertNull($user->refresh()->avatar_url);
+        Storage::disk('public')->assertMissing($path);
     }
 
     public function test_email_verification_status_is_unchanged_when_the_email_address_is_unchanged(): void

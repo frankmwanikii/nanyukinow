@@ -29,6 +29,8 @@ class WelcomeMemberNotification extends Notification
             'action_url' => route('account.listings.create'),
             'action_label' => 'Add a listing',
             'icon' => 'sparkles',
+            'sender_name' => 'Nanyuki Now',
+            'sender_avatar' => '/images/logo.png',
         ];
     }
 }

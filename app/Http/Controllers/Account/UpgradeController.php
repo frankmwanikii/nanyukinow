@@ -8,6 +8,7 @@ use App\Models\PlanUpgrade;
 use App\Models\PricingPlan;
 use App\Models\SiteSetting;
 use App\Support\Membership;
+use App\Support\PaymentMethods;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -15,16 +16,9 @@ use Inertia\Response;
 
 class UpgradeController extends Controller
 {
-    public function create(Request $request): Response|RedirectResponse
+    public function create(Request $request): Response
     {
         $user = $request->user();
-        $current = $user->effectivePlan();
-
-        if ($current === Membership::PREMIUM) {
-            return redirect()
-                ->route('account.index')
-                ->with('success', 'You are already on Premium.');
-        }
 
         $pending = PlanUpgrade::query()
             ->where('user_id', $user->id)
@@ -32,29 +26,29 @@ class UpgradeController extends Controller
             ->latest()
             ->first();
 
-        PricingPlan::ensureDefaults();
-
-        $plans = PricingPlan::query()
-            ->whereIn('key', [Membership::STANDARD, Membership::PREMIUM])
-            ->where('is_active', true)
-            ->orderBy('sort_order')
-            ->get()
-            ->map(fn (PricingPlan $plan) => $plan->toAdminArray())
-            ->values();
-
         return Inertia::render('Account/Upgrade', [
             'plan' => Membership::planSummary($user),
-            'plans' => $plans,
+            'plans' => Membership::publicPlans(),
             'pendingUpgrade' => $pending?->toMemberArray(),
+            'paymentMethods' => PaymentMethods::options(),
             'upgradeContact' => [
                 'whatsapp' => SiteSetting::getValue('upgrade_whatsapp', ''),
                 'phone' => SiteSetting::getValue('contact_phone', ''),
                 'email' => SiteSetting::getValue('contact_email', 'hello@nanyukinow.co.ke'),
                 'mpesa_paybill' => SiteSetting::getValue('upgrade_mpesa_paybill', ''),
                 'mpesa_account' => SiteSetting::getValue('upgrade_mpesa_account', 'PLAN'),
+                'intasend_note' => SiteSetting::getValue(
+                    'upgrade_intasend_note',
+                    'Complete payment in IntaSend, then paste your IntaSend transaction / invoice ID below.',
+                ),
+                'paypal_note' => SiteSetting::getValue(
+                    'upgrade_paypal_note',
+                    'Send payment via PayPal, then paste your PayPal transaction ID below.',
+                ),
+                'paypal_email' => SiteSetting::getValue('upgrade_paypal_email', ''),
                 'instructions' => SiteSetting::getValue(
                     'upgrade_instructions',
-                    'Pay via M-Pesa using the details below, then submit this form with your M-Pesa confirmation code. We activate plans after verifying payment.',
+                    'Choose a plan, pick how you want to pay, then submit your payment reference. We activate your plan after verifying payment.',
                 ),
             ],
         ]);
@@ -78,6 +72,11 @@ class UpgradeController extends Controller
             return back()->withErrors(['to_plan' => 'You are already on Standard. Choose Premium.']);
         }
 
+        $rank = [Membership::FREE => 0, Membership::STANDARD => 1, Membership::PREMIUM => 2];
+        if (($rank[$toPlan] ?? 0) <= ($rank[$current] ?? 0)) {
+            return back()->withErrors(['to_plan' => 'Choose a higher plan than your current one.']);
+        }
+
         $existing = PlanUpgrade::query()
             ->where('user_id', $user->id)
             ->where('status', PlanUpgrade::STATUS_PENDING)
@@ -99,7 +98,7 @@ class UpgradeController extends Controller
             'billing_period' => $pricing?->billing_period ?? 'month',
             'status' => PlanUpgrade::STATUS_PENDING,
             'payment_reference' => $request->validated('payment_reference'),
-            'payment_method' => $request->validated('payment_method') ?: 'mpesa',
+            'payment_method' => $request->validated('payment_method'),
             'member_notes' => $request->validated('member_notes'),
         ]);
 

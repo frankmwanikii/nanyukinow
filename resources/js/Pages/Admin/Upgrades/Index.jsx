@@ -116,6 +116,9 @@ export default function Index({ upgrades, filters, counts }) {
                                         <code className="rounded bg-olive-100 px-2 py-1 text-sm dark:bg-olive-800">
                                             {upgrade.payment_reference}
                                         </code>
+                                        <p className="mt-1.5 text-xs font-semibold uppercase tracking-wide text-olive-500">
+                                            {upgrade.payment_method || 'mpesa'}
+                                        </p>
                                         {upgrade.member_notes && (
                                             <p className="mt-1.5 max-w-xs text-sm text-olive-500">
                                                 {upgrade.member_notes}

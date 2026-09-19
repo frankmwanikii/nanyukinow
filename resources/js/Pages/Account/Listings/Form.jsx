@@ -1,15 +1,15 @@
-import SiteLayout from '@/Layouts/SiteLayout';
+import AccountLayout from '@/Layouts/AccountLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { ArrowLeft, Save } from 'lucide-react';
+import { Save } from 'lucide-react';
 
 const field =
     'w-full rounded-xl border border-olive-200 bg-white px-3.5 py-3 text-base text-olive-900 outline-none transition placeholder:text-olive-400 focus:border-mustard focus:ring-2 focus:ring-mustard/30';
 const label = 'mb-1.5 block text-sm font-semibold text-olive-600';
 
-const tierHelp = {
-    free: 'Free listing — basic placement',
-    featured: 'Featured badge on cards (Standard plan)',
-    premium: 'Premium badge & top placement',
+const tierLabels = {
+    free: 'Free',
+    featured: 'Standard',
+    premium: 'Premium',
 };
 
 export default function Form({ listing = null, categories = [], plan, allowedTiers = ['free'] }) {
@@ -40,34 +40,19 @@ export default function Form({ listing = null, categories = [], plan, allowedTie
     };
 
     return (
-        <SiteLayout>
+        <AccountLayout title={isEdit ? 'Edit listing' : 'Add listing'}>
             <Head title={isEdit ? 'Edit listing' : 'New listing'} />
 
-            <div className="bg-olive-900">
-                <div className="mx-auto max-w-3xl px-4 pb-8 pt-28 sm:px-6 sm:pt-32">
-                    <Link
-                        href={route('account.index')}
-                        className="inline-flex items-center gap-1.5 text-sm font-medium text-white/70 transition hover:text-mustard"
-                    >
-                        <ArrowLeft className="h-4 w-4" />
-                        Back to account
-                    </Link>
-                    <h1 className="mt-3 font-display text-3xl font-bold text-white">
-                        {isEdit ? 'Edit listing' : 'Add a listing'}
-                    </h1>
-                    <p className="mt-2 text-sm text-white/65">
-                        Plan: {plan.label} · {plan.listings_remaining} slot
-                        {plan.listings_remaining === 1 ? '' : 's'} remaining
-                        {!isEdit && ' · submitted listings go to review before going live'}
-                    </p>
-                </div>
-            </div>
+            <p className="mb-5 text-sm text-olive-600">
+                {!isEdit
+                    ? 'Tell people about your place. We’ll review it before it goes live.'
+                    : 'Update your listing details anytime.'}
+            </p>
 
-            <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-                <form
-                    onSubmit={submit}
-                    className="space-y-5 rounded-2xl border border-olive-200/80 bg-white p-6 shadow-soft sm:p-8"
-                >
+            <form
+                onSubmit={submit}
+                className="space-y-5 rounded-3xl border border-olive-200/80 bg-white p-6 shadow-soft sm:p-8"
+            >
                     <div>
                         <label className={label} htmlFor="title">
                             Business / place name
@@ -107,26 +92,28 @@ export default function Form({ listing = null, categories = [], plan, allowedTie
                                 <p className="mt-1.5 text-sm text-rose-600">{form.errors.category_id}</p>
                             )}
                         </div>
-                        <div>
-                            <label className={label} htmlFor="tier">
-                                Listing tier
-                            </label>
-                            <select
-                                id="tier"
-                                className={field}
-                                value={form.data.tier}
-                                onChange={(e) => form.setData('tier', e.target.value)}
-                            >
-                                {allowedTiers.map((t) => (
-                                    <option key={t} value={t}>
-                                        {tierHelp[t] || t}
-                                    </option>
-                                ))}
-                            </select>
-                            {form.errors.tier && (
-                                <p className="mt-1.5 text-sm text-rose-600">{form.errors.tier}</p>
-                            )}
-                        </div>
+                        {allowedTiers.length > 1 && (
+                            <div>
+                                <label className={label} htmlFor="tier">
+                                    Plan
+                                </label>
+                                <select
+                                    id="tier"
+                                    className={field}
+                                    value={form.data.tier}
+                                    onChange={(e) => form.setData('tier', e.target.value)}
+                                >
+                                    {allowedTiers.map((t) => (
+                                        <option key={t} value={t}>
+                                            {tierLabels[t] || t}
+                                        </option>
+                                    ))}
+                                </select>
+                                {form.errors.tier && (
+                                    <p className="mt-1.5 text-sm text-rose-600">{form.errors.tier}</p>
+                                )}
+                            </div>
+                        )}
                     </div>
 
                     <div>
@@ -240,9 +227,6 @@ export default function Form({ listing = null, categories = [], plan, allowedTie
                             onChange={(e) => form.setData('image_url', e.target.value)}
                             placeholder="https://…"
                         />
-                        <p className="mt-1.5 text-xs text-olive-500">
-                            Paste a direct image link for now. Upload support can be added later.
-                        </p>
                     </div>
 
                     <div className="flex flex-wrap justify-end gap-2 pt-2">
@@ -262,7 +246,6 @@ export default function Form({ listing = null, categories = [], plan, allowedTie
                         </button>
                     </div>
                 </form>
-            </div>
-        </SiteLayout>
+        </AccountLayout>
     );
 }

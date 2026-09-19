@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Support\UserAvatar;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,6 +22,7 @@ class ProfileController extends Controller
         return Inertia::render('Profile/Edit', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
+            'avatarUrl' => UserAvatar::normalize($request->user()->avatar_url),
         ]);
     }
 
@@ -29,15 +31,27 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        $user->fill($request->safe()->only(['name', 'email']));
+
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
         }
 
-        $request->user()->save();
+        if ($request->boolean('remove_avatar')) {
+            UserAvatar::delete($user->avatar_url);
+            $user->avatar_url = null;
+        }
 
-        return Redirect::route('profile.edit');
+        if ($request->hasFile('avatar')) {
+            UserAvatar::delete($user->avatar_url);
+            $user->avatar_url = UserAvatar::store($request->file('avatar'));
+        }
+
+        $user->save();
+
+        return Redirect::route('profile.edit')->with('success', 'Profile updated.');
     }
 
     /**
@@ -53,6 +67,7 @@ class ProfileController extends Controller
 
         Auth::logout();
 
+        UserAvatar::delete($user->avatar_url);
         $user->delete();
 
         $request->session()->invalidate();

@@ -1,4 +1,5 @@
 import { CloudUpload, FileText, Mail, MapPin, Phone, Send, X } from 'lucide-react';
+import { router, usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import DetailSection from './DetailSection';
 import DirectionsMap from './DirectionsMap';
@@ -100,16 +101,26 @@ const fieldClass =
 
 function ContactMessageForm({ listing }) {
     const fileInputRef = useRef(null);
+    const { auth, flash } = usePage().props;
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
-    const [email, setEmail] = useState('');
+    const [email, setEmail] = useState(auth?.user?.email || '');
     const [phone, setPhone] = useState('');
     const [message, setMessage] = useState('');
     const [docs, setDocs] = useState([]);
     const [captchaToken, setCaptchaToken] = useState('');
     const [captchaError, setCaptchaError] = useState('');
     const [fileError, setFileError] = useState('');
+    const [formError, setFormError] = useState('');
+    const [sending, setSending] = useState(false);
     const [sent, setSent] = useState(false);
+
+    useEffect(() => {
+        if (flash?.success) {
+            setSent(true);
+            window.setTimeout(() => setSent(false), 3200);
+        }
+    }, [flash?.success]);
 
     useEffect(() => {
         return () => {
@@ -189,21 +200,57 @@ function ContactMessageForm({ listing }) {
     const submit = (e) => {
         e.preventDefault();
         setCaptchaError('');
+        setFormError('');
         if (!firstName.trim() || !lastName.trim() || !message.trim()) return;
+        if (!email.trim() && !auth?.user) {
+            setFormError('Please add your email so they can reply.');
+            return;
+        }
         if (!captchaToken) {
             setCaptchaError('Please complete the security check.');
             return;
         }
-        if (uploading) return;
-        setSent(true);
-        setFirstName('');
-        setLastName('');
-        setEmail('');
-        setPhone('');
-        setMessage('');
-        clearDocs();
-        setCaptchaToken('');
-        window.setTimeout(() => setSent(false), 2800);
+        if (uploading || sending) return;
+        if (!listing?.slug) {
+            setFormError('This listing can’t receive messages right now.');
+            return;
+        }
+
+        setSending(true);
+        router.post(
+            route('listings.contact', listing.slug),
+            {
+                first_name: firstName.trim(),
+                last_name: lastName.trim(),
+                email: email.trim() || null,
+                phone: phone.trim() || null,
+                message: message.trim(),
+                'g-recaptcha-response': captchaToken,
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setFirstName('');
+                    setLastName('');
+                    setEmail(auth?.user?.email || '');
+                    setPhone('');
+                    setMessage('');
+                    clearDocs();
+                    setCaptchaToken('');
+                    setSent(true);
+                    window.setTimeout(() => setSent(false), 3200);
+                },
+                onError: (errors) => {
+                    setFormError(
+                        errors.message ||
+                            errors.email ||
+                            errors.first_name ||
+                            'Could not send your message. Please try again.',
+                    );
+                },
+                onFinish: () => setSending(false),
+            },
+        );
     };
 
     return (
@@ -420,11 +467,11 @@ function ContactMessageForm({ listing }) {
                 <div className="flex flex-wrap items-center gap-3">
                     <button
                         type="submit"
-                        disabled={uploading}
+                        disabled={uploading || sending}
                         className="inline-flex items-center gap-2 rounded-full bg-olive-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-mustard hover:text-olive-950 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         <Send className="h-4 w-4" />
-                        {uploading ? 'Uploading…' : 'Send message'}
+                        {uploading ? 'Uploading…' : sending ? 'Sending…' : 'Send message'}
                     </button>
                     {sent ? (
                         <span className="text-sm font-semibold text-olive-700">
@@ -432,6 +479,9 @@ function ContactMessageForm({ listing }) {
                         </span>
                     ) : null}
                 </div>
+                {formError ? (
+                    <p className="text-sm font-medium text-red-600">{formError}</p>
+                ) : null}
             </form>
         </DetailSection>
     );

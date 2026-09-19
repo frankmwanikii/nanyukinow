@@ -76,7 +76,10 @@ class SettingController extends Controller
             ['group' => 'billing', 'key' => 'upgrade_whatsapp', 'label' => 'Upgrade WhatsApp', 'type' => 'text', 'value' => '', 'help' => 'WhatsApp number members can message after paying (e.g. 2547…).', 'sort_order' => 1],
             ['group' => 'billing', 'key' => 'upgrade_mpesa_paybill', 'label' => 'M-Pesa Paybill / Till', 'type' => 'text', 'value' => '', 'help' => 'Shown on the public pricing & upgrade pages.', 'sort_order' => 2],
             ['group' => 'billing', 'key' => 'upgrade_mpesa_account', 'label' => 'M-Pesa account reference', 'type' => 'text', 'value' => 'PLAN', 'help' => 'Account number members should use with Paybill.', 'sort_order' => 3],
-            ['group' => 'billing', 'key' => 'upgrade_instructions', 'label' => 'Upgrade instructions', 'type' => 'textarea', 'value' => 'Pay via M-Pesa, then submit your upgrade request with the payment confirmation code. An admin will activate your plan after verifying payment.', 'help' => 'Shown to members when upgrading.', 'sort_order' => 4],
+            ['group' => 'billing', 'key' => 'upgrade_paypal_email', 'label' => 'PayPal email', 'type' => 'text', 'value' => '', 'help' => 'Shown when members choose PayPal.', 'sort_order' => 4],
+            ['group' => 'billing', 'key' => 'upgrade_intasend_note', 'label' => 'IntaSend instructions', 'type' => 'textarea', 'value' => 'Complete payment in IntaSend, then paste your IntaSend transaction / invoice ID.', 'help' => null, 'sort_order' => 5],
+            ['group' => 'billing', 'key' => 'upgrade_paypal_note', 'label' => 'PayPal instructions', 'type' => 'textarea', 'value' => 'Send payment via PayPal, then paste your PayPal transaction ID.', 'help' => null, 'sort_order' => 6],
+            ['group' => 'billing', 'key' => 'upgrade_instructions', 'label' => 'Upgrade instructions', 'type' => 'textarea', 'value' => 'Choose a plan, pick how you want to pay (M-Pesa, IntaSend, or PayPal), then submit your payment reference. We’ll activate your plan after verifying payment.', 'help' => 'Shown to members when upgrading.', 'sort_order' => 7],
             ['group' => 'social', 'key' => 'facebook_url', 'label' => 'Facebook', 'type' => 'text', 'value' => '', 'help' => null, 'sort_order' => 1],
             ['group' => 'social', 'key' => 'instagram_url', 'label' => 'Instagram', 'type' => 'text', 'value' => '', 'help' => null, 'sort_order' => 2],
             ['group' => 'social', 'key' => 'twitter_url', 'label' => 'X / Twitter', 'type' => 'text', 'value' => '', 'help' => null, 'sort_order' => 3],
@@ -95,7 +98,10 @@ class SettingController extends Controller
             ['group' => 'billing', 'key' => 'upgrade_whatsapp', 'label' => 'Upgrade WhatsApp', 'type' => 'text', 'value' => '', 'help' => 'WhatsApp number members can message after paying (e.g. 2547…).', 'sort_order' => 1],
             ['group' => 'billing', 'key' => 'upgrade_mpesa_paybill', 'label' => 'M-Pesa Paybill / Till', 'type' => 'text', 'value' => '', 'help' => 'Shown on the public pricing & upgrade pages.', 'sort_order' => 2],
             ['group' => 'billing', 'key' => 'upgrade_mpesa_account', 'label' => 'M-Pesa account reference', 'type' => 'text', 'value' => 'PLAN', 'help' => 'Account number members should use with Paybill.', 'sort_order' => 3],
-            ['group' => 'billing', 'key' => 'upgrade_instructions', 'label' => 'Upgrade instructions', 'type' => 'textarea', 'value' => 'Pay via M-Pesa, then submit your upgrade request with the payment confirmation code. An admin will activate your plan after verifying payment.', 'help' => 'Shown to members when upgrading.', 'sort_order' => 4],
+            ['group' => 'billing', 'key' => 'upgrade_paypal_email', 'label' => 'PayPal email', 'type' => 'text', 'value' => '', 'help' => 'Shown when members choose PayPal.', 'sort_order' => 4],
+            ['group' => 'billing', 'key' => 'upgrade_intasend_note', 'label' => 'IntaSend instructions', 'type' => 'textarea', 'value' => 'Complete payment in IntaSend, then paste your IntaSend transaction / invoice ID.', 'help' => null, 'sort_order' => 5],
+            ['group' => 'billing', 'key' => 'upgrade_paypal_note', 'label' => 'PayPal instructions', 'type' => 'textarea', 'value' => 'Send payment via PayPal, then paste your PayPal transaction ID.', 'help' => null, 'sort_order' => 6],
+            ['group' => 'billing', 'key' => 'upgrade_instructions', 'label' => 'Upgrade instructions', 'type' => 'textarea', 'value' => 'Choose a plan, pick how you want to pay (M-Pesa, IntaSend, or PayPal), then submit your payment reference. We’ll activate your plan after verifying payment.', 'help' => 'Shown to members when upgrading.', 'sort_order' => 7],
         ];
 
         foreach ($billing as $row) {

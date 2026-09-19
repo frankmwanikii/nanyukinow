@@ -42,6 +42,8 @@ class ListingReviewedNotification extends Notification
             'listing_title' => $this->listing->title,
             'outcome' => $this->outcome,
             'icon' => $published ? 'check' : 'listing',
+            'sender_name' => 'Nanyuki Now',
+            'sender_avatar' => '/images/logo.png',
         ];
     }
 }

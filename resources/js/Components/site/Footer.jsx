@@ -112,7 +112,7 @@ export default function Footer() {
                                 href="/account"
                                 className="transition hover:text-mint"
                             >
-                                My account
+                                My dashboard
                             </Link>
                         </li>
                         <li>

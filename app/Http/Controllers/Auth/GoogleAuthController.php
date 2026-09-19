@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Notifications\WelcomeMemberNotification;
+use App\Support\UserAvatar;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -72,6 +73,14 @@ class GoogleAuthController extends Controller
             $user->notify(new WelcomeMemberNotification);
         } elseif (! $user->email_verified_at) {
             $user->forceFill(['email_verified_at' => now()])->save();
+        }
+
+        // Pull Google photo when the member has none yet (never overwrite a custom upload).
+        if (! filled($user->avatar_url)) {
+            $imported = UserAvatar::importFromUrl($googleUser->getAvatar());
+            if ($imported) {
+                $user->forceFill(['avatar_url' => $imported])->save();
+            }
         }
 
         Auth::login($user, remember: true);

@@ -43,6 +43,8 @@ class PlanUpgradeReviewedNotification extends Notification
             'to_plan' => $this->upgrade->to_plan,
             'status' => $this->upgrade->status,
             'icon' => $approved ? 'sparkles' : 'alert',
+            'sender_name' => 'Nanyuki Now',
+            'sender_avatar' => '/images/logo.png',
         ];
     }
 }

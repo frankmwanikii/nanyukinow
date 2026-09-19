@@ -92,6 +92,7 @@ class MembershipFlowTest extends TestCase
         $upgrade = PlanUpgrade::query()->first();
         $this->assertNotNull($upgrade);
         $this->assertSame(PlanUpgrade::STATUS_PENDING, $upgrade->status);
+        $this->assertSame('mpesa', $upgrade->payment_method);
 
         $this->actingAs($admin)
             ->post(route('admin.upgrades.approve', $upgrade), [

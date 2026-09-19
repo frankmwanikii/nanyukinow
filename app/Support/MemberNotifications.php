@@ -48,6 +48,8 @@ class MemberNotifications
             'action_url' => $data['action_url'] ?? route('account.index'),
             'action_label' => $data['action_label'] ?? 'View',
             'icon' => $data['icon'] ?? 'bell',
+            'sender_name' => $data['sender_name'] ?? 'Nanyuki Now',
+            'sender_avatar' => $data['sender_avatar'] ?? '/images/logo.png',
             'read_at' => $notification->read_at?->toIso8601String(),
             'created_at' => $notification->created_at?->toIso8601String(),
             'created_ago' => $notification->created_at?->diffForHumans(),

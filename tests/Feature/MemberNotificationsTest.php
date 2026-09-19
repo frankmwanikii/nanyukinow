@@ -60,7 +60,10 @@ class MemberNotificationsTest extends TestCase
 
         $this->actingAs($user)
             ->post(route('account.notifications.read', $notification->id))
-            ->assertRedirect();
+            ->assertRedirect(route('account.messages', [
+                'tab' => 'alerts',
+                'n' => $notification->id,
+            ]));
 
         $this->assertNotNull($notification->fresh()->read_at);
     }

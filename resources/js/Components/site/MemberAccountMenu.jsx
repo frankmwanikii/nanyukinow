@@ -5,6 +5,7 @@ import {
     ChevronDown,
     LayoutDashboard,
     LogOut,
+    MessageSquare,
     Settings,
     Sparkles,
     Plus,
@@ -18,7 +19,7 @@ function userInitials(name = '') {
     return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
 }
 
-export function MemberAvatar({ user, size = 'md' }) {
+export function MemberAvatar({ user, size = 'md', className = '' }) {
     const initials = useMemo(() => userInitials(user?.name), [user?.name]);
     const box = size === 'sm' ? 'h-8 w-8 text-xs' : 'h-9 w-9 text-sm';
 
@@ -27,14 +28,14 @@ export function MemberAvatar({ user, size = 'md' }) {
             <img
                 src={user.avatar_url}
                 alt=""
-                className={`${box} rounded-full object-cover ring-2 ring-white/25`}
+                className={`${box} rounded-full object-cover ${className}`}
             />
         );
     }
 
     return (
         <div
-            className={`flex ${box} items-center justify-center rounded-full bg-mustard font-bold text-earth-dusk ring-2 ring-white/20`}
+            className={`flex ${box} items-center justify-center rounded-full bg-mustard font-bold text-earth-dusk ${className}`}
             aria-hidden
         >
             {initials}
@@ -49,7 +50,7 @@ export function MemberUserMenu({ user, compact = false }) {
 
     const items = [
         {
-            label: 'My account',
+            label: 'Dashboard',
             href: route('account.index'),
             icon: LayoutDashboard,
         },
@@ -65,9 +66,9 @@ export function MemberUserMenu({ user, compact = false }) {
             hide: user.plan === 'premium',
         },
         {
-            label: 'Notifications',
-            href: route('account.notifications'),
-            icon: Bell,
+            label: 'Messages',
+            href: route('account.messages'),
+            icon: MessageSquare,
         },
         {
             label: 'Settings',
@@ -84,23 +85,20 @@ export function MemberUserMenu({ user, compact = false }) {
                 aria-expanded={open}
                 aria-haspopup="menu"
                 aria-label="Account menu"
-                className={`flex items-center gap-2 rounded-full bg-white/10 text-left text-white ring-1 ring-inset ring-white/15 transition hover:bg-white/15 ${
-                    compact ? 'p-0.5' : 'py-1 pl-1 pr-2.5'
+                className={`group flex items-center text-left text-white transition ${
+                    compact ? 'gap-0' : 'gap-2'
                 }`}
             >
                 <MemberAvatar user={user} size={compact ? 'sm' : 'md'} />
                 {!compact && (
                     <>
-                        <div className="hidden min-w-0 xl:block">
-                            <p className="max-w-[7.5rem] truncate text-sm font-semibold leading-tight">
-                                {user.name?.split(' ')[0] || 'Member'}
-                            </p>
-                            <p className="truncate text-[11px] leading-tight text-white/65">
-                                {user.plan_label || 'Free'} plan
-                            </p>
-                        </div>
+                        <span className="hidden max-w-[8rem] truncate text-sm font-semibold tracking-tight xl:inline">
+                            {user.name?.split(' ')[0] || 'Member'}
+                        </span>
                         <ChevronDown
-                            className={`h-3.5 w-3.5 shrink-0 text-white/70 transition ${open ? 'rotate-180' : ''}`}
+                            className={`h-3.5 w-3.5 shrink-0 text-white/55 transition group-hover:text-white ${
+                                open ? 'rotate-180 text-white' : ''
+                            }`}
                         />
                     </>
                 )}
@@ -116,9 +114,9 @@ export function MemberUserMenu({ user, compact = false }) {
                     />
                     <div
                         role="menu"
-                        className="absolute right-0 z-[1301] mt-2 w-64 overflow-hidden rounded-2xl border border-olive-100 bg-white py-1 shadow-lift"
+                        className="absolute right-0 z-[1301] mt-2.5 w-64 overflow-hidden rounded-2xl border border-olive-100/80 bg-white py-1 shadow-lift"
                     >
-                        <div className="border-b border-olive-100 px-4 py-3">
+                        <div className="border-b border-olive-100 px-4 py-3.5">
                             <div className="flex items-center gap-3">
                                 <MemberAvatar user={user} />
                                 <div className="min-w-0">
@@ -126,9 +124,8 @@ export function MemberUserMenu({ user, compact = false }) {
                                         {user.name}
                                     </p>
                                     <p className="truncate text-xs text-olive-500">{user.email}</p>
-                                    <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-wide text-mustard">
-                                        {user.plan_label || 'Free'} ·{' '}
-                                        {user.listings_remaining ?? 0} slots left
+                                    <p className="mt-1 text-[11px] font-semibold text-olive-700">
+                                        {user.plan_label || 'Free'} plan
                                     </p>
                                 </div>
                             </div>
@@ -170,26 +167,22 @@ export function MemberUserMenu({ user, compact = false }) {
     );
 }
 
-function NotificationIcon({ type }) {
-    if (type === 'check' || type === 'sparkles') {
-        return <Sparkles className="h-4 w-4 text-mustard" strokeWidth={2} />;
-    }
-    return <Bell className="h-4 w-4 text-olive-500" strokeWidth={2} />;
-}
-
 export function MemberNotificationsBell() {
-    const { notifications } = usePage().props;
+    const { notifications, messages } = usePage().props;
     const [open, setOpen] = useState(false);
-    const unread = notifications?.unread_count || 0;
-    const recent = notifications?.recent || [];
+    const alertUnread = notifications?.unread_count || 0;
+    const chatUnread = messages?.unread_count || 0;
+    const unread = alertUnread + chatUnread;
+    const recentAlerts = notifications?.recent || [];
+    const recentChats = messages?.recent || [];
 
-    const openItem = (item) => {
+    const openAlert = (item) => {
         setOpen(false);
         router.post(route('account.notifications.read', item.id));
     };
 
     const markAll = () => {
-        router.post(route('account.notifications.read-all'), {}, { preserveScroll: true });
+        router.post(route('account.messages.read-all'), {}, { preserveScroll: true });
     };
 
     return (
@@ -199,12 +192,13 @@ export function MemberNotificationsBell() {
                 onClick={() => setOpen((v) => !v)}
                 aria-expanded={open}
                 aria-haspopup="menu"
-                aria-label={unread ? `${unread} unread notifications` : 'Notifications'}
-                className="relative inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white ring-1 ring-inset ring-white/15 transition hover:bg-white/15"
+                aria-label={unread ? `${unread} unread` : 'Messages'}
+                title="Messages"
+                className="relative inline-flex h-9 w-9 items-center justify-center text-white/85 transition hover:text-white"
             >
-                <Bell className="h-[18px] w-[18px]" strokeWidth={1.9} />
+                <Bell className="h-[18px] w-[18px]" strokeWidth={1.75} />
                 {unread > 0 && (
-                    <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-mustard px-1 text-[10px] font-bold text-earth-dusk shadow-sm">
+                    <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-mustard px-1 text-[10px] font-bold leading-none text-earth-dusk">
                         {unread > 9 ? '9+' : unread}
                     </span>
                 )}
@@ -214,7 +208,7 @@ export function MemberNotificationsBell() {
                 <>
                     <button
                         type="button"
-                        aria-label="Close notifications"
+                        aria-label="Close messages"
                         className="fixed inset-0 z-[1300] cursor-default"
                         onClick={() => setOpen(false)}
                     />
@@ -224,7 +218,7 @@ export function MemberNotificationsBell() {
                     >
                         <div className="flex items-center justify-between border-b border-olive-100 px-4 py-3">
                             <div>
-                                <p className="text-sm font-semibold text-olive-950">Notifications</p>
+                                <p className="text-sm font-semibold text-olive-950">Messages</p>
                                 <p className="text-xs text-olive-500">
                                     {unread > 0 ? `${unread} unread` : 'You’re all caught up'}
                                 </p>
@@ -242,41 +236,82 @@ export function MemberNotificationsBell() {
                         </div>
 
                         <div className="max-h-[22rem] overflow-y-auto">
-                            {recent.length === 0 ? (
+                            {recentChats.length === 0 && recentAlerts.length === 0 ? (
                                 <div className="px-4 py-10 text-center">
                                     <Bell className="mx-auto h-8 w-8 text-olive-300" />
                                     <p className="mt-3 text-sm font-medium text-olive-800">
-                                        No notifications yet
+                                        No messages yet
                                     </p>
                                     <p className="mt-1 text-xs text-olive-500">
-                                        Listing approvals and plan updates will show up here.
+                                        Listing chats and account alerts show up here.
                                     </p>
                                 </div>
                             ) : (
                                 <ul>
-                                    {recent.map((item) => (
-                                        <li key={item.id}>
+                                    {recentChats.slice(0, 4).map((item) => (
+                                        <li key={`c-${item.id}`}>
+                                            <Link
+                                                href={item.url}
+                                                onClick={() => setOpen(false)}
+                                                className={`flex w-full gap-3 px-4 py-3 text-left transition hover:bg-olive-50 ${
+                                                    item.unread ? 'bg-mustard/5' : ''
+                                                }`}
+                                            >
+                                                {item.avatar_url ? (
+                                                    <img
+                                                        src={item.avatar_url}
+                                                        alt=""
+                                                        className="mt-0.5 h-8 w-8 shrink-0 rounded-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-mustard/20 text-[11px] font-bold text-earth-dusk">
+                                                        {item.initials || 'M'}
+                                                    </span>
+                                                )}
+                                                <span className="min-w-0 flex-1">
+                                                    <span className="flex items-start justify-between gap-2">
+                                                        <span className="truncate text-sm font-semibold text-olive-950">
+                                                            {item.from}
+                                                        </span>
+                                                        {item.unread && (
+                                                            <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-mustard" />
+                                                        )}
+                                                    </span>
+                                                    <span className="mt-0.5 line-clamp-2 text-xs leading-relaxed text-olive-600">
+                                                        {item.body}
+                                                    </span>
+                                                    <span className="mt-1 block text-[11px] text-olive-400">
+                                                        {item.created_ago}
+                                                    </span>
+                                                </span>
+                                            </Link>
+                                        </li>
+                                    ))}
+                                    {recentAlerts.slice(0, 4).map((item) => (
+                                        <li key={`a-${item.id}`}>
                                             <button
                                                 type="button"
-                                                onClick={() => openItem(item)}
+                                                onClick={() => openAlert(item)}
                                                 className={`flex w-full gap-3 px-4 py-3 text-left transition hover:bg-olive-50 ${
                                                     !item.read_at ? 'bg-mustard/5' : ''
                                                 }`}
                                             >
-                                                <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-olive-50">
-                                                    <NotificationIcon type={item.icon} />
-                                                </span>
+                                                <img
+                                                    src={item.sender_avatar || '/images/logo.png'}
+                                                    alt=""
+                                                    className="mt-0.5 h-8 w-8 shrink-0 rounded-full object-cover ring-1 ring-olive-100"
+                                                />
                                                 <span className="min-w-0 flex-1">
                                                     <span className="flex items-start justify-between gap-2">
                                                         <span className="text-sm font-semibold text-olive-950">
-                                                            {item.title}
+                                                            {item.sender_name || 'Nanyuki Now'}
                                                         </span>
                                                         {!item.read_at && (
                                                             <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-mustard" />
                                                         )}
                                                     </span>
                                                     <span className="mt-0.5 line-clamp-2 text-xs leading-relaxed text-olive-600">
-                                                        {item.body}
+                                                        {item.title}
                                                     </span>
                                                     <span className="mt-1 block text-[11px] text-olive-400">
                                                         {item.created_ago}
@@ -291,11 +326,11 @@ export function MemberNotificationsBell() {
 
                         <div className="border-t border-olive-100 p-2">
                             <Link
-                                href={route('account.notifications')}
+                                href={route('account.messages')}
                                 onClick={() => setOpen(false)}
                                 className="flex w-full items-center justify-center rounded-xl px-3 py-2.5 text-sm font-semibold text-olive-800 transition hover:bg-olive-50"
                             >
-                                View all notifications
+                                View all messages
                             </Link>
                         </div>
                     </div>

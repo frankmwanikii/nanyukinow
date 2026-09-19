@@ -29,6 +29,9 @@ Route::get('/stories/{slug}', function (string $slug) {
 })->name('stories.show');
 
 Route::get('/listings/{slug}', [ListingController::class, 'show'])->name('listings.show');
+Route::post('/listings/{listing:slug}/contact', [\App\Http\Controllers\ListingContactController::class, 'store'])
+    ->middleware('throttle:10,1')
+    ->name('listings.contact');
 
 Route::get('/terms', function () {
     return Inertia::render('Terms');
@@ -58,6 +61,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/account/notifications', [\App\Http\Controllers\Account\NotificationController::class, 'index'])->name('account.notifications');
     Route::post('/account/notifications/read-all', [\App\Http\Controllers\Account\NotificationController::class, 'markAllRead'])->name('account.notifications.read-all');
     Route::post('/account/notifications/{id}/read', [\App\Http\Controllers\Account\NotificationController::class, 'markRead'])->name('account.notifications.read');
+
+    Route::get('/account/messages', [\App\Http\Controllers\Account\MessageController::class, 'index'])->name('account.messages');
+    Route::post('/account/messages/read-all', [\App\Http\Controllers\Account\MessageController::class, 'markAllRead'])->name('account.messages.read-all');
+    Route::delete('/account/messages/alerts/{id}', [\App\Http\Controllers\Account\MessageController::class, 'destroyAlert'])->name('account.messages.alerts.destroy');
+    Route::get('/account/messages/{conversation}', [\App\Http\Controllers\Account\MessageController::class, 'show'])->name('account.messages.show');
+    Route::post('/account/messages/{conversation}', [\App\Http\Controllers\Account\MessageController::class, 'reply'])->name('account.messages.reply');
+    Route::delete('/account/messages/{conversation}', [\App\Http\Controllers\Account\MessageController::class, 'destroy'])->name('account.messages.destroy');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

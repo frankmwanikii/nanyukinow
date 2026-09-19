@@ -1,10 +1,11 @@
-import SiteLayout from '@/Layouts/SiteLayout';
+import AccountLayout from '@/Layouts/AccountLayout';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
     ArrowUpRight,
     BadgeCheck,
     Pencil,
     Plus,
+    Search,
     Sparkles,
     Trash2,
 } from 'lucide-react';
@@ -17,35 +18,33 @@ function statusTone(status, published) {
 }
 
 export default function Index({ plan, listings = [], pendingUpgrade = null }) {
-    const { flash } = usePage().props;
+    const { auth, flash } = usePage().props;
+    const user = auth?.user;
 
     const remove = (listing) => {
         if (!confirm(`Delete “${listing.title}”?`)) return;
         router.delete(route('account.listings.destroy', listing.id));
     };
 
+    const chips = [
+        plan.can_create
+            ? { href: route('account.listings.create'), label: 'Add listing' }
+            : { href: route('account.upgrade'), label: 'Upgrade plan' },
+        { href: route('account.messages'), label: 'Messages' },
+        { href: route('profile.edit'), label: 'Personal info' },
+        plan.key !== 'premium'
+            ? { href: route('account.upgrade'), label: 'View plans' }
+            : null,
+    ].filter(Boolean);
+
     return (
-        <SiteLayout>
-            <Head title="My account" />
+        <AccountLayout title="Home">
+            <Head title="Dashboard" />
 
-            <div className="bg-gradient-to-b from-olive-900 to-olive-800">
-                <div className="mx-auto max-w-[1100px] px-4 pb-10 pt-28 sm:px-6 sm:pt-32">
-                    <p className="text-sm font-semibold uppercase tracking-[0.16em] text-mustard">
-                        Your space
-                    </p>
-                    <h1 className="mt-2 font-display text-3xl font-bold text-white sm:text-4xl">
-                        Account
-                    </h1>
-                    <p className="mt-2 max-w-xl text-sm text-white/70">
-                        Manage your plan and listings without leaving the site.
-                    </p>
-                </div>
-            </div>
-
-            <div className="mx-auto max-w-[1100px] space-y-6 px-4 py-8 sm:px-6 sm:py-10">
+            <div className="space-y-6">
                 {(flash?.success || flash?.error) && (
                     <div
-                        className={`rounded-xl border px-4 py-3 text-sm ${
+                        className={`rounded-2xl border px-4 py-3 text-sm ${
                             flash.error
                                 ? 'border-rose-200 bg-rose-50 text-rose-800'
                                 : 'border-mint/40 bg-mint/20 text-olive-900'
@@ -55,24 +54,56 @@ export default function Index({ plan, listings = [], pendingUpgrade = null }) {
                     </div>
                 )}
 
+                <section className="rounded-3xl border border-olive-200/80 bg-white px-5 py-8 text-center shadow-soft sm:px-8">
+                    <p className="text-sm text-olive-500">Welcome back</p>
+                    <h2 className="mt-1 font-display text-3xl font-bold text-olive-950 sm:text-4xl">
+                        {user?.name?.split(' ')[0] || 'Member'}
+                    </h2>
+                    <p className="mt-2 text-sm text-olive-600">
+                        Manage your plan, listings, and messages in one place.
+                    </p>
+
+                    <form
+                        action={route('explore')}
+                        method="get"
+                        className="relative mx-auto mt-6 max-w-xl"
+                        role="search"
+                    >
+                        <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-olive-400" />
+                        <input
+                            name="q"
+                            placeholder="Search your next listing idea…"
+                            className="w-full rounded-full border border-olive-200 bg-olive-50/70 py-3.5 pl-11 pr-4 text-sm text-olive-900 outline-none transition placeholder:text-olive-400 focus:border-mustard focus:bg-white focus:ring-2 focus:ring-mustard/25"
+                        />
+                    </form>
+
+                    <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+                        {chips.map((chip) => (
+                            <Link
+                                key={chip.label}
+                                href={chip.href}
+                                className="rounded-full border border-olive-200 bg-white px-3.5 py-2 text-sm font-semibold text-olive-800 transition hover:border-mustard/50 hover:bg-mustard/10"
+                            >
+                                {chip.label}
+                            </Link>
+                        ))}
+                    </div>
+                </section>
+
                 <section className="grid gap-4 md:grid-cols-3">
-                    <div className="rounded-2xl border border-olive-200/80 bg-white p-5 shadow-soft md:col-span-2">
+                    <div className="rounded-3xl border border-olive-200/80 bg-white p-5 shadow-soft md:col-span-2">
                         <div className="flex flex-wrap items-start justify-between gap-3">
                             <div>
                                 <p className="text-xs font-semibold uppercase tracking-wide text-olive-500">
                                     Current plan
                                 </p>
-                                <h2 className="mt-1 font-display text-2xl font-bold text-olive-950">
+                                <h3 className="mt-1 font-display text-2xl font-bold text-olive-950">
                                     {plan.label}
-                                </h2>
-                                <p className="mt-1 text-sm text-olive-600">
-                                    Listing badge on cards:{' '}
-                                    <span className="font-semibold">{plan.badge_label}</span>
-                                </p>
+                                </h3>
                             </div>
                             <span className="inline-flex items-center gap-1.5 rounded-full bg-olive-50 px-3 py-1.5 text-sm font-semibold text-olive-800">
                                 <BadgeCheck className="h-4 w-4 text-mint-deep" />
-                                {plan.listings_used}/{plan.listing_limit} used
+                                {plan.listings_used}/{plan.listing_limit} listings
                             </span>
                         </div>
 
@@ -93,7 +124,7 @@ export default function Index({ plan, listings = [], pendingUpgrade = null }) {
                         {plan.expires_at && (
                             <p className="mt-3 text-sm text-olive-500">
                                 {plan.is_expired
-                                    ? 'Plan expired — you are on Free entitlements until renewed.'
+                                    ? 'Plan expired — you’re back on Free until you renew.'
                                     : `Renews / expires ${new Date(plan.expires_at).toLocaleDateString()}`}
                             </p>
                         )}
@@ -102,7 +133,7 @@ export default function Index({ plan, listings = [], pendingUpgrade = null }) {
                             {plan.can_create ? (
                                 <Link
                                     href={route('account.listings.create')}
-                                    className="inline-flex items-center gap-2 rounded-xl bg-mustard px-4 py-2.5 text-sm font-bold text-earth-dusk transition hover:bg-olive-800 hover:text-white"
+                                    className="inline-flex items-center gap-2 rounded-full bg-mustard px-4 py-2.5 text-sm font-bold text-earth-dusk transition hover:bg-olive-800 hover:text-white"
                                 >
                                     <Plus className="h-4 w-4" />
                                     Add listing
@@ -110,7 +141,7 @@ export default function Index({ plan, listings = [], pendingUpgrade = null }) {
                             ) : (
                                 <Link
                                     href={route('account.upgrade')}
-                                    className="inline-flex items-center gap-2 rounded-xl bg-mustard px-4 py-2.5 text-sm font-bold text-earth-dusk transition hover:bg-olive-800 hover:text-white"
+                                    className="inline-flex items-center gap-2 rounded-full bg-mustard px-4 py-2.5 text-sm font-bold text-earth-dusk transition hover:bg-olive-800 hover:text-white"
                                 >
                                     <Sparkles className="h-4 w-4" />
                                     Upgrade for more listings
@@ -119,28 +150,16 @@ export default function Index({ plan, listings = [], pendingUpgrade = null }) {
                             {plan.key !== 'premium' && (
                                 <Link
                                     href={route('account.upgrade')}
-                                    className="inline-flex items-center gap-2 rounded-xl border border-olive-200 bg-white px-4 py-2.5 text-sm font-semibold text-olive-800 transition hover:border-mustard/50 hover:bg-mustard/10"
+                                    className="inline-flex items-center gap-2 rounded-full border border-olive-200 bg-white px-4 py-2.5 text-sm font-semibold text-olive-800 transition hover:border-mustard/50 hover:bg-mustard/10"
                                 >
                                     View plans
                                     <ArrowUpRight className="h-4 w-4" />
                                 </Link>
                             )}
-                            <Link
-                                href={route('profile.edit')}
-                                className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-olive-600 transition hover:bg-olive-50 hover:text-olive-950"
-                            >
-                                Profile settings
-                            </Link>
-                            <Link
-                                href={route('account.notifications')}
-                                className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-olive-600 transition hover:bg-olive-50 hover:text-olive-950"
-                            >
-                                Notifications
-                            </Link>
                         </div>
                     </div>
 
-                    <div className="rounded-2xl border border-olive-200/80 bg-white p-5 shadow-soft">
+                    <div className="rounded-3xl border border-olive-200/80 bg-white p-5 shadow-soft">
                         <p className="text-xs font-semibold uppercase tracking-wide text-olive-500">
                             Upgrade status
                         </p>
@@ -167,25 +186,25 @@ export default function Index({ plan, listings = [], pendingUpgrade = null }) {
                         ) : (
                             <div className="mt-3">
                                 <p className="text-sm text-olive-600">
-                                    No pending upgrade. Standard unlocks Featured badges; Premium
-                                    unlocks Premium placement.
+                                    Want better placement? Compare plans and upgrade when you’re
+                                    ready.
                                 </p>
                                 <Link
-                                    href={route('pricing')}
+                                    href={route('account.upgrade')}
                                     className="mt-4 inline-flex text-sm font-semibold text-olive-800 underline-offset-2 hover:underline"
                                 >
-                                    Compare pricing
+                                    View plans
                                 </Link>
                             </div>
                         )}
                     </div>
                 </section>
 
-                <section className="overflow-hidden rounded-2xl border border-olive-200/80 bg-white shadow-soft">
+                <section className="overflow-hidden rounded-3xl border border-olive-200/80 bg-white shadow-soft">
                     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-olive-100 px-5 py-4">
-                        <h2 className="font-display text-lg font-bold text-olive-950">
+                        <h3 className="font-display text-lg font-bold text-olive-950">
                             Your listings
-                        </h2>
+                        </h3>
                         {plan.can_create && (
                             <Link
                                 href={route('account.listings.create')}
@@ -209,7 +228,7 @@ export default function Index({ plan, listings = [], pendingUpgrade = null }) {
                             {plan.can_create && (
                                 <Link
                                     href={route('account.listings.create')}
-                                    className="mt-5 inline-flex items-center gap-2 rounded-xl bg-mustard px-4 py-2.5 text-sm font-bold text-earth-dusk"
+                                    className="mt-5 inline-flex items-center gap-2 rounded-full bg-mustard px-4 py-2.5 text-sm font-bold text-earth-dusk"
                                 >
                                     <Plus className="h-4 w-4" />
                                     Create your first listing
@@ -247,7 +266,8 @@ export default function Index({ plan, listings = [], pendingUpgrade = null }) {
                                                 {listing.status}
                                             </span>
                                             <span className="text-olive-500">
-                                                {listing.tier_label} · {listing.category || 'Uncategorized'}
+                                                {listing.tier_label} ·{' '}
+                                                {listing.category || 'Uncategorized'}
                                             </span>
                                         </div>
                                     </div>
@@ -282,6 +302,6 @@ export default function Index({ plan, listings = [], pendingUpgrade = null }) {
                     )}
                 </section>
             </div>
-        </SiteLayout>
+        </AccountLayout>
     );
 }

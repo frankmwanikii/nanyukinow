@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\MemberMessages;
 use App\Support\MemberNotifications;
 use App\Support\Membership;
 use Illuminate\Http\Request;
@@ -63,6 +64,7 @@ class HandleInertiaRequests extends Middleware
                 'error' => fn () => $request->session()->get('error'),
             ],
             'notifications' => fn () => MemberNotifications::forUser($request->user()),
+            'messages' => fn () => MemberMessages::forUser($request->user()),
         ];
     }
 }

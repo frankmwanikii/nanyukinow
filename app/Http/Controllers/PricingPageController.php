@@ -25,7 +25,7 @@ class PricingPageController extends Controller
                 'mpesa_account' => SiteSetting::getValue('upgrade_mpesa_account', 'PLAN'),
                 'instructions' => SiteSetting::getValue(
                     'upgrade_instructions',
-                    'Pay via M-Pesa, then submit your upgrade request with the payment reference. An admin will activate your plan shortly.',
+                    'Choose a plan, pick how you want to pay, then submit your payment reference. We’ll activate your plan after verifying payment.',
                 ),
             ],
         ]);

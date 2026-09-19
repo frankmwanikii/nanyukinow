@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Account;
 
 use App\Support\Membership;
+use App\Support\PaymentMethods;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -20,9 +21,20 @@ class StoreUpgradeRequest extends FormRequest
     {
         return [
             'to_plan' => ['required', Rule::in([Membership::STANDARD, Membership::PREMIUM])],
-            'payment_reference' => ['required', 'string', 'max:80'],
-            'payment_method' => ['nullable', 'string', 'max:40'],
+            'payment_method' => ['required', Rule::in(PaymentMethods::keys())],
+            'payment_reference' => ['required', 'string', 'max:120'],
             'member_notes' => ['nullable', 'string', 'max:1000'],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'payment_method.required' => 'Choose how you paid.',
+            'payment_reference.required' => 'Enter your payment confirmation / transaction ID.',
         ];
     }
 }
