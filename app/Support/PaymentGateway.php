@@ -259,15 +259,18 @@ class PaymentGateway
             return self::fail('PayPal credentials missing');
         }
 
-        $amount = number_format((float) ($payload['amount'] ?? 0), 2, '.', '');
-        if ((float) $amount <= 0) {
+        $amount = (float) ($payload['amount'] ?? 0);
+        if ($amount <= 0) {
             return [
                 'ok' => false,
                 'message' => 'Invalid payment amount.',
             ];
         }
 
-        $currency = strtoupper((string) ($payload['currency'] ?? 'USD'));
+        [$chargeAmount, $currency] = self::paypalChargeAmount(
+            $amount,
+            (string) ($payload['currency'] ?? 'KES'),
+        );
 
         $returnUrl = (string) ($payload['return_url'] ?? route('account.billing'));
         $cancelUrl = (string) ($payload['cancel_url'] ?? route('account.upgrade'));
@@ -278,42 +281,48 @@ class PaymentGateway
                 return self::fail('PayPal OAuth failed');
             }
 
+            $orderPayload = [
+                'intent' => 'CAPTURE',
+                'purchase_units' => [[
+                    'reference_id' => substr((string) ($payload['to_plan'] ?? 'upgrade'), 0, 64),
+                    'description' => 'Nanyuki Now membership — '.($payload['to_plan'] ?? 'upgrade'),
+                    'custom_id' => (string) ($payload['user_id'] ?? ''),
+                    'amount' => [
+                        'currency_code' => $currency,
+                        'value' => $chargeAmount,
+                    ],
+                ]],
+                'application_context' => [
+                    'brand_name' => (string) SiteSetting::getValue('site_name', 'Nanyuki Now'),
+                    'landing_page' => 'LOGIN',
+                    'user_action' => 'PAY_NOW',
+                    'shipping_preference' => 'NO_SHIPPING',
+                    'return_url' => $returnUrl,
+                    'cancel_url' => $cancelUrl,
+                ],
+            ];
+
+            $payerEmail = trim((string) ($payload['email'] ?? ''));
+            if ($payerEmail !== '' && filter_var($payerEmail, FILTER_VALIDATE_EMAIL)) {
+                $orderPayload['payer'] = ['email_address' => $payerEmail];
+            }
+
             $response = Http::withToken($token)
                 ->acceptJson()
                 ->timeout(30)
-                ->post(self::paypalBaseUrl($creds['mode']).'/v2/checkout/orders', [
-                    'intent' => 'CAPTURE',
-                    'purchase_units' => [[
-                        'reference_id' => substr((string) ($payload['to_plan'] ?? 'upgrade'), 0, 64),
-                        'description' => 'Nanyuki Now membership — '.($payload['to_plan'] ?? 'upgrade'),
-                        'amount' => [
-                            'currency_code' => $currency,
-                            'value' => $amount,
-                        ],
-                        'custom_id' => (string) ($payload['user_id'] ?? ''),
-                    ]],
-                    'payer' => array_filter([
-                        'email_address' => $payload['email'] ?? null,
-                    ]),
-                    'application_context' => [
-                        'brand_name' => SiteSetting::getValue('site_name', 'Nanyuki Now'),
-                        'landing_page' => 'LOGIN',
-                        'user_action' => 'PAY_NOW',
-                        'return_url' => $returnUrl,
-                        'cancel_url' => $cancelUrl,
-                    ],
-                ]);
+                ->post(self::paypalBaseUrl($creds['mode']).'/v2/checkout/orders', $orderPayload);
 
             if (! $response->successful()) {
                 return self::fail('PayPal order create failed', [
                     'status' => $response->status(),
                     'body' => $response->json() ?? $response->body(),
+                    'charge' => ['amount' => $chargeAmount, 'currency' => $currency],
                 ]);
             }
 
             $body = $response->json() ?? [];
             $approve = collect($body['links'] ?? [])
-                ->firstWhere('rel', 'approve');
+                ->first(fn ($link) => is_array($link) && in_array($link['rel'] ?? '', ['approve', 'payer-action'], true));
 
             $checkoutUrl = is_array($approve) ? ($approve['href'] ?? null) : null;
             if (! $checkoutUrl) {
@@ -335,6 +344,34 @@ class PaymentGateway
                 'message' => self::FAILURE_MESSAGE,
             ];
         }
+    }
+
+    /**
+     * PayPal merchant accounts often reject KES — convert to the configured checkout currency.
+     *
+     * @return array{0: string, 1: string} [amount, currency]
+     */
+    public static function paypalChargeAmount(float $amount, string $fromCurrency): array
+    {
+        $from = strtoupper(trim($fromCurrency)) ?: 'KES';
+        $checkout = strtoupper(trim((string) SiteSetting::getValue('paypal_checkout_currency', 'USD'))) ?: 'USD';
+
+        if ($from === $checkout) {
+            return [number_format($amount, 2, '.', ''), $checkout];
+        }
+
+        if ($from === 'KES' && $checkout === 'USD') {
+            $rate = (float) SiteSetting::getValue('paypal_kes_per_usd', '130');
+            if ($rate <= 0) {
+                $rate = 130.0;
+            }
+            $converted = max(round($amount / $rate, 2), 0.01);
+
+            return [number_format($converted, 2, '.', ''), 'USD'];
+        }
+
+        // Unknown pair: send numeric amount in checkout currency (admin should align plan currency).
+        return [number_format(max($amount, 0.01), 2, '.', ''), $checkout];
     }
 
     /**

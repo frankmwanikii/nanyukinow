@@ -260,6 +260,54 @@ class AccountUpgradePageTest extends TestCase
             ]);
     }
 
+    public function test_paypal_converts_kes_to_usd_for_checkout(): void
+    {
+        PricingPlan::ensureDefaults();
+        $user = User::factory()->create();
+
+        Http::fake([
+            'api-m.sandbox.paypal.com/v1/oauth2/token' => Http::response([
+                'access_token' => 'TEST_TOKEN',
+                'token_type' => 'Bearer',
+            ], 200),
+            'api-m.sandbox.paypal.com/v2/checkout/orders' => Http::response([
+                'id' => 'ORDER-KES-USD',
+                'status' => 'CREATED',
+                'links' => [
+                    [
+                        'rel' => 'approve',
+                        'href' => 'https://www.sandbox.paypal.com/checkoutnow?token=ORDER-KES-USD',
+                    ],
+                ],
+            ], 201),
+        ]);
+
+        $this->actingAs($user)
+            ->postJson(route('account.upgrade.pay'), [
+                'to_plan' => Membership::STANDARD,
+                'payment_method' => 'paypal',
+                'email' => 'buyer@example.com',
+                'amount' => 2500,
+                'currency' => 'KES',
+            ])
+            ->assertOk()
+            ->assertJson([
+                'ok' => true,
+                'provider_ref' => 'ORDER-KES-USD',
+            ]);
+
+        Http::assertSent(function ($request) {
+            if (! str_contains($request->url(), '/v2/checkout/orders')) {
+                return false;
+            }
+
+            $amount = $request['purchase_units'][0]['amount'] ?? [];
+
+            return ($amount['currency_code'] ?? null) === 'USD'
+                && ($amount['value'] ?? null) === '19.23';
+        });
+    }
+
     public function test_live_paypal_pay_fails_when_oauth_rejects(): void
     {
         PricingPlan::ensureDefaults();
