@@ -54,6 +54,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/account/listings/{listing}/edit', [AccountListingController::class, 'edit'])->name('account.listings.edit');
     Route::put('/account/listings/{listing}', [AccountListingController::class, 'update'])->name('account.listings.update');
     Route::delete('/account/listings/{listing}', [AccountListingController::class, 'destroy'])->name('account.listings.destroy');
+    Route::post('/account/amenities', [\App\Http\Controllers\Account\AmenityController::class, 'store'])
+        ->middleware('throttle:30,1')
+        ->name('account.amenities.store');
 
     Route::get('/account/billing', AccountBillingController::class)->name('account.billing');
 

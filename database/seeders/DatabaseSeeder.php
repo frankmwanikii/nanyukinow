@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             LocationSeeder::class,
             ListingSeeder::class,
+            AmenitySeeder::class,
             AdminUserSeeder::class,
         ]);
     }

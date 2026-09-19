@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Account;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Account\StoreListingRequest;
 use App\Http\Requests\Account\UpdateListingRequest;
+use App\Models\Amenity;
 use App\Models\Category;
 use App\Models\Listing;
+use App\Support\CategoryKey;
+use App\Support\ListingMedia;
 use App\Support\Membership;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -29,6 +32,8 @@ class ListingController extends Controller
         return Inertia::render('Account/Listings/Form', [
             'listing' => null,
             'categories' => $this->categories(),
+            'amenities' => $this->amenitiesPayload(),
+            'mapsApiKey' => config('services.google.maps_key') ?: env('VITE_GOOGLE_MAPS_API_KEY'),
             'plan' => Membership::planSummary($user),
             'allowedTiers' => Membership::allowedTiers($user->effectivePlan()),
         ]);
@@ -49,8 +54,10 @@ class ListingController extends Controller
             return back()->withErrors(['tier' => 'Your plan does not include that listing tier.']);
         }
 
+        $payload = $this->buildListingPayload($request, $data);
+
         $listing = Listing::query()->create([
-            ...$data,
+            ...$payload,
             'user_id' => $user->id,
             'slug' => $this->uniqueSlug($data['title']),
             'tier' => $tier,
@@ -62,6 +69,8 @@ class ListingController extends Controller
             'priority' => $tier === Membership::PREMIUM ? 20 : ($tier === Membership::STANDARD ? 10 : 0),
         ]);
 
+        $this->bumpAmenityUsage($payload['amenities'] ?? []);
+
         return redirect()
             ->route('account.index')
             ->with('success', "“{$listing->title}” submitted for review.");
@@ -72,25 +81,10 @@ class ListingController extends Controller
         $this->authorizeOwner($request, $listing);
 
         return Inertia::render('Account/Listings/Form', [
-            'listing' => [
-                'id' => $listing->id,
-                'title' => $listing->title,
-                'slug' => $listing->slug,
-                'category_id' => $listing->category_id,
-                'location' => $listing->location,
-                'tagline' => $listing->tagline,
-                'description' => $listing->description,
-                'phone' => $listing->phone,
-                'whatsapp' => $listing->whatsapp,
-                'email' => $listing->email,
-                'website' => $listing->website,
-                'address' => $listing->address,
-                'image_url' => $listing->image_url,
-                'tier' => $listing->tier,
-                'status' => $listing->status,
-                'is_published' => $listing->is_published,
-            ],
+            'listing' => $this->listingFormPayload($listing),
             'categories' => $this->categories(),
+            'amenities' => $this->amenitiesPayload(),
+            'mapsApiKey' => config('services.google.maps_key') ?: env('VITE_GOOGLE_MAPS_API_KEY'),
             'plan' => Membership::planSummary($request->user()),
             'allowedTiers' => Membership::allowedTiers($request->user()->effectivePlan()),
         ]);
@@ -107,12 +101,16 @@ class ListingController extends Controller
             return back()->withErrors(['tier' => 'Your plan does not include that listing tier.']);
         }
 
+        $payload = $this->buildListingPayload($request, $data, $listing);
+
         $listing->update([
-            ...$data,
+            ...$payload,
             'tier' => $tier,
             'is_featured' => in_array($tier, [Membership::STANDARD, Membership::PREMIUM], true),
             'priority' => $tier === Membership::PREMIUM ? 20 : ($tier === Membership::STANDARD ? 10 : 0),
         ]);
+
+        $this->bumpAmenityUsage($payload['amenities'] ?? []);
 
         return redirect()
             ->route('account.index')
@@ -140,15 +138,161 @@ class ListingController extends Controller
     }
 
     /**
-     * @return list<array{id:int,name:string,slug:string}>
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function buildListingPayload(Request $request, array $data, ?Listing $existing = null): array
+    {
+        $galleryUrls = array_values(array_filter(
+            $data['gallery_urls'] ?? [],
+            fn ($url) => is_string($url) && $url !== '',
+        ));
+
+        if ($request->hasFile('gallery_files')) {
+            foreach ($request->file('gallery_files') as $file) {
+                if ($file) {
+                    $galleryUrls[] = ListingMedia::store($file, 'listings/gallery');
+                }
+            }
+        }
+
+        $imageUrl = $data['image_url'] ?? $existing?->image_url;
+        if ($request->hasFile('cover')) {
+            if ($existing?->image_url) {
+                ListingMedia::delete($existing->image_url);
+            }
+            $imageUrl = ListingMedia::store($request->file('cover'), 'listings/covers');
+        }
+
+        $logoUrl = $data['logo_url'] ?? $existing?->logo_url;
+        if ($request->hasFile('logo')) {
+            if ($existing?->logo_url) {
+                ListingMedia::delete($existing->logo_url);
+            }
+            $logoUrl = ListingMedia::store($request->file('logo'), 'listings/logos');
+        }
+
+        $posterUrl = $data['event_poster_url'] ?? $existing?->event_poster_url;
+        if ($request->hasFile('event_poster')) {
+            if ($existing?->event_poster_url) {
+                ListingMedia::delete($existing->event_poster_url);
+            }
+            $posterUrl = ListingMedia::store($request->file('event_poster'), 'listings/posters');
+        }
+
+        $amenities = array_values(array_unique(array_filter(
+            array_map(fn ($a) => is_string($a) ? trim($a) : '', $data['amenities'] ?? []),
+        )));
+
+        return [
+            'title' => $data['title'],
+            'category_id' => $data['category_id'],
+            'subcategory' => $data['subcategory'] ?? null,
+            'property_type' => $data['property_type'] ?? null,
+            'location' => $data['location'] ?? null,
+            'city' => $data['city'] ?? null,
+            'tagline' => $data['tagline'] ?? null,
+            'description' => $data['description'] ?? null,
+            'phone' => $data['phone'] ?? null,
+            'whatsapp' => $data['whatsapp'] ?? null,
+            'email' => $data['email'] ?? null,
+            'website' => $data['website'] ?? null,
+            'address' => $data['address'] ?? null,
+            'venue' => $data['venue'] ?? null,
+            'latitude' => isset($data['latitude']) ? (float) $data['latitude'] : null,
+            'longitude' => isset($data['longitude']) ? (float) $data['longitude'] : null,
+            'price_range' => $data['price_range'] ?? null,
+            'image_url' => $imageUrl,
+            'logo_url' => $logoUrl,
+            'event_poster_url' => $posterUrl,
+            'gallery' => $galleryUrls,
+            'amenities' => $amenities,
+            'hours' => $data['hours'] ?? null,
+            'social_links' => $data['social_links'] ?? null,
+            'details' => $data['details'] ?? null,
+            'start_at' => $data['start_at'] ?? null,
+            'end_at' => $data['end_at'] ?? null,
+            'ticket_price' => $data['ticket_price'] ?? null,
+            'early_bird_price' => $data['early_bird_price'] ?? null,
+            'gate_price' => $data['gate_price'] ?? null,
+            'ticket_url' => $data['ticket_url'] ?? null,
+        ];
+    }
+
+    /**
+     * @param  list<string>  $amenities
+     */
+    private function bumpAmenityUsage(array $amenities): void
+    {
+        foreach ($amenities as $slugOrName) {
+            $amenity = Amenity::query()
+                ->where(function ($query) use ($slugOrName) {
+                    $query->where('slug', $slugOrName)
+                        ->orWhereRaw('LOWER(name) = ?', [mb_strtolower($slugOrName)]);
+                })
+                ->first();
+
+            if ($amenity) {
+                $amenity->increment('usage_count');
+            }
+        }
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function listingFormPayload(Listing $listing): array
+    {
+        return [
+            'id' => $listing->id,
+            'title' => $listing->title,
+            'slug' => $listing->slug,
+            'category_id' => $listing->category_id,
+            'subcategory' => $listing->subcategory,
+            'property_type' => $listing->property_type,
+            'location' => $listing->location,
+            'city' => $listing->city,
+            'tagline' => $listing->tagline,
+            'description' => $listing->description,
+            'phone' => $listing->phone,
+            'whatsapp' => $listing->whatsapp,
+            'email' => $listing->email,
+            'website' => $listing->website,
+            'address' => $listing->address,
+            'venue' => $listing->venue,
+            'latitude' => $listing->latitude,
+            'longitude' => $listing->longitude,
+            'price_range' => $listing->price_range,
+            'image_url' => $listing->image_url,
+            'logo_url' => $listing->logo_url,
+            'event_poster_url' => $listing->event_poster_url,
+            'gallery' => $listing->gallery ?? [],
+            'amenities' => $listing->amenities ?? [],
+            'hours' => $listing->hours ?? [],
+            'social_links' => $listing->social_links ?? [],
+            'details' => $listing->details ?? [],
+            'start_at' => $listing->start_at?->format('Y-m-d\TH:i'),
+            'end_at' => $listing->end_at?->format('Y-m-d\TH:i'),
+            'ticket_price' => $listing->ticket_price,
+            'early_bird_price' => $listing->early_bird_price,
+            'gate_price' => $listing->gate_price,
+            'ticket_url' => $listing->ticket_url,
+            'tier' => $listing->tier,
+            'status' => $listing->status,
+            'is_published' => $listing->is_published,
+        ];
+    }
+
+    /**
+     * @return list<array{id:int,name:string,slug:string,key:string}>
      */
     private function categories(): array
     {
         if (! Category::query()->exists()) {
             foreach ([
-                ['name' => 'Eat & Drink', 'slug' => 'eat-drink', 'sort_order' => 1],
+                ['name' => 'Eat & Drink', 'slug' => 'eatDrink', 'sort_order' => 1],
                 ['name' => 'Stay', 'slug' => 'stay', 'sort_order' => 2],
-                ['name' => 'Things to do', 'slug' => 'things-to-do', 'sort_order' => 3],
+                ['name' => 'Things to do', 'slug' => 'thingsToDo', 'sort_order' => 3],
                 ['name' => 'Services', 'slug' => 'services', 'sort_order' => 4],
                 ['name' => 'Shopping', 'slug' => 'shopping', 'sort_order' => 5],
                 ['name' => 'Properties', 'slug' => 'properties', 'sort_order' => 6],
@@ -166,6 +310,26 @@ class ListingController extends Controller
                 'id' => $c->id,
                 'name' => $c->name,
                 'slug' => $c->slug,
+                'key' => CategoryKey::fromSlug($c->slug),
+            ])
+            ->all();
+    }
+
+    /**
+     * @return list<array{id:int,name:string,slug:string,category_key:?string}>
+     */
+    private function amenitiesPayload(): array
+    {
+        return Amenity::query()
+            ->where('is_active', true)
+            ->orderByDesc('usage_count')
+            ->orderBy('name')
+            ->get(['id', 'name', 'slug', 'category_key'])
+            ->map(fn (Amenity $a) => [
+                'id' => $a->id,
+                'name' => $a->name,
+                'slug' => $a->slug,
+                'category_key' => $a->category_key,
             ])
             ->all();
     }

@@ -1902,6 +1902,57 @@ function parseCoord(value) {
     return Number.isFinite(n) ? n : null;
 }
 
+/** Build facts rows from category-specific details saved on the listing. */
+function buildFactsFromDetails(listing) {
+    const d = listing?.details;
+    if (!d || typeof d !== 'object') return [];
+
+    const key = listing.categoryKey;
+    const pairs = [];
+
+    if (key === 'stay') {
+        if (d.guests) pairs.push({ label: 'Guests', value: String(d.guests) });
+        if (d.rooms) pairs.push({ label: 'Rooms', value: String(d.rooms) });
+        if (d.beds) pairs.push({ label: 'Beds', value: String(d.beds) });
+        if (d.baths) pairs.push({ label: 'Baths', value: String(d.baths) });
+        if (d.check_in) pairs.push({ label: 'Check-in', value: String(d.check_in) });
+        if (d.check_out) pairs.push({ label: 'Check-out', value: String(d.check_out) });
+        if (d.nightly_rate) pairs.push({ label: 'From', value: String(d.nightly_rate) });
+    } else if (key === 'thingsToDo') {
+        if (d.duration) pairs.push({ label: 'Duration', value: String(d.duration) });
+        if (d.difficulty) pairs.push({ label: 'Difficulty', value: String(d.difficulty) });
+        if (d.min_age) pairs.push({ label: 'Min age', value: String(d.min_age) });
+        if (d.group_size) pairs.push({ label: 'Group size', value: String(d.group_size) });
+        if (d.price_from) pairs.push({ label: 'From', value: String(d.price_from) });
+    } else if (key === 'services') {
+        if (d.service_area) pairs.push({ label: 'Service area', value: String(d.service_area) });
+        if (d.pricing_from) pairs.push({ label: 'From', value: String(d.pricing_from) });
+        if (d.response_time) pairs.push({ label: 'Response', value: String(d.response_time) });
+    } else if (key === 'properties') {
+        if (d.bedrooms) pairs.push({ label: 'Bedrooms', value: String(d.bedrooms) });
+        if (d.bathrooms) pairs.push({ label: 'Baths', value: String(d.bathrooms) });
+        if (d.size_sqm) pairs.push({ label: 'Size', value: String(d.size_sqm) });
+        if (d.price) pairs.push({ label: 'Price', value: String(d.price) });
+        if (d.furnished) pairs.push({ label: 'Furnishing', value: String(d.furnished) });
+        if (d.parking_spaces) pairs.push({ label: 'Parking', value: String(d.parking_spaces) });
+        if (d.year_built) pairs.push({ label: 'Year built', value: String(d.year_built) });
+    } else if (key === 'eatDrink') {
+        if (d.cuisine) pairs.push({ label: 'Cuisine', value: String(d.cuisine) });
+        if (d.capacity) pairs.push({ label: 'Capacity', value: String(d.capacity) });
+        if (d.avg_meal) pairs.push({ label: 'Avg meal', value: String(d.avg_meal) });
+        if (d.reservations) pairs.push({ label: 'Reservations', value: String(d.reservations) });
+    } else if (key === 'shopping') {
+        if (d.specialty) pairs.push({ label: 'Specialty', value: String(d.specialty) });
+        if (d.delivery) pairs.push({ label: 'Delivery', value: String(d.delivery) });
+    } else if (key === 'events') {
+        if (listing.venue) pairs.push({ label: 'Venue', value: String(listing.venue) });
+        if (d.organiser) pairs.push({ label: 'Organiser', value: String(d.organiser) });
+        if (d.age_limit) pairs.push({ label: 'Age limit', value: String(d.age_limit) });
+    }
+
+    return pairs;
+}
+
 /**
  * Merge base listing with rich detail (or category defaults).
  */
@@ -1924,8 +1975,12 @@ export function getListingDetail(listing) {
     const explicit = listingDetailsById[listing.id] ?? listingDetailsById[String(listing.id)];
     const defaults = DEFAULTS_BY_CATEGORY[listing.categoryKey] ?? DEFAULTS_BY_CATEGORY.eatDrink;
 
-    const propertyType = listing.propertyType || null;
-    const rawFacts = explicit?.facts ?? defaults.facts ?? [];
+    const propertyType = listing.propertyType || listing.details?.property_type || null;
+    const detailFacts = buildFactsFromDetails(listing);
+    const rawFacts =
+        detailFacts.length > 0
+            ? detailFacts
+            : (explicit?.facts ?? defaults.facts ?? []);
     const facts =
         listing.categoryKey === 'properties'
             ? [
@@ -1956,9 +2011,21 @@ export function getListingDetail(listing) {
     const base = {
         about:
             listing.about ||
+            listing.details?.about ||
             `${listing.title} is a local favourite in ${listing.location}. Reach out to confirm hours, pricing, and availability.`,
         address: listing.address || `${listing.location}, Kenya`,
-        gallery: buildGallery(listing, defaults),
+        gallery:
+            Array.isArray(listing.gallery) && listing.gallery.length
+                ? ensureGalleryDepth([
+                      {
+                          label: 'Gallery',
+                          kind: 'main',
+                          images: listing.gallery.map((src) =>
+                              typeof src === 'string' ? src : src?.src,
+                          ).filter(Boolean),
+                      },
+                  ])
+                : buildGallery(listing, defaults),
         video: listing.image
             ? {
                   poster: listing.image,
@@ -1966,19 +2033,43 @@ export function getListingDetail(listing) {
                   title: `Preview · ${listing.title}`,
               }
             : null,
-        amenities: defaults.amenities ?? [],
+        amenities:
+            Array.isArray(listing.amenities) && listing.amenities.length
+                ? listing.amenities
+                : (defaults.amenities ?? []),
         facts,
         propertyType,
-        houseRules: defaults.houseRules ?? [],
-        included: defaults.included ?? [],
-        bring: defaults.bring ?? [],
-        offerings: defaults.offerings ?? [],
-        credentials: defaults.credentials ?? [],
-        brands: defaults.brands ?? [],
+        houseRules:
+            listing.details?.house_rules?.length
+                ? listing.details.house_rules
+                : (defaults.houseRules ?? []),
+        included:
+            listing.details?.included?.length
+                ? listing.details.included
+                : (defaults.included ?? []),
+        bring:
+            listing.details?.bring?.length
+                ? listing.details.bring
+                : (defaults.bring ?? []),
+        offerings:
+            listing.details?.offerings?.length
+                ? listing.details.offerings
+                : (defaults.offerings ?? []),
+        credentials:
+            listing.details?.credentials?.length
+                ? listing.details.credentials
+                : (defaults.credentials ?? []),
+        brands:
+            listing.details?.brands?.length
+                ? listing.details.brands
+                : (defaults.brands ?? []),
         docs: [],
         menus: [],
         products: productsForShoppingListing(listing),
-        highlights: defaults.highlights ?? [],
+        highlights:
+            listing.details?.highlights?.length
+                ? listing.details.highlights
+                : (defaults.highlights ?? []),
         sponsors: defaults.sponsors ?? [],
         eventPoster: listing.eventPoster || null,
         startDate: listing.startDate || null,
@@ -1988,22 +2079,33 @@ export function getListingDetail(listing) {
         earlyBirdPrice: listing.earlyBirdPrice || null,
         gatePrice: listing.gatePrice || null,
         ticketUrl: listing.ticketUrl || null,
-        ageLimit: listing.ageLimit || null,
-        organiser: listing.organiser || null,
+        ageLimit: listing.ageLimit || listing.details?.age_limit || null,
+        organiser: listing.organiser || listing.details?.organiser || null,
         agent:
             listing.categoryKey === 'properties'
                 ? {
-                      name: 'Listing agent',
-                      phone: listing.phone,
-                      email: null,
+                      name:
+                          listing.details?.agent_name || 'Listing agent',
+                      phone:
+                          listing.details?.agent_phone || listing.phone,
+                      email: listing.details?.agent_email || listing.email || null,
                       note: 'Contact for viewings and details.',
                   }
                 : null,
-        hours: defaults.withHours ? WEEKDAY_HOURS : null,
+        hours:
+            Array.isArray(listing.hours) && listing.hours.length
+                ? listing.hours.filter((h) => !h.closed)
+                : defaults.withHours
+                  ? WEEKDAY_HOURS
+                  : null,
         hoursStatus: listing.isOpen === false ? 'closed' : 'open',
         eventSchedule: defaults.eventSchedule ?? null,
         agenda: defaults.agenda ?? [],
-        payments: defaults.payments ?? [],
+        payments:
+            Array.isArray(listing.details?.payments) &&
+            listing.details.payments.length
+                ? listing.details.payments
+                : (defaults.payments ?? []),
         email:
             listing.email ||
             `hello@${String(listing.title || 'listing')
@@ -2011,19 +2113,23 @@ export function getListingDetail(listing) {
                 .replace(/[^a-z0-9]+/g, '')
                 .slice(0, 18) || 'listing'}.co.ke`,
         website: listing.website || null,
-        socials: listing.socials || {
-            instagram: 'https://instagram.com/',
-            facebook: 'https://facebook.com/',
-            tiktok: 'https://www.tiktok.com/',
-            youtube: 'https://youtube.com/',
-            whatsapp: listing.phone
-                ? `https://wa.me/${String(listing.phone).replace(/\D/g, '')}`
-                : null,
+        socials: {
+            instagram: listing.socials?.instagram || null,
+            facebook: listing.socials?.facebook || null,
+            tiktok: listing.socials?.tiktok || null,
+            youtube: listing.socials?.youtube || null,
+            whatsapp: listing.whatsapp
+                ? `https://wa.me/${String(listing.whatsapp).replace(/\D/g, '')}`
+                : listing.phone
+                  ? `https://wa.me/${String(listing.phone).replace(/\D/g, '')}`
+                  : null,
+            ...(listing.socials || {}),
         },
         priceRangeLabel: listing.priceLevel
-            ? { $: 'Budget', $$: 'Moderate', $$$: 'Pricey' }[listing.priceLevel] ||
-              listing.priceLevel
-            : null,
+            ? { $: 'Budget', $$: 'Moderate', $$$: 'Pricey', $$$$: 'Luxury' }[
+                  listing.priceLevel
+              ] || listing.priceLevel
+            : listing.details?.price || null,
         chips: {
             region: `${listing.location} Area`,
             categories: baseChipsCategories,

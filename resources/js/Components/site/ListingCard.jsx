@@ -59,6 +59,12 @@ export default function ListingCard({
     const regionLabel = listing.location
         ? `${listing.location} Area`
         : null;
+    const priceLabel =
+        listing.categoryKey === 'properties'
+            ? listing.details?.price || listing.price || null
+            : listing.categoryKey === 'events'
+              ? listing.ticketPrice || null
+              : null;
     const categoryHref = listing.categoryKey
         ? explorePath(
               listing.categoryKey === 'properties' && listing.propertyType
@@ -130,6 +136,29 @@ export default function ListingCard({
                             <span className="truncate font-semibold">
                                 {dateLabel}
                             </span>
+                        </span>
+                    ) : null}
+                    {!isEvent &&
+                    listing.subcategory &&
+                    listing.categoryKey !== 'properties' ? (
+                        <span
+                            className={`absolute top-3 max-w-[55%] truncate rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-olive-900 shadow-sm ${leftBadgeOffset}`}
+                        >
+                            {listing.subcategory}
+                        </span>
+                    ) : null}
+                    {priceLabel ? (
+                        <span
+                            className={`absolute top-3 max-w-[40%] truncate rounded-full bg-mustard px-2.5 py-1 text-[11px] font-bold text-earth-dusk shadow-sm ${
+                                isEvent ||
+                                listing.propertyType ||
+                                (listing.subcategory &&
+                                    listing.categoryKey !== 'properties')
+                                    ? 'right-14'
+                                    : leftBadgeOffset
+                            }`}
+                        >
+                            {priceLabel}
                         </span>
                     ) : null}
 
