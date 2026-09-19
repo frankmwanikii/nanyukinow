@@ -3,12 +3,15 @@
 namespace App\Http\Controllers\Account;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Account\InitiateUpgradePaymentRequest;
 use App\Http\Requests\Account\StoreUpgradeRequest;
 use App\Models\PlanUpgrade;
 use App\Models\PricingPlan;
 use App\Models\SiteSetting;
 use App\Support\Membership;
+use App\Support\PaymentGateway;
 use App\Support\PaymentMethods;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -35,8 +38,8 @@ class UpgradeController extends Controller
                 'whatsapp' => SiteSetting::getValue('upgrade_whatsapp', ''),
                 'phone' => SiteSetting::getValue('contact_phone', ''),
                 'email' => SiteSetting::getValue('contact_email', 'hello@nanyukinow.co.ke'),
-                'mpesa_paybill' => SiteSetting::getValue('upgrade_mpesa_paybill', ''),
-                'mpesa_account' => SiteSetting::getValue('upgrade_mpesa_account', 'PLAN'),
+                'mpesa_paybill' => SiteSetting::getValue('upgrade_mpesa_paybill', '542542'),
+                'mpesa_account' => SiteSetting::getValue('upgrade_mpesa_account', '451220'),
                 'intasend_note' => SiteSetting::getValue(
                     'upgrade_intasend_note',
                     'Complete payment in IntaSend, then paste your IntaSend transaction / invoice ID below.',
@@ -51,6 +54,70 @@ class UpgradeController extends Controller
                     'Choose a plan, pick how you want to pay, then submit your payment reference. We activate your plan after verifying payment.',
                 ),
             ],
+        ]);
+    }
+
+    public function initiate(InitiateUpgradePaymentRequest $request): JsonResponse
+    {
+        $user = $request->user();
+        $data = $request->validated();
+        $toPlan = Membership::normalize($data['to_plan']);
+        $method = $data['payment_method'];
+        $current = $user->effectivePlan();
+
+        if ($toPlan === Membership::FREE || $toPlan === $current) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'Choose a higher plan than your current one.',
+                'can_retry' => false,
+            ], 422);
+        }
+
+        if ($current === Membership::PREMIUM) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'You are already on Premium.',
+                'can_retry' => false,
+            ], 422);
+        }
+
+        PricingPlan::ensureDefaults();
+        $pricing = PricingPlan::query()->where('key', $toPlan)->first();
+
+        $payload = [
+            'user_id' => $user->id,
+            'to_plan' => $toPlan,
+            'payment_method' => $method,
+            'amount' => (float) ($data['amount'] ?? $pricing?->price_amount ?? 0),
+            'currency' => $data['currency'] ?? $pricing?->currency ?? 'KES',
+            'phone' => $data['phone'] ?? null,
+            'email' => $data['email'] ?? null,
+            'return_url' => $data['return_url'] ?? route('account.billing'),
+            'cancel_url' => $data['cancel_url'] ?? route('account.upgrade'),
+        ];
+
+        $result = match ($method) {
+            PaymentMethods::MPESA => PaymentGateway::initiateMpesa($payload),
+            PaymentMethods::PAYPAL => PaymentGateway::initiatePaypal($payload),
+            default => [
+                'ok' => false,
+                'message' => 'Payment failed. Please try again.',
+            ],
+        };
+
+        if (! ($result['ok'] ?? false)) {
+            return response()->json([
+                'ok' => false,
+                'message' => $result['message'] ?? 'Payment failed. Please try again.',
+                'can_retry' => true,
+            ], 422);
+        }
+
+        return response()->json([
+            'ok' => true,
+            'checkout_url' => $result['checkout_url'] ?? null,
+            'provider_ref' => $result['provider_ref'] ?? null,
+            'message' => $result['message'] ?? null,
         ]);
     }
 

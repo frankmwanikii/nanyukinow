@@ -19,7 +19,8 @@ class PaymentMethods
     }
 
     /**
-     * Methods shown to members at checkout (admin may still use IntaSend behind the scenes).
+     * Methods shown to members at checkout.
+     * M-Pesa UI is always shown; admin chooses Daraja vs IntaSend behind the scenes.
      *
      * @return list<array{value: string, label: string, short: string, description: string}>
      */

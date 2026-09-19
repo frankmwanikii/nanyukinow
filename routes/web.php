@@ -58,6 +58,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/account/billing', AccountBillingController::class)->name('account.billing');
 
     Route::get('/account/upgrade', [AccountUpgradeController::class, 'create'])->name('account.upgrade');
+    Route::post('/account/upgrade/pay', [AccountUpgradeController::class, 'initiate'])->name('account.upgrade.pay');
     Route::post('/account/upgrade', [AccountUpgradeController::class, 'store'])->name('account.upgrade.store');
     Route::post('/account/upgrade/{upgrade}/cancel', [AccountUpgradeController::class, 'cancel'])->name('account.upgrade.cancel');
 

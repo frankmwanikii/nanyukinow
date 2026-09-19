@@ -1,7 +1,8 @@
 import AccountLayout from '@/Layouts/AccountLayout';
 import { Head, useForm } from '@inertiajs/react';
-import { Check, Send, X } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import axios from 'axios';
+import { Check, RefreshCw, Send, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 const field =
     'w-full rounded-lg border border-olive-200 bg-white px-3.5 py-3 text-base text-olive-900 outline-none transition placeholder:text-olive-400 focus:border-mustard focus:ring-2 focus:ring-mustard/30';
@@ -31,20 +32,20 @@ function displayPrice(plan) {
     return formatMoney(plan.price_amount, plan.currency);
 }
 
-function MpesaIcon({ className = 'h-8 w-auto max-w-[8rem]' }) {
+function MpesaIcon({ className = 'h-10 w-auto max-w-[9rem]' }) {
     return (
         <img
-            src="/images/payments/mpesa.png"
+            src="/images/payments/mpesa-on-white.png"
             alt="M-Pesa"
             className={`object-contain ${className}`}
         />
     );
 }
 
-function PaypalIcon({ className = 'h-7 w-auto max-w-[8rem]' }) {
+function PaypalIcon({ className = 'h-8 w-auto max-w-[9rem]' }) {
     return (
         <img
-            src="/images/payments/paypal.png"
+            src="/images/payments/paypal-on-white.png"
             alt="PayPal"
             className={`object-contain ${className}`}
         />
@@ -53,9 +54,9 @@ function PaypalIcon({ className = 'h-7 w-auto max-w-[8rem]' }) {
 
 function MethodIcon({ method, className }) {
     if (method === 'paypal') {
-        return <PaypalIcon className={className || 'h-7 w-auto max-w-[8rem]'} />;
+        return <PaypalIcon className={className || 'h-8 w-auto max-w-[9rem]'} />;
     }
-    return <MpesaIcon className={className || 'h-8 w-auto max-w-[8rem]'} />;
+    return <MpesaIcon className={className || 'h-10 w-auto max-w-[9rem]'} />;
 }
 
 function planState(plan, currentKey, pending) {
@@ -227,9 +228,8 @@ function CopyButton({ value, label = 'Copy' }) {
 }
 
 /**
- * Checkout modal — UI + payload ready for M-Pesa / PayPal APIs.
- * Today: submits a pending upgrade for admin review.
- * Later: swap `submitManualReview` for STK / PayPal redirect initiate calls.
+ * Checkout modal — live pay hits /account/upgrade/pay (PaymentGateway).
+ * Offline path still submits a pending upgrade for admin review.
  */
 function PaymentCheckout({
     plan,
@@ -240,6 +240,12 @@ function PaymentCheckout({
 }) {
     const method = form.data.payment_method;
     const [phone, setPhone] = useState('');
+    const [paypalEmail, setPaypalEmail] = useState('');
+    const [offlinePayment, setOfflinePayment] = useState(false);
+    const [paying, setPaying] = useState(false);
+    const [payError, setPayError] = useState(null);
+    const [phoneError, setPhoneError] = useState('');
+    const [emailError, setEmailError] = useState('');
     const amountLabel = `${displayPrice(plan)}${
         !plan.price_label && Number(plan.price_amount) > 0
             ? ` ${periodSuffix(plan.billing_period)}`
@@ -265,7 +271,12 @@ function PaymentCheckout({
 
     const selectMethod = (value) => {
         form.setData('payment_method', value);
-        form.clearErrors('payment_method');
+        form.setData('payment_reference', '');
+        form.clearErrors('payment_method', 'payment_reference');
+        setOfflinePayment(false);
+        setPayError(null);
+        setPhoneError('');
+        setEmailError('');
     };
 
     const buildNotes = () => {
@@ -273,13 +284,15 @@ function PaymentCheckout({
         if (method === 'mpesa' && phone.trim()) {
             bits.push(`Phone: ${phone.trim()}`);
         }
+        if (method === 'paypal' && paypalEmail.trim()) {
+            bits.push(`PayPal email: ${paypalEmail.trim()}`);
+        }
         if (form.data.member_notes?.trim()) {
             bits.push(form.data.member_notes.trim());
         }
         return bits.join('\n');
     };
 
-    /** Manual review path (current). Replace body with API initiate when ready. */
     const submitManualReview = (e) => {
         e.preventDefault();
         form
@@ -295,29 +308,67 @@ function PaymentCheckout({
             });
     };
 
-    /**
-     * API hook — call this from the primary CTA once M-Pesa STK / PayPal are live.
-     * Expected payload shape for either provider:
-     * { to_plan, payment_method, amount, currency, phone?, return_url, cancel_url }
-     */
     const paymentPayload = () => ({
         to_plan: form.data.to_plan || plan.key,
         payment_method: method,
         amount: Number(plan.price_amount) || 0,
         currency: plan.currency || 'KES',
         phone: method === 'mpesa' ? phone.trim() : undefined,
-        return_url: typeof window !== 'undefined' ? `${window.location.origin}/account/billing` : '/account/billing',
-        cancel_url: typeof window !== 'undefined' ? `${window.location.origin}/account/upgrade` : '/account/upgrade',
+        email: method === 'paypal' ? paypalEmail.trim() : undefined,
+        return_url:
+            typeof window !== 'undefined'
+                ? `${window.location.origin}/account/billing`
+                : '/account/billing',
+        cancel_url:
+            typeof window !== 'undefined'
+                ? `${window.location.origin}/account/upgrade`
+                : '/account/upgrade',
     });
+
+    const initiateLivePay = async () => {
+        setPayError(null);
+        setPhoneError('');
+        setEmailError('');
+
+        if (method === 'mpesa' && !phone.trim()) {
+            setPhoneError('Enter the M-Pesa phone number to pay from.');
+            return;
+        }
+
+        if (method === 'paypal' && !paypalEmail.trim()) {
+            setEmailError('Enter your PayPal email address.');
+            return;
+        }
+
+        setPaying(true);
+        try {
+            const { data } = await axios.post(route('account.upgrade.pay'), paymentPayload());
+            if (data?.checkout_url) {
+                window.location.href = data.checkout_url;
+                return;
+            }
+            if (data?.ok) {
+                onClose();
+                return;
+            }
+            setPayError('Please try again.');
+        } catch (err) {
+            const fieldError =
+                err?.response?.data?.errors?.phone?.[0] ||
+                err?.response?.data?.errors?.email?.[0];
+            setPayError(fieldError || 'Please try again.');
+        } finally {
+            setPaying(false);
+        }
+    };
 
     const handlePrimaryPay = (e) => {
         e.preventDefault();
-        // Plug APIs here:
-        // if (method === 'mpesa') await initiateMpesaStk(paymentPayload())
-        // if (method === 'paypal') await initiatePaypalCheckout(paymentPayload())
-        // Until then, require confirmation reference and submit for review.
-        void paymentPayload();
-        submitManualReview(e);
+        if (offlinePayment) {
+            submitManualReview(e);
+            return;
+        }
+        initiateLivePay();
     };
 
     return (
@@ -385,14 +436,20 @@ function PaymentCheckout({
                             </div>
                         </div>
 
-                        {/* Methods */}
+                        {/* Methods — sliding segmented toggle */}
                         <div>
                             <p className={labelCls}>Payment method</p>
                             <div
                                 role="radiogroup"
                                 aria-label="Payment method"
-                                className="space-y-2"
+                                className="relative grid grid-cols-2 rounded-full bg-olive-100/90 p-1"
                             >
+                                <span
+                                    aria-hidden
+                                    className={`pointer-events-none absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-white shadow-sm ring-1 ring-olive-200/80 transition-transform duration-300 ease-out ${
+                                        method === 'paypal' ? 'translate-x-full' : 'translate-x-0'
+                                    }`}
+                                />
                                 {paymentMethods.map((opt) => {
                                     const active = method === opt.value;
                                     return (
@@ -401,42 +458,22 @@ function PaymentCheckout({
                                             type="button"
                                             role="radio"
                                             aria-checked={active}
+                                            aria-label={opt.label}
                                             onClick={() => selectMethod(opt.value)}
-                                            className={`flex w-full items-center gap-3 border px-3 py-3 text-left transition ${
+                                            className={`relative z-10 flex items-center justify-center rounded-full px-3 py-3 transition ${
                                                 active
-                                                    ? 'border-olive-900 bg-white ring-1 ring-olive-900'
-                                                    : 'border-olive-200 bg-white hover:border-olive-300'
+                                                    ? 'text-olive-950'
+                                                    : 'text-olive-500 hover:text-olive-800'
                                             }`}
                                         >
-                                            <span className="inline-flex h-11 w-[5.75rem] shrink-0 items-center justify-center overflow-hidden rounded-md bg-black px-1.5">
-                                                <MethodIcon
-                                                    method={opt.value}
-                                                    className={
-                                                        opt.value === 'paypal'
-                                                            ? 'h-6 w-auto max-w-full'
-                                                            : 'h-8 w-auto max-w-full'
-                                                    }
-                                                />
-                                            </span>
-                                            <span className="min-w-0 flex-1">
-                                                <span className="block text-sm font-semibold text-olive-950">
-                                                    {opt.label}
-                                                </span>
-                                                <span className="mt-0.5 block text-xs text-olive-500">
-                                                    {opt.description}
-                                                </span>
-                                            </span>
-                                            <span
-                                                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
-                                                    active
-                                                        ? 'border-olive-900 bg-olive-900'
-                                                        : 'border-olive-300'
-                                                }`}
-                                            >
-                                                {active && (
-                                                    <Check className="h-3 w-3 text-white" strokeWidth={3} />
-                                                )}
-                                            </span>
+                                            <MethodIcon
+                                                method={opt.value}
+                                                className={
+                                                    opt.value === 'paypal'
+                                                        ? 'h-7 w-auto max-w-[6.5rem]'
+                                                        : 'h-8 w-auto max-w-[6.5rem]'
+                                                }
+                                            />
                                         </button>
                                     );
                                 })}
@@ -448,152 +485,284 @@ function PaymentCheckout({
                             )}
                         </div>
 
-                        {/* Method panel */}
-                        {method === 'mpesa' && (
-                            <div className="space-y-4 border border-olive-200 p-4">
-                                <div className="flex items-center gap-2.5">
-                                    <span className="inline-flex h-9 items-center rounded-md bg-black px-2">
-                                        <MpesaIcon className="h-6 w-auto max-w-[4.5rem]" />
-                                    </span>
-                                    <div>
-                                        <p className="text-sm font-semibold text-olive-950">
-                                            Pay with M-Pesa
-                                        </p>
-                                        <p className="text-xs text-olive-500">
-                                            Lipa na M-Pesa · Paybill / Till
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-2">
-                                    {upgradeContact.mpesa_paybill && (
-                                        <div className="border border-olive-100 bg-[#f4f2ec] px-3 py-2.5">
-                                            <div className="flex items-center justify-between gap-2">
-                                                <p className="text-[10px] font-semibold uppercase tracking-wide text-olive-400">
-                                                    Paybill / Till
-                                                </p>
-                                                <CopyButton value={upgradeContact.mpesa_paybill} />
-                                            </div>
-                                            <p className="mt-1 font-display text-lg font-semibold tabular-nums text-olive-950">
-                                                {upgradeContact.mpesa_paybill}
-                                            </p>
-                                        </div>
-                                    )}
-                                    {upgradeContact.mpesa_account && (
-                                        <div className="border border-olive-100 bg-[#f4f2ec] px-3 py-2.5">
-                                            <div className="flex items-center justify-between gap-2">
-                                                <p className="text-[10px] font-semibold uppercase tracking-wide text-olive-400">
-                                                    Account
-                                                </p>
-                                                <CopyButton value={upgradeContact.mpesa_account} />
-                                            </div>
-                                            <p className="mt-1 font-display text-lg font-semibold text-olive-950">
-                                                {upgradeContact.mpesa_account}
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div>
-                                    <label className={labelCls} htmlFor="payer_phone">
-                                        M-Pesa phone number
-                                    </label>
-                                    <input
-                                        id="payer_phone"
-                                        type="tel"
-                                        inputMode="tel"
-                                        autoComplete="tel"
-                                        className={field}
-                                        value={phone}
-                                        onChange={(e) => setPhone(e.target.value)}
-                                        placeholder="07XX XXX XXX"
-                                    />
-                                    <p className="mt-1.5 text-xs text-olive-500">
-                                        Used for STK push once M-Pesa API is connected. For now we
-                                        still verify your confirmation code.
-                                    </p>
-                                </div>
-                            </div>
-                        )}
-
-                        {method === 'paypal' && (
-                            <div className="space-y-3 border border-olive-200 p-4">
-                                <div className="flex items-center gap-2.5">
-                                    <span className="inline-flex h-9 items-center rounded-md bg-black px-2">
-                                        <PaypalIcon className="h-5 w-auto max-w-[5rem]" />
-                                    </span>
-                                    <div>
-                                        <p className="text-sm font-semibold text-olive-950">
-                                            Pay with PayPal
-                                        </p>
-                                        <p className="text-xs text-olive-500">
-                                            Cards & PayPal balance
-                                        </p>
-                                    </div>
-                                </div>
-                                <p className="text-sm text-olive-600">
-                                    {upgradeContact.paypal_note ||
-                                        'Complete payment on PayPal, then paste your transaction ID below.'}
-                                </p>
-                                {upgradeContact.paypal_email && (
-                                    <div className="flex items-center justify-between gap-3 border border-olive-100 bg-[#f4f2ec] px-3 py-2.5">
-                                        <div className="min-w-0">
-                                            <p className="text-[10px] font-semibold uppercase tracking-wide text-olive-400">
-                                                Send to
-                                            </p>
-                                            <p className="truncate font-semibold text-olive-950">
-                                                {upgradeContact.paypal_email}
-                                            </p>
-                                        </div>
-                                        <CopyButton value={upgradeContact.paypal_email} />
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                        {/* Confirmation — stays until live payment APIs return a reference */}
-                        <div className="space-y-3">
+                        {/* Live pay fields */}
+                        {method === 'mpesa' && !offlinePayment && (
                             <div>
-                                <label className={labelCls} htmlFor="payment_reference">
-                                    {referenceLabel}
+                                <label className={labelCls} htmlFor="payer_phone">
+                                    M-Pesa phone number
                                 </label>
                                 <input
-                                    id="payment_reference"
+                                    id="payer_phone"
+                                    type="tel"
+                                    inputMode="tel"
+                                    autoComplete="tel"
                                     className={field}
-                                    value={form.data.payment_reference}
-                                    onChange={(e) =>
-                                        form.setData('payment_reference', e.target.value)
-                                    }
-                                    placeholder={referenceHint}
+                                    value={phone}
+                                    onChange={(e) => {
+                                        setPhone(e.target.value);
+                                        setPhoneError('');
+                                        setPayError(null);
+                                    }}
+                                    placeholder="07XX XXX XXX"
                                     required
-                                    autoComplete="off"
                                 />
-                                {form.errors.payment_reference && (
-                                    <p className="mt-1.5 text-sm text-rose-600">
-                                        {form.errors.payment_reference}
-                                    </p>
+                                {phoneError && (
+                                    <p className="mt-1.5 text-sm text-rose-600">{phoneError}</p>
                                 )}
-                                <p className="mt-1.5 text-xs text-olive-500">
-                                    After APIs are plugged in, this field can be filled automatically
-                                    from the payment webhook.
-                                </p>
                             </div>
+                        )}
 
+                        {method === 'paypal' && !offlinePayment && (
                             <div>
-                                <label className={labelCls} htmlFor="member_notes">
-                                    Notes (optional)
+                                <label className={labelCls} htmlFor="payer_paypal_email">
+                                    PayPal email
                                 </label>
-                                <textarea
-                                    id="member_notes"
-                                    rows={2}
+                                <input
+                                    id="payer_paypal_email"
+                                    type="email"
+                                    inputMode="email"
+                                    autoComplete="email"
                                     className={field}
-                                    value={form.data.member_notes}
-                                    onChange={(e) =>
-                                        form.setData('member_notes', e.target.value)
-                                    }
-                                    placeholder="Business name, extra details…"
+                                    value={paypalEmail}
+                                    onChange={(e) => {
+                                        setPaypalEmail(e.target.value);
+                                        setEmailError('');
+                                        setPayError(null);
+                                    }}
+                                    placeholder="you@email.com"
+                                    required
                                 />
+                                {emailError && (
+                                    <p className="mt-1.5 text-sm text-rose-600">{emailError}</p>
+                                )}
                             </div>
+                        )}
+
+                        {payError && !offlinePayment && (
+                            <div className="flex flex-wrap items-center justify-between gap-3 border border-rose-200 bg-rose-50 px-3.5 py-3">
+                                <div className="min-w-0">
+                                    <p className="text-sm font-semibold text-rose-800">
+                                        Payment failed
+                                    </p>
+                                    <p className="mt-0.5 text-sm text-rose-700">{payError}</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={initiateLivePay}
+                                    disabled={paying}
+                                    className="inline-flex shrink-0 items-center gap-1.5 bg-rose-700 px-3 py-2 text-xs font-semibold text-white transition hover:bg-rose-800 disabled:opacity-60"
+                                >
+                                    <RefreshCw
+                                        className={`h-3.5 w-3.5 ${paying ? 'animate-spin' : ''}`}
+                                    />
+                                    Retry again
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Offline payment — steps + details + confirmation */}
+                        <div className="space-y-3">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setOfflinePayment((open) => {
+                                        if (open) {
+                                            form.setData('payment_reference', '');
+                                            form.clearErrors('payment_reference');
+                                        } else {
+                                            setPayError(null);
+                                        }
+                                        return !open;
+                                    });
+                                }}
+                                className={`flex w-full items-center justify-between gap-3 border px-3.5 py-3 text-left transition ${
+                                    offlinePayment
+                                        ? 'border-olive-900 bg-[#f4f2ec]'
+                                        : 'border-olive-200 hover:border-olive-300'
+                                }`}
+                            >
+                                <span>
+                                    <span className="block text-sm font-semibold text-olive-950">
+                                        Offline payment
+                                    </span>
+                                    <span className="mt-0.5 block text-xs text-olive-500">
+                                        {method === 'mpesa'
+                                            ? 'Pay via Lipa na M-Pesa, then enter your code'
+                                            : 'Pay via PayPal, then enter your transaction ID'}
+                                    </span>
+                                </span>
+                                <span
+                                    className={`text-xs font-bold uppercase tracking-wide ${
+                                        offlinePayment ? 'text-olive-900' : 'text-olive-400'
+                                    }`}
+                                >
+                                    {offlinePayment ? 'Hide' : 'Open'}
+                                </span>
+                            </button>
+
+                            {offlinePayment && (
+                                <div className="space-y-4 border border-olive-200 p-4">
+                                    {method === 'mpesa' ? (
+                                        <>
+                                            <div>
+                                                <p className="text-sm font-semibold text-olive-950">
+                                                    How to pay with M-Pesa
+                                                </p>
+                                                <ol className="mt-3 space-y-2.5">
+                                                    {[
+                                                        'Open M-Pesa on your phone',
+                                                        'Choose Lipa na M-Pesa',
+                                                        'Select Paybill (or Buy Goods / Till if shown)',
+                                                        upgradeContact.mpesa_paybill
+                                                            ? `Enter Business Number: ${upgradeContact.mpesa_paybill}`
+                                                            : 'Enter the Business / Till number provided',
+                                                        upgradeContact.mpesa_account
+                                                            ? `Enter Account: ${upgradeContact.mpesa_account}`
+                                                            : 'Enter Account as instructed',
+                                                        `Enter Amount: ${amountLabel}`,
+                                                        'Enter your M-Pesa PIN and confirm',
+                                                        'Copy the confirmation code (e.g. QJX7…) and paste it below',
+                                                    ].map((step, i) => (
+                                                        <li
+                                                            key={step}
+                                                            className="flex gap-2.5 text-sm text-olive-800"
+                                                        >
+                                                            <span className="flex h-5 w-5 shrink-0 items-center justify-center bg-olive-900 text-[10px] font-bold text-white">
+                                                                {i + 1}
+                                                            </span>
+                                                            <span className="min-w-0 leading-snug">
+                                                                {step}
+                                                            </span>
+                                                        </li>
+                                                    ))}
+                                                </ol>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-2">
+                                                {upgradeContact.mpesa_paybill && (
+                                                    <div className="border border-olive-100 bg-[#f4f2ec] px-3 py-2.5">
+                                                        <div className="flex items-center justify-between gap-2">
+                                                            <p className="text-[10px] font-semibold uppercase tracking-wide text-olive-400">
+                                                                Paybill / Till
+                                                            </p>
+                                                            <CopyButton
+                                                                value={upgradeContact.mpesa_paybill}
+                                                            />
+                                                        </div>
+                                                        <p className="mt-1 font-display text-lg font-semibold tabular-nums text-olive-950">
+                                                            {upgradeContact.mpesa_paybill}
+                                                        </p>
+                                                    </div>
+                                                )}
+                                                {upgradeContact.mpesa_account && (
+                                                    <div className="border border-olive-100 bg-[#f4f2ec] px-3 py-2.5">
+                                                        <div className="flex items-center justify-between gap-2">
+                                                            <p className="text-[10px] font-semibold uppercase tracking-wide text-olive-400">
+                                                                Account
+                                                            </p>
+                                                            <CopyButton
+                                                                value={upgradeContact.mpesa_account}
+                                                            />
+                                                        </div>
+                                                        <p className="mt-1 font-display text-lg font-semibold text-olive-950">
+                                                            {upgradeContact.mpesa_account}
+                                                        </p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div>
+                                                <p className="text-sm font-semibold text-olive-950">
+                                                    How to pay with PayPal
+                                                </p>
+                                                <ol className="mt-3 space-y-2.5">
+                                                    {[
+                                                        'Open PayPal (app or paypal.com)',
+                                                        'Send payment for the plan amount',
+                                                        upgradeContact.paypal_email
+                                                            ? `Send to: ${upgradeContact.paypal_email}`
+                                                            : 'Send to the PayPal email provided',
+                                                        'Copy your transaction ID and paste it below',
+                                                    ].map((step, i) => (
+                                                        <li
+                                                            key={step}
+                                                            className="flex gap-2.5 text-sm text-olive-800"
+                                                        >
+                                                            <span className="flex h-5 w-5 shrink-0 items-center justify-center bg-olive-900 text-[10px] font-bold text-white">
+                                                                {i + 1}
+                                                            </span>
+                                                            <span className="min-w-0 leading-snug">
+                                                                {step}
+                                                            </span>
+                                                        </li>
+                                                    ))}
+                                                </ol>
+                                            </div>
+                                            {upgradeContact.paypal_email && (
+                                                <div className="flex items-center justify-between gap-3 border border-olive-100 bg-[#f4f2ec] px-3 py-2.5">
+                                                    <div className="min-w-0">
+                                                        <p className="text-[10px] font-semibold uppercase tracking-wide text-olive-400">
+                                                            Send to
+                                                        </p>
+                                                        <p className="truncate font-semibold text-olive-950">
+                                                            {upgradeContact.paypal_email}
+                                                        </p>
+                                                    </div>
+                                                    <CopyButton
+                                                        value={upgradeContact.paypal_email}
+                                                    />
+                                                </div>
+                                            )}
+                                            {upgradeContact.paypal_note && (
+                                                <p className="text-xs text-olive-500">
+                                                    {upgradeContact.paypal_note}
+                                                </p>
+                                            )}
+                                        </>
+                                    )}
+
+                                    <div>
+                                        <label className={labelCls} htmlFor="payment_reference">
+                                            {referenceLabel}
+                                        </label>
+                                        <input
+                                            id="payment_reference"
+                                            className={field}
+                                            value={form.data.payment_reference}
+                                            onChange={(e) =>
+                                                form.setData('payment_reference', e.target.value)
+                                            }
+                                            placeholder={referenceHint}
+                                            required
+                                            autoComplete="off"
+                                            autoFocus
+                                        />
+                                        {form.errors.payment_reference && (
+                                            <p className="mt-1.5 text-sm text-rose-600">
+                                                {form.errors.payment_reference}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    <div>
+                                        <label className={labelCls} htmlFor="member_notes">
+                                            Notes (optional)
+                                        </label>
+                                        <textarea
+                                            id="member_notes"
+                                            rows={2}
+                                            className={field}
+                                            value={form.data.member_notes}
+                                            onChange={(e) =>
+                                                form.setData('member_notes', e.target.value)
+                                            }
+                                            placeholder="Business name, extra details…"
+                                        />
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {form.errors.to_plan && (
@@ -605,19 +774,35 @@ function PaymentCheckout({
                     <div className="shrink-0 border-t border-olive-100 bg-white px-5 py-4">
                         <button
                             type="submit"
-                            disabled={form.processing || !form.data.payment_reference.trim()}
+                            disabled={
+                                form.processing ||
+                                paying ||
+                                (offlinePayment && !form.data.payment_reference.trim())
+                            }
                             className="inline-flex w-full items-center justify-center gap-2 bg-olive-900 px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-mustard hover:text-earth-dusk disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                            <Send className="h-4 w-4" />
-                            {form.processing
-                                ? 'Submitting…'
-                                : method === 'mpesa'
-                                  ? `Confirm M-Pesa · ${amountLabel}`
-                                  : `Confirm PayPal · ${amountLabel}`}
+                            {paying ? (
+                                <RefreshCw className="h-4 w-4 animate-spin" />
+                            ) : (
+                                <Send className="h-4 w-4" />
+                            )}
+                            {form.processing || paying
+                                ? method === 'mpesa'
+                                    ? 'Sending M-Pesa prompt…'
+                                    : 'Connecting to PayPal…'
+                                : offlinePayment
+                                  ? method === 'mpesa'
+                                      ? `Submit M-Pesa code · ${amountLabel}`
+                                      : `Submit PayPal ID · ${amountLabel}`
+                                  : method === 'mpesa'
+                                    ? `Pay with M-Pesa · ${amountLabel}`
+                                    : `Pay with PayPal · ${amountLabel}`}
                         </button>
-                        <p className="mt-2 text-center text-[11px] text-olive-400">
-                            Plan activates after payment is verified
-                        </p>
+                        {offlinePayment && (
+                            <p className="mt-2 text-center text-[11px] text-olive-400">
+                                Plan activates after payment is verified
+                            </p>
+                        )}
                     </div>
                 </form>
             </div>

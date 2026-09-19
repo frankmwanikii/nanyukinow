@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Support\Membership;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class AccountUpgradePageTest extends TestCase
@@ -104,5 +105,212 @@ class AccountUpgradePageTest extends TestCase
                 'payment_reference' => 'ABC',
             ])
             ->assertSessionHasErrors('payment_method');
+    }
+
+    public function test_live_mpesa_pay_fails_until_daraja_is_configured(): void
+    {
+        PricingPlan::ensureDefaults();
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->postJson(route('account.upgrade.pay'), [
+                'to_plan' => Membership::STANDARD,
+                'payment_method' => 'mpesa',
+                'phone' => '0712345678',
+                'amount' => 2500,
+                'currency' => 'KES',
+            ])
+            ->assertUnprocessable()
+            ->assertJson([
+                'ok' => false,
+                'message' => 'Payment failed. Please try again.',
+                'can_retry' => true,
+            ]);
+    }
+
+    public function test_intasend_provider_fails_until_keys_are_configured(): void
+    {
+        PricingPlan::ensureDefaults();
+        SiteSetting::query()->create([
+            'group' => 'payments',
+            'key' => 'mobile_money_provider',
+            'label' => 'M-Pesa checkout provider',
+            'type' => 'select',
+            'value' => 'intasend',
+            'sort_order' => 0,
+        ]);
+        SiteSetting::forgetCache();
+
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->postJson(route('account.upgrade.pay'), [
+                'to_plan' => Membership::STANDARD,
+                'payment_method' => 'mpesa',
+                'phone' => '0712345678',
+                'amount' => 2500,
+                'currency' => 'KES',
+            ])
+            ->assertUnprocessable()
+            ->assertJson([
+                'ok' => false,
+                'message' => 'Payment failed. Please try again.',
+                'can_retry' => true,
+            ]);
+    }
+
+    public function test_intasend_provider_initiates_stk_when_configured(): void
+    {
+        PricingPlan::ensureDefaults();
+        SiteSetting::query()->create([
+            'group' => 'payments',
+            'key' => 'mobile_money_provider',
+            'label' => 'M-Pesa checkout provider',
+            'type' => 'select',
+            'value' => 'intasend',
+            'sort_order' => 0,
+        ]);
+        SiteSetting::query()->create([
+            'group' => 'payments',
+            'key' => 'intasend_mode',
+            'label' => 'IntaSend mode',
+            'type' => 'select',
+            'value' => 'sandbox',
+            'sort_order' => 20,
+        ]);
+        SiteSetting::query()->create([
+            'group' => 'payments',
+            'key' => 'intasend_sandbox_secret_key',
+            'label' => 'IntaSend sandbox secret key',
+            'type' => 'password',
+            'value' => 'ISSecretKey_test_xxx',
+            'sort_order' => 22,
+        ]);
+        SiteSetting::query()->create([
+            'group' => 'payments',
+            'key' => 'intasend_sandbox_public_key',
+            'label' => 'IntaSend sandbox public key',
+            'type' => 'text',
+            'value' => 'ISPubKey_test_xxx',
+            'sort_order' => 21,
+        ]);
+        SiteSetting::forgetCache();
+
+        Http::fake([
+            'sandbox.intasend.com/api/v1/payment/mpesa-stk-push/' => Http::response([
+                'invoice' => [
+                    'invoice_id' => 'INTA-INV-99',
+                    'state' => 'PENDING',
+                ],
+            ], 200),
+        ]);
+
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->postJson(route('account.upgrade.pay'), [
+                'to_plan' => Membership::STANDARD,
+                'payment_method' => 'mpesa',
+                'phone' => '0712345678',
+                'amount' => 2500,
+                'currency' => 'KES',
+            ])
+            ->assertOk()
+            ->assertJson([
+                'ok' => true,
+                'provider_ref' => 'INTA-INV-99',
+            ]);
+    }
+
+    public function test_live_paypal_pay_creates_sandbox_checkout(): void
+    {
+        PricingPlan::ensureDefaults();
+        $user = User::factory()->create();
+
+        Http::fake([
+            'api-m.sandbox.paypal.com/v1/oauth2/token' => Http::response([
+                'access_token' => 'TEST_TOKEN',
+                'token_type' => 'Bearer',
+            ], 200),
+            'api-m.sandbox.paypal.com/v2/checkout/orders' => Http::response([
+                'id' => 'ORDER-SANDBOX-1',
+                'status' => 'CREATED',
+                'links' => [
+                    [
+                        'rel' => 'approve',
+                        'href' => 'https://www.sandbox.paypal.com/checkoutnow?token=ORDER-SANDBOX-1',
+                    ],
+                ],
+            ], 201),
+        ]);
+
+        $this->actingAs($user)
+            ->postJson(route('account.upgrade.pay'), [
+                'to_plan' => Membership::PREMIUM,
+                'payment_method' => 'paypal',
+                'email' => 'buyer@example.com',
+                'amount' => 5000,
+                'currency' => 'USD',
+            ])
+            ->assertOk()
+            ->assertJson([
+                'ok' => true,
+                'provider_ref' => 'ORDER-SANDBOX-1',
+                'checkout_url' => 'https://www.sandbox.paypal.com/checkoutnow?token=ORDER-SANDBOX-1',
+            ]);
+    }
+
+    public function test_live_paypal_pay_fails_when_oauth_rejects(): void
+    {
+        PricingPlan::ensureDefaults();
+        $user = User::factory()->create();
+
+        Http::fake([
+            'api-m.sandbox.paypal.com/v1/oauth2/token' => Http::response([
+                'error' => 'invalid_client',
+            ], 401),
+        ]);
+
+        $this->actingAs($user)
+            ->postJson(route('account.upgrade.pay'), [
+                'to_plan' => Membership::PREMIUM,
+                'payment_method' => 'paypal',
+                'email' => 'buyer@example.com',
+                'amount' => 5000,
+                'currency' => 'USD',
+            ])
+            ->assertUnprocessable()
+            ->assertJson([
+                'ok' => false,
+                'can_retry' => true,
+            ]);
+    }
+
+    public function test_paypal_pay_requires_email(): void
+    {
+        PricingPlan::ensureDefaults();
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->postJson(route('account.upgrade.pay'), [
+                'to_plan' => Membership::STANDARD,
+                'payment_method' => 'paypal',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['email']);
+    }
+
+    public function test_mpesa_pay_requires_phone(): void
+    {
+        PricingPlan::ensureDefaults();
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->postJson(route('account.upgrade.pay'), [
+                'to_plan' => Membership::STANDARD,
+                'payment_method' => 'mpesa',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['phone']);
     }
 }

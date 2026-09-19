@@ -1,0 +1,71 @@
+<?php
+
+namespace Tests\Feature\Admin;
+
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class AdminPaymentSettingsTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_admin_settings_include_mobile_money_provider_switch(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.settings.index'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Admin/Settings/Index')
+                ->has('groupedSettings.payments')
+                ->where('groupedSettings.payments.0.key', 'mobile_money_provider')
+                ->where('groupedSettings.payments.0.value', 'mpesa')
+                ->where('groupedSettings.payments.0.options.0.value', 'mpesa')
+                ->where('groupedSettings.payments.0.options.1.value', 'intasend')
+                ->etc());
+    }
+
+    public function test_admin_can_switch_mobile_money_provider_to_intasend(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+
+        $this->actingAs($admin)->get(route('admin.settings.index'))->assertOk();
+
+        $this->actingAs($admin)
+            ->put(route('admin.settings.update'), [
+                'settings' => [
+                    ['key' => 'mobile_money_provider', 'value' => 'intasend'],
+                    ['key' => 'paypal_mode', 'value' => 'sandbox'],
+                ],
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('site_settings', [
+            'key' => 'mobile_money_provider',
+            'value' => 'intasend',
+        ]);
+    }
+
+    public function test_admin_can_switch_paypal_mode_to_live(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+
+        $this->actingAs($admin)->get(route('admin.settings.index'))->assertOk();
+
+        $this->actingAs($admin)
+            ->put(route('admin.settings.update'), [
+                'settings' => [
+                    ['key' => 'paypal_mode', 'value' => 'live'],
+                    ['key' => 'mpesa_mode', 'value' => 'sandbox'],
+                ],
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('site_settings', [
+            'key' => 'paypal_mode',
+            'value' => 'live',
+        ]);
+    }
+}
