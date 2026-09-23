@@ -36,6 +36,8 @@ export function StatusBadge({ status }) {
         pending: { dot: 'bg-mustard', text: 'text-olive-800 dark:text-olive-100' },
         expired: { dot: 'bg-rose-500', text: 'text-rose-700 dark:text-rose-300' },
         archived: { dot: 'bg-olive-300', text: 'text-olive-500 dark:text-olive-400' },
+        active: { dot: 'bg-mint-deep', text: 'text-olive-800 dark:text-olive-100' },
+        inactive: { dot: 'bg-olive-300', text: 'text-olive-500 dark:text-olive-400' },
         free: { dot: 'bg-olive-400', text: 'text-olive-600 dark:text-olive-300' },
         featured: { dot: 'bg-mustard', text: 'text-olive-800 dark:text-olive-100' },
         premium: { dot: 'bg-earth-clay', text: 'text-olive-800 dark:text-olive-100' },
@@ -221,6 +223,29 @@ export function EmptyState({ title, description, action }) {
                 </p>
             )}
             {action && <div className="mt-5">{action}</div>}
+        </div>
+    );
+}
+
+/** Page title block for the main content area (not the top bar). */
+export function PageHeader({ title, description, actions, className = '' }) {
+    return (
+        <div
+            className={`mb-6 flex flex-wrap items-start justify-between gap-3 ${className}`}
+        >
+            <div className="min-w-0 max-w-2xl">
+                <h1 className="font-display text-2xl font-bold tracking-tight text-olive-950 dark:text-white">
+                    {title}
+                </h1>
+                {description && (
+                    <p className="mt-1.5 text-sm leading-relaxed text-olive-500 dark:text-olive-400">
+                        {description}
+                    </p>
+                )}
+            </div>
+            {actions && (
+                <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>
+            )}
         </div>
     );
 }

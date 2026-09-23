@@ -37,4 +37,12 @@ class PricingController extends Controller
 
         return back()->with('success', "{$pricing->name} pricing saved.");
     }
+
+    public function destroy(PricingPlan $pricing): RedirectResponse
+    {
+        $name = $pricing->name;
+        $pricing->delete();
+
+        return back()->with('success', "{$name} tier deleted.");
+    }
 }

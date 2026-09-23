@@ -7,6 +7,7 @@ import {
     AdminTextarea,
     AdminLink,
     FormPanel,
+    PageHeader,
 } from '@/Components/Admin/ui';
 import { Head, router, useForm } from '@inertiajs/react';
 import { ArrowLeft, Save, Trash2 } from 'lucide-react';
@@ -96,24 +97,26 @@ export default function Form({ listing, categories, locations = [], owners, stat
     };
 
     return (
-        <AdminLayout
-            title={isEdit ? 'Edit listing' : 'New listing'}
-            actions={
-                <div className="flex items-center gap-2">
-                    <AdminLink href={route('admin.listings.index')} variant="secondary">
-                        <ArrowLeft className="h-4 w-4" />
-                        Back
-                    </AdminLink>
-                    {isEdit && (
-                        <AdminButton variant="danger" onClick={remove}>
-                            <Trash2 className="h-4 w-4" />
-                            Delete
-                        </AdminButton>
-                    )}
-                </div>
-            }
-        >
+        <AdminLayout>
             <Head title={isEdit ? `Edit · ${listing.title}` : 'New listing'} />
+
+            <PageHeader
+                title={isEdit ? 'Edit listing' : 'New listing'}
+                actions={
+                    <div className="flex items-center gap-2">
+                        <AdminLink href={route('admin.listings.index')} variant="secondary">
+                            <ArrowLeft className="h-4 w-4" />
+                            Back
+                        </AdminLink>
+                        {isEdit && (
+                            <AdminButton variant="danger" onClick={remove}>
+                                <Trash2 className="h-4 w-4" />
+                                Delete
+                            </AdminButton>
+                        )}
+                    </div>
+                }
+            />
 
             <form onSubmit={save} className="space-y-4">
                 <FormPanel title="Basics">

@@ -59,6 +59,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::get('pricing', [PricingController::class, 'index'])->name('pricing.index');
         Route::put('pricing/{pricing}', [PricingController::class, 'update'])->name('pricing.update');
+        Route::delete('pricing/{pricing}', [PricingController::class, 'destroy'])->name('pricing.destroy');
 
         Route::get('upgrades', [UpgradeController::class, 'index'])->name('upgrades.index');
         Route::post('upgrades/{upgrade}/approve', [UpgradeController::class, 'approve'])->name('upgrades.approve');

@@ -100,4 +100,18 @@ class PricingTest extends TestCase
         $this->assertFalse($featured->fresh()->is_highlighted);
         $this->assertTrue($premium->fresh()->is_highlighted);
     }
+
+    public function test_admin_can_delete_a_pricing_plan(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        PricingPlan::ensureDefaults();
+        $plan = PricingPlan::query()->where('key', 'featured')->firstOrFail();
+
+        $this->actingAs($admin)
+            ->delete(route('admin.pricing.destroy', $plan))
+            ->assertRedirect();
+
+        $this->assertDatabaseMissing('pricing_plans', ['id' => $plan->id]);
+        $this->assertSame(2, PricingPlan::query()->count());
+    }
 }

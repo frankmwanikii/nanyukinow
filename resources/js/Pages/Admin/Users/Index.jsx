@@ -10,6 +10,7 @@ import {
     EmptyState,
     FilterBar,
     MediaCell,
+    PageHeader,
     Pagination,
     StatusBadge,
     Td,
@@ -77,16 +78,18 @@ export default function Index({ users, filters }) {
     };
 
     return (
-        <AdminLayout
-            title="Users"
-            actions={
-                <AdminButton size="sm" onClick={() => { setShowCreate(true); setEditing(null); }}>
-                    <Plus className="h-3.5 w-3.5" />
-                    Add user
-                </AdminButton>
-            }
-        >
+        <AdminLayout>
             <Head title="Admin users" />
+
+            <PageHeader
+                title="Users"
+                actions={
+                    <AdminButton size="sm" onClick={() => { setShowCreate(true); setEditing(null); }}>
+                        <Plus className="h-3.5 w-3.5" />
+                        Add user
+                    </AdminButton>
+                }
+            />
 
             <FilterBar>
                 <AdminInput

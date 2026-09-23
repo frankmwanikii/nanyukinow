@@ -11,6 +11,7 @@ import {
     ExpiryCell,
     FilterBar,
     MediaCell,
+    PageHeader,
     Pagination,
     StatusBadge,
     Td,
@@ -92,8 +93,18 @@ export default function Index({ listings, filters, categories, statuses, tiers }
     };
 
     return (
-        <AdminLayout title="Listings">
+        <AdminLayout>
             <Head title="Admin listings" />
+
+            <PageHeader
+                title="Listings"
+                actions={
+                    <AdminLink href={route('admin.listings.create')}>
+                        <Plus className="h-4 w-4" />
+                        New listing
+                    </AdminLink>
+                }
+            />
 
             <FilterBar>
                 <AdminInput

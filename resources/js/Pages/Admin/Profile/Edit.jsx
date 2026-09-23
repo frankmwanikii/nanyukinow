@@ -5,6 +5,7 @@ import {
     AdminInput,
     AdminPasswordInput,
     FormPanel,
+    PageHeader,
 } from '@/Components/Admin/ui';
 import { srcToDataUrl } from '@/utils/cropImage';
 import { Head, useForm, usePage } from '@inertiajs/react';
@@ -384,14 +385,14 @@ export default function Edit({ user }) {
     const authUser = usePage().props.auth?.user;
 
     return (
-        <AdminLayout title="Your profile">
+        <AdminLayout>
             <Head title="Your profile" />
 
             <div className="mx-auto max-w-3xl space-y-6">
-                <p className="max-w-2xl text-sm leading-relaxed text-olive-600 dark:text-olive-300">
-                    Update how you appear in the admin, your email, and your password
-                    {authUser?.name ? ` for ${authUser.name}` : ''}.
-                </p>
+                <PageHeader
+                    title="Your profile"
+                    description={`Update how you appear in the admin, your email, and your password${authUser?.name ? ` for ${authUser.name}` : ''}.`}
+                />
                 <ProfileForm user={user} />
                 <PasswordForm />
             </div>

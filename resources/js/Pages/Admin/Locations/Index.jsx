@@ -7,6 +7,7 @@ import {
     DataTable,
     EmptyState,
     FormPanel,
+    PageHeader,
     Td,
     Th,
 } from '@/Components/Admin/ui';
@@ -51,8 +52,10 @@ export default function Index({ locations }) {
     };
 
     return (
-        <AdminLayout title="Locations">
+        <AdminLayout>
             <Head title="Admin locations" />
+
+            <PageHeader title="Locations" />
 
             <div className="grid gap-4 xl:grid-cols-3">
                 <FormPanel title="Add location" className="xl:col-span-1">

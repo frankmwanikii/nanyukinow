@@ -5,6 +5,7 @@ import {
     AdminPasswordInput,
     AdminSelect,
     AdminTextarea,
+    PageHeader,
 } from '@/Components/Admin/ui';
 import { Head, useForm } from '@inertiajs/react';
 import { Image as ImageIcon, Save } from 'lucide-react';
@@ -339,8 +340,10 @@ export default function Index({ groupedSettings }) {
     }, [groupedSettings]);
 
     return (
-        <AdminLayout title="Settings">
+        <AdminLayout>
             <Head title="Settings" />
+
+            <PageHeader title="Settings" />
 
             <form onSubmit={save} className="space-y-4 pb-8">
                 {groups.map((group) => {

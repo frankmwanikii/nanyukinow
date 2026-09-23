@@ -6,6 +6,7 @@ import {
     AdminTextarea,
     AdminLink,
     FormPanel,
+    PageHeader,
 } from '@/Components/Admin/ui';
 import { Head, router, useForm } from '@inertiajs/react';
 import { ArrowLeft, Save, Trash2 } from 'lucide-react';
@@ -45,31 +46,33 @@ export default function Form({ story }) {
     };
 
     return (
-        <AdminLayout
-            title={isEdit ? 'Edit story' : 'New story'}
-            actions={
-                <div className="flex gap-2">
-                    <AdminLink href={route('admin.stories.index')} variant="secondary">
-                        <ArrowLeft className="h-4 w-4" />
-                        Back
-                    </AdminLink>
-                    {isEdit && (
-                        <AdminButton
-                            variant="danger"
-                            onClick={() => {
-                                if (confirm('Delete this story?')) {
-                                    router.delete(route('admin.stories.destroy', story.id));
-                                }
-                            }}
-                        >
-                            <Trash2 className="h-4 w-4" />
-                            Delete
-                        </AdminButton>
-                    )}
-                </div>
-            }
-        >
+        <AdminLayout>
             <Head title={isEdit ? `Edit · ${story.title}` : 'New story'} />
+
+            <PageHeader
+                title={isEdit ? 'Edit story' : 'New story'}
+                actions={
+                    <div className="flex gap-2">
+                        <AdminLink href={route('admin.stories.index')} variant="secondary">
+                            <ArrowLeft className="h-4 w-4" />
+                            Back
+                        </AdminLink>
+                        {isEdit && (
+                            <AdminButton
+                                variant="danger"
+                                onClick={() => {
+                                    if (confirm('Delete this story?')) {
+                                        router.delete(route('admin.stories.destroy', story.id));
+                                    }
+                                }}
+                            >
+                                <Trash2 className="h-4 w-4" />
+                                Delete
+                            </AdminButton>
+                        )}
+                    </div>
+                }
+            />
 
             <form onSubmit={save} className="space-y-4">
                 <FormPanel title="Story content">

@@ -8,6 +8,7 @@ import {
     DataCard,
     DataTable,
     ExpiryCell,
+    PageHeader,
     StatusBadge,
     StatCard,
     Td,
@@ -27,7 +28,7 @@ import {
 
 export default function Dashboard(props) {
     return (
-        <AdminLayout title="Overview">
+        <AdminLayout>
             <Head title="Admin overview" />
             <DashboardBody {...props} />
         </AdminLayout>
@@ -43,6 +44,8 @@ function DashboardBody({ stats, recentListings, expiringListings, charts }) {
 
     return (
         <>
+            <PageHeader title="Overview" />
+
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-7">
                 <StatCard
                     label="Listings"

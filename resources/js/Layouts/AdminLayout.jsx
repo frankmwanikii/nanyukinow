@@ -254,7 +254,7 @@ function UserMenu({ user }) {
     );
 }
 
-function AdminShell({ title, children, actions }) {
+function AdminShell({ children }) {
     const { auth } = usePage().props;
     const [open, setOpen] = useState(false);
     const { isDark } = useAdminTheme();
@@ -352,10 +352,10 @@ function AdminShell({ title, children, actions }) {
                     <div className="flex min-h-0 min-w-0 flex-1 flex-col">
                         <header className="z-20 shrink-0 bg-[#f9f6f1] dark:bg-olive-900">
                             <div className="flex items-center gap-3 px-4 py-3 sm:gap-5 sm:px-6">
-                                <div className="flex min-w-0 flex-1 items-center gap-3">
+                                <div className="flex shrink-0 items-center gap-3">
                                     <button
                                         type="button"
-                                        className="shrink-0 rounded-full bg-white p-2 text-olive-800 dark:bg-olive-950/60 dark:text-olive-100 lg:hidden"
+                                        className="rounded-full bg-white p-2 text-olive-800 dark:bg-olive-950/60 dark:text-olive-100 lg:hidden"
                                         onClick={() => setOpen(true)}
                                     >
                                         {open ? (
@@ -364,21 +364,11 @@ function AdminShell({ title, children, actions }) {
                                             <Menu className="h-5 w-5" />
                                         )}
                                     </button>
-
-                                    <h1 className="min-w-0 truncate font-display text-2xl font-bold tracking-tight text-olive-950 dark:text-white">
-                                        {title}
-                                    </h1>
                                 </div>
 
                                 <TopbarSearch />
 
                                 <div className="flex min-w-0 flex-1 items-center justify-end gap-2 sm:gap-3">
-                                    {actions && (
-                                        <div className="flex shrink-0 items-center gap-2 [&_a]:rounded-full [&_button]:rounded-full">
-                                            {actions}
-                                        </div>
-                                    )}
-
                                     <ThemeToggle />
 
                                     <Link

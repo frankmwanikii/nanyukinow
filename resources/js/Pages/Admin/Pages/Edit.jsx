@@ -5,6 +5,7 @@ import {
     AdminLink,
     AdminTextarea,
     FormPanel,
+    PageHeader,
 } from '@/Components/Admin/ui';
 import { Head, useForm } from '@inertiajs/react';
 import { ArrowLeft, ExternalLink, Save } from 'lucide-react';
@@ -36,30 +37,33 @@ export default function Edit({ page }) {
     };
 
     return (
-        <AdminLayout title={`Edit · ${page.title}`}>
+        <AdminLayout>
             <Head title={`Edit ${page.title}`} />
 
-            <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-                <div>
-                    <AdminLink href={route('admin.pages.index')} variant="secondary">
-                        <ArrowLeft className="h-4 w-4" />
-                        All pages
-                    </AdminLink>
-                    <p className="mt-3 font-mono text-xs text-olive-500">{page.path}</p>
-                    <p className="mt-1 max-w-xl text-sm text-olive-600 dark:text-olive-300">
-                        {page.description}
-                    </p>
-                </div>
-                <a
-                    href={page.public_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-semibold text-olive-700 ring-1 ring-olive-200 transition hover:bg-olive-50 dark:text-olive-200 dark:ring-olive-700"
-                >
-                    <ExternalLink className="h-4 w-4" />
-                    View live page
-                </a>
-            </div>
+            <PageHeader
+                title={`Edit · ${page.title}`}
+                description={page.description}
+                actions={
+                    <div className="flex flex-wrap items-center gap-2">
+                        <AdminLink href={route('admin.pages.index')} variant="secondary">
+                            <ArrowLeft className="h-4 w-4" />
+                            All pages
+                        </AdminLink>
+                        {page.public_url && (
+                            <a
+                                href={page.public_url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1.5 rounded-full border border-olive-200 bg-white px-4 py-2.5 text-base font-semibold text-olive-800 transition hover:border-mustard/50 hover:bg-mustard/10 hover:text-earth-dusk dark:border-olive-700 dark:bg-olive-900 dark:text-olive-100"
+                            >
+                                <ExternalLink className="h-4 w-4" />
+                                View
+                            </a>
+                        )}
+                    </div>
+                }
+            />
+            <p className="mb-5 -mt-3 font-mono text-xs text-olive-500">{page.path}</p>
 
             <form onSubmit={save} className="space-y-4">
                 <FormPanel title="Page details">

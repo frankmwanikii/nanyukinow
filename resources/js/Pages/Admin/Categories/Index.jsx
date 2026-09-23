@@ -7,6 +7,7 @@ import {
     DataTable,
     EmptyState,
     FormPanel,
+    PageHeader,
     Td,
     Th,
 } from '@/Components/Admin/ui';
@@ -51,8 +52,10 @@ export default function Index({ categories }) {
     };
 
     return (
-        <AdminLayout title="Categories">
+        <AdminLayout>
             <Head title="Admin categories" />
+
+            <PageHeader title="Categories" />
 
             <div className="grid gap-4 xl:grid-cols-3">
                 <FormPanel title="Add category" className="xl:col-span-1">

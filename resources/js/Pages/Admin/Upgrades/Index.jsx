@@ -6,6 +6,7 @@ import {
     DataCard,
     DataTable,
     EmptyState,
+    PageHeader,
     StatusBadge,
     Td,
     Th,
@@ -83,13 +84,13 @@ export default function Index({ upgrades, filters, counts }) {
     ];
 
     return (
-        <AdminLayout title="Upgrades">
+        <AdminLayout>
             <Head title="Plan upgrades" />
 
-            <p className="mb-5 max-w-2xl text-sm text-slate-500 dark:text-slate-400">
-                Members pay via M-Pesa and submit a confirmation code. Approve to activate their
-                Standard or Premium plan (and boost their free listings).
-            </p>
+            <PageHeader
+                title="Upgrades"
+                description="Members pay via M-Pesa and submit a confirmation code. Approve to activate their Standard or Premium plan (and boost their free listings)."
+            />
 
             {actionError && (
                 <div className="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-100">

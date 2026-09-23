@@ -78,6 +78,77 @@ function planState(plan, currentKey, pending) {
     return { isCurrent, isFree, canUpgrade, ctaLabel };
 }
 
+function InclusionMatrix({ plans }) {
+    const allFeatures = [];
+    const seen = new Set();
+    plans.forEach((plan) => {
+        (plan.inclusions || []).forEach((item) => {
+            if (!seen.has(item)) {
+                seen.add(item);
+                allFeatures.push(item);
+            }
+        });
+    });
+
+    if (allFeatures.length === 0 || plans.length === 0) return null;
+
+    return (
+        <div className="overflow-hidden rounded-xl border border-olive-200 bg-white">
+            <div className="border-b border-olive-100 px-5 py-4 sm:px-6">
+                <h2 className="text-lg font-semibold tracking-tight text-olive-950">
+                    Inclusion matrix
+                </h2>
+                <p className="mt-1 text-sm text-olive-500">
+                    Quick compare of what each tier includes.
+                </p>
+            </div>
+            <div className="overflow-x-auto">
+                <table className="w-full min-w-[36rem] text-left text-sm">
+                    <thead>
+                        <tr className="border-b border-olive-100">
+                            <th className="px-5 py-3.5 font-semibold text-olive-500 sm:px-6">
+                                Inclusion
+                            </th>
+                            {plans.map((plan) => (
+                                <th
+                                    key={plan.id}
+                                    className="px-4 py-3.5 text-center font-semibold text-olive-900"
+                                >
+                                    {plan.name}
+                                </th>
+                            ))}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {allFeatures.map((feature, i) => (
+                            <tr
+                                key={feature}
+                                className={i % 2 === 0 ? 'bg-earth-sand/40' : 'bg-white'}
+                            >
+                                <td className="px-5 py-3 text-olive-700 sm:px-6">{feature}</td>
+                                {plans.map((plan) => {
+                                    const has = (plan.inclusions || []).includes(feature);
+                                    return (
+                                        <td key={plan.id} className="px-4 py-3 text-center">
+                                            {has ? (
+                                                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-mint/30 text-olive-800">
+                                                    <Check className="h-3.5 w-3.5" strokeWidth={2.75} />
+                                                </span>
+                                            ) : (
+                                                <span className="text-olive-300">—</span>
+                                            )}
+                                        </td>
+                                    );
+                                })}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+}
+
 function PlansMatrix({ plans, currentKey, pending, onUpgrade }) {
     return (
         <div className="overflow-hidden rounded-xl border border-olive-200 bg-white">
@@ -875,6 +946,8 @@ export default function Upgrade({
                     pending={Boolean(pendingUpgrade)}
                     onUpgrade={openCheckout}
                 />
+
+                <InclusionMatrix plans={plans} />
             </div>
 
             {checkoutPlan && (

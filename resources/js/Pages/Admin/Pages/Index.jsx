@@ -3,6 +3,7 @@ import {
     AdminLink,
     DataCard,
     EmptyState,
+    PageHeader,
     StatusBadge,
 } from '@/Components/Admin/ui';
 import { Head } from '@inertiajs/react';
@@ -22,13 +23,13 @@ function formatUpdated(iso) {
 
 export default function Index({ pages = [] }) {
     return (
-        <AdminLayout title="Pages">
+        <AdminLayout>
             <Head title="Pages" />
 
-            <p className="mb-5 max-w-2xl text-sm text-slate-500 dark:text-slate-400">
-                Every public page on the website. Open a page to edit its title, SEO fields, and
-                on-page content.
-            </p>
+            <PageHeader
+                title="Pages"
+                description="Every public page on the website. Open a page to edit its title, SEO fields, and on-page content."
+            />
 
             {pages.length === 0 ? (
                 <EmptyState

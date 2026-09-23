@@ -9,6 +9,7 @@ import {
     EmptyState,
     FilterBar,
     MediaCell,
+    PageHeader,
     Pagination,
     StatusBadge,
     Td,
@@ -46,16 +47,18 @@ export default function Index({ stories, filters }) {
     }, [q]);
 
     return (
-        <AdminLayout
-            title="Stories"
-            actions={
-                <AdminLink href={route('admin.stories.create')}>
-                    <Plus className="h-4 w-4" />
-                    New story
-                </AdminLink>
-            }
-        >
+        <AdminLayout>
             <Head title="Admin stories" />
+
+            <PageHeader
+                title="Stories"
+                actions={
+                    <AdminLink href={route('admin.stories.create')}>
+                        <Plus className="h-4 w-4" />
+                        New story
+                    </AdminLink>
+                }
+            />
 
             <FilterBar>
                 <AdminInput
