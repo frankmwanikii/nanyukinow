@@ -34,10 +34,17 @@ function Section({ id, title, children }) {
     );
 }
 
-export default function Terms() {
+export default function Terms({ page = null }) {
+    const content = page?.content || {};
+    const heroTitle = content.hero_title || page?.title || 'Terms of Service';
+    const heroSubtitle =
+        content.hero_subtitle ||
+        'The rules for using Nanyuki Now — browsing listings, creating an account, promoting a business, and making payments on the platform.';
+    const customBody = String(content.body || '').trim();
     const [active, setActive] = useState(SECTIONS[0].id);
 
     useEffect(() => {
+        if (customBody) return undefined;
         const nodes = SECTIONS.map((s) => document.getElementById(s.id)).filter(
             Boolean,
         );
@@ -57,10 +64,10 @@ export default function Terms() {
 
         nodes.forEach((node) => observer.observe(node));
         return () => observer.disconnect();
-    }, []);
+    }, [customBody]);
 
     return (
-        <SiteLayout title="Terms of Service">
+        <SiteLayout title={page?.meta_title || 'Terms of Service'}>
             <div className="relative overflow-hidden border-b border-olive-200/60 bg-gradient-to-br from-olive-900 via-olive-800 to-earth-dusk">
                 <div
                     className="pointer-events-none absolute inset-0 opacity-[0.18]"
@@ -84,12 +91,10 @@ export default function Terms() {
                         Legal
                     </div>
                     <h1 className="mt-5 max-w-2xl font-display text-4xl font-semibold tracking-tight text-white sm:text-5xl">
-                        Terms of Service
+                        {heroTitle}
                     </h1>
                     <p className="mt-4 max-w-2xl text-base leading-relaxed text-white/75 sm:text-lg">
-                        The rules for using Nanyuki Now — browsing listings,
-                        creating an account, promoting a business, and making
-                        payments on the platform.
+                        {heroSubtitle}
                     </p>
                     <p className="mt-6 text-sm text-white/55">
                         Last updated:{' '}
@@ -98,6 +103,17 @@ export default function Terms() {
                 </div>
             </div>
 
+            {customBody ? (
+                <div className="bg-earth-sand">
+                    <div className="mx-auto max-w-3xl space-y-4 px-4 py-12 text-[15px] leading-relaxed text-olive-800 sm:px-6 sm:py-16 sm:text-base">
+                        {customBody.split(/\n\s*\n/).map((para) => (
+                            <p key={para.slice(0, 48)}>{para}</p>
+                        ))}
+                    </div>
+                </div>
+            ) : null}
+
+            {!customBody ? (
             <div className="relative bg-earth-sand">
                 <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-olive-900/5 to-transparent" />
 
@@ -464,6 +480,7 @@ export default function Terms() {
                     </article>
                 </div>
             </div>
+            ) : null}
         </SiteLayout>
     );
 }

@@ -20,11 +20,13 @@ const PAGE_SIZE = 12;
 export default function StoriesIndex({
     category: initialCategory = null,
     q: initialQ = '',
+    page = null,
 }) {
     const [category, setCategory] = useState(initialCategory || null);
     const [q, setQ] = useState(initialQ || '');
     const [filtersOpen, setFiltersOpen] = useState(true);
-    const [page, setPage] = useState(1);
+    const [pageNum, setPage] = useState(1);
+    const content = page?.content || {};
 
     const filtered = useMemo(
         () => filterArticles({ category, q }),
@@ -32,7 +34,7 @@ export default function StoriesIndex({
     );
 
     const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-    const safePage = Math.min(page, totalPages);
+    const safePage = Math.min(pageNum, totalPages);
 
     const pageItems = useMemo(() => {
         const start = (safePage - 1) * PAGE_SIZE;
@@ -208,18 +210,18 @@ export default function StoriesIndex({
         safePage === 1 ? pageItems : [null, ...pageItems];
 
     return (
-        <SiteLayout title="Stories & travel tips">
+        <SiteLayout title={page?.meta_title || 'Stories & travel tips'}>
             <section className="border-b border-olive-200/70 bg-olive-800 pb-10 pt-28 sm:pb-12 sm:pt-32">
                 <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
                     <p className="text-xs font-semibold uppercase tracking-[0.22em] text-mint sm:text-sm">
                         Stories
                     </p>
                     <h1 className="mt-3 max-w-3xl font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl">
-                        Make the most of your visit
+                        {content.headline || 'Make the most of your visit'}
                     </h1>
                     <p className="mt-4 max-w-2xl text-sm leading-relaxed text-white/75 sm:text-base">
-                        Guides, weather wisdom, and local tips for Nanyuki and
-                        the towns around it.
+                        {content.subtext ||
+                            'Guides, weather wisdom, and local tips for Nanyuki and the towns around it.'}
                     </p>
                 </div>
             </section>

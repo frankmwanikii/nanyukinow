@@ -18,6 +18,7 @@ class SettingController extends Controller
         $this->ensurePaymentGatewayDefaults();
 
         $settings = SiteSetting::query()
+            ->whereIn('group', ['branding', 'pages', 'billing', 'payments', 'social', 'seo'])
             ->orderBy('group')
             ->orderBy('sort_order')
             ->get()
@@ -67,11 +68,6 @@ class SettingController extends Controller
             ['group' => 'branding', 'key' => 'site_tagline', 'label' => 'Tagline', 'type' => 'text', 'value' => 'Discover Nanyuki', 'help' => 'Short supporting line under the brand.', 'sort_order' => 2],
             ['group' => 'branding', 'key' => 'logo_url', 'label' => 'Logo URL', 'type' => 'image', 'value' => '/images/logo.png', 'help' => 'Primary logo image path or URL.', 'sort_order' => 3],
             ['group' => 'branding', 'key' => 'favicon_url', 'label' => 'Favicon URL', 'type' => 'image', 'value' => '/favicon.ico', 'help' => null, 'sort_order' => 4],
-            ['group' => 'home', 'key' => 'hero_image', 'label' => 'Hero image', 'type' => 'image', 'value' => '', 'help' => 'Main homepage hero background.', 'sort_order' => 1],
-            ['group' => 'home', 'key' => 'hero_headline', 'label' => 'Hero headline', 'type' => 'text', 'value' => 'Explore Nanyuki', 'help' => null, 'sort_order' => 2],
-            ['group' => 'home', 'key' => 'hero_subtext', 'label' => 'Hero subtext', 'type' => 'textarea', 'value' => 'Places, stays, and stories from the highland town.', 'help' => null, 'sort_order' => 3],
-            ['group' => 'home', 'key' => 'cta_label', 'label' => 'Primary CTA label', 'type' => 'text', 'value' => 'Explore listings', 'help' => null, 'sort_order' => 4],
-            ['group' => 'home', 'key' => 'cta_url', 'label' => 'Primary CTA URL', 'type' => 'text', 'value' => '/explore', 'help' => null, 'sort_order' => 5],
             ['group' => 'pages', 'key' => 'contact_email', 'label' => 'Contact email', 'type' => 'text', 'value' => 'hello@nanyukinow.co.ke', 'help' => null, 'sort_order' => 1],
             ['group' => 'pages', 'key' => 'contact_phone', 'label' => 'Contact phone', 'type' => 'text', 'value' => '', 'help' => null, 'sort_order' => 2],
             ['group' => 'pages', 'key' => 'footer_blurb', 'label' => 'Footer blurb', 'type' => 'textarea', 'value' => 'Nanyuki Now — your local directory for places worth knowing.', 'help' => null, 'sort_order' => 3],

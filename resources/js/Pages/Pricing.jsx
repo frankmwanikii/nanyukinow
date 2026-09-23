@@ -27,23 +27,29 @@ function displayPrice(plan) {
     return formatMoney(plan.price_amount, plan.currency);
 }
 
-export default function Pricing({ plans = [], currentPlan = null, upgradeContact = {} }) {
+export default function Pricing({
+    plans = [],
+    currentPlan = null,
+    upgradeContact = {},
+    page = null,
+}) {
     const { auth } = usePage().props;
     const user = auth?.user;
+    const content = page?.content || {};
 
     return (
         <SiteLayout>
-            <Head title="Pricing" />
+            <Head title={page?.meta_title || 'Pricing'} />
 
             <div className="border-b border-olive-800 bg-olive-900">
                 <div className="mx-auto max-w-5xl px-4 pb-14 pt-28 sm:px-6 sm:pt-32">
                     <p className="text-sm font-medium text-mustard">Pricing</p>
                     <h1 className="mt-3 max-w-2xl font-display text-4xl font-semibold tracking-tight text-white sm:text-5xl">
-                        Plans for getting found in Nanyuki
+                        {content.headline || 'Plans for getting found in Nanyuki'}
                     </h1>
                     <p className="mt-4 max-w-xl text-base leading-relaxed text-white/65">
-                        Start free with one listing. Upgrade when you need more slots and stronger
-                        placement.
+                        {content.subtext ||
+                            'Start free with one listing. Upgrade when you need more slots and stronger placement.'}
                     </p>
                 </div>
             </div>

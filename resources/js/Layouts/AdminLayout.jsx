@@ -9,6 +9,7 @@ import {
     Settings2,
     CircleDollarSign,
     ArrowUpCircle,
+    FileText,
     Menu,
     X,
     Moon,
@@ -23,13 +24,14 @@ import { AdminThemeProvider, useAdminTheme } from '@/hooks/useAdminTheme';
 const nav = [
     { label: 'Overview', href: 'admin.dashboard', icon: LayoutDashboard },
     { label: 'Listings', href: 'admin.listings.index', icon: LayoutList },
+    { label: 'Pages', href: 'admin.pages.index', icon: FileText },
     { label: 'Categories', href: 'admin.categories.index', icon: FolderTree },
     { label: 'Locations', href: 'admin.locations.index', icon: MapPin },
     { label: 'Stories', href: 'admin.stories.index', icon: Newspaper },
     { label: 'Users', href: 'admin.users.index', icon: Users },
     { label: 'Pricing', href: 'admin.pricing.index', icon: CircleDollarSign },
     { label: 'Upgrades', href: 'admin.upgrades.index', icon: ArrowUpCircle },
-    { label: 'Site & pages', href: 'admin.settings.index', icon: Settings2 },
+    { label: 'Settings', href: 'admin.settings.index', icon: Settings2 },
 ];
 
 function userInitials(name = '') {
@@ -303,6 +305,8 @@ function AdminShell({ title, children, actions }) {
                                         route().current('admin.pricing.*')) ||
                                     (item.href === 'admin.upgrades.index' &&
                                         route().current('admin.upgrades.*')) ||
+                                    (item.href === 'admin.pages.index' &&
+                                        route().current('admin.pages.*')) ||
                                     (item.href === 'admin.settings.index' &&
                                         route().current('admin.settings.*'));
                                 return (

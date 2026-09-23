@@ -44,6 +44,7 @@ function ExploreContent({
     initialQuery = '',
     initialLocation = null,
     locations = LOOK_LOCATIONS,
+    sitePage = null,
 }) {
     const [query, setQuery] = useState(initialQuery);
     const [location, setLocation] = useState(initialLocation);
@@ -309,11 +310,12 @@ function ExploreContent({
                             <div className="flex h-full min-h-[240px] flex-col items-center justify-center rounded-2xl border border-dashed border-olive-300 bg-white/70 px-6 text-center">
                                 <Star className="mb-3 h-8 w-8 text-olive-300" />
                                 <p className="font-display text-lg font-semibold text-earth-dusk">
-                                    No listings match
+                                    {sitePage?.content?.empty_title ||
+                                        'No listings match'}
                                 </p>
                                 <p className="mt-1 max-w-sm text-sm text-olive-600">
-                                    Try another category, clear a filter, or
-                                    search a different keyword.
+                                    {sitePage?.content?.empty_body ||
+                                        'Try another category, clear a filter, or search a different keyword.'}
                                 </p>
                                 <button
                                     type="button"
@@ -465,6 +467,7 @@ export default function Explore({
     propertyType,
     q,
     location,
+    page = null,
 }) {
     const catalogue = useMemo(
         () => listings.map((item, index) => enrichListing(item, index)),
@@ -472,7 +475,12 @@ export default function Explore({
     );
 
     return (
-        <SiteLayout title="Explore Nanyuki" hideFooter compactNav lockViewport>
+        <SiteLayout
+            title={page?.meta_title || 'Explore Nanyuki'}
+            hideFooter
+            compactNav
+            lockViewport
+        >
             <ExploreContent
                 catalogue={catalogue}
                 initialCategory={category || null}
@@ -481,6 +489,7 @@ export default function Explore({
                 initialQuery={q || ''}
                 initialLocation={location || null}
                 locations={locations}
+                sitePage={page}
             />
         </SiteLayout>
     );

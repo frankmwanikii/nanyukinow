@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Listing;
 use App\Models\Location;
+use App\Models\SitePage;
 use App\Support\ListingPayload;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -42,6 +43,7 @@ class ListingController extends Controller
             'featured' => $featured,
             'trending' => $trending,
             'goldList' => array_slice($payload, 0, 24),
+            'page' => SitePage::findBySlug('home')?->toPublicArray(),
         ]);
     }
 
@@ -72,6 +74,7 @@ class ListingController extends Controller
             'propertyType' => $request->string('propertyType')->toString() ?: null,
             'q' => $request->string('q')->toString() ?: null,
             'location' => in_array($location, $allowed, true) ? $location : null,
+            'page' => SitePage::findBySlug('explore')?->toPublicArray(),
         ]);
     }
 

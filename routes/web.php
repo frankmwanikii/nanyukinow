@@ -20,6 +20,7 @@ Route::get('/stories', function () {
     return Inertia::render('Stories/Index', [
         'category' => request()->string('category')->toString() ?: null,
         'q' => request()->string('q')->toString() ?: null,
+        'page' => \App\Models\SitePage::findBySlug('stories')?->toPublicArray(),
     ]);
 })->name('stories.index');
 
@@ -35,11 +36,15 @@ Route::post('/listings/{listing:slug}/contact', [\App\Http\Controllers\ListingCo
     ->name('listings.contact');
 
 Route::get('/terms', function () {
-    return Inertia::render('Terms');
+    return Inertia::render('Terms', [
+        'page' => \App\Models\SitePage::findBySlug('terms')?->toPublicArray(),
+    ]);
 })->name('terms');
 
 Route::get('/privacy', function () {
-    return Inertia::render('Privacy');
+    return Inertia::render('Privacy', [
+        'page' => \App\Models\SitePage::findBySlug('privacy')?->toPublicArray(),
+    ]);
 })->name('privacy');
 
 Route::middleware('auth')->group(function () {

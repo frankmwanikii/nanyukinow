@@ -15,7 +15,7 @@ import { testimonials } from '@/data/listings';
 const CTA_IMAGE = '/images/designed-for-you.webp';
 const PAGE_SIZE = 9;
 
-function GoldListSection({ items = [] }) {
+function GoldListSection({ items = [], title, subtitle }) {
     const [visible, setVisible] = useState(PAGE_SIZE);
     const shown = useMemo(() => items.slice(0, visible), [items, visible]);
     const hasMore = visible < items.length;
@@ -27,8 +27,11 @@ function GoldListSection({ items = [] }) {
                     <SectionHeading
                         light
                         eyebrow="Handpicked"
-                        title="The Nanyuki Gold List"
-                        subtitle="We've done the groundwork so you don't have to"
+                        title={title || 'The Nanyuki Gold List'}
+                        subtitle={
+                            subtitle ||
+                            "We've done the groundwork so you don't have to"
+                        }
                     />
                 </Reveal>
                 <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -58,7 +61,7 @@ function GoldListSection({ items = [] }) {
     );
 }
 
-function AirbnbsSection({ items = [] }) {
+function AirbnbsSection({ items = [], title, subtitle }) {
     const [visible, setVisible] = useState(PAGE_SIZE);
     const shown = useMemo(() => items.slice(0, visible), [items, visible]);
     const hasMore = visible < items.length;
@@ -73,8 +76,11 @@ function AirbnbsSection({ items = [] }) {
                     <SectionHeading
                         light
                         eyebrow="Stay"
-                        title="Highland Airbnbs"
-                        subtitle="Homes with character across Nanyuki, Timau, and Naromoru."
+                        title={title || 'Highland Airbnbs'}
+                        subtitle={
+                            subtitle ||
+                            'Homes with character across Nanyuki, Timau, and Naromoru.'
+                        }
                     />
                 </Reveal>
                 <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -155,6 +161,7 @@ function HomeContent({
     goldList = [],
     airbnbs = [],
     wildlifeSafaris = [],
+    pageContent = {},
 }) {
     return (
         <>
@@ -193,7 +200,11 @@ function HomeContent({
                 </div>
             </section>
 
-            <GoldListSection items={goldList} />
+            <GoldListSection
+                items={goldList}
+                title={pageContent.gold_list_title}
+                subtitle={pageContent.gold_list_subtitle}
+            />
 
             <CategoryGrid />
 
@@ -245,7 +256,11 @@ function HomeContent({
 
             <StoriesSection />
 
-            <AirbnbsSection items={airbnbs} />
+            <AirbnbsSection
+                items={airbnbs}
+                title={pageContent.airbnbs_title}
+                subtitle={pageContent.airbnbs_subtitle}
+            />
 
             {/* Testimonials */}
             <section className="relative z-10 bg-earth-clay py-14 sm:py-20">
@@ -297,6 +312,7 @@ export default function Home({
     trending = [],
     goldList = [],
     listings = [],
+    page = null,
 }) {
     const airbnbs = useMemo(
         () =>
@@ -313,13 +329,14 @@ export default function Home({
     );
 
     return (
-        <SiteLayout title="Your city, right now">
+        <SiteLayout title={page?.meta_title || 'Your city, right now'}>
             <HomeContent
                 featured={featured}
                 trending={trending}
                 goldList={goldList}
                 airbnbs={airbnbs}
                 wildlifeSafaris={wildlifeSafaris}
+                pageContent={page?.content || {}}
             />
         </SiteLayout>
     );

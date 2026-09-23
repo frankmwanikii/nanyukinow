@@ -30,10 +30,17 @@ function Section({ id, title, children }) {
     );
 }
 
-export default function Privacy() {
+export default function Privacy({ page = null }) {
+    const content = page?.content || {};
+    const heroTitle = content.hero_title || page?.title || 'Privacy Policy';
+    const heroSubtitle =
+        content.hero_subtitle ||
+        'How Nanyuki Now collects, uses, and protects information when you explore listings, create an account, or contact local businesses.';
+    const customBody = String(content.body || '').trim();
     const [active, setActive] = useState(SECTIONS[0].id);
 
     useEffect(() => {
+        if (customBody) return undefined;
         const nodes = SECTIONS.map((s) => document.getElementById(s.id)).filter(
             Boolean,
         );
@@ -53,10 +60,10 @@ export default function Privacy() {
 
         nodes.forEach((node) => observer.observe(node));
         return () => observer.disconnect();
-    }, []);
+    }, [customBody]);
 
     return (
-        <SiteLayout title="Privacy Policy">
+        <SiteLayout title={page?.meta_title || 'Privacy Policy'}>
             {/* Atmosphere band */}
             <div className="relative overflow-hidden border-b border-olive-200/60 bg-gradient-to-br from-olive-900 via-olive-800 to-earth-dusk">
                 <div
@@ -81,12 +88,10 @@ export default function Privacy() {
                         Legal
                     </div>
                     <h1 className="mt-5 max-w-2xl font-display text-4xl font-semibold tracking-tight text-white sm:text-5xl">
-                        Privacy Policy
+                        {heroTitle}
                     </h1>
                     <p className="mt-4 max-w-2xl text-base leading-relaxed text-white/75 sm:text-lg">
-                        How Nanyuki Now collects, uses, and protects information
-                        when you explore listings, create an account, or contact
-                        local businesses.
+                        {heroSubtitle}
                     </p>
                     <p className="mt-6 text-sm text-white/55">
                         Last updated:{' '}
@@ -95,6 +100,15 @@ export default function Privacy() {
                 </div>
             </div>
 
+            {customBody ? (
+                <div className="bg-earth-sand">
+                    <div className="mx-auto max-w-3xl space-y-4 px-4 py-12 text-[15px] leading-relaxed text-olive-800 sm:px-6 sm:py-16 sm:text-base">
+                        {customBody.split(/\n\s*\n/).map((para) => (
+                            <p key={para.slice(0, 48)}>{para}</p>
+                        ))}
+                    </div>
+                </div>
+            ) : (
             <div className="relative bg-earth-sand">
                 <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-olive-900/5 to-transparent" />
 
@@ -387,6 +401,7 @@ export default function Privacy() {
                     </article>
                 </div>
             </div>
+            )}
         </SiteLayout>
     );
 }

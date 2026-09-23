@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ListingController;
 use App\Http\Controllers\Admin\LocationController;
+use App\Http\Controllers\Admin\PageController;
 use App\Http\Controllers\Admin\PricingController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\SettingController;
@@ -63,6 +64,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('upgrades/{upgrade}/approve', [UpgradeController::class, 'approve'])->name('upgrades.approve');
         Route::post('upgrades/{upgrade}/reject', [UpgradeController::class, 'reject'])->name('upgrades.reject');
         Route::post('upgrades/assign-plan', [UpgradeController::class, 'updateUserPlan'])->name('upgrades.assign');
+
+        Route::get('pages', [PageController::class, 'index'])->name('pages.index');
+        Route::get('pages/{page}/edit', [PageController::class, 'edit'])->name('pages.edit');
+        Route::put('pages/{page}', [PageController::class, 'update'])->name('pages.update');
 
         Route::get('settings', [SettingController::class, 'index'])->name('settings.index');
         Route::put('settings', [SettingController::class, 'update'])->name('settings.update');
