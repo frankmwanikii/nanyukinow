@@ -152,16 +152,9 @@ export default function Index({ plans = [], filters = {} }) {
                                         </span>
                                     </Td>
                                     <Td>
-                                        <div>
-                                            <span className="text-base font-medium text-olive-900 dark:text-olive-50">
-                                                {plan.name}
-                                            </span>
-                                            {plan.is_highlighted ? (
-                                                <span className="ml-2 rounded-full bg-mustard/25 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-earth-dusk">
-                                                    Recommended
-                                                </span>
-                                            ) : null}
-                                        </div>
+                                        <span className="text-base font-medium text-olive-900 dark:text-olive-50">
+                                            {plan.name}
+                                        </span>
                                     </Td>
                                     <Td>
                                         <span className="tabular-nums text-sm font-medium text-olive-900 dark:text-olive-50">
