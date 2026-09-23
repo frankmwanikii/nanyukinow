@@ -295,17 +295,19 @@ function PaymentCheckout({
 
     const submitManualReview = (e) => {
         e.preventDefault();
-        form
-            .transform((data) => ({
-                ...data,
-                member_notes: buildNotes(),
-            }))
-            .post(route('account.upgrade.store'), {
-                onSuccess: () => onClose(),
-                onFinish: () => {
-                    form.transform((data) => data);
-                },
-            });
+
+        form.transform((data) => ({
+            ...data,
+            member_notes: buildNotes(),
+        }));
+
+        form.post(route('account.upgrade.store'), {
+            preserveScroll: true,
+            onSuccess: () => onClose(),
+            onFinish: () => {
+                form.transform((data) => data);
+            },
+        });
     };
 
     const paymentPayload = () => ({
@@ -781,26 +783,37 @@ function PaymentCheckout({
                             }
                             className="inline-flex w-full items-center justify-center gap-2 bg-olive-900 px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-mustard hover:text-earth-dusk disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                            {paying ? (
+                            {paying || form.processing ? (
                                 <RefreshCw className="h-4 w-4 animate-spin" />
                             ) : (
                                 <Send className="h-4 w-4" />
                             )}
-                            {form.processing || paying
-                                ? method === 'mpesa'
-                                    ? 'Sending M-Pesa prompt…'
-                                    : 'Connecting to PayPal…'
-                                : offlinePayment
+                            {form.processing
+                                ? offlinePayment
+                                    ? 'Submitting for verification…'
+                                    : method === 'mpesa'
+                                      ? 'Sending M-Pesa prompt…'
+                                      : 'Connecting to PayPal…'
+                                : paying
                                   ? method === 'mpesa'
-                                      ? `Submit M-Pesa code · ${amountLabel}`
-                                      : `Submit PayPal ID · ${amountLabel}`
-                                  : method === 'mpesa'
-                                    ? `Pay with M-Pesa · ${amountLabel}`
-                                    : `Pay with PayPal · ${amountLabel}`}
+                                      ? 'Sending M-Pesa prompt…'
+                                      : 'Connecting to PayPal…'
+                                  : offlinePayment
+                                    ? method === 'mpesa'
+                                        ? `Submit M-Pesa code · ${amountLabel}`
+                                        : `Submit PayPal ID · ${amountLabel}`
+                                    : method === 'mpesa'
+                                      ? `Pay with M-Pesa · ${amountLabel}`
+                                      : `Pay with PayPal · ${amountLabel}`}
                         </button>
                         {offlinePayment && (
                             <p className="mt-2 text-center text-[11px] text-olive-400">
                                 Plan activates after payment is verified
+                            </p>
+                        )}
+                        {(form.errors.to_plan || form.errors.payment_method) && (
+                            <p className="mt-2 text-center text-sm text-rose-600">
+                                {form.errors.to_plan || form.errors.payment_method}
                             </p>
                         )}
                     </div>

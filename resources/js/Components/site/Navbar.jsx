@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import AuthModal from './AuthModal';
 import FlippingSearchHint from './FlippingSearchHint';
 import Logo from './Logo';
@@ -371,7 +372,115 @@ export default function Navbar({ compact = false }) {
         setOpen(false);
     };
 
+    const mobileMenu =
+        typeof document !== 'undefined' ? (
+            <AnimatePresence>
+                {open ? (
+                    <>
+                        <motion.button
+                            type="button"
+                            key="mobile-nav-backdrop"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="fixed inset-0 z-[2000] bg-black/50 backdrop-blur-[2px] lg:hidden"
+                            aria-label="Close menu"
+                            onClick={() => setOpen(false)}
+                        />
+                        <motion.aside
+                            key="mobile-nav-drawer"
+                            initial={{ x: '-100%' }}
+                            animate={{ x: 0 }}
+                            exit={{ x: '-100%' }}
+                            transition={{
+                                type: 'spring',
+                                stiffness: 380,
+                                damping: 34,
+                            }}
+                            className="fixed inset-y-0 left-0 z-[2001] flex h-[100dvh] w-[min(20rem,86vw)] flex-col bg-[#4f5a3e] font-display shadow-lift lg:hidden"
+                            role="dialog"
+                            aria-modal="true"
+                            aria-label="Main menu"
+                        >
+                            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-white/10 px-4 py-3.5">
+                                <Logo className="min-w-0" />
+                                <button
+                                    type="button"
+                                    onClick={() => setOpen(false)}
+                                    className="inline-flex rounded-lg p-2 text-white transition hover:bg-white/10"
+                                    aria-label="Close menu"
+                                >
+                                    <X className="h-5 w-5" strokeWidth={2} />
+                                </button>
+                            </div>
+
+                            <MobileDrawerNav
+                                navLinks={navLinks}
+                                accordion={mobileAccordion}
+                                setAccordion={setMobileAccordion}
+                                moreAccordion={mobileMoreAccordion}
+                                setMoreAccordion={setMobileMoreAccordion}
+                                onNavigate={() => setOpen(false)}
+                            />
+
+                            <div className="shrink-0 border-t border-white/10 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+                                {user ? (
+                                    <Link
+                                        href={route('account.index')}
+                                        onClick={() => setOpen(false)}
+                                        className="mb-3 flex items-center gap-3 rounded-xl bg-white/5 px-3 py-2.5 ring-1 ring-white/10 transition hover:bg-white/10"
+                                    >
+                                        <MemberAvatar user={user} />
+                                        <div className="min-w-0 flex-1">
+                                            <p className="truncate text-sm font-semibold text-white">
+                                                {user.name}
+                                            </p>
+                                            <p className="truncate text-xs text-white/60">
+                                                {user.plan_label || 'Free'} plan
+                                            </p>
+                                        </div>
+                                    </Link>
+                                ) : null}
+                                <Link
+                                    href={
+                                        user
+                                            ? route('account.listings.create')
+                                            : '/register'
+                                    }
+                                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-mustard px-4 py-3.5 text-base font-bold text-olive-950 transition hover:bg-white hover:text-mustard"
+                                    onClick={() => setOpen(false)}
+                                >
+                                    <Plus className="h-4 w-4 stroke-[2.5]" />
+                                    Add Business
+                                </Link>
+                                {user ? (
+                                    <div className="mt-2 grid grid-cols-2 gap-2">
+                                        <Link
+                                            href={route('account.index')}
+                                            className="inline-flex items-center justify-center rounded-xl px-3 py-2.5 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
+                                            onClick={() => setOpen(false)}
+                                        >
+                                            Dashboard
+                                        </Link>
+                                        <Link
+                                            href={route('account.messages')}
+                                            className="inline-flex items-center justify-center rounded-xl px-3 py-2.5 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
+                                            onClick={() => setOpen(false)}
+                                        >
+                                            Messages
+                                        </Link>
+                                    </div>
+                                ) : null}
+                            </div>
+                        </motion.aside>
+                    </>
+                ) : null}
+            </AnimatePresence>
+        ) : null;
+
     return (
+        <>
         <header
             ref={headerRef}
             data-site-nav
@@ -663,119 +772,13 @@ export default function Navbar({ compact = false }) {
                 </div>
             </div>
 
-            <AnimatePresence>
-                {open ? (
-                    <>
-                        <motion.button
-                            type="button"
-                            key="mobile-nav-backdrop"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="fixed inset-0 z-[1200] bg-black/50 backdrop-blur-[2px] lg:hidden"
-                            aria-label="Close menu"
-                            onClick={() => setOpen(false)}
-                        />
-                        <motion.aside
-                            key="mobile-nav-drawer"
-                            initial={{ x: '-100%' }}
-                            animate={{ x: 0 }}
-                            exit={{ x: '-100%' }}
-                            transition={{
-                                type: 'spring',
-                                stiffness: 380,
-                                damping: 34,
-                            }}
-                            className="fixed inset-y-0 left-0 z-[1201] flex w-[min(20rem,86vw)] flex-col bg-[#4f5a3e] font-display shadow-lift lg:hidden"
-                            role="dialog"
-                            aria-modal="true"
-                            aria-label="Main menu"
-                        >
-                            <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-3.5">
-                                <Logo className="min-w-0" />
-                                <button
-                                    type="button"
-                                    onClick={() => setOpen(false)}
-                                    className="inline-flex rounded-lg p-2 text-white transition hover:bg-white/10"
-                                    aria-label="Close menu"
-                                >
-                                    <X className="h-5 w-5" strokeWidth={2} />
-                                </button>
-                            </div>
-
-                            <MobileDrawerNav
-                                navLinks={navLinks}
-                                accordion={mobileAccordion}
-                                setAccordion={setMobileAccordion}
-                                moreAccordion={mobileMoreAccordion}
-                                setMoreAccordion={setMobileMoreAccordion}
-                                onNavigate={() => setOpen(false)}
-                            />
-
-                            <div className="border-t border-white/10 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-                                {user ? (
-                                    <Link
-                                        href={route('account.index')}
-                                        onClick={() => setOpen(false)}
-                                        className="mb-3 flex items-center gap-3 rounded-xl bg-white/5 px-3 py-2.5 ring-1 ring-white/10 transition hover:bg-white/10"
-                                    >
-                                        <MemberAvatar user={user} />
-                                        <div className="min-w-0 flex-1">
-                                            <p className="truncate text-sm font-semibold text-white">
-                                                {user.name}
-                                            </p>
-                                            <p className="truncate text-xs text-white/60">
-                                                {user.plan_label || 'Free'} plan
-                                            </p>
-                                        </div>
-                                    </Link>
-                                ) : null}
-                                <Link
-                                    href={user ? route('account.listings.create') : '/register'}
-                                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-mustard px-4 py-3.5 text-base font-bold text-olive-950 transition hover:bg-white hover:text-mustard"
-                                    onClick={() => setOpen(false)}
-                                >
-                                    <Plus className="h-4 w-4 stroke-[2.5]" />
-                                    Add Business
-                                </Link>
-                                {user ? (
-                                    <div className="mt-2 grid grid-cols-2 gap-2">
-                                        <Link
-                                            href={route('account.index')}
-                                            className="inline-flex items-center justify-center rounded-xl px-3 py-2.5 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
-                                            onClick={() => setOpen(false)}
-                                        >
-                                            Dashboard
-                                        </Link>
-                                        <Link
-                                            href={route('account.messages')}
-                                            className="inline-flex items-center justify-center rounded-xl px-3 py-2.5 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
-                                            onClick={() => setOpen(false)}
-                                        >
-                                            Messages
-                                        </Link>
-                                    </div>
-                                ) : (
-                                    <Link
-                                        href={route('pricing')}
-                                        className="mt-2 inline-flex w-full items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
-                                        onClick={() => setOpen(false)}
-                                    >
-                                        Pricing
-                                    </Link>
-                                )}
-                            </div>
-                        </motion.aside>
-                    </>
-                ) : null}
-            </AnimatePresence>
-
             <AuthModal
                 open={authOpen}
                 initialTab={authTab}
                 onClose={() => setAuthOpen(false)}
             />
         </header>
+        {mobileMenu ? createPortal(mobileMenu, document.body) : null}
+        </>
     );
 }

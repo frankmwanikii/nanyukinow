@@ -141,24 +141,52 @@ class Membership
         ])->save();
     }
 
+    /**
+     * Days of access granted for a billing period when activating a paid plan.
+     */
+    public static function durationDaysForPeriod(?string $period): int
+    {
+        return match ($period) {
+            'year' => 365,
+            'one_time' => 365,
+            default => 30,
+        };
+    }
+
+    /**
+     * Activate (or change) a member's plan and boost existing listings to match.
+     */
     public static function activate(User $user, string $plan, ?int $days = 30): void
     {
         $plan = self::normalize($plan);
+        $days = max(1, $days ?? 30);
 
         $user->forceFill([
             'plan' => $plan,
             'plan_started_at' => now(),
-            'plan_expires_at' => $plan === self::FREE ? null : now()->addDays($days ?? 30),
+            'plan_expires_at' => $plan === self::FREE ? null : now()->addDays($days),
         ])->save();
 
-        if ($plan !== self::FREE) {
-            $user->listings()
-                ->where('tier', self::FREE)
-                ->update([
-                    'tier' => $plan,
-                    'is_featured' => true,
-                ]);
+        if ($plan === self::FREE) {
+            return;
         }
+
+        $lowerTiers = match ($plan) {
+            self::PREMIUM => [self::FREE, self::STANDARD],
+            self::STANDARD => [self::FREE],
+            default => [],
+        };
+
+        if ($lowerTiers === []) {
+            return;
+        }
+
+        $user->listings()
+            ->whereIn('tier', $lowerTiers)
+            ->update([
+                'tier' => $plan,
+                'is_featured' => true,
+            ]);
     }
 
     public static function planSummary(User $user): array

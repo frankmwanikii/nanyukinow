@@ -19,27 +19,59 @@ function money(amount, currency = 'KES') {
 
 export default function Index({ upgrades, filters, counts }) {
     const [notes, setNotes] = useState({});
+    const [busyId, setBusyId] = useState(null);
+    const [actionError, setActionError] = useState(null);
     const rows = upgrades?.data || [];
 
     const setNote = (id, value) => setNotes((prev) => ({ ...prev, [id]: value }));
 
     const approve = (upgrade) => {
-        router.post(route('admin.upgrades.approve', upgrade.id), {
-            admin_notes: notes[upgrade.id] || '',
-            duration_days: 30,
-        });
+        setActionError(null);
+        setBusyId(upgrade.id);
+        router.post(
+            route('admin.upgrades.approve', upgrade.id),
+            {
+                admin_notes: notes[upgrade.id] || '',
+            },
+            {
+                preserveScroll: true,
+                onError: (errors) => {
+                    setActionError(
+                        errors?.admin_notes ||
+                            errors?.duration_days ||
+                            'Could not approve this upgrade. Try again.',
+                    );
+                },
+                onFinish: () => setBusyId(null),
+            },
+        );
     };
 
     const reject = (upgrade) => {
         const admin_notes = notes[upgrade.id];
         if (!admin_notes?.trim()) {
-            alert('Add a short rejection note first.');
+            setActionError('Add a short rejection note first.');
             return;
         }
-        router.post(route('admin.upgrades.reject', upgrade.id), { admin_notes });
+        setActionError(null);
+        setBusyId(upgrade.id);
+        router.post(
+            route('admin.upgrades.reject', upgrade.id),
+            { admin_notes },
+            {
+                preserveScroll: true,
+                onError: (errors) => {
+                    setActionError(
+                        errors?.admin_notes || 'Could not reject this upgrade. Try again.',
+                    );
+                },
+                onFinish: () => setBusyId(null),
+            },
+        );
     };
 
     const setFilter = (status) => {
+        setActionError(null);
         router.get(route('admin.upgrades.index'), { status }, { preserveState: true });
     };
 
@@ -58,6 +90,12 @@ export default function Index({ upgrades, filters, counts }) {
                 Members pay via M-Pesa and submit a confirmation code. Approve to activate their
                 Standard or Premium plan (and boost their free listings).
             </p>
+
+            {actionError && (
+                <div className="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-100">
+                    {actionError}
+                </div>
+            )}
 
             <div className="mb-4 flex flex-wrap gap-2">
                 {tabs.map((tab) => (
@@ -144,14 +182,18 @@ export default function Index({ upgrades, filters, counts }) {
                                                     <AdminButton
                                                         size="sm"
                                                         type="button"
+                                                        disabled={busyId === upgrade.id}
                                                         onClick={() => approve(upgrade)}
                                                     >
-                                                        Approve
+                                                        {busyId === upgrade.id
+                                                            ? 'Working…'
+                                                            : 'Approve'}
                                                     </AdminButton>
                                                     <AdminButton
                                                         size="sm"
                                                         variant="danger"
                                                         type="button"
+                                                        disabled={busyId === upgrade.id}
                                                         onClick={() => reject(upgrade)}
                                                     >
                                                         Reject
