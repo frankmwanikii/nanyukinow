@@ -16,6 +16,7 @@ class SettingController extends Controller
         $this->ensureDefaults();
         $this->ensureBillingDefaults();
         $this->ensurePaymentGatewayDefaults();
+        $this->ensureSocialDefaults();
 
         $settings = SiteSetting::query()
             ->whereIn('group', ['branding', 'pages', 'billing', 'payments', 'social', 'seo'])
@@ -81,6 +82,7 @@ class SettingController extends Controller
             ['group' => 'social', 'key' => 'facebook_url', 'label' => 'Facebook', 'type' => 'text', 'value' => '', 'help' => null, 'sort_order' => 1],
             ['group' => 'social', 'key' => 'instagram_url', 'label' => 'Instagram', 'type' => 'text', 'value' => '', 'help' => null, 'sort_order' => 2],
             ['group' => 'social', 'key' => 'twitter_url', 'label' => 'X / Twitter', 'type' => 'text', 'value' => '', 'help' => null, 'sort_order' => 3],
+            ['group' => 'social', 'key' => 'youtube_url', 'label' => 'YouTube', 'type' => 'text', 'value' => '', 'help' => null, 'sort_order' => 4],
             ['group' => 'seo', 'key' => 'meta_description', 'label' => 'Default meta description', 'type' => 'textarea', 'value' => 'Discover listings, stays, and stories in Nanyuki.', 'help' => null, 'sort_order' => 1],
             ['group' => 'seo', 'key' => 'og_image', 'label' => 'Default share image', 'type' => 'image', 'value' => '', 'help' => 'Open Graph / social preview image.', 'sort_order' => 2],
         ];
@@ -323,6 +325,23 @@ class SettingController extends Controller
         ];
 
         foreach ($payments as $row) {
+            SiteSetting::query()->firstOrCreate(
+                ['key' => $row['key']],
+                $row,
+            );
+        }
+    }
+
+    private function ensureSocialDefaults(): void
+    {
+        $social = [
+            ['group' => 'social', 'key' => 'facebook_url', 'label' => 'Facebook', 'type' => 'text', 'value' => '', 'help' => null, 'sort_order' => 1],
+            ['group' => 'social', 'key' => 'instagram_url', 'label' => 'Instagram', 'type' => 'text', 'value' => '', 'help' => null, 'sort_order' => 2],
+            ['group' => 'social', 'key' => 'twitter_url', 'label' => 'X / Twitter', 'type' => 'text', 'value' => '', 'help' => null, 'sort_order' => 3],
+            ['group' => 'social', 'key' => 'youtube_url', 'label' => 'YouTube', 'type' => 'text', 'value' => '', 'help' => null, 'sort_order' => 4],
+        ];
+
+        foreach ($social as $row) {
             SiteSetting::query()->firstOrCreate(
                 ['key' => $row['key']],
                 $row,
