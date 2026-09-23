@@ -454,24 +454,6 @@ export default function Navbar({ compact = false }) {
                                     <Plus className="h-4 w-4 stroke-[2.5]" />
                                     Add Business
                                 </Link>
-                                {user ? (
-                                    <div className="mt-2 grid grid-cols-2 gap-2">
-                                        <Link
-                                            href={route('account.index')}
-                                            className="inline-flex items-center justify-center rounded-xl px-3 py-2.5 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
-                                            onClick={() => setOpen(false)}
-                                        >
-                                            Dashboard
-                                        </Link>
-                                        <Link
-                                            href={route('account.messages')}
-                                            className="inline-flex items-center justify-center rounded-xl px-3 py-2.5 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
-                                            onClick={() => setOpen(false)}
-                                        >
-                                            Messages
-                                        </Link>
-                                    </div>
-                                ) : null}
                             </div>
                         </motion.aside>
                     </>
