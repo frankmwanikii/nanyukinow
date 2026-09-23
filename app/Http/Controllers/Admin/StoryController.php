@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Story;
+use App\Support\AdminPagination;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -15,6 +16,8 @@ class StoryController extends Controller
 {
     public function index(Request $request): Response
     {
+        $perPage = AdminPagination::perPage($request);
+
         $stories = Story::query()
             ->when($request->filled('q'), function ($query) use ($request) {
                 $q = '%'.$request->string('q').'%';
@@ -27,7 +30,7 @@ class StoryController extends Controller
             ->when($request->string('status')->toString() === 'published', fn ($q) => $q->where('is_published', true))
             ->when($request->string('status')->toString() === 'draft', fn ($q) => $q->where('is_published', false))
             ->latest()
-            ->paginate(15)
+            ->paginate($perPage)
             ->withQueryString()
             ->through(fn (Story $story) => [
                 'id' => $story->id,
@@ -46,6 +49,7 @@ class StoryController extends Controller
             'filters' => [
                 'q' => $request->string('q')->toString(),
                 'status' => $request->string('status')->toString(),
+                'per_page' => $perPage,
             ],
         ]);
     }

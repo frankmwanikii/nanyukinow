@@ -1,8 +1,10 @@
 import ListingImageCropModal from './ListingImageCropModal';
+import MediaAddDialog from './MediaAddDialog';
+import MediaLightbox from './MediaLightbox';
 import { help, label } from './fieldStyles';
 import { srcToDataUrl } from '@/utils/cropImage';
 import {
-    Check,
+    Expand,
     ImagePlus,
     Loader2,
     RefreshCw,
@@ -10,7 +12,7 @@ import {
     Trash2,
     Upload,
 } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 
 const MAX_BYTES = 15 * 1024 * 1024;
 const MAX_GALLERY = 12;
@@ -63,75 +65,50 @@ function DropZone({
     );
 }
 
-function MediaSlot({
-    title,
-    subtitle,
-    preview,
-    aspect = 'aspect-[4/3]',
-    rounded = 'rounded-2xl',
-    onBrowse,
-    onFile,
-    onClear,
-    emptyIcon: EmptyIcon = Upload,
-    emptyLabel = 'Upload',
-    badge,
-}) {
+function MediaToolbar({ onView, onReplace, onRemove }) {
+    const chip =
+        'inline-flex items-center gap-1.5 rounded-2xl px-3 py-2 text-[11px] font-semibold tracking-wide shadow-[0_8px_24px_rgba(0,0,0,0.28)] backdrop-blur-xl transition focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard focus-visible:ring-offset-2 focus-visible:ring-offset-transparent';
+
     return (
-        <div className="flex h-full flex-col">
-            <div className="mb-2 flex items-start justify-between gap-2">
-                <div>
-                    <p className={label}>{title}</p>
-                    {subtitle ? <p className={help}>{subtitle}</p> : null}
-                </div>
-                {badge}
-            </div>
-            <DropZone onFiles={onFile} className="relative flex-1">
+        <div
+            role="group"
+            aria-label="Image actions"
+            className="flex max-w-[calc(100%-0.75rem)] flex-wrap items-center justify-center gap-2"
+        >
+            {onView ? (
                 <button
                     type="button"
-                    onClick={onBrowse}
-                    className={`group relative flex w-full items-center justify-center overflow-hidden ${aspect} ${rounded} bg-gradient-to-br from-olive-50 via-white to-olive-100/80 ring-1 ring-olive-200/80 transition hover:ring-mustard focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard`}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onView?.(e);
+                    }}
+                    className={`${chip} bg-white/15 text-white ring-1 ring-white/25 hover:bg-white/25`}
                 >
-                    {preview ? (
-                        <>
-                            <img
-                                src={preview}
-                                alt={`${title} preview`}
-                                className="h-full w-full object-cover"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-olive-950/70 via-olive-950/10 to-transparent opacity-90 transition group-hover:opacity-100" />
-                            <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 p-3">
-                                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-semibold text-olive-900 shadow-sm">
-                                    <Check className="h-3 w-3 text-emerald-600" />
-                                    Ready
-                                </span>
-                                <span className="inline-flex items-center gap-1 rounded-full bg-olive-950/80 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur">
-                                    <RefreshCw className="h-3 w-3" />
-                                    Replace
-                                </span>
-                            </div>
-                        </>
-                    ) : (
-                        <span className="flex flex-col items-center gap-2 px-4 text-center text-olive-600">
-                            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-olive-100">
-                                <EmptyIcon className="h-5 w-5 text-olive-700" />
-                            </span>
-                            <span className="text-sm font-semibold text-olive-900">
-                                {emptyLabel}
-                            </span>
-                            <span className="text-xs text-olive-500">
-                                Drag & drop or click · JPG, PNG, WebP
-                            </span>
-                        </span>
-                    )}
+                    <Expand className="h-3.5 w-3.5" strokeWidth={2.25} />
+                    View
                 </button>
-            </DropZone>
-            {preview && onClear ? (
+            ) : null}
+            <button
+                type="button"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onReplace?.(e);
+                }}
+                className={`${chip} bg-mustard text-olive-950 ring-1 ring-mustard/40 hover:bg-white`}
+            >
+                <RefreshCw className="h-3.5 w-3.5" strokeWidth={2.25} />
+                Replace
+            </button>
+            {onRemove ? (
                 <button
                     type="button"
-                    onClick={onClear}
-                    className="mt-2 inline-flex items-center gap-1.5 self-start text-xs font-semibold text-rose-600 hover:text-rose-700"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onRemove?.(e);
+                    }}
+                    className={`${chip} bg-rose-500/20 text-rose-100 ring-1 ring-rose-300/35 hover:bg-rose-500/35`}
                 >
-                    <Trash2 className="h-3.5 w-3.5" />
+                    <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
                     Remove
                 </button>
             ) : null}
@@ -139,8 +116,210 @@ function MediaSlot({
     );
 }
 
+function HoverActions({ children }) {
+    return (
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex justify-center bg-gradient-to-t from-olive-950/70 via-olive-950/25 to-transparent px-3 pb-3.5 pt-12 opacity-100 transition duration-200 ease-out sm:translate-y-1 sm:opacity-0 sm:group-hover:pointer-events-auto sm:group-hover:translate-y-0 sm:group-hover:opacity-100 sm:group-focus-within:pointer-events-auto sm:group-focus-within:translate-y-0 sm:group-focus-within:opacity-100 max-sm:pointer-events-auto">
+            {children}
+        </div>
+    );
+}
+
 /**
- * Cover + logo + multi gallery with crop/zoom, queue progress, and previews.
+ * Separate cover + logo previews; action pills appear on hover over the image.
+ */
+function CoverLogoStage({
+    coverPreview,
+    logoPreview,
+    onBrowseCover,
+    onBrowseLogo,
+    onFileCover,
+    onFileLogo,
+    onViewCover,
+    onViewLogo,
+    onClearCover,
+    onClearLogo,
+}) {
+    return (
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)] lg:items-start">
+            <div>
+                <div className="mb-2.5 flex items-center gap-2">
+                    <p className={label}>Cover image</p>
+                    {coverPreview ? (
+                        <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-800 ring-1 ring-emerald-100">
+                            Set
+                        </span>
+                    ) : (
+                        <span className="rounded-full bg-olive-100 px-2 py-0.5 text-[10px] font-semibold text-olive-700">
+                            Required
+                        </span>
+                    )}
+                </div>
+                <p className={`${help} mb-3`}>
+                    Full-bleed photo on listing cards. Crop & zoom before save.
+                </p>
+                <DropZone
+                    onFiles={onFileCover}
+                    className="overflow-hidden rounded-2xl bg-olive-100 shadow-soft ring-1 ring-olive-200/80"
+                >
+                    <div className="group relative aspect-[4/3] bg-gradient-to-br from-olive-50 via-white to-olive-100/80">
+                        {coverPreview ? (
+                            <>
+                                <button
+                                    type="button"
+                                    onClick={onViewCover}
+                                    className="absolute inset-0 cursor-zoom-in focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-mustard"
+                                    aria-label="View cover image full size"
+                                >
+                                    <img
+                                        src={coverPreview}
+                                        alt="Cover preview"
+                                        className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.015]"
+                                    />
+                                </button>
+                                <HoverActions>
+                                    <MediaToolbar
+                                        onView={onViewCover}
+                                        onReplace={onBrowseCover}
+                                        onRemove={onClearCover}
+                                    />
+                                </HoverActions>
+                            </>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={onBrowseCover}
+                                className="absolute inset-0 flex flex-col items-center justify-center gap-2.5 px-6 text-center transition hover:bg-mustard/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-mustard"
+                            >
+                                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-olive-100">
+                                    <Upload className="h-5 w-5 text-olive-700" />
+                                </span>
+                                <span className="text-sm font-semibold text-olive-900">
+                                    Add cover photo
+                                </span>
+                                <span className="max-w-xs text-xs text-olive-500">
+                                    Drag & drop or click · JPG, PNG, WebP
+                                </span>
+                            </button>
+                        )}
+                    </div>
+                </DropZone>
+            </div>
+
+            <div>
+                <div className="mb-2.5 flex items-center gap-2">
+                    <p className={label}>Logo</p>
+                    <span className="rounded-full bg-olive-100 px-2 py-0.5 text-[10px] font-semibold text-olive-700">
+                        Optional
+                    </span>
+                </div>
+                <p className={`${help} mb-3`}>
+                    Round badge on listing cards. Shown large here so you can
+                    check the crop.
+                </p>
+                <DropZone
+                    onFiles={onFileLogo}
+                    className="mx-auto w-full max-w-[16rem] lg:mx-0 lg:max-w-none"
+                >
+                    <div className="group relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl bg-olive-50/80 p-5 ring-1 ring-olive-200/80 sm:p-6">
+                        {logoPreview ? (
+                            <>
+                                <button
+                                    type="button"
+                                    onClick={onViewLogo}
+                                    className="relative h-full w-full max-h-[14rem] max-w-[14rem] cursor-zoom-in overflow-hidden rounded-full bg-white shadow-lift ring-4 ring-white focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard focus-visible:ring-offset-2"
+                                    aria-label="View logo full size"
+                                >
+                                    <img
+                                        src={logoPreview}
+                                        alt="Logo preview"
+                                        className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+                                    />
+                                </button>
+                                <HoverActions>
+                                    <MediaToolbar
+                                        onView={onViewLogo}
+                                        onReplace={onBrowseLogo}
+                                        onRemove={onClearLogo}
+                                    />
+                                </HoverActions>
+                            </>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={onBrowseLogo}
+                                className="flex h-full w-full max-h-[14rem] max-w-[14rem] flex-col items-center justify-center gap-2 rounded-full border-2 border-dashed border-olive-300 bg-white text-olive-600 transition hover:border-mustard hover:bg-mustard/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard"
+                            >
+                                <ImagePlus className="h-6 w-6" />
+                                <span className="text-sm font-semibold text-olive-900">
+                                    Add logo
+                                </span>
+                                <span className="px-4 text-center text-[11px] text-olive-500">
+                                    Square crop · round on the card
+                                </span>
+                            </button>
+                        )}
+                    </div>
+                </DropZone>
+            </div>
+        </div>
+    );
+}
+
+function PosterSlot({
+    preview,
+    onBrowse,
+    onFile,
+    onClear,
+    onView,
+}) {
+    return (
+        <div className="max-w-[14rem]">
+            <div className="mb-2 flex items-center gap-2">
+                <p className={label}>Event poster</p>
+            </div>
+            <p className={`${help} mb-2.5`}>Portrait poster on event cards.</p>
+            <DropZone onFiles={onFile} className="overflow-hidden rounded-2xl">
+                {preview ? (
+                    <div className="group relative aspect-[3/4] overflow-hidden rounded-2xl ring-1 ring-olive-200/80">
+                        <button
+                            type="button"
+                            onClick={onView}
+                            className="absolute inset-0 cursor-zoom-in focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-mustard"
+                            aria-label="View event poster full size"
+                        >
+                            <img
+                                src={preview}
+                                alt="Event poster"
+                                className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"
+                            />
+                        </button>
+                        <HoverActions>
+                            <MediaToolbar
+                                onView={onView}
+                                onReplace={onBrowse}
+                                onRemove={onClear}
+                            />
+                        </HoverActions>
+                    </div>
+                ) : (
+                    <button
+                        type="button"
+                        onClick={onBrowse}
+                        className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-2 rounded-2xl bg-gradient-to-br from-olive-50 via-white to-olive-100/80 text-olive-600 ring-1 ring-dashed ring-olive-300 transition hover:bg-mustard/5 hover:ring-mustard"
+                    >
+                        <ImagePlus className="h-5 w-5" />
+                        <span className="text-xs font-semibold text-olive-900">
+                            Add poster
+                        </span>
+                    </button>
+                )}
+            </DropZone>
+        </div>
+    );
+}
+
+/**
+ * Cover + logo + multi gallery with crop/zoom, queue progress, lightbox, and previews.
  */
 export default function GalleryUploader({
     coverPreview,
@@ -148,6 +327,7 @@ export default function GalleryUploader({
     posterPreview,
     galleryItems = [],
     showPoster = false,
+    libraryRoute = null,
     onCoverChange,
     onLogoChange,
     onPosterChange,
@@ -163,11 +343,53 @@ export default function GalleryUploader({
     const [queue, setQueue] = useState([]);
     const [queueTotal, setQueueTotal] = useState(0);
     const [localError, setLocalError] = useState(null);
+    const [lightboxIndex, setLightboxIndex] = useState(null);
+    const [addOpen, setAddOpen] = useState(false);
+    const [addTarget, setAddTarget] = useState('gallery'); // gallery | cover | logo | poster
+
+    const lightboxItems = useMemo(() => {
+        const items = [];
+        if (coverPreview) {
+            items.push({
+                src: coverPreview,
+                label: 'Cover image',
+                hint: 'Listing card',
+            });
+        }
+        if (logoPreview) {
+            items.push({
+                src: logoPreview,
+                label: 'Logo',
+                hint: 'Card badge',
+            });
+        }
+        if (showPoster && posterPreview) {
+            items.push({
+                src: posterPreview,
+                label: 'Event poster',
+                hint: 'Portrait',
+            });
+        }
+        galleryItems.forEach((item, index) => {
+            const src = item.preview || item.url;
+            if (!src) return;
+            items.push({
+                src,
+                label: `Gallery ${index + 1}`,
+                hint: item.url && !item.file ? 'Saved' : 'Preview',
+            });
+        });
+        return items;
+    }, [coverPreview, logoPreview, posterPreview, galleryItems, showPoster]);
+
+    const openLightboxAt = (src) => {
+        const index = lightboxItems.findIndex((item) => item.src === src);
+        if (index >= 0) setLightboxIndex(index);
+    };
 
     const openCrop = async (file, kind, aspect, cropShape = 'rect') => {
         if (!file) return;
         try {
-            // Read the File directly — avoid blob: URL rewriting bugs.
             const dataUrl = await srcToDataUrl(file);
             setCropState({
                 kind,
@@ -221,6 +443,79 @@ export default function GalleryUploader({
         setQueue(accepted);
         setQueueTotal(accepted.length);
         openCrop(accepted[0], 'gallery', 4 / 3);
+    };
+
+    const addGalleryUrls = (urls) => {
+        const list = (urls || []).filter(
+            (u) => typeof u === 'string' && u.trim() !== '',
+        );
+        if (!list.length) return;
+
+        const remaining = MAX_GALLERY - galleryItems.length;
+        if (remaining <= 0) {
+            setLocalError(`You can upload up to ${MAX_GALLERY} gallery photos.`);
+            return;
+        }
+
+        const existing = new Set(
+            galleryItems.map((g) => g.url || g.preview).filter(Boolean),
+        );
+        const nextUrls = list
+            .map((u) => u.trim())
+            .filter((u) => !existing.has(u))
+            .slice(0, remaining);
+
+        if (!nextUrls.length) {
+            setLocalError('Those images are already in the gallery.');
+            return;
+        }
+
+        setLocalError(null);
+        const next = [
+            ...galleryItems,
+            ...nextUrls.map((url) => ({
+                id: `g-url-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+                file: null,
+                preview: url,
+                url,
+            })),
+        ];
+        onGalleryChange?.(next);
+    };
+
+    const openAddMenu = (target = 'gallery') => {
+        if (target === 'gallery' && galleryItems.length >= MAX_GALLERY) {
+            setLocalError(`You can upload up to ${MAX_GALLERY} gallery photos.`);
+            return;
+        }
+        setAddTarget(target);
+        setAddOpen(true);
+    };
+
+    const handleAddUpload = () => {
+        if (addTarget === 'cover') coverInput.current?.click();
+        else if (addTarget === 'logo') logoInput.current?.click();
+        else if (addTarget === 'poster') posterInput.current?.click();
+        else galleryInput.current?.click();
+    };
+
+    const applySlotUrl = (kind, url) => {
+        if (!url) return;
+        if (kind === 'cover') {
+            onCoverChange?.({ file: null, preview: url, url });
+        } else if (kind === 'logo') {
+            onLogoChange?.({ file: null, preview: url, url });
+        } else if (kind === 'poster') {
+            onPosterChange?.({ file: null, preview: url, url });
+        }
+    };
+
+    const handlePickUrls = (urls) => {
+        if (addTarget === 'gallery') {
+            addGalleryUrls(urls);
+            return;
+        }
+        applySlotUrl(addTarget, urls?.[0]);
     };
 
     const finishCrop = (file) => {
@@ -293,126 +588,66 @@ export default function GalleryUploader({
 
     return (
         <div className="space-y-8">
-            <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] lg:items-stretch">
-                <MediaSlot
-                    title="Cover image"
-                    subtitle="Appears on listing cards. Crop & zoom before save."
-                    preview={coverPreview}
-                    aspect="aspect-[4/3]"
-                    onBrowse={() => coverInput.current?.click()}
-                    onFile={(file) => handleSingle(file, 'cover')}
-                    onClear={
-                        coverPreview
-                            ? () =>
-                                  onCoverChange?.({
-                                      file: null,
-                                      preview: null,
-                                      url: null,
-                                  })
+            {addOpen ? (
+                <MediaAddDialog
+                    open
+                    target={addTarget}
+                    onClose={() => setAddOpen(false)}
+                    libraryRoute={libraryRoute}
+                    remaining={MAX_GALLERY - galleryCount}
+                    onUpload={handleAddUpload}
+                    onPickUrls={handlePickUrls}
+                />
+            ) : (
+                <>
+            <CoverLogoStage
+                coverPreview={coverPreview}
+                logoPreview={logoPreview}
+                onBrowseCover={() => openAddMenu('cover')}
+                onBrowseLogo={() => openAddMenu('logo')}
+                onFileCover={(file) => handleSingle(file, 'cover')}
+                onFileLogo={(file) => handleSingle(file, 'logo')}
+                onViewCover={
+                    coverPreview
+                        ? () => openLightboxAt(coverPreview)
+                        : undefined
+                }
+                onViewLogo={
+                    logoPreview
+                        ? () => openLightboxAt(logoPreview)
+                        : undefined
+                }
+                onClearCover={() =>
+                    onCoverChange?.({
+                        file: null,
+                        preview: null,
+                        url: null,
+                    })
+                }
+                onClearLogo={() =>
+                    onLogoChange?.({ file: null, preview: null, url: null })
+                }
+            />
+
+            {showPoster ? (
+                <PosterSlot
+                    preview={posterPreview}
+                    onBrowse={() => openAddMenu('poster')}
+                    onFile={(file) => handleSingle(file, 'poster')}
+                    onView={
+                        posterPreview
+                            ? () => openLightboxAt(posterPreview)
                             : undefined
                     }
-                    emptyLabel="Add cover photo"
-                    badge={
-                        coverPreview ? (
-                            <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-800 ring-1 ring-emerald-100">
-                                Set
-                            </span>
-                        ) : (
-                            <span className="rounded-full bg-olive-100 px-2.5 py-1 text-[11px] font-semibold text-olive-700">
-                                Required
-                            </span>
-                        )
+                    onClear={() =>
+                        onPosterChange?.({
+                            file: null,
+                            preview: null,
+                            url: null,
+                        })
                     }
                 />
-                <input
-                    ref={coverInput}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => {
-                        handleSingle(e.target.files?.[0], 'cover');
-                        e.target.value = '';
-                    }}
-                />
-
-                <div
-                    className={`grid gap-6 ${showPoster ? 'sm:grid-cols-2 lg:grid-cols-1' : ''} lg:content-start`}
-                >
-                    <div className="mx-auto w-full max-w-[11rem] lg:mx-0 lg:max-w-none">
-                        <MediaSlot
-                            title="Logo"
-                            subtitle="Round badge on the card (optional)."
-                            preview={logoPreview}
-                            aspect="aspect-square"
-                            rounded="rounded-[1.75rem]"
-                            emptyIcon={ImagePlus}
-                            emptyLabel="Add logo"
-                            onBrowse={() => logoInput.current?.click()}
-                            onFile={(file) => handleSingle(file, 'logo')}
-                            onClear={
-                                logoPreview
-                                    ? () =>
-                                          onLogoChange?.({
-                                              file: null,
-                                              preview: null,
-                                          })
-                                    : undefined
-                            }
-                        />
-                    </div>
-                    <input
-                        ref={logoInput}
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => {
-                            handleSingle(e.target.files?.[0], 'logo');
-                            e.target.value = '';
-                        }}
-                    />
-
-                    {showPoster ? (
-                        <>
-                            <div className="mx-auto w-full max-w-[11rem] lg:mx-0 lg:max-w-[14rem]">
-                                <MediaSlot
-                                    title="Event poster"
-                                    subtitle="Portrait poster on event cards."
-                                    preview={posterPreview}
-                                    aspect="aspect-[3/4]"
-                                    emptyIcon={ImagePlus}
-                                    emptyLabel="Add poster"
-                                    onBrowse={() => posterInput.current?.click()}
-                                    onFile={(file) =>
-                                        handleSingle(file, 'poster')
-                                    }
-                                    onClear={
-                                        posterPreview
-                                            ? () =>
-                                                  onPosterChange?.({
-                                                      file: null,
-                                                      preview: null,
-                                                  })
-                                            : undefined
-                                    }
-                                />
-                            </div>
-                            <input
-                                ref={posterInput}
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={(e) => {
-                                    handleSingle(
-                                        e.target.files?.[0],
-                                        'poster',
-                                    );
-                                    e.target.value = '';
-                                }}
-                            />
-                        </>
-                    ) : null}
-                </div>
-            </div>
+            ) : null}
 
             {errors.cover || errors.image_url ? (
                 <p className="-mt-4 text-sm text-rose-600">
@@ -420,7 +655,7 @@ export default function GalleryUploader({
                 </p>
             ) : null}
 
-            <div className="rounded-2xl bg-olive-50/60 p-4 ring-1 ring-olive-100 sm:p-5">
+            <div className="rounded-2xl bg-olive-50/70 p-4 ring-1 ring-olive-100 sm:p-5">
                 <div className="flex flex-wrap items-end justify-between gap-3">
                     <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
@@ -430,8 +665,8 @@ export default function GalleryUploader({
                             </span>
                         </div>
                         <p className={help}>
-                            Multi-select photos, crop each one, then preview
-                            before submit.
+                            Multi-select photos, crop each one, then click any
+                            image to view full size.
                         </p>
                         <div className="mt-3 h-1.5 max-w-xs overflow-hidden rounded-full bg-olive-200/80">
                             <div
@@ -442,24 +677,13 @@ export default function GalleryUploader({
                     </div>
                     <button
                         type="button"
-                        onClick={() => galleryInput.current?.click()}
+                        onClick={() => openAddMenu('gallery')}
                         disabled={galleryCount >= MAX_GALLERY}
                         className="inline-flex items-center gap-2 rounded-xl bg-olive-900 px-3.5 py-2.5 text-sm font-semibold text-white transition hover:bg-olive-800 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         <ImagePlus className="h-4 w-4" />
                         Add photos
                     </button>
-                    <input
-                        ref={galleryInput}
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        className="hidden"
-                        onChange={(e) => {
-                            handleGalleryPick(e.target.files);
-                            e.target.value = '';
-                        }}
-                    />
                 </div>
 
                 {queueTotal > 0 && cropState?.kind === 'gallery' ? (
@@ -498,12 +722,27 @@ export default function GalleryUploader({
                                         key={item.id}
                                         className="group relative overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-olive-200/80"
                                     >
-                                        <img
-                                            src={src}
-                                            alt={`Gallery ${index + 1}`}
-                                            className="aspect-[4/3] w-full object-cover"
-                                        />
-                                        <div className="absolute left-2 top-2 flex gap-1">
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                src && openLightboxAt(src)
+                                            }
+                                            className="relative block w-full cursor-zoom-in focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-mustard"
+                                            aria-label={`View gallery photo ${index + 1}`}
+                                        >
+                                            <img
+                                                src={src}
+                                                alt={`Gallery ${index + 1}`}
+                                                className="aspect-[4/3] w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+                                            />
+                                            <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-olive-950/70 via-transparent to-transparent opacity-70 transition group-hover:opacity-100" />
+                                            <span className="pointer-events-none absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-semibold text-olive-900 opacity-0 shadow-sm transition group-hover:opacity-100">
+                                                <Expand className="h-3.5 w-3.5" />
+                                                View
+                                            </span>
+                                        </button>
+
+                                        <div className="pointer-events-none absolute left-2 top-2 flex gap-1">
                                             <span className="rounded-md bg-olive-950/75 px-1.5 py-0.5 text-[10px] font-bold text-white backdrop-blur">
                                                 {index + 1}
                                             </span>
@@ -517,14 +756,16 @@ export default function GalleryUploader({
                                                 {saved ? 'Saved' : 'Preview'}
                                             </span>
                                         </div>
-                                        <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 bg-gradient-to-t from-olive-950/80 to-transparent p-2 pt-8 opacity-100 sm:opacity-0 sm:transition sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
+
+                                        <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 p-2 opacity-100 sm:opacity-0 sm:transition sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
                                             <button
                                                 type="button"
                                                 title="Use as cover"
-                                                onClick={() =>
-                                                    setCoverFromGallery(item)
-                                                }
-                                                className="inline-flex items-center gap-1 rounded-lg bg-white/95 px-2 py-1.5 text-[11px] font-semibold text-olive-900"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setCoverFromGallery(item);
+                                                }}
+                                                className="inline-flex items-center gap-1 rounded-lg bg-white/95 px-2 py-1.5 text-[11px] font-semibold text-olive-900 shadow-sm ring-1 ring-black/5"
                                             >
                                                 <Star className="h-3.5 w-3.5" />
                                                 Cover
@@ -532,10 +773,11 @@ export default function GalleryUploader({
                                             <button
                                                 type="button"
                                                 title="Remove"
-                                                onClick={() =>
-                                                    removeGallery(item.id)
-                                                }
-                                                className="rounded-lg bg-white/95 p-1.5 text-rose-600"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    removeGallery(item.id);
+                                                }}
+                                                className="rounded-lg bg-white/95 p-1.5 text-rose-600 shadow-sm ring-1 ring-rose-100"
                                             >
                                                 <Trash2 className="h-3.5 w-3.5" />
                                             </button>
@@ -548,9 +790,7 @@ export default function GalleryUploader({
                                 <li>
                                     <button
                                         type="button"
-                                        onClick={() =>
-                                            galleryInput.current?.click()
-                                        }
+                                        onClick={() => openAddMenu('gallery')}
                                         className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-olive-300 bg-white/70 text-olive-600 transition hover:border-mustard hover:bg-mustard/5 hover:text-olive-900"
                                     >
                                         <ImagePlus className="h-6 w-6" />
@@ -564,7 +804,7 @@ export default function GalleryUploader({
                     ) : (
                         <button
                             type="button"
-                            onClick={() => galleryInput.current?.click()}
+                            onClick={() => openAddMenu('gallery')}
                             className="flex w-full flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-olive-300 bg-white/80 px-4 py-12 text-center transition hover:border-mustard hover:bg-mustard/5"
                         >
                             <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-olive-50 ring-1 ring-olive-100">
@@ -586,6 +826,61 @@ export default function GalleryUploader({
 
             {localError ? (
                 <p className="text-sm text-rose-600">{localError}</p>
+            ) : null}
+                </>
+            )}
+
+            <input
+                ref={coverInput}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                    handleSingle(e.target.files?.[0], 'cover');
+                    e.target.value = '';
+                }}
+            />
+            <input
+                ref={logoInput}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                    handleSingle(e.target.files?.[0], 'logo');
+                    e.target.value = '';
+                }}
+            />
+            {showPoster ? (
+                <input
+                    ref={posterInput}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                        handleSingle(e.target.files?.[0], 'poster');
+                        e.target.value = '';
+                    }}
+                />
+            ) : null}
+            <input
+                ref={galleryInput}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={(e) => {
+                    handleGalleryPick(e.target.files);
+                    e.target.value = '';
+                }}
+            />
+
+            {lightboxIndex != null ? (
+                <MediaLightbox
+                    items={lightboxItems}
+                    index={lightboxIndex}
+                    onClose={() => setLightboxIndex(null)}
+                    onIndexChange={setLightboxIndex}
+                />
             ) : null}
 
             <ListingImageCropModal

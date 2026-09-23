@@ -15,13 +15,16 @@ import {
     Td,
     Th,
 } from '@/Components/Admin/ui';
+import { useConfirm } from '@/Components/ConfirmDialog';
 import { Head, router } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 export default function Index({ stories, filters }) {
+    const { confirm, dialog } = useConfirm();
     const [q, setQ] = useState(filters.q || '');
     const [status, setStatus] = useState(filters.status || '');
+    const [perPage, setPerPage] = useState(filters.per_page || 15);
     const skipDebounce = useRef(true);
 
     const pushFilters = (next) => {
@@ -39,7 +42,7 @@ export default function Index({ stories, filters }) {
         }
 
         const timer = setTimeout(() => {
-            pushFilters({ q, status });
+            pushFilters({ q, status, per_page: perPage });
         }, 350);
 
         return () => clearTimeout(timer);
@@ -49,6 +52,7 @@ export default function Index({ stories, filters }) {
     return (
         <AdminLayout>
             <Head title="Admin stories" />
+            {dialog}
 
             <PageHeader
                 title="Stories"
@@ -73,7 +77,7 @@ export default function Index({ stories, filters }) {
                     onChange={(e) => {
                         const next = e.target.value;
                         setStatus(next);
-                        pushFilters({ q, status: next });
+                        pushFilters({ q, status: next, per_page: perPage });
                     }}
                     className="w-40"
                 >
@@ -96,7 +100,17 @@ export default function Index({ stories, filters }) {
             ) : (
                 <DataCard
                     title={`${stories.meta?.total ?? stories.data.length} stories`}
-                    footer={<Pagination links={stories.links} meta={stories.meta} />}
+                    footer={
+                        <Pagination
+                            links={stories.links}
+                            meta={stories.meta || stories}
+                            perPage={perPage}
+                            onPerPageChange={(n) => {
+                                setPerPage(n);
+                                pushFilters({ q, status, per_page: n });
+                            }}
+                        />
+                    }
                 >
                     <DataTable>
                         <thead>
@@ -149,8 +163,13 @@ export default function Index({ stories, filters }) {
                                                 {
                                                     label: 'Delete',
                                                     danger: true,
-                                                    onClick: () => {
-                                                        if (!confirm(`Delete “${story.title}”?`)) return;
+                                                    onClick: async () => {
+                                                        const ok = await confirm({
+                                                            title: 'Delete story?',
+                                                            message: `Delete “${story.title}”? This cannot be undone.`,
+                                                            confirmLabel: 'Delete',
+                                                        });
+                                                        if (!ok) return;
                                                         router.delete(route('admin.stories.destroy', story.id));
                                                     },
                                                 },

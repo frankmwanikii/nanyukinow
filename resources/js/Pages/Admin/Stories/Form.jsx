@@ -8,10 +8,12 @@ import {
     FormPanel,
     PageHeader,
 } from '@/Components/Admin/ui';
+import { useConfirm } from '@/Components/ConfirmDialog';
 import { Head, router, useForm } from '@inertiajs/react';
 import { ArrowLeft, Save, Trash2 } from 'lucide-react';
 
 export default function Form({ story }) {
+    const { confirm, dialog } = useConfirm();
     const isEdit = Boolean(story?.id);
 
     const form = useForm({
@@ -48,6 +50,7 @@ export default function Form({ story }) {
     return (
         <AdminLayout>
             <Head title={isEdit ? `Edit · ${story.title}` : 'New story'} />
+            {dialog}
 
             <PageHeader
                 title={isEdit ? 'Edit story' : 'New story'}
@@ -60,10 +63,14 @@ export default function Form({ story }) {
                         {isEdit && (
                             <AdminButton
                                 variant="danger"
-                                onClick={() => {
-                                    if (confirm('Delete this story?')) {
-                                        router.delete(route('admin.stories.destroy', story.id));
-                                    }
+                                onClick={async () => {
+                                    const ok = await confirm({
+                                        title: 'Delete story?',
+                                        message: 'Delete this story? This cannot be undone.',
+                                        confirmLabel: 'Delete',
+                                    });
+                                    if (!ok) return;
+                                    router.delete(route('admin.stories.destroy', story.id));
                                 }}
                             >
                                 <Trash2 className="h-4 w-4" />

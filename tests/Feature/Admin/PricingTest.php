@@ -20,11 +20,11 @@ class PricingTest extends TestCase
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->component('Admin/Pricing/Index')
-                ->has('plans', 3)
+                ->has('plans.data', 3)
                 ->has('billingPeriods')
-                ->where('plans.0.key', 'free')
-                ->where('plans.1.key', 'featured')
-                ->where('plans.2.key', 'premium'));
+                ->where('plans.data.0.key', 'free')
+                ->where('plans.data.1.key', 'featured')
+                ->where('plans.data.2.key', 'premium'));
     }
 
     public function test_guest_cannot_view_pricing(): void

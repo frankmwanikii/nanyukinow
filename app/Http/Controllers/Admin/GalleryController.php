@@ -1,0 +1,195 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Support\AdminPagination;
+use App\Support\ListingMedia;
+use App\Support\MediaLibrary;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Inertia\Inertia;
+use Inertia\Response;
+
+class GalleryController extends Controller
+{
+    public function index(Request $request): Response
+    {
+        $q = trim($request->string('q')->toString());
+        $source = $request->string('source')->toString();
+        $view = $request->string('view')->toString() === 'list' ? 'list' : 'grid';
+        $perPage = AdminPagination::perPage($request);
+        $page = max(1, $request->integer('page', 1));
+
+        $allowedSources = ['listings', 'stories', 'avatars', 'branding', 'pages', 'site'];
+        if (! in_array($source, $allowedSources, true)) {
+            $source = '';
+        }
+
+        $all = MediaLibrary::items();
+
+        $counts = $all
+            ->groupBy('source')
+            ->map->count()
+            ->all();
+
+        if ($source !== '') {
+            $all = $all->filter(fn (array $item) => $item['source'] === $source)->values();
+        }
+
+        if ($q !== '') {
+            $needle = mb_strtolower($q);
+            $all = $all->filter(function (array $item) use ($needle) {
+                $hay = mb_strtolower(implode(' ', [
+                    $item['filename'] ?? '',
+                    $item['url'] ?? '',
+                    $item['kind'] ?? '',
+                    $item['source'] ?? '',
+                    implode(' ', $item['sources'] ?? []),
+                ]));
+
+                return str_contains($hay, $needle);
+            })->values();
+        }
+
+        $total = $all->count();
+        $items = $all->slice(($page - 1) * $perPage, $perPage)->values();
+
+        $paginator = new LengthAwarePaginator(
+            $items,
+            $total,
+            $perPage,
+            $page,
+            [
+                'path' => $request->url(),
+                'query' => $request->query(),
+            ]
+        );
+
+        return Inertia::render('Admin/Gallery/Index', [
+            'media' => $paginator,
+            'filters' => [
+                'q' => $q,
+                'source' => $source,
+                'view' => $view,
+                'per_page' => $perPage,
+            ],
+            'counts' => [
+                'all' => array_sum($counts),
+                ...$counts,
+            ],
+            'sources' => [
+                ['key' => '', 'label' => 'All'],
+                ['key' => 'listings', 'label' => 'Listings'],
+                ['key' => 'stories', 'label' => 'Stories'],
+                ['key' => 'avatars', 'label' => 'Avatars'],
+                ['key' => 'branding', 'label' => 'Branding'],
+                ['key' => 'pages', 'label' => 'Pages'],
+                ['key' => 'site', 'label' => 'Site assets'],
+            ],
+        ]);
+    }
+
+    /**
+     * Lightweight JSON browse for media pickers (listing form, etc.).
+     */
+    public function browse(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $q = trim($request->string('q')->toString());
+        $limit = min(48, max(12, $request->integer('limit', 36)));
+
+        $all = MediaLibrary::items();
+
+        if ($q !== '') {
+            $needle = mb_strtolower($q);
+            $all = $all->filter(function (array $item) use ($needle) {
+                $hay = mb_strtolower(implode(' ', [
+                    $item['filename'] ?? '',
+                    $item['url'] ?? '',
+                    $item['kind'] ?? '',
+                    $item['source'] ?? '',
+                    implode(' ', $item['sources'] ?? []),
+                ]));
+
+                return str_contains($hay, $needle);
+            })->values();
+        }
+
+        $items = $all->take($limit)->map(fn (array $item) => [
+            'id' => $item['id'],
+            'url' => $item['url'],
+            'filename' => $item['filename'],
+            'source' => $item['source'],
+            'kind' => $item['kind'],
+        ])->values();
+
+        return response()->json([
+            'items' => $items,
+            'total' => $all->count(),
+        ]);
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'images' => ['required', 'array', 'min:1', 'max:20'],
+            'images.*' => ['required', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:10240'],
+        ]);
+
+        $uploaded = 0;
+        foreach ($data['images'] as $file) {
+            ListingMedia::store($file, 'media/library');
+            $uploaded++;
+        }
+
+        return redirect()
+            ->route('admin.gallery.index')
+            ->with('success', $uploaded === 1 ? '1 image uploaded.' : "{$uploaded} images uploaded.");
+    }
+
+    public function destroy(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'url' => ['required', 'string', 'max:2048'],
+        ]);
+
+        $result = MediaLibrary::delete($data['url']);
+
+        return redirect()
+            ->back()
+            ->with($result['ok'] ? 'success' : 'error', $result['message']);
+    }
+
+    public function bulkDestroy(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'urls' => ['required', 'array', 'min:1', 'max:100'],
+            'urls.*' => ['required', 'string', 'max:2048'],
+        ]);
+
+        $ok = 0;
+        $fail = 0;
+        foreach (array_values(array_unique($data['urls'])) as $url) {
+            $result = MediaLibrary::delete($url);
+            if ($result['ok']) {
+                $ok++;
+            } else {
+                $fail++;
+            }
+        }
+
+        if ($ok > 0 && $fail === 0) {
+            $message = $ok === 1 ? '1 item deleted.' : "{$ok} items deleted.";
+            $tone = 'success';
+        } elseif ($ok > 0) {
+            $message = "Deleted {$ok} item(s), but {$fail} could not be deleted.";
+            $tone = 'error';
+        } else {
+            $message = 'Could not delete the selected item(s).';
+            $tone = 'error';
+        }
+
+        return redirect()->back()->with($tone, $message);
+    }
+}

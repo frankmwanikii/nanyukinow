@@ -15,6 +15,7 @@ import {
     sectionCard,
 } from '@/Components/listing-form/fieldStyles';
 import AccountLayout from '@/Layouts/AccountLayout';
+import AdminLayout from '@/Layouts/AdminLayout';
 import { PROPERTY_TYPES, mainCategories } from '@/data/categories';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -29,9 +30,11 @@ import {
     Coffee,
     Cloud,
     CloudOff,
+    FileText,
     Home,
     Loader2,
     Save,
+    Settings,
     ShoppingCart,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -136,9 +139,14 @@ export default function Form({
     plan,
     allowedTiers = ['free'],
     isDraft = false,
+    context = 'account',
+    owners = [],
+    statuses = [],
+    claimStatuses = [],
 }) {
     const isDraftListing = isDraft || listing?.status === 'draft';
     const isEdit = Boolean(listing?.id) && !isDraftListing;
+    const isAdmin = context === 'admin';
     const [draftId, setDraftId] = useState(listing?.id || null);
     const { errors: pageErrors } = usePage().props;
     const [amenityOptions, setAmenityOptions] = useState(initialAmenities);
@@ -206,6 +214,17 @@ export default function Form({
         event_poster: null,
         gallery_files: [],
         gallery_urls: (listing?.gallery || []).filter(Boolean),
+        // Admin-only fields
+        user_id: listing?.user_id || '',
+        slug: listing?.slug || '',
+        status: listing?.status || 'published',
+        claim_status: listing?.claim_status || 'unclaimed',
+        priority: listing?.priority ?? 0,
+        expires_at: listing?.expires_at || '',
+        published_at: listing?.published_at || '',
+        is_published: listing?.is_published ?? true,
+        is_featured: listing?.is_featured || false,
+        is_trending: listing?.is_trending || false,
     });
 
     formDataRef.current = form.data;
@@ -233,6 +252,7 @@ export default function Form({
     });
 
     const [stepIndex, setStepIndex] = useState(0);
+    const [adminTab, setAdminTab] = useState('listing'); // listing | advanced
 
     const selectedCategory = useMemo(
         () =>
@@ -307,7 +327,7 @@ export default function Form({
     };
 
     const persistDraft = async ({ silent = true, overrides = {} } = {}) => {
-        if (isEdit) return;
+        if (isEdit || isAdmin) return;
         const latest = { ...(formDataRef.current || form.data), ...overrides };
         const categoryId = latest.category_id;
         if (!categoryId && !draftId) return;
@@ -385,7 +405,7 @@ export default function Form({
     };
 
     const scheduleAutosave = () => {
-        if (isEdit) return;
+        if (isEdit || isAdmin) return;
         clearTimeout(autosaveTimer.current);
         autosaveTimer.current = setTimeout(() => {
             persistDraft({ silent: true });
@@ -511,7 +531,7 @@ export default function Form({
     };
 
     const next = () => {
-        if (!validateStep()) return;
+        if (!isAdmin && !validateStep()) return;
         setStepIndex((i) => Math.min(i + 1, STEPS.length - 1));
     };
 
@@ -524,11 +544,19 @@ export default function Form({
         setStepIndex((i) => Math.max(i - 1, 0));
     };
 
-    const submit = (e) => {
-        e.preventDefault();
+    const submit = (e, mode = 'save') => {
+        e?.preventDefault?.();
         if (!form.data.category_id) {
             setPhase('category');
             return;
+        }
+
+        if (isAdmin && mode === 'publish') {
+            if (!form.data.title?.trim()) {
+                form.setError('title', 'Business / venue name is required to publish.');
+                setStepIndex(0);
+                return;
+            }
         }
 
         const galleryUrls = galleryItems
@@ -541,20 +569,35 @@ export default function Form({
         form.transform((data) => {
             const payload = {
                 ...data,
-                gallery_urls: JSON.stringify(galleryUrls),
+                gallery_urls: isAdmin ? galleryUrls : JSON.stringify(galleryUrls),
                 gallery_files: galleryFiles,
-                amenities: JSON.stringify(data.amenities || []),
+                amenities: isAdmin ? data.amenities : JSON.stringify(data.amenities || []),
                 hours:
                     categoryKey === 'properties' || categoryKey === 'events'
                         ? null
-                        : JSON.stringify(data.hours || []),
-                details: JSON.stringify(data.details || {}),
-                social_links: JSON.stringify(data.social_links || {}),
+                        : (isAdmin ? data.hours : JSON.stringify(data.hours || [])),
+                details: isAdmin ? data.details : JSON.stringify(data.details || {}),
+                social_links: isAdmin ? data.social_links : JSON.stringify(data.social_links || {}),
                 latitude: data.latitude === '' ? null : data.latitude,
                 longitude: data.longitude === '' ? null : data.longitude,
             };
 
-            if (isEdit || draftId) {
+            if (isAdmin && mode === 'draft') {
+                payload.status = 'draft';
+                payload.is_published = false;
+            }
+
+            if (isAdmin && mode === 'publish') {
+                payload.status = 'published';
+                payload.is_published = true;
+                if (!payload.published_at) {
+                    const now = new Date();
+                    const pad = (n) => String(n).padStart(2, '0');
+                    payload.published_at = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+                }
+            }
+
+            if (isEdit || draftId || (isAdmin && listing?.id)) {
                 payload._method = 'put';
             }
 
@@ -566,22 +609,57 @@ export default function Form({
             onError: () => setStepIndex(0),
         };
 
-        const targetId = isEdit ? listing.id : draftId;
-        if (targetId) {
-            form.post(route('account.listings.update', targetId), options);
+        if (isAdmin) {
+            const targetKey = listing?.slug || listing?.id;
+            if (targetKey) {
+                form.post(route('admin.listings.update', targetKey), options);
+            } else {
+                form.post(route('admin.listings.store'), options);
+            }
         } else {
-            form.post(route('account.listings.store'), options);
+            const targetId = isEdit ? listing.id : draftId;
+            if (targetId) {
+                form.post(route('account.listings.update', targetId), options);
+            } else {
+                form.post(route('account.listings.store'), options);
+            }
         }
     };
 
     const step = STEPS[stepIndex];
     const progress = ((stepIndex + 1) / STEPS.length) * 100;
+    const listingTitle =
+        (form.data.title || listing?.title || '').trim() || 'Untitled listing';
+    const pageTitle =
+        isEdit || listing?.id ? `Editing ${listingTitle}` : 'New listing';
+
+    const LayoutComponent = isAdmin ? AdminLayout : AccountLayout;
+    const layoutProps = isAdmin
+        ? {}
+        : { title: isEdit ? pageTitle : 'Add listing' };
 
     return (
-        <AccountLayout title={isEdit ? 'Edit listing' : 'Add listing'}>
-            <Head title={isEdit ? 'Edit listing' : 'New listing'} />
+        <LayoutComponent {...layoutProps}>
+            <Head title={pageTitle} />
 
-            {phase === 'category' && !isEdit && !draftId ? (
+            {isAdmin ? (
+                <div className="mb-2">
+                    <h1 className="font-display text-2xl font-bold tracking-tight text-olive-950 dark:text-white">
+                        {isEdit || listing?.id ? (
+                            <>
+                                <span className="font-semibold text-olive-500 dark:text-olive-400">
+                                    Editing
+                                </span>{' '}
+                                {listingTitle}
+                            </>
+                        ) : (
+                            'New listing'
+                        )}
+                    </h1>
+                </div>
+            ) : null}
+
+            {phase === 'category' && !isEdit && !(isAdmin ? listing?.id : draftId) ? (
                 <CategoryPicker
                     categories={orderedCategories}
                     selectedId={form.data.category_id}
@@ -590,6 +668,51 @@ export default function Form({
                 />
             ) : (
                 <div className="space-y-5">
+                    {isAdmin ? (
+                        <AdminSectionTabs
+                            active={adminTab}
+                            onChange={setAdminTab}
+                        />
+                    ) : null}
+
+                    {isAdmin && adminTab === 'advanced' ? (
+                        <div className="space-y-4">
+                            <AdminControls
+                                form={form}
+                                owners={owners}
+                                statuses={statuses}
+                                claimStatuses={claimStatuses}
+                                allowedTiers={allowedTiers}
+                                listing={listing}
+                            />
+                            <div className="flex flex-wrap items-center justify-end gap-2">
+                                <Link
+                                    href={route('admin.listings.index')}
+                                    className="rounded-xl border border-olive-200 px-4 py-2.5 text-sm font-semibold text-olive-700"
+                                >
+                                    Cancel
+                                </Link>
+                                <button
+                                    type="button"
+                                    disabled={form.processing}
+                                    onClick={(e) => submit(e, 'draft')}
+                                    className="inline-flex items-center gap-2 rounded-xl border border-olive-200 bg-white px-4 py-2.5 text-sm font-semibold text-olive-800 disabled:opacity-50"
+                                >
+                                    <Save className="h-4 w-4" />
+                                    {form.processing ? 'Saving…' : 'Save draft'}
+                                </button>
+                                <button
+                                    type="button"
+                                    disabled={form.processing}
+                                    onClick={(e) => submit(e, 'publish')}
+                                    className="inline-flex items-center gap-2 rounded-xl bg-mustard px-4 py-2.5 text-sm font-bold text-earth-dusk disabled:opacity-50"
+                                >
+                                    {form.processing ? 'Publishing…' : 'Publish'}
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <>
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <div>
                             <p className="text-sm text-olive-600">
@@ -616,7 +739,7 @@ export default function Form({
                         ) : null}
                     </div>
 
-                    {!isEdit ? (
+                    {!isEdit && !isAdmin ? (
                         <div className="flex items-center gap-2 text-xs font-semibold text-olive-600">
                             {saveState === 'saving' ? (
                                 <>
@@ -668,25 +791,35 @@ export default function Form({
                                 transition={{ type: 'spring', stiffness: 120, damping: 20 }}
                             />
                         </div>
-                        <div className="mt-3 hidden gap-1 sm:flex">
-                            {STEPS.map((s, i) => (
-                                <button
-                                    key={s.id}
-                                    type="button"
-                                    onClick={() => {
-                                        if (i <= stepIndex) setStepIndex(i);
-                                    }}
-                                    className={`flex-1 rounded-lg px-1 py-1.5 text-[11px] font-semibold transition ${
-                                        i === stepIndex
-                                            ? 'bg-olive-900 text-white'
-                                            : i < stepIndex
-                                              ? 'bg-mustard/40 text-olive-900'
-                                              : 'bg-olive-50 text-olive-400'
-                                    }`}
-                                >
-                                    {s.title}
-                                </button>
-                            ))}
+                        <div
+                            className={`mt-3 gap-1 ${
+                                isAdmin
+                                    ? 'flex overflow-x-auto pb-0.5'
+                                    : 'hidden sm:flex'
+                            }`}
+                        >
+                            {STEPS.map((s, i) => {
+                                const canJump = isAdmin || i <= stepIndex;
+                                return (
+                                    <button
+                                        key={s.id}
+                                        type="button"
+                                        onClick={() => {
+                                            if (canJump) setStepIndex(i);
+                                        }}
+                                        disabled={!canJump}
+                                        className={`shrink-0 rounded-lg px-2 py-1.5 text-[11px] font-semibold transition sm:flex-1 sm:px-1 ${
+                                            i === stepIndex
+                                                ? 'bg-olive-900 text-white'
+                                                : canJump
+                                                  ? 'bg-mustard/40 text-olive-900 hover:bg-mustard/55'
+                                                  : 'cursor-not-allowed bg-olive-50 text-olive-400'
+                                        }`}
+                                    >
+                                        {s.title}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
 
@@ -706,6 +839,7 @@ export default function Form({
                                         categoryKey={categoryKey}
                                         subs={subs}
                                         isEdit={isEdit}
+                                        isAdmin={isAdmin}
                                         categories={categories}
                                         allowedTiers={allowedTiers}
                                         patch={patch}
@@ -805,6 +939,11 @@ export default function Form({
                                         posterPreview={posterPreview}
                                         galleryItems={galleryItems}
                                         showPoster={categoryKey === 'events'}
+                                        libraryRoute={
+                                            isAdmin
+                                                ? route('admin.gallery.browse')
+                                                : route('account.media.browse')
+                                        }
                                         errors={form.errors}
                                         onCoverChange={({ file, preview, url }) => {
                                             setCoverPreview(preview || null);
@@ -817,14 +956,35 @@ export default function Form({
                                                         : ''),
                                             });
                                         }}
-                                        onLogoChange={({ file, preview }) => {
+                                        onLogoChange={({ file, preview, url }) => {
                                             setLogoPreview(preview || null);
-                                            patch({ logo: file || null });
+                                            patch({
+                                                logo: file || null,
+                                                logo_url:
+                                                    url ||
+                                                    (file
+                                                        ? ''
+                                                        : preview
+                                                          ? form.data.logo_url
+                                                          : ''),
+                                            });
                                         }}
-                                        onPosterChange={({ file, preview }) => {
+                                        onPosterChange={({
+                                            file,
+                                            preview,
+                                            url,
+                                        }) => {
                                             setPosterPreview(preview || null);
                                             patch({
                                                 event_poster: file || null,
+                                                event_poster_url:
+                                                    url ||
+                                                    (file
+                                                        ? ''
+                                                        : preview
+                                                          ? form.data
+                                                                .event_poster_url
+                                                          : ''),
                                             });
                                         }}
                                         onGalleryChange={setGalleryItems}
@@ -843,6 +1003,14 @@ export default function Form({
                                         coverPreview={coverPreview}
                                         logoPreview={logoPreview}
                                         posterPreview={posterPreview}
+                                        galleryItems={galleryItems}
+                                        amenityOptions={amenityOptions}
+                                        onEditStep={(stepId) => {
+                                            const idx = STEPS.findIndex(
+                                                (s) => s.id === stepId,
+                                            );
+                                            if (idx >= 0) setStepIndex(idx);
+                                        }}
                                     />
                                 ) : null}
                             </motion.div>
@@ -861,23 +1029,56 @@ export default function Form({
                             </div>
                         ) : null}
 
-                        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-olive-100 pb-20 pt-5 sm:pb-0">
+                        <div
+                            className={`flex flex-wrap items-center justify-between gap-2 border-t border-olive-100 pt-5 ${
+                                isAdmin ? '' : 'pb-20 sm:pb-0'
+                            }`}
+                        >
                             <button
                                 type="button"
-                                onClick={back}
+                                onClick={() => {
+                                    if (step.id === 'preview') {
+                                        setStepIndex(
+                                            STEPS.findIndex((s) => s.id === 'basics'),
+                                        );
+                                        return;
+                                    }
+                                    back();
+                                }}
                                 className="inline-flex items-center gap-1 rounded-xl border border-olive-200 px-4 py-2.5 text-sm font-semibold text-olive-700"
                             >
                                 <ChevronLeft className="h-4 w-4" />
-                                Back
+                                {step.id === 'preview' ? 'Edit details' : 'Back'}
                             </button>
 
                             <div className="flex flex-wrap gap-2">
                                 <Link
-                                    href={route('account.index')}
+                                    href={isAdmin ? route('admin.listings.index') : route('account.index')}
                                     className="rounded-xl border border-olive-200 px-4 py-2.5 text-sm font-semibold text-olive-700"
                                 >
                                     Cancel
                                 </Link>
+                                {isAdmin ? (
+                                    <>
+                                        <button
+                                            type="button"
+                                            disabled={form.processing}
+                                            onClick={(e) => submit(e, 'draft')}
+                                            className="inline-flex items-center gap-2 rounded-xl border border-olive-200 bg-white px-4 py-2.5 text-sm font-semibold text-olive-800 disabled:opacity-50"
+                                        >
+                                            <Save className="h-4 w-4" />
+                                            {form.processing ? 'Saving…' : 'Save draft'}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            disabled={form.processing}
+                                            onClick={(e) => submit(e, 'publish')}
+                                            className="inline-flex items-center gap-2 rounded-xl bg-mustard px-4 py-2.5 text-sm font-bold text-earth-dusk disabled:opacity-50"
+                                        >
+                                            {form.processing ? 'Publishing…' : 'Publish'}
+                                        </button>
+                                    </>
+                                ) : null}
                                 {step.id !== 'preview' ? (
                                     <button
                                         type="button"
@@ -887,7 +1088,7 @@ export default function Form({
                                         Continue
                                         <ChevronRight className="h-4 w-4" />
                                     </button>
-                                ) : (
+                                ) : !isAdmin ? (
                                     <button
                                         type="submit"
                                         disabled={form.processing}
@@ -900,13 +1101,253 @@ export default function Form({
                                               ? 'Save changes'
                                               : 'Submit for review'}
                                     </button>
-                                )}
+                                ) : null}
                             </div>
                         </div>
                     </form>
+                        </>
+                    )}
                 </div>
             )}
-        </AccountLayout>
+        </LayoutComponent>
+    );
+}
+
+function AdminSectionTabs({ active, onChange }) {
+    const tabs = [
+        { id: 'listing', label: 'Listing', Icon: FileText },
+        { id: 'advanced', label: 'Advanced', Icon: Settings },
+    ];
+
+    return (
+        <nav
+            aria-label="Listing sections"
+            className="-mx-1 border-b border-olive-200/80 dark:border-olive-800"
+        >
+            <div className="flex flex-wrap gap-0.5">
+                {tabs.map(({ id, label, Icon }) => {
+                    const isActive = active === id;
+                    return (
+                        <button
+                            key={id}
+                            type="button"
+                            onClick={() => onChange(id)}
+                            aria-current={isActive ? 'page' : undefined}
+                            className={`relative inline-flex items-center gap-2 px-4 py-3 text-sm font-semibold transition ${
+                                isActive
+                                    ? 'bg-mustard/15 text-earth-dusk dark:bg-mustard/20 dark:text-mustard'
+                                    : 'text-olive-600 hover:bg-olive-50 hover:text-olive-950 dark:text-olive-400 dark:hover:bg-olive-900 dark:hover:text-olive-100'
+                            }`}
+                        >
+                            <Icon
+                                className={`h-4 w-4 ${isActive ? 'text-mustard' : 'opacity-80'}`}
+                                strokeWidth={2}
+                            />
+                            {label}
+                            {isActive ? (
+                                <span
+                                    aria-hidden
+                                    className="absolute inset-x-0 bottom-0 h-0.5 bg-mustard"
+                                />
+                            ) : null}
+                        </button>
+                    );
+                })}
+            </div>
+        </nav>
+    );
+}
+
+function AdminControls({ form, owners, statuses, claimStatuses, allowedTiers, listing }) {
+    const { data, setData, errors } = form;
+
+    return (
+        <div className={sectionCard}>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div>
+                    <label className={label} htmlFor="user_id">
+                        Owner
+                    </label>
+                    <select
+                        id="user_id"
+                        className={field}
+                        value={data.user_id}
+                        onChange={(e) => setData('user_id', e.target.value)}
+                    >
+                        <option value="">No owner</option>
+                        {owners.map((o) => (
+                            <option key={o.id} value={o.id}>
+                                {o.name} · {o.email}
+                            </option>
+                        ))}
+                    </select>
+                    {errors.user_id ? (
+                        <p className="mt-1.5 text-sm text-rose-600">{errors.user_id}</p>
+                    ) : null}
+                </div>
+
+                <div>
+                    <label className={label} htmlFor="slug">
+                        Slug
+                    </label>
+                    <input
+                        id="slug"
+                        className={field}
+                        value={data.slug}
+                        onChange={(e) => setData('slug', e.target.value)}
+                        placeholder="auto from title if empty"
+                    />
+                    {errors.slug ? (
+                        <p className="mt-1.5 text-sm text-rose-600">{errors.slug}</p>
+                    ) : null}
+                </div>
+
+                <div>
+                    <label className={label} htmlFor="status">
+                        Status
+                    </label>
+                    <select
+                        id="status"
+                        className={field}
+                        value={data.status}
+                        onChange={(e) => setData('status', e.target.value)}
+                    >
+                        {statuses.map((s) => (
+                            <option key={s} value={s}>
+                                {s}
+                            </option>
+                        ))}
+                    </select>
+                    {errors.status ? (
+                        <p className="mt-1.5 text-sm text-rose-600">{errors.status}</p>
+                    ) : null}
+                </div>
+
+                <div>
+                    <label className={label} htmlFor="claim_status">
+                        Claim status
+                    </label>
+                    <select
+                        id="claim_status"
+                        className={field}
+                        value={data.claim_status}
+                        onChange={(e) => setData('claim_status', e.target.value)}
+                    >
+                        {claimStatuses.map((s) => (
+                            <option key={s} value={s}>
+                                {s}
+                            </option>
+                        ))}
+                    </select>
+                    {errors.claim_status ? (
+                        <p className="mt-1.5 text-sm text-rose-600">{errors.claim_status}</p>
+                    ) : null}
+                </div>
+
+                <div>
+                    <label className={label} htmlFor="tier">
+                        Plan
+                    </label>
+                    <select
+                        id="tier"
+                        className={field}
+                        value={data.tier}
+                        onChange={(e) => setData('tier', e.target.value)}
+                    >
+                        {(allowedTiers?.length
+                            ? allowedTiers
+                            : ['free', 'featured', 'premium']
+                        ).map((t) => (
+                            <option key={t} value={t}>
+                                {tierLabels[t] || t}
+                            </option>
+                        ))}
+                    </select>
+                    {errors.tier ? (
+                        <p className="mt-1.5 text-sm text-rose-600">{errors.tier}</p>
+                    ) : null}
+                </div>
+
+                <div>
+                    <label className={label} htmlFor="priority">
+                        Priority
+                    </label>
+                    <input
+                        id="priority"
+                        type="number"
+                        min="0"
+                        className={field}
+                        value={data.priority}
+                        onChange={(e) => setData('priority', e.target.value)}
+                    />
+                    {errors.priority ? (
+                        <p className="mt-1.5 text-sm text-rose-600">{errors.priority}</p>
+                    ) : null}
+                </div>
+
+                <div>
+                    <label className={label} htmlFor="expires_at">
+                        Expires at
+                    </label>
+                    <input
+                        id="expires_at"
+                        type="datetime-local"
+                        className={field}
+                        value={data.expires_at}
+                        onChange={(e) => setData('expires_at', e.target.value)}
+                    />
+                    {errors.expires_at ? (
+                        <p className="mt-1.5 text-sm text-rose-600">{errors.expires_at}</p>
+                    ) : null}
+                </div>
+
+                <div>
+                    <label className={label} htmlFor="published_at">
+                        Published at
+                    </label>
+                    <input
+                        id="published_at"
+                        type="datetime-local"
+                        className={field}
+                        value={data.published_at}
+                        onChange={(e) => setData('published_at', e.target.value)}
+                    />
+                    {errors.published_at ? (
+                        <p className="mt-1.5 text-sm text-rose-600">{errors.published_at}</p>
+                    ) : null}
+                </div>
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-5">
+                <label className="flex items-center gap-2">
+                    <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-olive-300 text-mustard focus:ring-mustard"
+                        checked={data.is_published}
+                        onChange={(e) => setData('is_published', e.target.checked)}
+                    />
+                    <span className="text-sm font-medium text-olive-700">Published on site</span>
+                </label>
+                <label className="flex items-center gap-2">
+                    <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-olive-300 text-mustard focus:ring-mustard"
+                        checked={data.is_featured}
+                        onChange={(e) => setData('is_featured', e.target.checked)}
+                    />
+                    <span className="text-sm font-medium text-olive-700">Featured</span>
+                </label>
+                <label className="flex items-center gap-2">
+                    <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-olive-300 text-mustard focus:ring-mustard"
+                        checked={data.is_trending}
+                        onChange={(e) => setData('is_trending', e.target.checked)}
+                    />
+                    <span className="text-sm font-medium text-olive-700">Trending</span>
+                </label>
+            </div>
+        </div>
     );
 }
 
@@ -915,6 +1356,7 @@ function BasicsStep({
     categoryKey,
     subs,
     isEdit,
+    isAdmin = false,
     categories,
     allowedTiers,
     patch,
@@ -1030,7 +1472,7 @@ function BasicsStep({
                     </div>
                 ) : null}
 
-                {allowedTiers.length > 1 ? (
+                {!isAdmin && allowedTiers.length > 1 ? (
                     <div>
                         <label className={label} htmlFor="tier">
                             Plan

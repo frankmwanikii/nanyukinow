@@ -121,6 +121,31 @@
     }
 
     .admin-table tbody tr.is-selected .admin-td {
-        @apply bg-mustard/10 dark:bg-mustard/15;
+        @apply bg-olive-900/[0.04] dark:bg-mustard/10;
     }
+
+    .admin-table tbody tr.is-selected .admin-td:first-child {
+        box-shadow: inset 3px 0 0 #1c2a1e;
+    }
+
+    .dark .admin-table tbody tr.is-selected .admin-td:first-child {
+        box-shadow: inset 3px 0 0 #d4a017;
+    }
+}
+
+/* Admin flash toast — progress bar shrinks right → left */
+@keyframes admin-toast-shrink {
+    from {
+        transform: scaleX(1);
+    }
+    to {
+        transform: scaleX(0);
+    }
+}
+
+.admin-toast-progress {
+    transform-origin: left center;
+    animation-name: admin-toast-shrink;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
 }

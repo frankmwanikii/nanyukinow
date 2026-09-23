@@ -16,29 +16,24 @@ import {
     Td,
     Th,
 } from '@/Components/Admin/ui';
+import { useConfirm } from '@/Components/ConfirmDialog';
 import { Head, router, useForm } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 export default function Index({ users, filters }) {
-    const [editing, setEditing] = useState(null);
+    const { confirm, dialog } = useConfirm();
     const [showCreate, setShowCreate] = useState(false);
     const [q, setQ] = useState(filters.q || '');
     const [role, setRole] = useState(filters.role || '');
+    const [perPage, setPerPage] = useState(filters.per_page || 20);
     const skipDebounce = useRef(true);
 
     const createForm = useForm({
         name: '',
         username: '',
         email: '',
-        password: '',
-        is_admin: false,
-    });
-
-    const editForm = useForm({
-        name: '',
-        username: '',
-        email: '',
+        phone: '',
         password: '',
         is_admin: false,
     });
@@ -58,33 +53,29 @@ export default function Index({ users, filters }) {
         }
 
         const timer = setTimeout(() => {
-            pushFilters({ q, role });
+            pushFilters({ q, role, per_page: perPage });
         }, 350);
 
         return () => clearTimeout(timer);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [q]);
 
-    const startEdit = (user) => {
-        setEditing(user.id);
-        setShowCreate(false);
-        editForm.setData({
-            name: user.name,
-            username: user.username || '',
-            email: user.email,
-            password: '',
-            is_admin: user.is_admin,
-        });
+    const openMember = (user) => {
+        router.visit(route('admin.users.show', user.username || user.id));
     };
 
     return (
         <AdminLayout>
             <Head title="Admin users" />
+            {dialog}
 
             <PageHeader
                 title="Users"
                 actions={
-                    <AdminButton size="sm" onClick={() => { setShowCreate(true); setEditing(null); }}>
+                    <AdminButton
+                        size="sm"
+                        onClick={() => setShowCreate(true)}
+                    >
                         <Plus className="h-3.5 w-3.5" />
                         Add user
                     </AdminButton>
@@ -97,7 +88,7 @@ export default function Index({ users, filters }) {
                     value={q}
                     onChange={(e) => setQ(e.target.value)}
                     className="min-w-[200px] flex-1"
-                    placeholder="Name, email, username"
+                    placeholder="Name, email, username, phone"
                 />
                 <AdminSelect
                     label="Role"
@@ -105,7 +96,7 @@ export default function Index({ users, filters }) {
                     onChange={(e) => {
                         const next = e.target.value;
                         setRole(next);
-                        pushFilters({ q, role: next });
+                        pushFilters({ q, role: next, per_page: perPage });
                     }}
                     className="w-36"
                 >
@@ -128,14 +119,56 @@ export default function Index({ users, filters }) {
                     }}
                     className="mb-4 grid gap-2.5 rounded-lg border border-olive-200/80 bg-white p-4 dark:border-olive-800 dark:bg-olive-900 md:grid-cols-2 xl:grid-cols-3"
                 >
-                    <AdminInput label="Name" value={createForm.data.name} onChange={(e) => createForm.setData('name', e.target.value)} error={createForm.errors.name} />
-                    <AdminInput label="Username" value={createForm.data.username} onChange={(e) => createForm.setData('username', e.target.value)} error={createForm.errors.username} />
-                    <AdminInput label="Email" type="email" value={createForm.data.email} onChange={(e) => createForm.setData('email', e.target.value)} error={createForm.errors.email} />
-                    <AdminInput label="Password" type="password" value={createForm.data.password} onChange={(e) => createForm.setData('password', e.target.value)} error={createForm.errors.password} />
+                    <AdminInput
+                        label="Name"
+                        value={createForm.data.name}
+                        onChange={(e) => createForm.setData('name', e.target.value)}
+                        error={createForm.errors.name}
+                    />
+                    <AdminInput
+                        label="Username"
+                        value={createForm.data.username}
+                        onChange={(e) => createForm.setData('username', e.target.value)}
+                        error={createForm.errors.username}
+                    />
+                    <AdminInput
+                        label="Email"
+                        type="email"
+                        value={createForm.data.email}
+                        onChange={(e) => createForm.setData('email', e.target.value)}
+                        error={createForm.errors.email}
+                    />
+                    <AdminInput
+                        label="Phone"
+                        type="tel"
+                        value={createForm.data.phone}
+                        onChange={(e) => createForm.setData('phone', e.target.value)}
+                        error={createForm.errors.phone}
+                    />
+                    <AdminInput
+                        label="Password"
+                        type="password"
+                        value={createForm.data.password}
+                        onChange={(e) => createForm.setData('password', e.target.value)}
+                        error={createForm.errors.password}
+                    />
                     <div className="flex items-end gap-3">
-                        <AdminCheckbox label="Admin access" checked={createForm.data.is_admin} onChange={(e) => createForm.setData('is_admin', e.target.checked)} />
-                        <AdminButton type="submit" size="sm" disabled={createForm.processing}>Create</AdminButton>
-                        <AdminButton type="button" size="sm" variant="secondary" onClick={() => setShowCreate(false)}>Cancel</AdminButton>
+                        <AdminCheckbox
+                            label="Admin access"
+                            checked={createForm.data.is_admin}
+                            onChange={(e) => createForm.setData('is_admin', e.target.checked)}
+                        />
+                        <AdminButton type="submit" size="sm" disabled={createForm.processing}>
+                            Create
+                        </AdminButton>
+                        <AdminButton
+                            type="button"
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => setShowCreate(false)}
+                        >
+                            Cancel
+                        </AdminButton>
                     </div>
                 </form>
             )}
@@ -145,122 +178,154 @@ export default function Index({ users, filters }) {
             ) : (
                 <DataCard
                     title={`${users.meta?.total ?? users.data.length} users`}
-                    footer={<Pagination links={users.links} meta={users.meta} />}
+                    footer={
+                        <Pagination
+                            links={users.links}
+                            meta={users.meta || users}
+                            perPage={perPage}
+                            onPerPageChange={(n) => {
+                                setPerPage(n);
+                                pushFilters({ q, role, per_page: n });
+                            }}
+                        />
+                    }
                 >
                     <DataTable>
                         <thead>
                             <tr>
                                 <Th>User</Th>
-                                <Th>Plan</Th>
                                 <Th>Role</Th>
-                                <Th align="center">Listings</Th>
+                                <Th>Plan</Th>
+                                <Th>Email</Th>
+                                <Th>Phone</Th>
                                 <Th>Joined</Th>
                                 <Th align="right">Action</Th>
                             </tr>
                         </thead>
                         <tbody>
                             {users.data.map((user) => (
-                                <tr key={user.id}>
-                                    {editing === user.id ? (
-                                        <Td colSpan={6}>
-                                            <form
-                                                onSubmit={(e) => {
-                                                    e.preventDefault();
-                                                    editForm.put(route('admin.users.update', user.id), {
-                                                        onSuccess: () => setEditing(null),
-                                                    });
-                                                }}
-                                                className="grid gap-2.5 md:grid-cols-2 xl:grid-cols-3"
-                                            >
-                                                <AdminInput label="Name" value={editForm.data.name} onChange={(e) => editForm.setData('name', e.target.value)} error={editForm.errors.name} />
-                                                <AdminInput label="Username" value={editForm.data.username} onChange={(e) => editForm.setData('username', e.target.value)} error={editForm.errors.username} />
-                                                <AdminInput label="Email" type="email" value={editForm.data.email} onChange={(e) => editForm.setData('email', e.target.value)} error={editForm.errors.email} />
-                                                <AdminInput label="New password" type="password" value={editForm.data.password} onChange={(e) => editForm.setData('password', e.target.value)} error={editForm.errors.password} placeholder="Leave blank to keep" />
-                                                <div className="flex items-end gap-2">
-                                                    <AdminCheckbox label="Admin" checked={editForm.data.is_admin} onChange={(e) => editForm.setData('is_admin', e.target.checked)} />
-                                                    <AdminButton type="submit" size="sm" disabled={editForm.processing}>Save</AdminButton>
-                                                    <AdminButton type="button" size="sm" variant="secondary" onClick={() => setEditing(null)}>Cancel</AdminButton>
-                                                </div>
-                                            </form>
-                                        </Td>
-                                    ) : (
-                                        <>
-                                            <Td>
-                                                <MediaCell
-                                                    title={user.name}
-                                                    subtitle={`${user.email}${user.username ? ` · @${user.username}` : ''}`}
-                                                />
-                                            </Td>
-                                            <Td>
-                                                <StatusBadge status={user.plan || 'free'} />
-                                                <span className="mt-1 block text-xs text-olive-500">
-                                                    {user.plan_label || 'Free'}
-                                                </span>
-                                            </Td>
-                                            <Td>
-                                                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700 dark:text-slate-200">
-                                                    <span className={`h-1.5 w-1.5 rounded-full ${user.is_admin ? 'bg-indigo-500' : 'bg-slate-400'}`} />
-                                                    {user.is_admin ? 'Admin' : 'Member'}
-                                                </span>
-                                            </Td>
-                                            <Td align="center">
-                                                <span className="tabular-nums text-sm text-olive-700 dark:text-olive-200">{user.listings_count}</span>
-                                            </Td>
-                                            <Td>
-                                                <span className="text-sm text-olive-500 dark:text-olive-400">
-                                                    {user.created_at ? new Date(user.created_at).toLocaleDateString() : '—'}
-                                                </span>
-                                            </Td>
-                                            <Td align="right">
-                                                <ActionMenu
-                                                    items={[
-                                                        {
-                                                            label: 'Edit',
-                                                            onClick: () => startEdit(user),
-                                                        },
-                                                        {
-                                                            label: 'Set Free plan',
-                                                            onClick: () =>
-                                                                router.post(route('admin.upgrades.assign'), {
-                                                                    user_id: user.id,
-                                                                    plan: 'free',
-                                                                }),
-                                                        },
-                                                        {
-                                                            label: 'Set Standard plan',
-                                                            onClick: () =>
-                                                                router.post(route('admin.upgrades.assign'), {
-                                                                    user_id: user.id,
-                                                                    plan: 'featured',
-                                                                    duration_days: 30,
-                                                                }),
-                                                        },
-                                                        {
-                                                            label: 'Set Premium plan',
-                                                            onClick: () =>
-                                                                router.post(route('admin.upgrades.assign'), {
-                                                                    user_id: user.id,
-                                                                    plan: 'premium',
-                                                                    duration_days: 30,
-                                                                }),
-                                                        },
-                                                        {
-                                                            label: 'View listings',
-                                                            href: route('admin.listings.index', { q: user.name }),
-                                                        },
-                                                        {
-                                                            label: 'Delete',
-                                                            danger: true,
-                                                            onClick: () => {
-                                                                if (!confirm(`Delete ${user.name}?`)) return;
-                                                                router.delete(route('admin.users.destroy', user.id));
-                                                            },
-                                                        },
-                                                    ]}
-                                                />
-                                            </Td>
-                                        </>
-                                    )}
+                                <tr
+                                    key={user.id}
+                                    role="link"
+                                    tabIndex={0}
+                                    onClick={() => openMember(user)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            openMember(user);
+                                        }
+                                    }}
+                                    className="cursor-pointer transition hover:bg-olive-50/80 dark:hover:bg-olive-800/40"
+                                >
+                                    <Td>
+                                        <MediaCell
+                                            image={user.avatar_url}
+                                            title={user.name}
+                                        />
+                                    </Td>
+                                    <Td>
+                                        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700 dark:text-slate-200">
+                                            <span
+                                                className={`h-1.5 w-1.5 rounded-full ${user.is_admin ? 'bg-indigo-500' : 'bg-slate-400'}`}
+                                            />
+                                            {user.is_admin ? 'Admin' : 'Member'}
+                                        </span>
+                                    </Td>
+                                    <Td>
+                                        <StatusBadge status={user.plan || 'free'} />
+                                    </Td>
+                                    <Td>
+                                        <span className="text-sm text-olive-700 dark:text-olive-200">
+                                            {user.email || '—'}
+                                        </span>
+                                    </Td>
+                                    <Td>
+                                        <span className="whitespace-nowrap text-sm text-olive-700 dark:text-olive-200">
+                                            {user.phone || '—'}
+                                        </span>
+                                    </Td>
+                                    <Td>
+                                        <span className="text-sm text-olive-500 dark:text-olive-400">
+                                            {user.created_at
+                                                ? new Date(user.created_at).toLocaleDateString()
+                                                : '—'}
+                                        </span>
+                                    </Td>
+                                    <Td
+                                        align="right"
+                                        onClick={(e) => e.stopPropagation()}
+                                        onKeyDown={(e) => e.stopPropagation()}
+                                    >
+                                        <ActionMenu
+                                            items={[
+                                                {
+                                                    label: 'Open profile',
+                                                    href: route(
+                                                        'admin.users.show',
+                                                        user.username || user.id,
+                                                    ),
+                                                },
+                                                {
+                                                    label: 'Listings',
+                                                    href: route('admin.users.show', {
+                                                        user: user.username || user.id,
+                                                        tab: 'listings',
+                                                    }),
+                                                },
+                                                {
+                                                    label: 'Payment history',
+                                                    href: route('admin.users.show', {
+                                                        user: user.username || user.id,
+                                                        tab: 'payments',
+                                                    }),
+                                                },
+                                                {
+                                                    label: 'Set Free plan',
+                                                    onClick: () =>
+                                                        router.post(route('admin.finance.assign'), {
+                                                            user_id: user.id,
+                                                            plan: 'free',
+                                                        }),
+                                                },
+                                                {
+                                                    label: 'Set Standard plan',
+                                                    onClick: () =>
+                                                        router.post(route('admin.finance.assign'), {
+                                                            user_id: user.id,
+                                                            plan: 'featured',
+                                                            duration_days: 30,
+                                                        }),
+                                                },
+                                                {
+                                                    label: 'Set Premium plan',
+                                                    onClick: () =>
+                                                        router.post(route('admin.finance.assign'), {
+                                                            user_id: user.id,
+                                                            plan: 'premium',
+                                                            duration_days: 30,
+                                                        }),
+                                                },
+                                                {
+                                                    label: 'Delete',
+                                                    danger: true,
+                                                    onClick: async () => {
+                                                        const ok = await confirm({
+                                                            title: 'Delete user?',
+                                                            message: `Delete ${user.name}? This cannot be undone.`,
+                                                            confirmLabel: 'Delete',
+                                                        });
+                                                        if (!ok) return;
+                                                        router.delete(
+                                                            route(
+                                                                'admin.users.destroy',
+                                                                user.username || user.id,
+                                                            ),
+                                                        );
+                                                    },
+                                                },
+                                            ]}
+                                        />
+                                    </Td>
                                 </tr>
                             ))}
                         </tbody>

@@ -14,14 +14,31 @@ import {
     PageHeader,
     Pagination,
     StatusBadge,
+    SummaryCard,
     Td,
     Th,
 } from '@/Components/Admin/ui';
+import { useConfirm } from '@/Components/ConfirmDialog';
 import { Head, router } from '@inertiajs/react';
-import { Plus, Trash2 } from 'lucide-react';
+import {
+    CircleCheck,
+    Clock,
+    Crown,
+    Hourglass,
+    Plus,
+    Trash2,
+} from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-export default function Index({ listings, filters, categories, statuses, tiers }) {
+export default function Index({
+    listings,
+    filters,
+    categories,
+    statuses,
+    tiers,
+    stats = {},
+}) {
+    const { confirm, dialog } = useConfirm();
     const [selected, setSelected] = useState([]);
     const [local, setLocal] = useState({
         q: filters.q || '',
@@ -31,11 +48,24 @@ export default function Index({ listings, filters, categories, statuses, tiers }
         expiry: filters.expiry || '',
         sort: filters.sort || 'updated_at',
         direction: filters.direction || 'desc',
+        per_page: filters.per_page || 15,
     });
     const skipDebounce = useRef(true);
 
     const allIds = useMemo(() => listings.data.map((l) => l.id), [listings.data]);
     const allSelected = allIds.length > 0 && selected.length === allIds.length;
+
+    const applyCardFilter = (partial) => {
+        const next = {
+            ...local,
+            status: '',
+            tier: '',
+            expiry: '',
+            ...partial,
+        };
+        setLocal(next);
+        pushFilters(next);
+    };
 
     const pushFilters = (next) => {
         router.get(route('admin.listings.index'), next, {
@@ -84,9 +114,16 @@ export default function Index({ listings, filters, categories, statuses, tiers }
         setSelected(allSelected ? [] : allIds);
     };
 
-    const runBulk = (action) => {
+    const runBulk = async (action) => {
         if (!selected.length) return;
-        if (action === 'delete' && !confirm(`Delete ${selected.length} listing(s)?`)) return;
+        if (action === 'delete') {
+            const ok = await confirm({
+                title: 'Delete listings?',
+                message: `Delete ${selected.length} selected listing${selected.length === 1 ? '' : 's'}? This cannot be undone.`,
+                confirmLabel: 'Delete',
+            });
+            if (!ok) return;
+        }
         router.post(route('admin.listings.bulk'), { ids: selected, action }, {
             onSuccess: () => setSelected([]),
         });
@@ -95,6 +132,7 @@ export default function Index({ listings, filters, categories, statuses, tiers }
     return (
         <AdminLayout>
             <Head title="Admin listings" />
+            {dialog}
 
             <PageHeader
                 title="Listings"
@@ -105,6 +143,45 @@ export default function Index({ listings, filters, categories, statuses, tiers }
                     </AdminLink>
                 }
             />
+
+            <div className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <SummaryCard
+                    title="Published"
+                    value={stats.published ?? 0}
+                    hint="Live on the site"
+                    icon={CircleCheck}
+                    iconTone="mint"
+                    actionLabel="View published"
+                    onAction={() => applyCardFilter({ status: 'published' })}
+                />
+                <SummaryCard
+                    title="Premium"
+                    value={stats.premium ?? 0}
+                    hint="Premium plan listings"
+                    icon={Crown}
+                    iconTone="mustard"
+                    actionLabel="View premium"
+                    onAction={() => applyCardFilter({ tier: 'premium' })}
+                />
+                <SummaryCard
+                    title="Pending review"
+                    value={stats.pending ?? 0}
+                    hint="Awaiting approval"
+                    icon={Hourglass}
+                    iconTone="amber"
+                    actionLabel="Review queue"
+                    onAction={() => applyCardFilter({ status: 'pending' })}
+                />
+                <SummaryCard
+                    title="Expiring soon"
+                    value={stats.expiring_soon ?? 0}
+                    hint="Within the next 14 days"
+                    icon={Clock}
+                    iconTone="rose"
+                    actionLabel="View expiring"
+                    onAction={() => applyCardFilter({ expiry: 'soon' })}
+                />
+            </div>
 
             <FilterBar>
                 <AdminInput
@@ -188,14 +265,17 @@ export default function Index({ listings, filters, categories, statuses, tiers }
             ) : (
                 <DataCard
                     title={`${listings.meta?.total ?? listings.data.length} listings`}
-                    tools={
-                        <AdminLink href={route('admin.listings.create')}>
-                            <Plus className="h-4 w-4" />
-                            Add listing
-                        </AdminLink>
-                    }
                     footer={
-                        <Pagination links={listings.links} meta={listings.meta} />
+                        <Pagination
+                            links={listings.links}
+                            meta={listings.meta || listings}
+                            perPage={local.per_page}
+                            onPerPageChange={(n) => {
+                                const next = { ...local, per_page: n };
+                                setLocal(next);
+                                pushFilters(next);
+                            }}
+                        />
                     }
                 >
                     <DataTable>
@@ -265,22 +345,45 @@ export default function Index({ listings, filters, categories, statuses, tiers }
                         <tbody>
                             {listings.data.map((listing) => {
                                 const isSelected = selected.includes(listing.id);
+                                const editUrl = route('admin.listings.edit', listing.slug || listing.id);
                                 return (
-                                    <tr key={listing.id} className={isSelected ? 'is-selected' : ''}>
-                                        <Td>
+                                    <tr
+                                        key={listing.id}
+                                        role="link"
+                                        tabIndex={0}
+                                        onClick={() => router.visit(editUrl)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault();
+                                                router.visit(editUrl);
+                                            }
+                                        }}
+                                        className={`cursor-pointer transition hover:bg-olive-50/80 dark:hover:bg-olive-800/40 ${
+                                            isSelected
+                                                ? 'is-selected ring-1 ring-inset ring-olive-900/15 dark:ring-mustard/30'
+                                                : ''
+                                        }`}
+                                    >
+                                        <Td
+                                            onClick={(e) => e.stopPropagation()}
+                                            onKeyDown={(e) => e.stopPropagation()}
+                                        >
                                             <input
                                                 type="checkbox"
                                                 checked={isSelected}
                                                 onChange={() => toggleOne(listing.id)}
                                                 className="h-3.5 w-3.5 rounded border-slate-300 text-slate-800"
+                                                aria-label={`Select ${listing.title}`}
                                             />
                                         </Td>
                                         <Td>
                                             <MediaCell
-                                                image={listing.image_url}
+                                                image={
+                                                    listing.categoryKey === 'events'
+                                                        ? listing.eventPoster || listing.image || listing.image_url
+                                                        : listing.image || listing.image_url
+                                                }
                                                 title={listing.title}
-                                                subtitle={listing.location || listing.slug}
-                                                href={route('admin.listings.edit', listing.id)}
                                             />
                                         </Td>
                                         <Td>
@@ -309,12 +412,16 @@ export default function Index({ listings, filters, categories, statuses, tiers }
                                                     : '—'}
                                             </span>
                                         </Td>
-                                        <Td align="right">
+                                        <Td
+                                            align="right"
+                                            onClick={(e) => e.stopPropagation()}
+                                            onKeyDown={(e) => e.stopPropagation()}
+                                        >
                                             <ActionMenu
                                                 items={[
                                                     {
                                                         label: 'Edit',
-                                                        href: route('admin.listings.edit', listing.id),
+                                                        href: editUrl,
                                                     },
                                                     {
                                                         label:
@@ -328,9 +435,19 @@ export default function Index({ listings, filters, categories, statuses, tiers }
                                                     {
                                                         label: 'Delete',
                                                         danger: true,
-                                                        onClick: () => {
-                                                            if (!confirm(`Delete “${listing.title}”?`)) return;
-                                                            router.delete(route('admin.listings.destroy', listing.id));
+                                                        onClick: async () => {
+                                                            const ok = await confirm({
+                                                                title: 'Delete listing?',
+                                                                message: `Delete “${listing.title || 'Untitled'}”? This cannot be undone.`,
+                                                                confirmLabel: 'Delete',
+                                                            });
+                                                            if (!ok) return;
+                                                            router.delete(
+                                                                route(
+                                                                    'admin.listings.destroy',
+                                                                    listing.slug || listing.id,
+                                                                ),
+                                                            );
                                                         },
                                                     },
                                                 ]}

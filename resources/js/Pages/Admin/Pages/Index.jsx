@@ -1,13 +1,16 @@
 import AdminLayout from '@/Layouts/AdminLayout';
 import {
-    AdminLink,
+    ActionMenu,
     DataCard,
+    DataTable,
     EmptyState,
     PageHeader,
+    Pagination,
     StatusBadge,
+    Td,
+    Th,
 } from '@/Components/Admin/ui';
-import { Head } from '@inertiajs/react';
-import { ExternalLink, FileText, Pencil } from 'lucide-react';
+import { Head, router } from '@inertiajs/react';
 
 function formatUpdated(iso) {
     if (!iso) return '—';
@@ -21,75 +24,89 @@ function formatUpdated(iso) {
     }
 }
 
-export default function Index({ pages = [] }) {
+export default function Index({ pages, filters = {} }) {
+    const rows = pages?.data || pages || [];
+    const total = pages?.meta?.total ?? rows.length;
+    const perPage = filters.per_page || pages?.meta?.per_page || 15;
+
+    const setPerPage = (n) => {
+        router.get(
+            route('admin.pages.index'),
+            { per_page: n },
+            { preserveState: true, preserveScroll: true },
+        );
+    };
+
     return (
         <AdminLayout>
             <Head title="Pages" />
 
-            <PageHeader
-                title="Pages"
-                description="Every public page on the website. Open a page to edit its title, SEO fields, and on-page content."
-            />
+            <PageHeader title="Pages" />
 
-            {pages.length === 0 ? (
+            {rows.length === 0 ? (
                 <EmptyState
                     title="No pages yet"
                     description="Site pages will appear here once defaults are seeded."
                 />
             ) : (
-                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                    {pages.map((page) => (
-                        <DataCard
-                            key={page.id}
-                            title={page.title}
-                            tools={
-                                <StatusBadge
-                                    status={page.is_published ? 'published' : 'draft'}
-                                />
-                            }
-                            footer={
-                                <div className="flex flex-wrap items-center justify-between gap-2">
-                                    <p className="text-xs text-olive-500">
-                                        Updated {formatUpdated(page.updated_at)}
-                                    </p>
-                                    <div className="flex gap-2">
-                                        <a
-                                            href={page.public_url}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold text-olive-700 ring-1 ring-olive-200 transition hover:bg-olive-50 dark:text-olive-200 dark:ring-olive-700"
-                                        >
-                                            <ExternalLink className="h-3.5 w-3.5" />
-                                            View
-                                        </a>
-                                        <AdminLink
-                                            href={route('admin.pages.edit', page.id)}
-                                            variant="secondary"
-                                            className="!rounded-full !px-3 !py-1.5 !text-xs"
-                                        >
-                                            <Pencil className="h-3.5 w-3.5" />
-                                            Edit
-                                        </AdminLink>
-                                    </div>
-                                </div>
-                            }
-                        >
-                            <div className="flex gap-3">
-                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-olive-100 text-olive-800 dark:bg-olive-800 dark:text-olive-100">
-                                    <FileText className="h-5 w-5" />
-                                </div>
-                                <div className="min-w-0">
-                                    <p className="font-mono text-xs text-olive-500">
-                                        {page.path}
-                                    </p>
-                                    <p className="mt-1 text-sm leading-snug text-olive-700 dark:text-olive-200">
-                                        {page.description || 'Editable website page.'}
-                                    </p>
-                                </div>
-                            </div>
-                        </DataCard>
-                    ))}
-                </div>
+                <DataCard
+                    title={`${total} pages`}
+                    footer={
+                        <Pagination
+                            links={pages.links}
+                            meta={pages.meta || pages}
+                            perPage={perPage}
+                            onPerPageChange={setPerPage}
+                        />
+                    }
+                >
+                    <DataTable>
+                        <thead>
+                            <tr>
+                                <Th>Page</Th>
+                                <Th>Status</Th>
+                                <Th>Last modified</Th>
+                                <Th align="right">Action</Th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {rows.map((page) => (
+                                <tr key={page.id}>
+                                    <Td>
+                                        <span className="text-base font-medium text-olive-900 dark:text-olive-50">
+                                            {page.title}
+                                        </span>
+                                    </Td>
+                                    <Td>
+                                        <StatusBadge
+                                            status={page.is_published ? 'published' : 'draft'}
+                                        />
+                                    </Td>
+                                    <Td>
+                                        <span className="text-sm text-olive-500 dark:text-olive-400">
+                                            {formatUpdated(page.updated_at)}
+                                        </span>
+                                    </Td>
+                                    <Td align="right">
+                                        <ActionMenu
+                                            items={[
+                                                {
+                                                    label: 'Edit',
+                                                    href: route('admin.pages.edit', page.id),
+                                                },
+                                                {
+                                                    label: 'View',
+                                                    href: page.public_url,
+                                                    external: true,
+                                                },
+                                            ]}
+                                        />
+                                    </Td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </DataTable>
+                </DataCard>
             )}
         </AdminLayout>
     );

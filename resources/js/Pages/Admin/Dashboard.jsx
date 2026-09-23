@@ -8,6 +8,7 @@ import {
     DataCard,
     DataTable,
     ExpiryCell,
+    AdminNotice,
     PageHeader,
     StatusBadge,
     StatCard,
@@ -22,9 +23,10 @@ import {
     Sparkles,
     Timer,
     Users,
-    ArrowUpCircle,
+    Wallet,
     ClipboardList,
 } from 'lucide-react';
+import { useState } from 'react';
 
 export default function Dashboard(props) {
     return (
@@ -41,10 +43,49 @@ function DashboardBody({ stats, recentListings, expiringListings, charts }) {
     const categories = charts?.categories || [];
     const statuses = charts?.statuses || [];
     const tiers = charts?.tiers || [];
+    const [dismissed, setDismissed] = useState({});
+
+    const dismiss = (key) => setDismissed((prev) => ({ ...prev, [key]: true }));
+
+    const insights = [
+        stats.pending_upgrades > 0 &&
+            !dismissed.upgrades && {
+                key: 'upgrades',
+                href: route('admin.finance.index', { tab: 'payments', status: 'pending' }),
+                text: `${stats.pending_upgrades} payment${stats.pending_upgrades === 1 ? '' : 's'} awaiting finance approval.`,
+            },
+        stats.pending_listings > 0 &&
+            !dismissed.listings && {
+                key: 'listings',
+                href: route('admin.listings.index', { status: 'pending' }),
+                text: `${stats.pending_listings} listing${stats.pending_listings === 1 ? '' : 's'} waiting for review.`,
+            },
+        stats.expiring_soon > 0 &&
+            !dismissed.expiring && {
+                key: 'expiring',
+                href: route('admin.listings.index', { expiry: 'soon' }),
+                text: `${stats.expiring_soon} listing${stats.expiring_soon === 1 ? '' : 's'} expiring soon${stats.expired ? ` · ${stats.expired} already expired` : ''}.`,
+            },
+    ].filter(Boolean);
 
     return (
         <>
             <PageHeader title="Overview" />
+
+            {insights.length > 0 && (
+                <div className="mb-5 grid max-w-3xl gap-3">
+                    {insights.map((item) => (
+                        <AdminNotice
+                            key={item.key}
+                            tone="decreasing"
+                            href={item.href}
+                            onDismiss={() => dismiss(item.key)}
+                        >
+                            {item.text}
+                        </AdminNotice>
+                    ))}
+                </div>
+            )}
 
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-7">
                 <StatCard
@@ -60,10 +101,10 @@ function DashboardBody({ stats, recentListings, expiringListings, charts }) {
                     icon={ClipboardList}
                 />
                 <StatCard
-                    label="Upgrade queue"
+                    label="Finance queue"
                     value={stats.pending_upgrades ?? 0}
                     hint="Awaiting payment check"
-                    icon={ArrowUpCircle}
+                    icon={Wallet}
                 />
                 <StatCard
                     label="Featured"
@@ -90,29 +131,6 @@ function DashboardBody({ stats, recentListings, expiringListings, charts }) {
                     icon={Eye}
                 />
             </div>
-
-            {(stats.pending_upgrades > 0 || stats.pending_listings > 0) && (
-                <div className="mt-4 flex flex-wrap gap-3">
-                    {stats.pending_upgrades > 0 && (
-                        <Link
-                            href={route('admin.upgrades.index', { status: 'pending' })}
-                            className="inline-flex items-center gap-2 rounded-full bg-mustard/20 px-4 py-2 text-sm font-semibold text-earth-dusk transition hover:bg-mustard/30 dark:text-mustard"
-                        >
-                            <ArrowUpCircle className="h-4 w-4" />
-                            Review {stats.pending_upgrades} upgrade{stats.pending_upgrades === 1 ? '' : 's'}
-                        </Link>
-                    )}
-                    {stats.pending_listings > 0 && (
-                        <Link
-                            href={route('admin.listings.index', { status: 'pending' })}
-                            className="inline-flex items-center gap-2 rounded-full bg-olive-100 px-4 py-2 text-sm font-semibold text-olive-800 transition hover:bg-olive-200 dark:bg-olive-800 dark:text-olive-100"
-                        >
-                            <ClipboardList className="h-4 w-4" />
-                            Review {stats.pending_listings} listing{stats.pending_listings === 1 ? '' : 's'}
-                        </Link>
-                    )}
-                </div>
-            )}
 
             <div className="mt-5 grid gap-4 xl:grid-cols-3">
                 <div className="xl:col-span-2">
@@ -196,7 +214,7 @@ function DashboardBody({ stats, recentListings, expiringListings, charts }) {
                                     <tr key={listing.id}>
                                         <Td>
                                             <Link
-                                                href={route('admin.listings.edit', listing.id)}
+                                                href={route('admin.listings.edit', listing.slug || listing.id)}
                                                 className="text-base font-medium text-olive-900 hover:text-earth-dusk dark:text-olive-100 dark:hover:text-white"
                                             >
                                                 {listing.title}
@@ -256,7 +274,7 @@ function DashboardBody({ stats, recentListings, expiringListings, charts }) {
                                 <tr key={listing.id}>
                                     <Td>
                                         <Link
-                                            href={route('admin.listings.edit', listing.id)}
+                                            href={route('admin.listings.edit', listing.slug || listing.id)}
                                             className="text-base font-medium text-olive-900 hover:text-earth-dusk dark:text-olive-100"
                                         >
                                             {listing.title}

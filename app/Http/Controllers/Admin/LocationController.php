@@ -5,21 +5,25 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Listing;
 use App\Models\Location;
+use App\Support\AdminPagination;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class LocationController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
+        $perPage = AdminPagination::perPage($request);
+
         $locations = Location::query()
             ->ordered()
-            ->get()
-            ->map(function (Location $location) {
+            ->paginate($perPage)
+            ->withQueryString()
+            ->through(function (Location $location) {
                 return [
                     'id' => $location->id,
                     'name' => $location->name,
@@ -33,6 +37,9 @@ class LocationController extends Controller
 
         return Inertia::render('Admin/Locations/Index', [
             'locations' => $locations,
+            'filters' => [
+                'per_page' => $perPage,
+            ],
         ]);
     }
 
@@ -40,12 +47,11 @@ class LocationController extends Controller
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:120'],
-            'slug' => ['nullable', 'string', 'max:120', 'unique:locations,slug'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['sometimes', 'boolean'],
         ]);
 
-        $data['slug'] = Str::slug($data['slug'] ?: $data['name']);
+        $data['slug'] = Str::slug($data['name']);
         $data['sort_order'] = $data['sort_order'] ?? 0;
         $data['is_active'] = $request->boolean('is_active', true);
 
@@ -58,13 +64,11 @@ class LocationController extends Controller
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:120'],
-            'slug' => ['nullable', 'string', 'max:120', Rule::unique('locations', 'slug')->ignore($location->id)],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['sometimes', 'boolean'],
         ]);
 
         $previousName = $location->name;
-        $data['slug'] = Str::slug($data['slug'] ?: $data['name']);
         $data['sort_order'] = $data['sort_order'] ?? $location->sort_order;
         $data['is_active'] = $request->boolean('is_active', $location->is_active);
 
@@ -77,6 +81,34 @@ class LocationController extends Controller
         }
 
         return back()->with('success', 'Location updated.');
+    }
+
+    public function listings(Location $location): JsonResponse
+    {
+        $listings = Listing::query()
+            ->where('location', $location->name)
+            ->orderByDesc('updated_at')
+            ->limit(100)
+            ->get(['id', 'title', 'slug', 'status', 'tier', 'image_url', 'location', 'updated_at'])
+            ->map(fn (Listing $listing) => [
+                'id' => $listing->id,
+                'title' => $listing->title ?: 'Untitled',
+                'slug' => $listing->slug,
+                'status' => $listing->status,
+                'tier' => $listing->tier,
+                'image_url' => $listing->image_url,
+                'location' => $listing->location,
+                'edit_href' => route('admin.listings.edit', $listing->slug),
+                'updated_at' => $listing->updated_at?->toIso8601String(),
+            ]);
+
+        return response()->json([
+            'location' => [
+                'id' => $location->id,
+                'name' => $location->name,
+            ],
+            'listings' => $listings,
+        ]);
     }
 
     public function destroy(Location $location): RedirectResponse

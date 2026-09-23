@@ -1,4 +1,5 @@
 import AccountLayout from '@/Layouts/AccountLayout';
+import { useConfirm } from '@/Components/ConfirmDialog';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
     ArrowUpRight,
@@ -16,9 +17,15 @@ function statusTone(status, published) {
 
 export default function Index({ plan, listings = [], pendingUpgrade = null }) {
     const { flash } = usePage().props;
+    const { confirm, dialog } = useConfirm();
 
-    const remove = (listing) => {
-        if (!confirm(`Delete “${listing.title}”?`)) return;
+    const remove = async (listing) => {
+        const ok = await confirm({
+            title: 'Delete listing?',
+            message: `Delete “${listing.title || 'Untitled'}”? This cannot be undone.`,
+            confirmLabel: 'Delete',
+        });
+        if (!ok) return;
         router.delete(route('account.listings.destroy', listing.id));
     };
 
@@ -28,6 +35,7 @@ export default function Index({ plan, listings = [], pendingUpgrade = null }) {
 
     return (
         <AccountLayout title="Dashboard">
+            {dialog}
             <Head title="Dashboard" />
 
             <div className="space-y-5">

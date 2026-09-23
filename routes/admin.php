@@ -3,6 +3,8 @@
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\FinanceController;
+use App\Http\Controllers\Admin\GalleryController;
 use App\Http\Controllers\Admin\ListingController;
 use App\Http\Controllers\Admin\LocationController;
 use App\Http\Controllers\Admin\PageController;
@@ -10,7 +12,6 @@ use App\Http\Controllers\Admin\PricingController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\StoryController;
-use App\Http\Controllers\Admin\UpgradeController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -29,24 +30,29 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('listings', [ListingController::class, 'index'])->name('listings.index');
         Route::get('listings/create', [ListingController::class, 'create'])->name('listings.create');
         Route::post('listings', [ListingController::class, 'store'])->name('listings.store');
-        Route::get('listings/{listing}/edit', [ListingController::class, 'edit'])->name('listings.edit');
-        Route::put('listings/{listing}', [ListingController::class, 'update'])->name('listings.update');
-        Route::delete('listings/{listing}', [ListingController::class, 'destroy'])->name('listings.destroy');
+        Route::get('listings/{listing:slug}/edit', [ListingController::class, 'edit'])->name('listings.edit');
+        Route::put('listings/{listing:slug}', [ListingController::class, 'update'])->name('listings.update');
+        Route::delete('listings/{listing:slug}', [ListingController::class, 'destroy'])->name('listings.destroy');
         Route::post('listings/bulk', [ListingController::class, 'bulk'])->name('listings.bulk');
 
         Route::get('categories', [CategoryController::class, 'index'])->name('categories.index');
+        Route::get('categories/create', [CategoryController::class, 'create'])->name('categories.create');
         Route::post('categories', [CategoryController::class, 'store'])->name('categories.store');
+        Route::get('categories/{category}/edit', [CategoryController::class, 'edit'])->name('categories.edit');
+        Route::get('categories/{category}/listings', [CategoryController::class, 'listings'])->name('categories.listings');
         Route::put('categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
         Route::delete('categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
         Route::post('categories/reorder', [CategoryController::class, 'reorder'])->name('categories.reorder');
 
         Route::get('locations', [LocationController::class, 'index'])->name('locations.index');
         Route::post('locations', [LocationController::class, 'store'])->name('locations.store');
+        Route::get('locations/{location}/listings', [LocationController::class, 'listings'])->name('locations.listings');
         Route::put('locations/{location}', [LocationController::class, 'update'])->name('locations.update');
         Route::delete('locations/{location}', [LocationController::class, 'destroy'])->name('locations.destroy');
 
         Route::get('users', [UserController::class, 'index'])->name('users.index');
         Route::post('users', [UserController::class, 'store'])->name('users.store');
+        Route::get('users/{user}', [UserController::class, 'show'])->name('users.show');
         Route::put('users/{user}', [UserController::class, 'update'])->name('users.update');
         Route::delete('users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
 
@@ -57,14 +63,27 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('stories/{story}', [StoryController::class, 'update'])->name('stories.update');
         Route::delete('stories/{story}', [StoryController::class, 'destroy'])->name('stories.destroy');
 
+        Route::get('gallery', [GalleryController::class, 'index'])->name('gallery.index');
+        Route::get('gallery/browse', [GalleryController::class, 'browse'])->name('gallery.browse');
+        Route::post('gallery', [GalleryController::class, 'store'])->name('gallery.store');
+        Route::delete('gallery', [GalleryController::class, 'destroy'])->name('gallery.destroy');
+        Route::post('gallery/bulk-delete', [GalleryController::class, 'bulkDestroy'])->name('gallery.bulk-destroy');
+
         Route::get('pricing', [PricingController::class, 'index'])->name('pricing.index');
+        Route::get('pricing/{pricing}/edit', [PricingController::class, 'edit'])->name('pricing.edit');
         Route::put('pricing/{pricing}', [PricingController::class, 'update'])->name('pricing.update');
         Route::delete('pricing/{pricing}', [PricingController::class, 'destroy'])->name('pricing.destroy');
 
-        Route::get('upgrades', [UpgradeController::class, 'index'])->name('upgrades.index');
-        Route::post('upgrades/{upgrade}/approve', [UpgradeController::class, 'approve'])->name('upgrades.approve');
-        Route::post('upgrades/{upgrade}/reject', [UpgradeController::class, 'reject'])->name('upgrades.reject');
-        Route::post('upgrades/assign-plan', [UpgradeController::class, 'updateUserPlan'])->name('upgrades.assign');
+        Route::get('finance', [FinanceController::class, 'index'])->name('finance.index');
+        Route::post('finance/{upgrade}/approve', [FinanceController::class, 'approve'])->name('finance.approve');
+        Route::post('finance/{upgrade}/reject', [FinanceController::class, 'reject'])->name('finance.reject');
+        Route::post('finance/assign-plan', [FinanceController::class, 'updateUserPlan'])->name('finance.assign');
+
+        // Legacy upgrade URLs / names (tests + bookmarks)
+        Route::redirect('upgrades', '/admin/finance');
+        Route::post('upgrades/{upgrade}/approve', [FinanceController::class, 'approve'])->name('upgrades.approve');
+        Route::post('upgrades/{upgrade}/reject', [FinanceController::class, 'reject'])->name('upgrades.reject');
+        Route::post('upgrades/assign-plan', [FinanceController::class, 'updateUserPlan'])->name('upgrades.assign');
 
         Route::get('pages', [PageController::class, 'index'])->name('pages.index');
         Route::get('pages/{page}/edit', [PageController::class, 'edit'])->name('pages.edit');

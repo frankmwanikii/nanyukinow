@@ -2155,9 +2155,15 @@ export function getListingDetail(listing) {
         mergedChips.categories = [...new Set(chipCats)];
     }
 
+    // Live DB payloads (ListingPayload) always win over static demo details so
+    // admin edits and the public site show the same content.
+    const hasLiveGallery =
+        Array.isArray(listing.gallery) && listing.gallery.length > 0;
     const posterSrc =
-        explicit?.eventPoster || listing.eventPoster || null;
-    let gallery = ensureGalleryDepth(explicit?.gallery ?? base.gallery);
+        listing.eventPoster || explicit?.eventPoster || null;
+    let gallery = ensureGalleryDepth(
+        hasLiveGallery ? base.gallery : (explicit?.gallery ?? base.gallery),
+    );
     if (listing.categoryKey === 'events' && posterSrc) {
         const spaces = normalizeGallerySpaces(gallery);
         const hasPosterSpace = spaces.some(
@@ -2177,17 +2183,32 @@ export function getListingDetail(listing) {
     }
 
     return {
+        ...(explicit || {}),
         ...listing,
         ...base,
-        ...explicit,
         propertyType: propertyType || explicit?.propertyType || null,
-        facts: listing.categoryKey === 'properties' ? facts : explicit?.facts ?? base.facts,
+        facts:
+            listing.categoryKey === 'properties'
+                ? facts
+                : detailFacts.length > 0
+                  ? facts
+                  : (explicit?.facts ?? base.facts),
         gallery,
         chips: mergedChips,
-        reviewSummary: { ...base.reviewSummary, ...explicit?.reviewSummary },
+        reviewSummary: {
+            ...(explicit?.reviewSummary || {}),
+            ...base.reviewSummary,
+        },
         products:
-            Array.isArray(explicit?.products) && explicit.products.length
-                ? explicit.products
-                : base.products,
+            Array.isArray(base.products) && base.products.length
+                ? base.products
+                : (explicit?.products ?? []),
+        about: base.about,
+        address: listing.address || explicit?.address || base.address,
+        email: listing.email || explicit?.email || base.email,
+        website: listing.website || explicit?.website || base.website,
+        amenities: base.amenities,
+        hours: base.hours,
+        socials: base.socials,
     };
 }

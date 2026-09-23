@@ -8,18 +8,20 @@ import {
     Newspaper,
     Settings2,
     CircleDollarSign,
-    ArrowUpCircle,
+    Wallet,
     FileText,
+    Images,
     Menu,
     X,
     Moon,
     Sun,
     Search,
     Bell,
-    ChevronDown,
+    ExternalLink,
 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { AdminThemeProvider, useAdminTheme } from '@/hooks/useAdminTheme';
+import { AdminFlashToast } from '@/Components/Admin/ui';
 
 const nav = [
     { label: 'Overview', href: 'admin.dashboard', icon: LayoutDashboard },
@@ -28,9 +30,10 @@ const nav = [
     { label: 'Categories', href: 'admin.categories.index', icon: FolderTree },
     { label: 'Locations', href: 'admin.locations.index', icon: MapPin },
     { label: 'Stories', href: 'admin.stories.index', icon: Newspaper },
+    { label: 'Gallery', href: 'admin.gallery.index', icon: Images },
     { label: 'Users', href: 'admin.users.index', icon: Users },
     { label: 'Pricing', href: 'admin.pricing.index', icon: CircleDollarSign },
-    { label: 'Upgrades', href: 'admin.upgrades.index', icon: ArrowUpCircle },
+    { label: 'Finance', href: 'admin.finance.index', icon: Wallet },
     { label: 'Settings', href: 'admin.settings.index', icon: Settings2 },
 ];
 
@@ -45,43 +48,43 @@ function FlashBanner() {
     const { flash } = usePage().props;
     const [visible, setVisible] = useState(true);
     const message = flash?.success || flash?.error || flash?.status;
+    const isError = Boolean(flash?.error);
+    // Remount toast when the flash text changes so the progress bar restarts.
+    const toastKey = `${isError ? 'e' : 's'}:${message || ''}`;
 
     useEffect(() => {
-        setVisible(true);
-        if (!message) return undefined;
-        const t = setTimeout(() => setVisible(false), 4500);
-        return () => clearTimeout(t);
+        setVisible(Boolean(message));
     }, [message]);
 
     if (!message || !visible) return null;
 
-    const tone = flash?.error
-        ? 'border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-200'
-        : 'border-mint/40 bg-mint/20 text-olive-900 dark:border-mint/30 dark:bg-mint/10 dark:text-mint-soft';
-
     return (
-        <div className={`mb-4 rounded-md border px-4 py-2.5 text-base ${tone}`}>
-            {message}
-        </div>
+        <AdminFlashToast
+            key={toastKey}
+            message={message}
+            tone={isError ? 'error' : 'success'}
+            onDismiss={() => setVisible(false)}
+        />
     );
 }
 
-function UserAvatar({ user }) {
+function UserAvatar({ user, size = 'md' }) {
     const initials = useMemo(() => userInitials(user?.name), [user?.name]);
+    const sizeClass = size === 'sm' ? 'h-8 w-8 text-xs' : 'h-9 w-9 text-sm';
 
     if (user?.avatar_url) {
         return (
             <img
                 src={user.avatar_url}
                 alt=""
-                className="h-9 w-9 rounded-full object-cover"
+                className={`${sizeClass} rounded-full object-cover`}
             />
         );
     }
 
     return (
         <div
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-mustard text-sm font-bold text-earth-dusk"
+            className={`flex items-center justify-center rounded-full bg-mustard font-bold text-earth-dusk ${sizeClass}`}
             aria-hidden
         >
             {initials}
@@ -91,30 +94,47 @@ function UserAvatar({ user }) {
 
 function TopbarSearch() {
     const [term, setTerm] = useState('');
+    const inputRef = useRef(null);
+    const isMac =
+        typeof navigator !== 'undefined' &&
+        /Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent || '');
+
+    useEffect(() => {
+        const onKey = (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+                e.preventDefault();
+                inputRef.current?.focus();
+            }
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, []);
 
     const submit = (e) => {
         e.preventDefault();
-        router.get(route('admin.listings.index'), { q: term.trim() || undefined }, {
-            preserveState: false,
-        });
+        router.get(
+            route('admin.listings.index'),
+            { q: term.trim() || undefined },
+            { preserveState: false },
+        );
     };
 
     return (
-        <form
-            onSubmit={submit}
-            role="search"
-            className="hidden min-w-0 md:block md:w-64 lg:w-80 xl:w-96"
-        >
+        <form onSubmit={submit} role="search" className="w-full max-w-xl">
             <label className="relative flex items-center">
                 <span className="sr-only">Search listings</span>
-                <Search className="pointer-events-none absolute left-4 h-4 w-4 text-olive-500 dark:text-olive-400" />
+                <Search className="pointer-events-none absolute left-3.5 h-4 w-4 text-olive-400 dark:text-olive-500" />
                 <input
+                    ref={inputRef}
                     type="search"
                     value={term}
                     onChange={(e) => setTerm(e.target.value)}
-                    placeholder="Search"
-                    className="h-11 w-full rounded-full border border-olive-200 bg-white pl-11 pr-4 text-sm text-olive-900 shadow-soft placeholder:text-olive-500 focus:border-mustard focus:ring-2 focus:ring-mustard/40 dark:border-olive-700 dark:bg-olive-950/80 dark:text-olive-50 dark:placeholder:text-olive-400 dark:focus:border-mustard"
+                    placeholder="Search..."
+                    className="h-10 w-full rounded-full border-0 bg-olive-100/80 pl-10 pr-14 text-sm text-olive-900 outline-none ring-1 ring-inset ring-olive-200/80 placeholder:text-olive-400 focus:bg-white focus:ring-2 focus:ring-mustard/50 dark:bg-olive-950/70 dark:text-olive-50 dark:ring-olive-700 dark:placeholder:text-olive-500 dark:focus:bg-olive-950 dark:focus:ring-mustard/40"
                 />
+                <kbd className="pointer-events-none absolute right-3 hidden select-none rounded-md bg-white px-1.5 py-0.5 font-sans text-[10px] font-semibold tracking-wide text-olive-400 ring-1 ring-olive-200 sm:inline-block dark:bg-olive-900 dark:text-olive-500 dark:ring-olive-700">
+                    {isMac ? '⌘K' : 'Ctrl K'}
+                </kbd>
             </label>
         </form>
     );
@@ -127,12 +147,12 @@ function ThemeToggle() {
         <div
             role="group"
             aria-label="Color theme"
-            className="relative inline-grid h-8 shrink-0 grid-cols-2 items-center rounded-full bg-olive-950 p-0.5 ring-1 ring-inset ring-white/10 dark:bg-white/[0.08]"
+            className="relative inline-grid h-9 shrink-0 grid-cols-2 items-center rounded-full bg-olive-100 p-0.5 ring-1 ring-inset ring-olive-200/80 dark:bg-olive-950 dark:ring-olive-700"
         >
             <span
                 aria-hidden
-                className="pointer-events-none absolute top-0.5 left-0.5 h-7 w-7 rounded-full bg-mustard shadow-[0_1px_6px_rgba(242,184,46,0.35)] transition-transform duration-300 ease-out"
-                style={{ transform: isDark ? 'translateX(1.75rem)' : 'translateX(0)' }}
+                className="pointer-events-none absolute top-0.5 left-0.5 h-8 w-8 rounded-full bg-white shadow-soft transition-transform duration-300 ease-out dark:bg-mustard"
+                style={{ transform: isDark ? 'translateX(2rem)' : 'translateX(0)' }}
             />
             <button
                 type="button"
@@ -140,8 +160,10 @@ function ThemeToggle() {
                 aria-label="Light mode"
                 aria-pressed={!isDark}
                 className={
-                    'relative z-10 flex h-7 w-7 items-center justify-center rounded-full transition-colors duration-200 ' +
-                    (!isDark ? 'text-earth-dusk' : 'text-olive-400 hover:text-olive-200')
+                    'relative z-10 flex h-8 w-8 items-center justify-center rounded-full transition-colors duration-200 ' +
+                    (!isDark
+                        ? 'text-earth-dusk'
+                        : 'text-olive-400 hover:text-olive-200')
                 }
             >
                 <Sun className="h-3.5 w-3.5" strokeWidth={2.25} />
@@ -152,8 +174,10 @@ function ThemeToggle() {
                 aria-label="Dark mode"
                 aria-pressed={isDark}
                 className={
-                    'relative z-10 flex h-7 w-7 items-center justify-center rounded-full transition-colors duration-200 ' +
-                    (isDark ? 'text-earth-dusk' : 'text-olive-400 hover:text-olive-200')
+                    'relative z-10 flex h-8 w-8 items-center justify-center rounded-full transition-colors duration-200 ' +
+                    (isDark
+                        ? 'text-earth-dusk'
+                        : 'text-olive-500 hover:text-olive-800')
                 }
             >
                 <Moon className="h-3.5 w-3.5" strokeWidth={2.25} />
@@ -162,24 +186,15 @@ function ThemeToggle() {
     );
 }
 
-
 function SignOutIcon({ className = 'h-4 w-4' }) {
     return (
-        <svg
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            aria-hidden
-            className={className}
-        >
-            {/* Open door with knob hole */}
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden className={className}>
             <path
                 fillRule="evenodd"
                 clipRule="evenodd"
                 d="M3.5 3.2c0-.39.31-.7.7-.7h5.05c.17 0 .34.06.47.18l4.08 3.7c.2.18.31.44.31.71v13.41c0 .39-.31.7-.7.7H4.2a.7.7 0 0 1-.7-.7V3.2ZM7.35 10.65a1.35 1.35 0 1 0 0 2.7 1.35 1.35 0 0 0 0-2.7Z"
             />
-            {/* Doorway frame */}
             <path d="M15 5h5.75c.41 0 .75.34.75.75v12.5c0 .41-.34.75-.75.75H15a.75.75 0 0 1 0-1.5h5V6.5H15A.75.75 0 0 1 15 5Z" />
-            {/* Exit arrow */}
             <path d="M11.25 11.1h5.55l-1.55-1.55a.75.75 0 0 1 1.06-1.06l3.05 3.05c.3.3.3.77 0 1.06l-3.05 3.05a.75.75 0 1 1-1.06-1.06l1.55-1.55h-5.55a.75.75 0 0 1 0-1.5Z" />
         </svg>
     );
@@ -195,20 +210,10 @@ function UserMenu({ user }) {
                 onClick={() => setOpen((v) => !v)}
                 aria-expanded={open}
                 aria-haspopup="menu"
-                className="flex items-center gap-2.5 rounded-full bg-white py-1.5 pl-1.5 pr-2.5 text-left transition hover:bg-olive-50 dark:bg-olive-950/60 dark:hover:bg-olive-950"
+                aria-label="Account menu"
+                className="rounded-full ring-2 ring-transparent transition hover:ring-mustard/40 focus:outline-none focus-visible:ring-mustard"
             >
                 <UserAvatar user={user} />
-                <div className="hidden min-w-0 sm:block">
-                    <p className="truncate text-sm font-semibold leading-tight text-olive-950 dark:text-olive-50">
-                        {user?.name || 'Admin'}
-                    </p>
-                    <p className="truncate text-xs leading-tight text-olive-500 dark:text-olive-400">
-                        {user?.is_admin ? 'Administrator' : 'Team member'}
-                    </p>
-                </div>
-                <ChevronDown
-                    className={`h-4 w-4 shrink-0 text-olive-400 transition ${open ? 'rotate-180' : ''}`}
-                />
             </button>
 
             {open && (
@@ -221,7 +226,7 @@ function UserMenu({ user }) {
                     />
                     <div
                         role="menu"
-                        className="absolute right-0 z-40 mt-2 w-56 overflow-hidden rounded-xl bg-white py-1 shadow-lift dark:bg-olive-900"
+                        className="absolute right-0 z-40 mt-2 w-56 overflow-hidden rounded-xl border border-olive-200/80 bg-white py-1 shadow-lift dark:border-olive-700 dark:bg-olive-900"
                     >
                         <div className="border-b border-olive-100 px-3 py-2.5 dark:border-olive-800">
                             <p className="truncate text-sm font-semibold text-olive-950 dark:text-olive-50">
@@ -254,36 +259,116 @@ function UserMenu({ user }) {
     );
 }
 
+function BrandMark({ className = '' }) {
+    return (
+        <Link
+            href={route('admin.dashboard')}
+            className={`inline-flex min-w-0 items-center ${className}`}
+            aria-label="Nanyuki Now admin home"
+        >
+            <img
+                src="/images/logo.png"
+                alt="Nanyuki Now"
+                width={969}
+                height={542}
+                decoding="async"
+                className="h-9 w-auto max-w-[10rem] object-contain object-left mix-blend-multiply dark:mix-blend-lighten sm:h-10 sm:max-w-[12rem]"
+            />
+        </Link>
+    );
+}
+
 function AdminShell({ children }) {
     const { auth } = usePage().props;
     const [open, setOpen] = useState(false);
     const { isDark } = useAdminTheme();
     const user = auth?.user;
 
+    // Keep document from scrolling past the shell (empty beige void under sidebar).
+    useEffect(() => {
+        const html = document.documentElement;
+        const { body } = document;
+        const prev = {
+            htmlOverflow: html.style.overflow,
+            bodyOverflow: body.style.overflow,
+            htmlOverscroll: html.style.overscrollBehavior,
+            bodyOverscroll: body.style.overscrollBehavior,
+        };
+        html.style.overflow = 'hidden';
+        body.style.overflow = 'hidden';
+        html.style.overscrollBehavior = 'none';
+        body.style.overscrollBehavior = 'none';
+        return () => {
+            html.style.overflow = prev.htmlOverflow;
+            body.style.overflow = prev.bodyOverflow;
+            html.style.overscrollBehavior = prev.htmlOverscroll;
+            body.style.overscrollBehavior = prev.bodyOverscroll;
+        };
+    }, []);
+
     return (
         <div className={isDark ? 'dark' : ''}>
-            <div className="h-screen overflow-hidden bg-earth-sand text-earth-dusk dark:bg-olive-950 dark:text-olive-50">
-                <div className="flex h-full">
+            <div className="fixed inset-0 flex flex-col overflow-hidden bg-earth-sand text-earth-dusk dark:bg-olive-950 dark:text-olive-50">
+                {/* Full-width top bar: logo · centered search · utilities */}
+                <header className="z-30 shrink-0 border-b border-olive-200/70 bg-white dark:border-olive-800 dark:bg-olive-900">
+                    <div className="grid h-16 grid-cols-[minmax(0,1fr)_minmax(0,28rem)_minmax(0,1fr)] items-center gap-3 px-3 sm:gap-4 sm:px-5">
+                        <div className="flex min-w-0 items-center gap-2.5 justify-self-start">
+                            <button
+                                type="button"
+                                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-olive-700 transition hover:bg-olive-100 dark:text-olive-200 dark:hover:bg-olive-800 lg:hidden"
+                                onClick={() => setOpen(true)}
+                                aria-label="Open navigation"
+                            >
+                                {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                            </button>
+                            <BrandMark />
+                        </div>
+
+                        <div className="hidden w-full justify-self-center sm:flex">
+                            <TopbarSearch />
+                        </div>
+
+                        <div className="flex items-center justify-end gap-2 justify-self-end sm:gap-2.5">
+                            <a
+                                href={route('home')}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                aria-label="Open public website"
+                                title="View website"
+                                className="relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-olive-700 transition hover:bg-olive-100 hover:text-olive-950 dark:text-olive-200 dark:hover:bg-olive-800 dark:hover:text-mustard"
+                            >
+                                <ExternalLink className="h-[18px] w-[18px]" />
+                            </a>
+
+                            <ThemeToggle />
+
+                            <Link
+                                href={route('admin.listings.index', { status: 'pending' })}
+                                aria-label="Listings awaiting review"
+                                title="Listings awaiting review"
+                                className="relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-olive-700 transition hover:bg-olive-100 hover:text-olive-950 dark:text-olive-200 dark:hover:bg-olive-800 dark:hover:text-mustard"
+                            >
+                                <Bell className="h-[18px] w-[18px]" />
+                            </Link>
+
+                            <UserMenu user={user} />
+                        </div>
+                    </div>
+
+                    {/* Compact search under logo row on very small screens */}
+                    <div className="border-t border-olive-100 px-3 pb-3 pt-0 sm:hidden dark:border-olive-800">
+                        <TopbarSearch />
+                    </div>
+                </header>
+
+                <div className="flex min-h-0 flex-1">
                     <aside
-                        className={`fixed inset-y-0 left-0 z-40 flex h-full w-64 flex-col border-r border-olive-900 bg-olive-950 text-olive-50 transition-transform dark:border-olive-900 dark:bg-earth-dusk lg:static lg:translate-x-0 ${
+                        className={`fixed inset-y-0 left-0 z-40 flex h-full w-64 flex-col border-r border-olive-200/80 bg-white text-olive-900 transition-transform dark:border-olive-900 dark:bg-olive-950 dark:text-olive-50 lg:static lg:h-full lg:translate-x-0 ${
                             open ? 'translate-x-0' : '-translate-x-full'
                         }`}
                     >
-                        <div className="flex shrink-0 items-end border-b border-white/10 px-4 py-4">
-                            <Link
-                                href={route('admin.dashboard')}
-                                className="min-w-0 block"
-                                aria-label="Nanyuki Now admin home"
-                            >
-                                <img
-                                    src="/images/logo.png"
-                                    alt="Nanyuki Now"
-                                    width={969}
-                                    height={542}
-                                    decoding="async"
-                                    className="h-12 w-auto max-w-full object-contain object-left mix-blend-lighten sm:h-14"
-                                />
-                            </Link>
+                        <div className="flex h-16 shrink-0 items-center border-b border-olive-100 px-4 dark:border-white/10 lg:hidden">
+                            <BrandMark className="dark:[&_img]:!mix-blend-lighten" />
                         </div>
 
                         <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
@@ -303,8 +388,9 @@ function AdminShell({ children }) {
                                         route().current('admin.users.*')) ||
                                     (item.href === 'admin.pricing.index' &&
                                         route().current('admin.pricing.*')) ||
-                                    (item.href === 'admin.upgrades.index' &&
-                                        route().current('admin.upgrades.*')) ||
+                                    (item.href === 'admin.finance.index' &&
+                                        (route().current('admin.finance.*') ||
+                                            route().current('admin.upgrades.*'))) ||
                                     (item.href === 'admin.pages.index' &&
                                         route().current('admin.pages.*')) ||
                                     (item.href === 'admin.settings.index' &&
@@ -316,8 +402,8 @@ function AdminShell({ children }) {
                                         onClick={() => setOpen(false)}
                                         className={`flex items-center gap-3 rounded-md px-3 py-2.5 text-base font-medium transition ${
                                             active
-                                                ? 'bg-mustard/15 text-mustard'
-                                                : 'text-olive-300 hover:bg-white/5 hover:text-white'
+                                                ? 'bg-mustard/20 text-earth-dusk dark:bg-mustard/15 dark:text-mustard'
+                                                : 'text-olive-600 hover:bg-olive-50 hover:text-olive-950 dark:text-olive-300 dark:hover:bg-white/5 dark:hover:text-white'
                                         }`}
                                     >
                                         <Icon className="h-5 w-5 shrink-0 opacity-80" />
@@ -327,12 +413,12 @@ function AdminShell({ children }) {
                             })}
                         </nav>
 
-                        <div className="shrink-0 border-t border-white/[0.08] p-3">
+                        <div className="shrink-0 border-t border-olive-100 p-3 dark:border-white/[0.08]">
                             <Link
                                 href={route('admin.logout')}
                                 method="post"
                                 as="button"
-                                className="inline-flex w-full items-center justify-center gap-2.5 rounded-full bg-white/[0.04] px-3 py-2.5 text-sm font-medium text-olive-300 ring-1 ring-inset ring-white/10 transition hover:bg-rose-500/10 hover:text-rose-300 hover:ring-rose-400/20"
+                                className="inline-flex w-full items-center justify-center gap-2.5 rounded-full bg-olive-50 px-3 py-2.5 text-sm font-medium text-olive-700 ring-1 ring-inset ring-olive-200 transition hover:bg-rose-50 hover:text-rose-700 hover:ring-rose-200 dark:bg-white/[0.04] dark:text-olive-300 dark:ring-white/10 dark:hover:bg-rose-500/10 dark:hover:text-rose-300 dark:hover:ring-rose-400/20"
                             >
                                 <SignOutIcon className="h-4 w-4 shrink-0 opacity-90" />
                                 <span>Sign out</span>
@@ -349,47 +435,10 @@ function AdminShell({ children }) {
                         />
                     )}
 
-                    <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-                        <header className="z-20 shrink-0 bg-[#f9f6f1] dark:bg-olive-900">
-                            <div className="flex items-center gap-3 px-4 py-3 sm:gap-5 sm:px-6">
-                                <div className="flex shrink-0 items-center gap-3">
-                                    <button
-                                        type="button"
-                                        className="rounded-full bg-white p-2 text-olive-800 dark:bg-olive-950/60 dark:text-olive-100 lg:hidden"
-                                        onClick={() => setOpen(true)}
-                                    >
-                                        {open ? (
-                                            <X className="h-5 w-5" />
-                                        ) : (
-                                            <Menu className="h-5 w-5" />
-                                        )}
-                                    </button>
-                                </div>
-
-                                <TopbarSearch />
-
-                                <div className="flex min-w-0 flex-1 items-center justify-end gap-2 sm:gap-3">
-                                    <ThemeToggle />
-
-                                    <Link
-                                        href={route('admin.listings.index', { status: 'pending' })}
-                                        aria-label="Listings awaiting review"
-                                        title="Listings awaiting review"
-                                        className="relative inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-olive-800 transition hover:bg-olive-50 hover:text-olive-950 dark:bg-olive-950/60 dark:text-olive-200 dark:hover:text-mustard"
-                                    >
-                                        <Bell className="h-[18px] w-[18px]" />
-                                    </Link>
-
-                                    <UserMenu user={user} />
-                                </div>
-                            </div>
-                        </header>
-
-                        <main className="min-h-0 flex-1 overflow-y-auto px-4 py-6 text-base sm:px-6">
-                            <FlashBanner />
-                            {children}
-                        </main>
-                    </div>
+                    <main className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain px-4 py-6 text-base sm:px-6">
+                        <FlashBanner />
+                        {children}
+                    </main>
                 </div>
             </div>
         </div>

@@ -20,7 +20,7 @@ class AdminPagesTest extends TestCase
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->component('Admin/Pages/Index')
-                ->has('pages', 6));
+                ->has('pages.data', 6));
     }
 
     public function test_admin_can_edit_and_save_home_page_content(): void

@@ -28,21 +28,35 @@ class UpgradeController extends Controller
             $query->where('status', $status);
         }
 
-        $upgrades = $query
+        $payments = $query
             ->paginate(20)
             ->withQueryString()
             ->through(fn (PlanUpgrade $upgrade) => $upgrade->toAdminArray());
 
-        return Inertia::render('Admin/Upgrades/Index', [
-            'upgrades' => $upgrades,
+        $pendingQuery = PlanUpgrade::query()->where('status', PlanUpgrade::STATUS_PENDING);
+        $approvedQuery = PlanUpgrade::query()->where('status', PlanUpgrade::STATUS_APPROVED);
+
+        return Inertia::render('Admin/Finance/Index', [
+            'payments' => $payments,
             'filters' => [
                 'status' => $status,
             ],
             'counts' => [
-                'pending' => PlanUpgrade::query()->where('status', PlanUpgrade::STATUS_PENDING)->count(),
-                'approved' => PlanUpgrade::query()->where('status', PlanUpgrade::STATUS_APPROVED)->count(),
+                'pending' => (clone $pendingQuery)->count(),
+                'approved' => (clone $approvedQuery)->count(),
                 'rejected' => PlanUpgrade::query()->where('status', PlanUpgrade::STATUS_REJECTED)->count(),
                 'all' => PlanUpgrade::query()->count(),
+            ],
+            'stats' => [
+                'pending_count' => (clone $pendingQuery)->count(),
+                'pending_amount' => (int) (clone $pendingQuery)->sum('amount'),
+                'approved_count' => (clone $approvedQuery)->count(),
+                'approved_amount' => (int) (clone $approvedQuery)->sum('amount'),
+                'month_revenue' => (int) PlanUpgrade::query()
+                    ->where('status', PlanUpgrade::STATUS_APPROVED)
+                    ->where('reviewed_at', '>=', now()->startOfMonth())
+                    ->sum('amount'),
+                'currency' => 'KES',
             ],
         ]);
     }
@@ -87,7 +101,7 @@ class UpgradeController extends Controller
 
         return back()->with(
             'success',
-            'Upgrade approved — '.$user->name.' is now on '.Membership::label($upgrade->to_plan).'.',
+            'Payment approved — '.$user->name.' is now on '.Membership::label($upgrade->to_plan).'.',
         );
     }
 
@@ -108,7 +122,7 @@ class UpgradeController extends Controller
 
         $upgrade->user?->notify(new PlanUpgradeReviewedNotification($upgrade->fresh()));
 
-        return back()->with('success', 'Upgrade request rejected.');
+        return back()->with('success', 'Payment rejected.');
     }
 
     public function updateUserPlan(Request $request): RedirectResponse

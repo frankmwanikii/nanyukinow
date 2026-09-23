@@ -17,6 +17,7 @@ use Illuminate\Notifications\Notifiable;
     'name',
     'username',
     'email',
+    'phone',
     'avatar_url',
     'password',
     'email_verified_at',
@@ -82,6 +83,29 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return (bool) $this->is_admin;
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'username';
+    }
+
+    public function resolveRouteBinding($value, $field = null): ?static
+    {
+        $field ??= $this->getRouteKeyName();
+
+        $user = static::query()->where($field, $value)->first();
+
+        if ($user) {
+            return $user;
+        }
+
+        // Legacy / missing-username URLs: /admin/users/6
+        if (ctype_digit((string) $value)) {
+            return static::query()->whereKey($value)->first();
+        }
+
+        return null;
     }
 
     public function planIsExpired(): bool

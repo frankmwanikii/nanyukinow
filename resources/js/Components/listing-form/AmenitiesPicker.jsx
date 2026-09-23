@@ -1,9 +1,10 @@
 import { field, help, label } from './fieldStyles';
 import { Check, Plus, Search, X } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 /**
- * Multi-select amenities with search + create-custom (persisted via API).
+ * Multi-select amenities with typeahead search + create-custom (persisted via API).
+ * Suggestions stay hidden until the user starts typing.
  */
 export default function AmenitiesPicker({
     amenities = [],
@@ -13,11 +14,15 @@ export default function AmenitiesPicker({
     onCreated,
 }) {
     const [query, setQuery] = useState('');
+    const [open, setOpen] = useState(false);
     const [creating, setCreating] = useState(false);
     const [error, setError] = useState(null);
+    const wrapRef = useRef(null);
 
-    const visible = useMemo(() => {
+    const matches = useMemo(() => {
         const q = query.trim().toLowerCase();
+        if (!q) return [];
+
         return amenities
             .filter((a) => {
                 const catOk =
@@ -25,14 +30,30 @@ export default function AmenitiesPicker({
                     !categoryKey ||
                     a.category_key === categoryKey;
                 if (!catOk) return false;
-                if (!q) return true;
                 return (
                     a.name.toLowerCase().includes(q) ||
                     a.slug.toLowerCase().includes(q)
                 );
             })
-            .sort((a, b) => a.name.localeCompare(b.name));
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .slice(0, 12);
     }, [amenities, categoryKey, query]);
+
+    const exactMatch = matches.some(
+        (a) => a.name.toLowerCase() === query.trim().toLowerCase(),
+    );
+
+    const showDropdown = open && query.trim().length > 0;
+
+    useEffect(() => {
+        const onPointerDown = (e) => {
+            if (!wrapRef.current?.contains(e.target)) {
+                setOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', onPointerDown);
+        return () => document.removeEventListener('mousedown', onPointerDown);
+    }, []);
 
     const toggle = (slug) => {
         if (selected.includes(slug)) {
@@ -40,6 +61,14 @@ export default function AmenitiesPicker({
         } else {
             onChange([...selected, slug]);
         }
+    };
+
+    const pick = (slug) => {
+        if (!selected.includes(slug)) {
+            onChange([...selected, slug]);
+        }
+        setQuery('');
+        setOpen(false);
     };
 
     const createCustom = async () => {
@@ -59,6 +88,7 @@ export default function AmenitiesPicker({
                     onChange([...selected, amenity.slug]);
                 }
                 setQuery('');
+                setOpen(false);
             }
         } catch (err) {
             setError(
@@ -70,28 +100,49 @@ export default function AmenitiesPicker({
         }
     };
 
-    const exactMatch = visible.some(
-        (a) => a.name.toLowerCase() === query.trim().toLowerCase(),
-    );
-
     return (
         <div className="space-y-4">
-            <div>
+            <div ref={wrapRef}>
                 <label className={label} htmlFor="amenity_search">
                     Amenities & features
                 </label>
                 <div className="relative">
-                    <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-olive-500" />
+                    <Search className="pointer-events-none absolute left-3.5 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-olive-500" />
                     <input
                         id="amenity_search"
                         className={`${field} pl-10 pr-24`}
                         value={query}
-                        onChange={(e) => setQuery(e.target.value)}
+                        onChange={(e) => {
+                            setQuery(e.target.value);
+                            setOpen(true);
+                        }}
+                        onFocus={() => {
+                            if (query.trim()) setOpen(true);
+                        }}
                         placeholder="Search or type a new amenity…"
+                        autoComplete="off"
+                        aria-expanded={showDropdown}
+                        aria-controls="amenity_suggestions"
                         onKeyDown={(e) => {
+                            if (e.key === 'Escape') {
+                                setOpen(false);
+                                return;
+                            }
                             if (e.key === 'Enter') {
                                 e.preventDefault();
-                                if (query.trim() && !exactMatch) createCustom();
+                                if (!query.trim()) return;
+                                if (matches.length === 1) {
+                                    pick(matches[0].slug);
+                                } else if (!exactMatch) {
+                                    createCustom();
+                                } else {
+                                    const hit = matches.find(
+                                        (a) =>
+                                            a.name.toLowerCase() ===
+                                            query.trim().toLowerCase(),
+                                    );
+                                    if (hit) pick(hit.slug);
+                                }
                             }
                         }}
                     />
@@ -100,15 +151,80 @@ export default function AmenitiesPicker({
                             type="button"
                             onClick={createCustom}
                             disabled={creating}
-                            className="absolute right-2 top-1/2 inline-flex -translate-y-1/2 items-center gap-1 rounded-lg bg-mustard px-2.5 py-1.5 text-xs font-bold text-earth-dusk disabled:opacity-50"
+                            className="absolute right-2 top-1/2 z-10 inline-flex -translate-y-1/2 items-center gap-1 rounded-lg bg-mustard px-2.5 py-1.5 text-xs font-bold text-earth-dusk disabled:opacity-50"
                         >
                             <Plus className="h-3.5 w-3.5" />
                             {creating ? 'Saving…' : 'Add'}
                         </button>
                     ) : null}
+
+                    {showDropdown ? (
+                        <div
+                            id="amenity_suggestions"
+                            role="listbox"
+                            className="absolute left-0 right-0 top-[calc(100%+0.35rem)] z-30 max-h-64 overflow-y-auto rounded-2xl border border-olive-200/90 bg-white py-1.5 shadow-lift dark:border-olive-700 dark:bg-olive-900"
+                        >
+                            {matches.length ? (
+                                <ul>
+                                    {matches.map((amenity) => {
+                                        const active = selected.includes(
+                                            amenity.slug,
+                                        );
+                                        return (
+                                            <li key={amenity.id || amenity.slug}>
+                                                <button
+                                                    type="button"
+                                                    role="option"
+                                                    aria-selected={active}
+                                                    onClick={() =>
+                                                        pick(amenity.slug)
+                                                    }
+                                                    className={`flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-sm transition ${
+                                                        active
+                                                            ? 'bg-mustard/25 font-semibold text-olive-950 dark:bg-mustard/15 dark:text-mustard'
+                                                            : 'text-olive-800 hover:bg-olive-50 dark:text-olive-100 dark:hover:bg-olive-800'
+                                                    }`}
+                                                >
+                                                    <span
+                                                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border ${
+                                                            active
+                                                                ? 'border-mustard bg-mustard text-earth-dusk'
+                                                                : 'border-olive-300 bg-white dark:border-olive-600 dark:bg-olive-950'
+                                                        }`}
+                                                    >
+                                                        {active ? (
+                                                            <Check
+                                                                className="h-3.5 w-3.5"
+                                                                strokeWidth={2.5}
+                                                            />
+                                                        ) : null}
+                                                    </span>
+                                                    {amenity.name}
+                                                </button>
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                            ) : (
+                                <p className="px-3.5 py-3 text-sm text-olive-600 dark:text-olive-400">
+                                    No match in the library
+                                    {query.trim() ? (
+                                        <>
+                                            {' '}
+                                            — press{' '}
+                                            <span className="font-semibold text-olive-800 dark:text-olive-200">
+                                                Add
+                                            </span>{' '}
+                                            to create “{query.trim()}”.
+                                        </>
+                                    ) : null}
+                                </p>
+                            )}
+                        </div>
+                    ) : null}
                 </div>
                 <p className={help}>
-                    Select from the list, or type your own — it will be saved for next time.
+                    Start typing to search saved amenities, or add your own.
                 </p>
             </div>
 
@@ -134,49 +250,6 @@ export default function AmenitiesPicker({
                     })}
                 </div>
             ) : null}
-
-            <div className="max-h-64 overflow-y-auto rounded-2xl border border-olive-100 bg-olive-50/40 p-2">
-                {visible.length ? (
-                    <ul className="grid gap-1 sm:grid-cols-2">
-                        {visible.map((amenity) => {
-                            const active = selected.includes(amenity.slug);
-                            return (
-                                <li key={amenity.id || amenity.slug}>
-                                    <button
-                                        type="button"
-                                        onClick={() => toggle(amenity.slug)}
-                                        className={`flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm transition ${
-                                            active
-                                                ? 'bg-mustard/30 font-semibold text-olive-950'
-                                                : 'text-olive-800 hover:bg-white'
-                                        }`}
-                                    >
-                                        <span
-                                            className={`flex h-5 w-5 items-center justify-center rounded-md border ${
-                                                active
-                                                    ? 'border-mustard bg-mustard text-earth-dusk'
-                                                    : 'border-olive-300 bg-white'
-                                            }`}
-                                        >
-                                            {active ? (
-                                                <Check
-                                                    className="h-3.5 w-3.5"
-                                                    strokeWidth={2.5}
-                                                />
-                                            ) : null}
-                                        </span>
-                                        {amenity.name}
-                                    </button>
-                                </li>
-                            );
-                        })}
-                    </ul>
-                ) : (
-                    <p className="px-3 py-6 text-center text-sm text-olive-600">
-                        No matches — press Add to create “{query.trim()}”.
-                    </p>
-                )}
-            </div>
 
             {error ? <p className="text-sm text-rose-600">{error}</p> : null}
         </div>

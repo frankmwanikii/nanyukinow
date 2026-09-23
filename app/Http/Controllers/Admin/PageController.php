@@ -4,19 +4,42 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\SitePage;
+use App\Support\AdminPagination;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class PageController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $pages = SitePage::ordered()->map(fn (SitePage $page) => $page->toAdminArray());
+        $perPage = AdminPagination::perPage($request);
+        $page = max(1, $request->integer('page', 1));
+        $all = SitePage::ordered();
+        $total = $all->count();
+        $items = $all
+            ->slice(($page - 1) * $perPage, $perPage)
+            ->map(fn (SitePage $sitePage) => $sitePage->toAdminArray())
+            ->values();
+
+        $pages = new LengthAwarePaginator(
+            $items,
+            $total,
+            $perPage,
+            $page,
+            [
+                'path' => $request->url(),
+                'query' => $request->query(),
+            ],
+        );
 
         return Inertia::render('Admin/Pages/Index', [
             'pages' => $pages,
+            'filters' => [
+                'per_page' => $perPage,
+            ],
         ]);
     }
 
