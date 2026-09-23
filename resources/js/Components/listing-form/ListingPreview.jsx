@@ -67,7 +67,7 @@ export default function ListingPreview({
                         Location
                     </dt>
                     <dd className="mt-0.5 font-semibold text-olive-950">
-                        {formData.address || formData.location || '—'}
+                        {formData.location || '—'}
                     </dd>
                 </div>
                 <div className="sm:col-span-2">

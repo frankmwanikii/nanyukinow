@@ -51,6 +51,12 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/account/listings/create', [AccountListingController::class, 'create'])->name('account.listings.create');
     Route::post('/account/listings', [AccountListingController::class, 'store'])->name('account.listings.store');
+    Route::post('/account/listings/draft', [AccountListingController::class, 'saveDraft'])
+        ->middleware('throttle:60,1')
+        ->name('account.listings.draft');
+    Route::post('/account/listings/{listing}/draft', [AccountListingController::class, 'saveDraft'])
+        ->middleware('throttle:60,1')
+        ->name('account.listings.draft.update');
     Route::get('/account/listings/{listing}/edit', [AccountListingController::class, 'edit'])->name('account.listings.edit');
     Route::put('/account/listings/{listing}', [AccountListingController::class, 'update'])->name('account.listings.update');
     Route::delete('/account/listings/{listing}', [AccountListingController::class, 'destroy'])->name('account.listings.destroy');

@@ -313,20 +313,6 @@ export default function CategoryFields({
                     })}
                 </div>
             </div>
-
-            <div>
-                <label className={label} htmlFor="about">
-                    About (short)
-                </label>
-                <textarea
-                    id="about"
-                    rows={3}
-                    className={field}
-                    value={details.about || ''}
-                    onChange={(e) => setDetail('about', e.target.value)}
-                    placeholder="A short blurb for the sidebar About section"
-                />
-            </div>
         </div>
     );
 }

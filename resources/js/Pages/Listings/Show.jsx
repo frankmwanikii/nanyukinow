@@ -22,6 +22,8 @@ export default function ListingShow({
     slug,
     listing: serverListing = null,
     related: serverRelated = [],
+    preview = false,
+    previewStatus = null,
 }) {
     const listing = useMemo(() => {
         if (!serverListing) return null;
@@ -80,6 +82,15 @@ export default function ListingShow({
 
     return (
         <SiteLayout title={listing.title} compactNav>
+            {preview ? (
+                <div className="border-b border-amber-200 bg-amber-50 px-4 py-2.5 text-center text-sm font-semibold text-amber-950 sm:px-6">
+                    Preview only — this listing is{' '}
+                    <span className="capitalize">
+                        {previewStatus || 'unpublished'}
+                    </span>{' '}
+                    and not visible to the public.
+                </div>
+            ) : null}
             <ListingHero
                 listing={listing}
                 secondaryCta={layout.ctaSecondary}

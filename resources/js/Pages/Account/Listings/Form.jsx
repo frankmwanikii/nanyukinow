@@ -27,11 +27,14 @@ import {
     ChevronLeft,
     ChevronRight,
     Coffee,
+    Cloud,
+    CloudOff,
     Home,
+    Loader2,
     Save,
     ShoppingCart,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 const tierLabels = {
     free: 'Free',
@@ -132,10 +135,20 @@ export default function Form({
     mapsApiKey = '',
     plan,
     allowedTiers = ['free'],
+    isDraft = false,
 }) {
-    const isEdit = Boolean(listing?.id);
+    const isDraftListing = isDraft || listing?.status === 'draft';
+    const isEdit = Boolean(listing?.id) && !isDraftListing;
+    const [draftId, setDraftId] = useState(listing?.id || null);
     const { errors: pageErrors } = usePage().props;
     const [amenityOptions, setAmenityOptions] = useState(initialAmenities);
+    const [saveState, setSaveState] = useState('idle');
+    const [lastSavedAt, setLastSavedAt] = useState(null);
+    const autosaveTimer = useRef(null);
+    const autosaveReady = useRef(false);
+    const draftSaving = useRef(false);
+    const draftPending = useRef(false);
+    const formDataRef = useRef(null);
 
     const initialCategory = categories.find(
         (c) => String(c.id) === String(listing?.category_id),
@@ -143,7 +156,10 @@ export default function Form({
     const initialKey = resolveCategoryKey(initialCategory);
 
     const form = useForm({
-        title: listing?.title || '',
+        title:
+            listing?.title && listing.title !== 'Untitled draft'
+                ? listing.title
+                : '',
         category_id: listing?.category_id || '',
         subcategory: listing?.subcategory || '',
         property_type: listing?.property_type || '',
@@ -192,6 +208,8 @@ export default function Form({
         gallery_urls: (listing?.gallery || []).filter(Boolean),
     });
 
+    formDataRef.current = form.data;
+
     const [coverPreview, setCoverPreview] = useState(
         listing?.image_url || null,
     );
@@ -208,6 +226,7 @@ export default function Form({
     );
 
     const [phase, setPhase] = useState(() => {
+        if (listing?.id && listing?.category_id) return 'wizard';
         if (isEdit) return 'wizard';
         if (hasServerErrors && form.data.category_id) return 'wizard';
         return 'category';
@@ -225,6 +244,153 @@ export default function Form({
 
     const categoryKey = resolveCategoryKey(selectedCategory);
     const subs = subcategoriesFor(categoryKey);
+
+    const buildDraftBody = (data = formDataRef.current || form.data) => {
+        const galleryUrls = galleryItems
+            .filter((g) => g.url && !g.file)
+            .map((g) => g.url);
+        const body = new FormData();
+        const append = (key, value) => {
+            if (value === null || value === undefined) return;
+            body.append(key, value);
+        };
+
+        append('title', data.title || 'Untitled draft');
+        append('category_id', data.category_id || '');
+        append('subcategory', data.subcategory || '');
+        append('property_type', data.property_type || '');
+        append('location', data.location || '');
+        append('city', data.city || '');
+        append('tagline', data.tagline || '');
+        // Always send description (including empty) so drafts keep rich text.
+        body.append('description', data.description ?? '');
+        append('phone', data.phone || '');
+        append('whatsapp', data.whatsapp || '');
+        append('email', data.email || '');
+        append('website', data.website || '');
+        append('address', data.address || '');
+        append('venue', data.venue || '');
+        append('latitude', data.latitude === '' ? '' : data.latitude);
+        append('longitude', data.longitude === '' ? '' : data.longitude);
+        append('price_range', data.price_range || '');
+        append('image_url', data.image_url || '');
+        append('logo_url', data.logo_url || '');
+        append('event_poster_url', data.event_poster_url || '');
+        append('tier', data.tier || '');
+        append('amenities', JSON.stringify(data.amenities || []));
+        append(
+            'hours',
+            JSON.stringify(
+                categoryKey === 'properties' || categoryKey === 'events'
+                    ? []
+                    : data.hours || [],
+            ),
+        );
+        append('details', JSON.stringify(data.details || {}));
+        append('social_links', JSON.stringify(data.social_links || {}));
+        append('gallery_urls', JSON.stringify(galleryUrls));
+        append('start_at', data.start_at || '');
+        append('end_at', data.end_at || '');
+        append('ticket_price', data.ticket_price || '');
+        append('early_bird_price', data.early_bird_price || '');
+        append('gate_price', data.gate_price || '');
+        append('ticket_url', data.ticket_url || '');
+
+        if (data.cover) append('cover', data.cover);
+        if (data.logo) append('logo', data.logo);
+        if (data.event_poster) append('event_poster', data.event_poster);
+        galleryItems
+            .filter((g) => g.file)
+            .forEach((g) => body.append('gallery_files[]', g.file));
+
+        return body;
+    };
+
+    const persistDraft = async ({ silent = true, overrides = {} } = {}) => {
+        if (isEdit) return;
+        const latest = { ...(formDataRef.current || form.data), ...overrides };
+        const categoryId = latest.category_id;
+        if (!categoryId && !draftId) return;
+
+        if (draftSaving.current) {
+            // Another save is in flight — queue one more pass with latest fields.
+            draftPending.current = true;
+            return;
+        }
+
+        draftSaving.current = true;
+        draftPending.current = false;
+        if (!silent) setSaveState('saving');
+
+        try {
+            const csrf =
+                document
+                    .querySelector('meta[name="csrf-token"]')
+                    ?.getAttribute('content') || '';
+            const url = draftId
+                ? route('account.listings.draft.update', draftId)
+                : route('account.listings.draft');
+
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN': csrf,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                credentials: 'same-origin',
+                body: buildDraftBody(latest),
+            });
+
+            if (!res.ok) {
+                setSaveState('error');
+                return;
+            }
+
+            const json = await res.json();
+            if (json?.listing?.id) {
+                setDraftId(json.listing.id);
+                if (json.listing.image_url) {
+                    form.setData('image_url', json.listing.image_url);
+                    form.setData('cover', null);
+                    setCoverPreview(json.listing.image_url);
+                }
+                if (json.listing.logo_url) {
+                    form.setData('logo_url', json.listing.logo_url);
+                    form.setData('logo', null);
+                    setLogoPreview(json.listing.logo_url);
+                }
+                if (Array.isArray(json.listing.gallery)) {
+                    setGalleryItems(
+                        json.listing.gallery.map((url, i) => ({
+                            id: `saved-${i}`,
+                            url,
+                            preview: url,
+                            file: null,
+                        })),
+                    );
+                }
+            }
+            setLastSavedAt(json.saved_at || new Date().toISOString());
+            setSaveState('saved');
+        } catch {
+            setSaveState('error');
+        } finally {
+            draftSaving.current = false;
+            if (draftPending.current) {
+                draftPending.current = false;
+                void persistDraft({ silent: true });
+            }
+        }
+    };
+
+    const scheduleAutosave = () => {
+        if (isEdit) return;
+        clearTimeout(autosaveTimer.current);
+        autosaveTimer.current = setTimeout(() => {
+            persistDraft({ silent: true });
+        }, 1200);
+    };
 
     const orderedCategories = useMemo(() => {
         const remaining = [...categories];
@@ -256,11 +422,55 @@ export default function Form({
         form.clearErrors('category_id');
         setPhase('wizard');
         setStepIndex(0);
+        // Create draft immediately so progress is never lost on glitches.
+        persistDraft({
+            silent: false,
+            overrides: { category_id: category.id },
+        });
     };
 
     const patch = (partial) => {
         form.setData((data) => ({ ...data, ...partial }));
+        scheduleAutosave();
     };
+
+    useEffect(() => {
+        // Skip the initial mount dump; save when the user starts editing.
+        if (!autosaveReady.current) {
+            autosaveReady.current = true;
+            return undefined;
+        }
+        if (isEdit || phase !== 'wizard') return undefined;
+        scheduleAutosave();
+        return () => clearTimeout(autosaveTimer.current);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [
+        form.data.title,
+        form.data.subcategory,
+        form.data.property_type,
+        form.data.location,
+        form.data.tagline,
+        form.data.description,
+        form.data.phone,
+        form.data.whatsapp,
+        form.data.email,
+        form.data.website,
+        form.data.address,
+        form.data.venue,
+        form.data.latitude,
+        form.data.longitude,
+        form.data.price_range,
+        form.data.amenities,
+        form.data.hours,
+        form.data.details,
+        form.data.social_links,
+        form.data.start_at,
+        form.data.end_at,
+        form.data.ticket_price,
+        form.data.tier,
+        galleryItems,
+        phase,
+    ]);
 
     const validateStep = () => {
         const step = STEPS[stepIndex]?.id;
@@ -279,7 +489,7 @@ export default function Form({
             }
         }
         if (step === 'location' && !form.data.location?.trim()) {
-            form.setError('location', 'Location is required.');
+            form.setError('location', 'Pick at least one area (Nanyuki, Naromoru, or Timau).');
             return false;
         }
         if (step === 'details' && categoryKey === 'events') {
@@ -344,7 +554,7 @@ export default function Form({
                 longitude: data.longitude === '' ? null : data.longitude,
             };
 
-            if (isEdit) {
+            if (isEdit || draftId) {
                 payload._method = 'put';
             }
 
@@ -356,8 +566,9 @@ export default function Form({
             onError: () => setStepIndex(0),
         };
 
-        if (isEdit) {
-            form.post(route('account.listings.update', listing.id), options);
+        const targetId = isEdit ? listing.id : draftId;
+        if (targetId) {
+            form.post(route('account.listings.update', targetId), options);
         } else {
             form.post(route('account.listings.store'), options);
         }
@@ -370,7 +581,7 @@ export default function Form({
         <AccountLayout title={isEdit ? 'Edit listing' : 'Add listing'}>
             <Head title={isEdit ? 'Edit listing' : 'New listing'} />
 
-            {phase === 'category' && !isEdit ? (
+            {phase === 'category' && !isEdit && !draftId ? (
                 <CategoryPicker
                     categories={orderedCategories}
                     selectedId={form.data.category_id}
@@ -404,6 +615,43 @@ export default function Form({
                             </button>
                         ) : null}
                     </div>
+
+                    {!isEdit ? (
+                        <div className="flex items-center gap-2 text-xs font-semibold text-olive-600">
+                            {saveState === 'saving' ? (
+                                <>
+                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                    Saving draft…
+                                </>
+                            ) : saveState === 'saved' ? (
+                                <>
+                                    <Cloud className="h-3.5 w-3.5 text-olive-700" />
+                                    Draft saved
+                                    {lastSavedAt
+                                        ? ` · ${new Date(lastSavedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                                        : ''}
+                                </>
+                            ) : saveState === 'error' ? (
+                                <>
+                                    <CloudOff className="h-3.5 w-3.5 text-rose-600" />
+                                    <button
+                                        type="button"
+                                        className="underline hover:text-olive-950"
+                                        onClick={() =>
+                                            persistDraft({ silent: false })
+                                        }
+                                    >
+                                        Draft save failed — retry
+                                    </button>
+                                </>
+                            ) : draftId ? (
+                                <>
+                                    <Cloud className="h-3.5 w-3.5" />
+                                    Auto-saving as draft
+                                </>
+                            ) : null}
+                        </div>
+                    ) : null}
 
                     <div className="rounded-2xl border border-olive-100 bg-white p-3 shadow-soft">
                         <div className="mb-2 flex items-center justify-between text-xs font-semibold text-olive-600">
@@ -468,8 +716,6 @@ export default function Form({
                                     <PlacesLocationInput
                                         apiKey={mapsApiKey}
                                         location={form.data.location}
-                                        address={form.data.address}
-                                        city={form.data.city}
                                         latitude={form.data.latitude}
                                         longitude={form.data.longitude}
                                         errors={form.errors}
@@ -561,18 +807,22 @@ export default function Form({
                                         showPoster={categoryKey === 'events'}
                                         errors={form.errors}
                                         onCoverChange={({ file, preview, url }) => {
-                                            setCoverPreview(preview);
+                                            setCoverPreview(preview || null);
                                             patch({
                                                 cover: file || null,
-                                                image_url: url || form.data.image_url,
+                                                image_url:
+                                                    url ||
+                                                    (preview
+                                                        ? form.data.image_url
+                                                        : ''),
                                             });
                                         }}
                                         onLogoChange={({ file, preview }) => {
-                                            setLogoPreview(preview);
+                                            setLogoPreview(preview || null);
                                             patch({ logo: file || null });
                                         }}
                                         onPosterChange={({ file, preview }) => {
-                                            setPosterPreview(preview);
+                                            setPosterPreview(preview || null);
                                             patch({
                                                 event_poster: file || null,
                                             });
@@ -820,6 +1070,7 @@ function BasicsStep({
                 onChange={(description) => patch({ description })}
                 error={form.errors.description}
                 placeholder="Share the story, vibe, and what visitors should know…"
+                help="Shown as the About section on your public listing page."
             />
         </>
     );

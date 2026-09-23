@@ -81,14 +81,25 @@ class Membership
     {
         $limit = self::listingLimit($user->effectivePlan());
 
-        return $user->listings()->count() < $limit;
+        return self::activeListingCount($user) < $limit;
     }
 
     public static function remainingSlots(User $user): int
     {
         $limit = self::listingLimit($user->effectivePlan());
 
-        return max(0, $limit - $user->listings()->count());
+        return max(0, $limit - self::activeListingCount($user));
+    }
+
+    /** Count listings that consume a plan slot (drafts do not). */
+    public static function activeListingCount(User $user): int
+    {
+        return $user->listings()
+            ->where(function ($query) {
+                $query->whereNull('status')
+                    ->orWhere('status', '!=', 'draft');
+            })
+            ->count();
     }
 
     public static function canUseTier(User $user, string $tier): bool
@@ -154,7 +165,7 @@ class Membership
     {
         $plan = $user->effectivePlan();
         $limit = self::listingLimit($plan);
-        $used = $user->listings()->count();
+        $used = self::activeListingCount($user);
         $startedAt = $user->plan_started_at;
         $expiresAt = $user->plan_expires_at;
         $isExpired = $user->planIsExpired();

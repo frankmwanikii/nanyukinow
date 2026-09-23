@@ -1,14 +1,46 @@
 import { field, help, label } from './fieldStyles';
 import { getMapsApiKey, loadGoogleMaps } from '@/utils/googleMaps';
-import { Loader2, MapPin, Search, X } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { LOOK_LOCATIONS } from '@/data/listings';
+import { Check, Loader2, MapPin, Search, X } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 const NANYUKI = { lat: -0.0166, lng: 37.0728 };
 const DEFAULT_ZOOM = 14;
+const AREA_OPTIONS = LOOK_LOCATIONS;
 
 function parseCoord(value) {
     const n = typeof value === 'number' ? value : Number.parseFloat(value);
     return Number.isFinite(n) ? n : null;
+}
+
+function parseAreas(value) {
+    if (Array.isArray(value)) {
+        return value.filter((v) => AREA_OPTIONS.includes(v));
+    }
+    if (!value || typeof value !== 'string') return [];
+    return value
+        .split(/[,·|/]+/)
+        .map((part) => part.trim())
+        .filter((part) => AREA_OPTIONS.includes(part));
+}
+
+function formatAreas(areas) {
+    return areas.join(', ');
+}
+
+function inferAreasFromText(...parts) {
+    const raw = parts.filter(Boolean).join(' ').toLowerCase();
+    const found = [];
+    if (raw.includes('timau')) found.push('Timau');
+    if (
+        raw.includes('naro moru') ||
+        raw.includes('naromoru') ||
+        raw.includes('naro-moru')
+    ) {
+        found.push('Naromoru');
+    }
+    if (raw.includes('nanyuki')) found.push('Nanyuki');
+    return found.filter((a) => AREA_OPTIONS.includes(a));
 }
 
 function googlePinIcon(maps) {
@@ -25,30 +57,13 @@ function googlePinIcon(maps) {
     };
 }
 
-function findComponent(components, type) {
-    return components?.find((c) => c.types.includes(type))?.long_name || '';
-}
-
-function placeToFields(place) {
-    const components = place.address_components || [];
+function placeToCoords(place) {
     const pLat = place.geometry?.location?.lat?.();
     const pLng = place.geometry?.location?.lng?.();
-
     return {
-        location:
-            findComponent(components, 'locality') ||
-            findComponent(components, 'sublocality') ||
-            findComponent(components, 'neighborhood') ||
-            findComponent(components, 'administrative_area_level_2') ||
-            place.name ||
-            '',
-        city:
-            findComponent(components, 'locality') ||
-            findComponent(components, 'administrative_area_level_2') ||
-            '',
-        address: place.formatted_address || place.name || '',
         latitude: typeof pLat === 'number' ? Number(pLat.toFixed(7)) : null,
         longitude: typeof pLng === 'number' ? Number(pLng.toFixed(7)) : null,
+        address: place.formatted_address || place.name || '',
     };
 }
 
@@ -58,12 +73,11 @@ function placeToFields(place) {
 export default function PlacesLocationInput({
     apiKey,
     location,
-    address,
-    city,
     latitude,
     longitude,
     onChange,
     errors = {},
+    areas = AREA_OPTIONS,
 }) {
     const mapElRef = useRef(null);
     const mapRef = useRef(null);
@@ -76,14 +90,22 @@ export default function PlacesLocationInput({
     const suppressSearchRef = useRef(false);
     const lastPreviewIdRef = useRef(null);
     const onChangeRef = useRef(onChange);
+    const locationRef = useRef(location);
 
     useEffect(() => {
         onChangeRef.current = onChange;
     }, [onChange]);
 
+    useEffect(() => {
+        locationRef.current = location;
+    }, [location]);
+
     const key = getMapsApiKey(apiKey);
+    const selectedAreas = useMemo(() => parseAreas(location), [location]);
+    const areaChoices = areas?.length ? areas : AREA_OPTIONS;
+
     const [status, setStatus] = useState(key ? 'loading' : 'missing');
-    const [query, setQuery] = useState(address || location || '');
+    const [query, setQuery] = useState('');
     const [predictions, setPredictions] = useState([]);
     const [open, setOpen] = useState(false);
     const [searching, setSearching] = useState(false);
@@ -93,6 +115,13 @@ export default function PlacesLocationInput({
     const lat = parseCoord(latitude);
     const lng = parseCoord(longitude);
 
+    const toggleArea = (area) => {
+        const next = selectedAreas.includes(area)
+            ? selectedAreas.filter((a) => a !== area)
+            : [...selectedAreas, area];
+        onChange({ location: formatAreas(next) });
+    };
+
     const reverseGeocode = useCallback((rLat, rLng) => {
         const maps = mapsRef.current;
         if (!maps) return;
@@ -100,13 +129,27 @@ export default function PlacesLocationInput({
             { location: { lat: rLat, lng: rLng } },
             (results, s) => {
                 if (s !== 'OK' || !results?.[0]) return;
-                const fields = placeToFields(results[0]);
+                const formatted = results[0].formatted_address || '';
                 suppressSearchRef.current = true;
-                setQuery(fields.address || '');
+                setQuery(formatted);
+
+                const inferred = inferAreasFromText(formatted);
+                const current = parseAreas(locationRef.current);
+                const merged =
+                    current.length > 0
+                        ? current
+                        : inferred.length
+                          ? inferred
+                          : current;
+
                 onChangeRef.current({
-                    ...fields,
                     latitude: rLat,
                     longitude: rLng,
+                    address: formatted,
+                    city: '',
+                    ...(merged.length
+                        ? { location: formatAreas(merged) }
+                        : {}),
                 });
             },
         );
@@ -147,22 +190,41 @@ export default function PlacesLocationInput({
         [reverseGeocode],
     );
 
-    const applyCoords = useCallback(
-        (fields) => {
+    const applyPlace = useCallback(
+        (place) => {
+            const coords = placeToCoords(place);
+            const inferred = inferAreasFromText(
+                place.name,
+                place.formatted_address,
+            );
+            const current = parseAreas(locationRef.current);
+            const merged =
+                current.length > 0
+                    ? current
+                    : inferred.length
+                      ? inferred
+                      : current;
+
             suppressSearchRef.current = true;
-            setQuery(fields.address || fields.location || '');
+            setQuery(place.formatted_address || place.name || '');
             setPredictions([]);
             setOpen(false);
             setActiveIndex(-1);
-            onChangeRef.current(fields);
-            moveMap(fields.latitude, fields.longitude);
+
+            onChangeRef.current({
+                latitude: coords.latitude,
+                longitude: coords.longitude,
+                address: coords.address,
+                city: '',
+                ...(merged.length ? { location: formatAreas(merged) } : {}),
+            });
+            moveMap(coords.latitude, coords.longitude);
         },
         [moveMap],
     );
 
     const selectPrediction = useCallback(
         (prediction) => {
-            // Local Nanyuki Now listing from hybrid API
             if (
                 prediction?.latitude != null &&
                 prediction?.longitude != null &&
@@ -170,41 +232,43 @@ export default function PlacesLocationInput({
                 Number.isFinite(Number(prediction.longitude)) &&
                 prediction.source === 'local'
             ) {
-                applyCoords({
-                    location:
-                        prediction.location_label ||
-                        prediction.structured_formatting?.main_text ||
-                        'Nanyuki',
-                    city: prediction.city || '',
-                    address:
-                        prediction.address || prediction.description || '',
+                const inferred = inferAreasFromText(
+                    prediction.location_label,
+                    prediction.address,
+                    prediction.description,
+                );
+                const current = parseAreas(locationRef.current);
+                const merged =
+                    current.length > 0
+                        ? current
+                        : inferred.length
+                          ? inferred
+                          : current;
+
+                suppressSearchRef.current = true;
+                setQuery(prediction.address || prediction.description || '');
+                setPredictions([]);
+                setOpen(false);
+                onChangeRef.current({
                     latitude: Number(Number(prediction.latitude).toFixed(7)),
                     longitude: Number(Number(prediction.longitude).toFixed(7)),
+                    address:
+                        prediction.address || prediction.description || '',
+                    city: '',
+                    ...(merged.length
+                        ? { location: formatAreas(merged) }
+                        : {}),
                 });
+                moveMap(
+                    Number(prediction.latitude),
+                    Number(prediction.longitude),
+                );
                 return;
             }
 
             const service = placesServiceRef.current;
             if (!service || !prediction?.place_id) return;
-
-            // Local listing without coords — still fill text, then geocode via Places text
-            if (
-                String(prediction.place_id).startsWith('local-') ||
-                prediction.source === 'local'
-            ) {
-                applyCoords({
-                    location:
-                        prediction.location_label ||
-                        prediction.structured_formatting?.main_text ||
-                        'Nanyuki',
-                    city: prediction.city || '',
-                    address:
-                        prediction.address || prediction.description || '',
-                    latitude: lat ?? NANYUKI.lat,
-                    longitude: lng ?? NANYUKI.lng,
-                });
-                return;
-            }
+            if (String(prediction.place_id).startsWith('local-')) return;
 
             service.getDetails(
                 {
@@ -219,7 +283,7 @@ export default function PlacesLocationInput({
                 },
                 (place, s) => {
                     if (s !== 'OK' || !place) return;
-                    applyCoords(placeToFields(place));
+                    applyPlace(place);
                     if (mapsRef.current?.places?.AutocompleteSessionToken) {
                         sessionTokenRef.current =
                             new mapsRef.current.places.AutocompleteSessionToken();
@@ -227,7 +291,7 @@ export default function PlacesLocationInput({
                 },
             );
         },
-        [applyCoords, lat, lng],
+        [applyPlace, moveMap],
     );
 
     const searchLocalListings = useCallback(async (q) => {
@@ -483,7 +547,8 @@ export default function PlacesLocationInput({
                         </button>
                     ) : null}
 
-                    {open && (predictions.length > 0 || query.trim().length >= 2) ? (
+                    {open &&
+                    (predictions.length > 0 || query.trim().length >= 2) ? (
                         <ul
                             id="places_suggestions"
                             role="listbox"
@@ -503,7 +568,9 @@ export default function PlacesLocationInput({
                                                     ? 'bg-mustard/25'
                                                     : 'hover:bg-olive-50'
                                             }`}
-                                            onMouseDown={(e) => e.preventDefault()}
+                                            onMouseDown={(e) =>
+                                                e.preventDefault()
+                                            }
                                             onMouseEnter={() =>
                                                 setActiveIndex(index)
                                             }
@@ -527,7 +594,8 @@ export default function PlacesLocationInput({
                                                     ?.secondary_text ? (
                                                     <span className="mt-0.5 block truncate text-xs text-olive-500">
                                                         {
-                                                            p.structured_formatting
+                                                            p
+                                                                .structured_formatting
                                                                 .secondary_text
                                                         }
                                                     </span>
@@ -546,7 +614,7 @@ export default function PlacesLocationInput({
                 </div>
                 <p className={help}>
                     {status === 'ready'
-                        ? 'Pick a Google suggestion to fill location, address, and map pin.'
+                        ? 'Pick a Google suggestion or tap the map to set the pin.'
                         : status === 'loading'
                           ? 'Loading Google Maps…'
                           : mapNote || 'Google Maps unavailable.'}
@@ -588,49 +656,48 @@ export default function PlacesLocationInput({
                 </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                    <label className={label} htmlFor="location">
-                        Area / location label
-                    </label>
-                    <input
-                        id="location"
-                        className={field}
-                        value={location || ''}
-                        onChange={(e) =>
-                            onChange({ location: e.target.value })
-                        }
-                        placeholder="e.g. Nanyuki, Timau"
-                    />
-                    {errors.location ? (
-                        <p className="mt-1.5 text-sm text-rose-600">
-                            {errors.location}
-                        </p>
-                    ) : null}
-                </div>
-                <div>
-                    <label className={label} htmlFor="city">
-                        City / town
-                    </label>
-                    <input
-                        id="city"
-                        className={field}
-                        value={city || ''}
-                        onChange={(e) => onChange({ city: e.target.value })}
-                    />
-                </div>
-            </div>
-
             <div>
-                <label className={label} htmlFor="address">
-                    Full address
-                </label>
-                <input
-                    id="address"
-                    className={field}
-                    value={address || ''}
-                    onChange={(e) => onChange({ address: e.target.value })}
-                />
+                <span className={label} id="location-areas-label">
+                    Area / location
+                </span>
+                <div
+                    role="group"
+                    aria-labelledby="location-areas-label"
+                    className="mt-1.5 flex flex-wrap gap-2"
+                >
+                    {areaChoices.map((area) => {
+                        const active = selectedAreas.includes(area);
+                        return (
+                            <button
+                                key={area}
+                                type="button"
+                                onClick={() => toggleArea(area)}
+                                aria-pressed={active}
+                                className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-semibold transition ${
+                                    active
+                                        ? 'border-olive-900 bg-olive-900 text-white'
+                                        : 'border-olive-200 bg-white text-olive-800 hover:border-mustard hover:bg-mustard/15'
+                                }`}
+                            >
+                                {active ? (
+                                    <Check
+                                        className="h-3.5 w-3.5"
+                                        strokeWidth={2.5}
+                                    />
+                                ) : null}
+                                {area}
+                            </button>
+                        );
+                    })}
+                </div>
+                <p className={help}>
+                    Select one or more: Nanyuki, Naromoru, or Timau.
+                </p>
+                {errors.location ? (
+                    <p className="mt-1.5 text-sm text-rose-600">
+                        {errors.location}
+                    </p>
+                ) : null}
             </div>
         </div>
     );

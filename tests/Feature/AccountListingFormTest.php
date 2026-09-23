@@ -202,4 +202,42 @@ class AccountListingFormTest extends TestCase
             ->assertJsonPath('results.0.source', 'local')
             ->assertJsonPath('results.0.badge', 'Nanyuki Now');
     }
+
+    public function test_draft_listing_is_created_and_updated(): void
+    {
+        $this->seedCategories();
+        $user = User::factory()->create();
+        $category = Category::query()->where('slug', 'eatDrink')->firstOrFail();
+
+        $create = $this->actingAs($user)->postJson(route('account.listings.draft'), [
+            'category_id' => $category->id,
+            'title' => 'My Cafe Draft',
+            'location' => 'Nanyuki',
+            'tier' => 'free',
+        ]);
+
+        $create->assertOk()->assertJsonPath('listing.status', 'draft');
+        $id = $create->json('listing.id');
+        $this->assertNotNull($id);
+
+        $this->actingAs($user)->postJson(route('account.listings.draft.update', $id), [
+            'category_id' => $category->id,
+            'title' => 'My Cafe Draft Updated',
+            'location' => 'Nanyuki, Timau',
+            'description' => '<p>Hello <strong>world</strong></p>',
+            'tier' => 'free',
+        ])->assertOk()
+            ->assertJsonPath('listing.title', 'My Cafe Draft Updated')
+            ->assertJsonPath('listing.location', 'Nanyuki, Timau')
+            ->assertJsonPath('listing.description', '<p>Hello <strong>world</strong></p>')
+            ->assertJsonPath('listing.status', 'draft');
+
+        $this->assertDatabaseHas('listings', [
+            'id' => $id,
+            'status' => 'draft',
+            'is_published' => false,
+            'title' => 'My Cafe Draft Updated',
+            'description' => '<p>Hello <strong>world</strong></p>',
+        ]);
+    }
 }

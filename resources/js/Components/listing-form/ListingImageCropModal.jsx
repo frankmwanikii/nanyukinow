@@ -3,9 +3,23 @@ import { getCroppedImage } from '@/utils/cropImage';
 import { useCallback, useEffect, useState } from 'react';
 import Cropper from 'react-easy-crop';
 
+async function dataUrlToFile(dataUrl, fileName = 'photo.jpg') {
+    const res = await fetch(dataUrl);
+    const blob = await res.blob();
+    const type = blob.type || 'image/jpeg';
+    const base = fileName.replace(/\.[^.]+$/, '') || 'photo';
+    const ext = type.includes('png')
+        ? 'png'
+        : type.includes('webp')
+          ? 'webp'
+          : 'jpg';
+    return new File([blob], `${base}.${ext}`, { type });
+}
+
 export default function ListingImageCropModal({
     show,
     imageSrc,
+    originalFile = null,
     fileName = 'photo.jpg',
     aspect = 4 / 3,
     title = 'Crop image',
@@ -52,12 +66,33 @@ export default function ListingImageCropModal({
         }
     };
 
+    const useWithoutCrop = async () => {
+        setBusy(true);
+        setError(null);
+        try {
+            if (originalFile instanceof File) {
+                onComplete?.(originalFile);
+                return;
+            }
+            if (!imageSrc) {
+                throw new Error('No image available.');
+            }
+            const file = await dataUrlToFile(imageSrc, fileName);
+            onComplete?.(file);
+        } catch (err) {
+            setError(err?.message || 'Could not use that image.');
+        } finally {
+            setBusy(false);
+        }
+    };
+
     return (
         <Modal show={show} onClose={onCancel} maxWidth="lg">
             <div className="border-b border-olive-100 px-5 py-4">
                 <h3 className="text-base font-semibold text-olive-950">{title}</h3>
                 <p className="mt-1 text-sm text-olive-500">
-                    Drag to reposition, then zoom before saving.
+                    Drag to reposition, then zoom — or skip cropping and use the
+                    original.
                 </p>
             </div>
 
@@ -106,23 +141,33 @@ export default function ListingImageCropModal({
                     <p className="text-sm text-rose-600">{error}</p>
                 ) : null}
 
-                <div className="flex flex-wrap justify-end gap-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                     <button
                         type="button"
-                        onClick={onCancel}
-                        disabled={busy}
-                        className="rounded-xl border border-olive-200 px-4 py-2 text-sm font-semibold text-olive-700"
+                        onClick={useWithoutCrop}
+                        disabled={busy || (!imageSrc && !originalFile)}
+                        className="rounded-xl border border-olive-200 px-4 py-2 text-sm font-semibold text-olive-800 transition hover:bg-olive-50 disabled:opacity-50"
                     >
-                        Cancel
+                        {busy ? 'Working…' : 'Don’t crop'}
                     </button>
-                    <button
-                        type="button"
-                        onClick={apply}
-                        disabled={busy || !croppedAreaPixels}
-                        className="rounded-xl bg-mustard px-4 py-2 text-sm font-bold text-earth-dusk disabled:opacity-50"
-                    >
-                        {busy ? 'Applying…' : 'Use photo'}
-                    </button>
+                    <div className="flex flex-wrap gap-2">
+                        <button
+                            type="button"
+                            onClick={onCancel}
+                            disabled={busy}
+                            className="rounded-xl border border-olive-200 px-4 py-2 text-sm font-semibold text-olive-700"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="button"
+                            onClick={apply}
+                            disabled={busy || !croppedAreaPixels}
+                            className="rounded-xl bg-mustard px-4 py-2 text-sm font-bold text-earth-dusk disabled:opacity-50"
+                        >
+                            {busy ? 'Applying…' : 'Use cropped'}
+                        </button>
+                    </div>
                 </div>
             </div>
         </Modal>

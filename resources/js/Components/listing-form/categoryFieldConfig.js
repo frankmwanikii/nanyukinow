@@ -318,7 +318,6 @@ export function emptyDetailsFor(categoryKey) {
     const fields = CATEGORY_DETAIL_FIELDS[categoryKey] || [];
     const details = {
         payments: ['Cash', 'M-Pesa'],
-        about: '',
         video_url: '',
     };
 

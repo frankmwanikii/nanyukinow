@@ -75,13 +75,20 @@ class ListingController extends Controller
         ]);
     }
 
-    public function show(string $slug): Response
+    public function show(Request $request, string $slug): Response
     {
         $listing = Listing::query()
             ->with('category')
             ->where('slug', $slug)
-            ->where('is_published', true)
             ->firstOrFail();
+
+        $user = $request->user();
+        $canPreview = $user
+            && ($user->isAdmin() || (int) $user->id === (int) $listing->user_id);
+
+        if (! $listing->is_published && ! $canPreview) {
+            abort(404);
+        }
 
         $related = Listing::query()
             ->with('category')
@@ -99,6 +106,8 @@ class ListingController extends Controller
             'slug' => $listing->slug,
             'listing' => ListingPayload::fromModel($listing),
             'related' => ListingPayload::collection($related),
+            'preview' => ! $listing->is_published,
+            'previewStatus' => $listing->status,
         ]);
     }
 }

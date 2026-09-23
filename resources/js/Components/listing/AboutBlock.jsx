@@ -1,5 +1,9 @@
 import DetailSection from './DetailSection';
 
+function looksLikeHtml(value) {
+    return /<[a-z][\s\S]*>/i.test(String(value || ''));
+}
+
 export default function AboutBlock({
     about,
     docs = [],
@@ -8,18 +12,27 @@ export default function AboutBlock({
 }) {
     if (!about && !(docs && docs.length)) return null;
 
+    const isHtml = about && looksLikeHtml(about);
+
     return (
         <DetailSection id={sectionId || undefined} title={title}>
             {about ? (
-                <div className="space-y-3 text-sm leading-relaxed text-olive-800 sm:text-[0.95rem] sm:leading-7">
-                    {String(about)
-                        .split(/\n\s*\n/)
-                        .map((para) => para.trim())
-                        .filter(Boolean)
-                        .map((para) => (
-                            <p key={para.slice(0, 48)}>{para}</p>
-                        ))}
-                </div>
+                isHtml ? (
+                    <div
+                        className="nn-editor text-sm leading-relaxed text-olive-800 sm:text-[0.95rem] sm:leading-7"
+                        dangerouslySetInnerHTML={{ __html: about }}
+                    />
+                ) : (
+                    <div className="space-y-3 text-sm leading-relaxed text-olive-800 sm:text-[0.95rem] sm:leading-7">
+                        {String(about)
+                            .split(/\n\s*\n/)
+                            .map((para) => para.trim())
+                            .filter(Boolean)
+                            .map((para) => (
+                                <p key={para.slice(0, 48)}>{para}</p>
+                            ))}
+                    </div>
+                )
             ) : null}
             {docs?.length ? (
                 <div className={`${about ? 'mt-4' : ''} grid grid-cols-2 gap-3`}>

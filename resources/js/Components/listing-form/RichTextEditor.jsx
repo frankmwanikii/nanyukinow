@@ -164,10 +164,14 @@ function Divider() {
 
 export default function RichTextEditor({
     id = 'description',
+    label: labelText = 'Description',
     value = '',
     onChange,
     placeholder = 'Tell the story…',
     error,
+    help: helpText,
+    compact = false,
+    allowImages = true,
 }) {
     const editorRef = useRef(null);
     const fileRef = useRef(null);
@@ -290,10 +294,16 @@ export default function RichTextEditor({
         }
     };
 
+    const showImages = allowImages && !compact;
+    const editorMinH = compact ? 'min-h-[120px]' : 'min-h-[200px]';
+    const defaultHelp = compact
+        ? 'Bold, lists, and links for a short About blurb.'
+        : 'Font size, bullets, headings, links, and images — paste or drop a photo into the editor.';
+
     return (
         <div>
             <label className={label} htmlFor={id}>
-                Description
+                {labelText}
             </label>
             <div
                 className={`overflow-hidden rounded-xl border bg-white transition focus-within:border-mustard focus-within:ring-2 focus-within:ring-mustard/30 ${
@@ -301,25 +311,28 @@ export default function RichTextEditor({
                 }`}
             >
                 <div className="flex flex-wrap items-center gap-0.5 border-b border-olive-100 bg-gradient-to-b from-olive-50 to-olive-50/40 px-2 py-1.5">
-                    <label className="sr-only" htmlFor={`${listId}-size`}>
-                        Font size
-                    </label>
-                    <select
-                        id={`${listId}-size`}
-                        value={fontSize}
-                        title="Font size"
-                        onMouseDown={rememberSelection}
-                        onChange={(e) => applySize(e.target.value)}
-                        className="mr-1 h-8 rounded-lg border-0 bg-white/80 px-2 text-xs font-semibold text-olive-800 shadow-sm ring-1 ring-olive-200 focus:ring-2 focus:ring-mustard/40"
-                    >
-                        {FONT_SIZES.map((s) => (
-                            <option key={s.value} value={s.value}>
-                                {s.label}
-                            </option>
-                        ))}
-                    </select>
-
-                    <Divider />
+                    {!compact ? (
+                        <>
+                            <label className="sr-only" htmlFor={`${listId}-size`}>
+                                Font size
+                            </label>
+                            <select
+                                id={`${listId}-size`}
+                                value={fontSize}
+                                title="Font size"
+                                onMouseDown={rememberSelection}
+                                onChange={(e) => applySize(e.target.value)}
+                                className="mr-1 h-8 rounded-lg border-0 bg-white/80 px-2 text-xs font-semibold text-olive-800 shadow-sm ring-1 ring-olive-200 focus:ring-2 focus:ring-mustard/40"
+                            >
+                                {FONT_SIZES.map((s) => (
+                                    <option key={s.value} value={s.value}>
+                                        {s.label}
+                                    </option>
+                                ))}
+                            </select>
+                            <Divider />
+                        </>
+                    ) : null}
 
                     <ToolBtn
                         title="Bold"
@@ -345,12 +358,14 @@ export default function RichTextEditor({
 
                     <Divider />
 
-                    <ToolBtn
-                        title="Heading"
-                        onClick={() => run('formatBlock', 'h3')}
-                    >
-                        <Heading2 className="h-4 w-4" strokeWidth={1.75} />
-                    </ToolBtn>
+                    {!compact ? (
+                        <ToolBtn
+                            title="Heading"
+                            onClick={() => run('formatBlock', 'h3')}
+                        >
+                            <Heading2 className="h-4 w-4" strokeWidth={1.75} />
+                        </ToolBtn>
+                    ) : null}
                     <ToolBtn
                         title="Bullet list"
                         active={active.ul}
@@ -369,36 +384,42 @@ export default function RichTextEditor({
                         <LinkIcon className="h-4 w-4" strokeWidth={1.75} />
                     </ToolBtn>
 
-                    <Divider />
-
-                    <ToolBtn
-                        title="Add image"
-                        disabled={uploading}
-                        onClick={() => {
-                            rememberSelection();
-                            fileRef.current?.click();
-                        }}
-                        className="gap-1 px-2"
-                    >
-                        {uploading ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                            <ImagePlus className="h-4 w-4" strokeWidth={1.75} />
-                        )}
-                        <span className="hidden text-[11px] font-semibold sm:inline">
-                            Image
-                        </span>
-                    </ToolBtn>
-                    <input
-                        ref={fileRef}
-                        type="file"
-                        accept="image/png,image/jpeg,image/webp,image/gif"
-                        className="hidden"
-                        onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) insertImage(file);
-                        }}
-                    />
+                    {showImages ? (
+                        <>
+                            <Divider />
+                            <ToolBtn
+                                title="Add image"
+                                disabled={uploading}
+                                onClick={() => {
+                                    rememberSelection();
+                                    fileRef.current?.click();
+                                }}
+                                className="gap-1 px-2"
+                            >
+                                {uploading ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                    <ImagePlus
+                                        className="h-4 w-4"
+                                        strokeWidth={1.75}
+                                    />
+                                )}
+                                <span className="hidden text-[11px] font-semibold sm:inline">
+                                    Image
+                                </span>
+                            </ToolBtn>
+                            <input
+                                ref={fileRef}
+                                type="file"
+                                accept="image/png,image/jpeg,image/webp,image/gif"
+                                className="hidden"
+                                onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) insertImage(file);
+                                }}
+                            />
+                        </>
+                    ) : null}
 
                     <span className="ml-auto flex items-center gap-0.5">
                         <ToolBtn title="Undo" onClick={() => run('undo')}>
@@ -428,26 +449,29 @@ export default function RichTextEditor({
                         rememberSelection();
                         refreshActive();
                     }}
-                    onPaste={onPaste}
-                    onDrop={onDrop}
-                    onDragOver={(e) => {
-                        if (
-                            Array.from(e.dataTransfer?.types || []).includes(
-                                'Files',
-                            )
-                        ) {
-                            e.preventDefault();
-                        }
-                    }}
-                    className={`nn-editor ${field} min-h-[200px] rounded-none border-0 text-base leading-relaxed focus:ring-0 empty:before:pointer-events-none empty:before:text-olive-400 empty:before:content-[attr(data-placeholder)]`}
+                    onPaste={showImages ? onPaste : undefined}
+                    onDrop={showImages ? onDrop : undefined}
+                    onDragOver={
+                        showImages
+                            ? (e) => {
+                                  if (
+                                      Array.from(
+                                          e.dataTransfer?.types || [],
+                                      ).includes('Files')
+                                  ) {
+                                      e.preventDefault();
+                                  }
+                              }
+                            : undefined
+                    }
+                    className={`nn-editor ${field} ${editorMinH} rounded-none border-0 text-base leading-relaxed focus:ring-0 empty:before:pointer-events-none empty:before:text-olive-400 empty:before:content-[attr(data-placeholder)]`}
                 />
             </div>
             {error ? (
                 <p className="mt-1.5 text-sm text-rose-600">{error}</p>
             ) : (
                 <p className="mt-1.5 text-xs text-olive-500">
-                    Font size, bullets, headings, links, and images — paste or
-                    drop a photo into the editor.
+                    {helpText ?? defaultHelp}
                 </p>
             )}
         </div>

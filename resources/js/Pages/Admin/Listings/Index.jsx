@@ -306,7 +306,11 @@ export default function Index({ listings, filters, categories, statuses, tiers }
                                                         href: route('admin.listings.edit', listing.id),
                                                     },
                                                     {
-                                                        label: 'View',
+                                                        label:
+                                                            listing.status === 'published' &&
+                                                            listing.is_published
+                                                                ? 'View'
+                                                                : 'Preview',
                                                         href: route('listings.show', listing.slug),
                                                         external: true,
                                                     },

@@ -46,37 +46,56 @@ export async function getCroppedImage(imageSrc, pixelCrop, {
     return new File([blob], fileName, { type: mimeType });
 }
 
-/** Turn any displayable image source into a data URL for the cropper. */
+/** Turn any displayable image source (URL, blob URL, or File/Blob) into a data URL. */
 export async function srcToDataUrl(src) {
     if (!src) {
         throw new Error('No image source');
+    }
+
+    if (typeof src !== 'string') {
+        // File / Blob from an <input type="file">
+        return blobToDataUrl(src);
     }
 
     if (src.startsWith('data:')) {
         return src;
     }
 
+    // Never rewrite blob: URLs — toSameOriginSrc would strip them to a useless path.
+    if (src.startsWith('blob:')) {
+        const response = await fetch(src);
+        if (!response.ok) {
+            throw new Error('Failed to load image');
+        }
+        return blobToDataUrl(await response.blob());
+    }
+
     const normalized = toSameOriginSrc(src);
 
-    if (normalized.startsWith('blob:') || normalized.startsWith('/')) {
+    if (normalized.startsWith('/')) {
         const response = await fetch(normalized, { credentials: 'same-origin' });
         if (!response.ok) {
             throw new Error('Failed to load image');
         }
-        const blob = await response.blob();
-        return blobToDataUrl(blob);
+        return blobToDataUrl(await response.blob());
     }
 
-    // Cross-origin fallback via canvas (needs CORS). Prefer same-origin paths.
     const response = await fetch(normalized);
     if (!response.ok) {
         throw new Error('Failed to load image');
     }
-    const blob = await response.blob();
-    return blobToDataUrl(blob);
+    return blobToDataUrl(await response.blob());
 }
 
 export function toSameOriginSrc(src) {
+    if (!src || typeof src !== 'string') {
+        return src;
+    }
+
+    if (src.startsWith('data:') || src.startsWith('blob:')) {
+        return src;
+    }
+
     try {
         const url = new URL(src, window.location.href);
         if (url.pathname.startsWith('/storage/')) {
@@ -93,8 +112,24 @@ export function toSameOriginSrc(src) {
 
 function blobToDataUrl(blob) {
     return new Promise((resolve, reject) => {
+        if (!blob) {
+            reject(new Error('Could not read image'));
+            return;
+        }
+        // Empty type is ok (some OS pickers omit it); reject known non-images.
+        if (blob.type && !blob.type.startsWith('image/')) {
+            reject(new Error('Not an image file'));
+            return;
+        }
         const reader = new FileReader();
-        reader.onload = () => resolve(String(reader.result));
+        reader.onload = () => {
+            const result = String(reader.result || '');
+            if (!result.startsWith('data:')) {
+                reject(new Error('Could not read image'));
+                return;
+            }
+            resolve(result);
+        };
         reader.onerror = () => reject(new Error('Could not read image'));
         reader.readAsDataURL(blob);
     });

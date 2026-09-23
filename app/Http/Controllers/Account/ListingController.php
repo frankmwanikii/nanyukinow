@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Account;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Account\SaveListingDraftRequest;
 use App\Http\Requests\Account\StoreListingRequest;
 use App\Http\Requests\Account\UpdateListingRequest;
 use App\Models\Amenity;
@@ -23,19 +24,92 @@ class ListingController extends Controller
     {
         $user = $request->user();
 
-        if (! Membership::canCreateListing($user)) {
+        $draft = Listing::query()
+            ->where('user_id', $user->id)
+            ->where('status', 'draft')
+            ->latest('updated_at')
+            ->first();
+
+        if (! $draft && ! Membership::canCreateListing($user)) {
             return redirect()
                 ->route('account.index')
                 ->with('error', 'You have reached your listing limit. Upgrade your plan to add more.');
         }
 
         return Inertia::render('Account/Listings/Form', [
-            'listing' => null,
+            'listing' => $draft ? $this->listingFormPayload($draft) : null,
             'categories' => $this->categories(),
             'amenities' => $this->amenitiesPayload(),
             'mapsApiKey' => config('services.google.maps_key') ?: env('VITE_GOOGLE_MAPS_API_KEY'),
             'plan' => Membership::planSummary($user),
             'allowedTiers' => Membership::allowedTiers($user->effectivePlan()),
+            'isDraft' => (bool) $draft,
+        ]);
+    }
+
+    public function saveDraft(SaveListingDraftRequest $request, ?Listing $listing = null): \Illuminate\Http\JsonResponse
+    {
+        $user = $request->user();
+
+        if ($listing) {
+            $this->authorizeOwner($request, $listing);
+            abort_unless($listing->status === 'draft', 422, 'Only drafts can be auto-saved this way.');
+        } else {
+            $listing = Listing::query()
+                ->where('user_id', $user->id)
+                ->where('status', 'draft')
+                ->latest('updated_at')
+                ->first();
+        }
+
+        $data = $request->validated();
+        $tier = Membership::normalize($data['tier'] ?? $user->effectivePlan());
+
+        if (! Membership::canUseTier($user, $tier)) {
+            $tier = Membership::FREE;
+        }
+
+        if (! $listing) {
+            if (! Membership::canCreateListing($user)) {
+                return response()->json([
+                    'message' => 'Listing limit reached.',
+                ], 422);
+            }
+
+            $title = trim((string) ($data['title'] ?? '')) ?: 'Untitled draft';
+
+            $listing = Listing::query()->create([
+                'user_id' => $user->id,
+                'title' => $title,
+                'slug' => $this->uniqueSlug($title.'-draft-'.$user->id),
+                'category_id' => $data['category_id'] ?? null,
+                'location' => $data['location'] ?? 'Nanyuki',
+                'tier' => $tier,
+                'status' => 'draft',
+                'claim_status' => 'claimed',
+                'is_published' => false,
+                'is_featured' => false,
+                'is_trending' => false,
+                'priority' => 0,
+            ]);
+        }
+
+        $payload = $this->buildListingPayload($request, [
+            ...$data,
+            'title' => trim((string) ($data['title'] ?? '')) ?: $listing->title ?: 'Untitled draft',
+            'category_id' => $data['category_id'] ?? $listing->category_id,
+        ], $listing);
+
+        $listing->update([
+            ...$payload,
+            'tier' => $tier,
+            'status' => 'draft',
+            'is_published' => false,
+        ]);
+
+        return response()->json([
+            'listing' => $this->listingFormPayload($listing->fresh()),
+            'saved_at' => now()->toIso8601String(),
         ]);
     }
 
@@ -87,6 +161,7 @@ class ListingController extends Controller
             'mapsApiKey' => config('services.google.maps_key') ?: env('VITE_GOOGLE_MAPS_API_KEY'),
             'plan' => Membership::planSummary($request->user()),
             'allowedTiers' => Membership::allowedTiers($request->user()->effectivePlan()),
+            'isDraft' => $listing->status === 'draft',
         ]);
     }
 
@@ -102,10 +177,13 @@ class ListingController extends Controller
         }
 
         $payload = $this->buildListingPayload($request, $data, $listing);
+        $wasDraft = $listing->status === 'draft';
 
         $listing->update([
             ...$payload,
             'tier' => $tier,
+            'status' => $wasDraft ? 'pending' : $listing->status,
+            'is_published' => $wasDraft ? false : $listing->is_published,
             'is_featured' => in_array($tier, [Membership::STANDARD, Membership::PREMIUM], true),
             'priority' => $tier === Membership::PREMIUM ? 20 : ($tier === Membership::STANDARD ? 10 : 0),
         ]);
@@ -114,7 +192,12 @@ class ListingController extends Controller
 
         return redirect()
             ->route('account.index')
-            ->with('success', 'Listing updated.');
+            ->with(
+                'success',
+                $wasDraft
+                    ? "“{$listing->title}” submitted for review."
+                    : 'Listing updated.',
+            );
     }
 
     public function destroy(Request $request, Listing $listing): RedirectResponse
@@ -185,14 +268,16 @@ class ListingController extends Controller
         )));
 
         return [
-            'title' => $data['title'],
-            'category_id' => $data['category_id'],
+            'title' => $data['title'] ?? $existing?->title ?? 'Untitled draft',
+            'category_id' => $data['category_id'] ?? $existing?->category_id,
             'subcategory' => $data['subcategory'] ?? null,
             'property_type' => $data['property_type'] ?? null,
             'location' => $data['location'] ?? null,
             'city' => $data['city'] ?? null,
-            'tagline' => $data['tagline'] ?? null,
-            'description' => $data['description'] ?? null,
+            'tagline' => $data['tagline'] ?? $existing?->tagline,
+            'description' => array_key_exists('description', $data)
+                ? $data['description']
+                : $existing?->description,
             'phone' => $data['phone'] ?? null,
             'whatsapp' => $data['whatsapp'] ?? null,
             'email' => $data['email'] ?? null,

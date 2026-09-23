@@ -63,7 +63,7 @@ class ListingPayload
             'ticketUrl' => $listing->ticket_url,
             'expires_at' => $listing->expires_at?->toIso8601String(),
             'priority' => $listing->priority,
-            'about' => $details['about'] ?? null,
+            'about' => $listing->description ?: ($details['about'] ?? null),
             'ageLimit' => $details['age_limit'] ?? null,
             'organiser' => $details['organiser'] ?? null,
         ];
