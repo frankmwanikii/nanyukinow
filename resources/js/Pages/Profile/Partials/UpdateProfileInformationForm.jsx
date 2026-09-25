@@ -8,8 +8,9 @@ const ACCEPT = 'image/jpeg,image/png,image/webp,image/gif';
 const MAX_BYTES = 15 * 1024 * 1024;
 
 const field =
-    'w-full rounded-xl border border-olive-200 bg-white px-3.5 py-3 text-base text-olive-900 outline-none transition placeholder:text-olive-400 focus:border-mustard focus:ring-2 focus:ring-mustard/30';
-const labelCls = 'mb-1.5 block text-sm font-semibold text-olive-600';
+    'w-full rounded-xl border border-olive-200 bg-white px-3.5 py-3 text-base text-olive-900 outline-none transition placeholder:text-olive-400 focus:border-mustard focus:ring-2 focus:ring-mustard/30 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-50 dark:placeholder:text-olive-500';
+const labelCls =
+    'mb-1.5 block text-sm font-semibold text-olive-600 dark:text-olive-400';
 
 export default function UpdateProfileInformation({
     mustVerifyEmail,
@@ -166,8 +167,10 @@ export default function UpdateProfileInformation({
     return (
         <section className={className}>
             <header>
-                <h2 className="font-display text-lg font-bold text-olive-950">Profile</h2>
-                <p className="mt-1 text-sm text-olive-600">
+                <h2 className="font-display text-lg font-bold text-olive-950 dark:text-olive-50">
+                    Profile
+                </h2>
+                <p className="mt-1 text-sm text-olive-600 dark:text-olive-400">
                     Add a photo and update your name and email.
                 </p>
             </header>
@@ -183,7 +186,7 @@ export default function UpdateProfileInformation({
                                 onClick={editCurrentPhoto}
                                 aria-label="Crop and zoom profile photo"
                                 title="Click to crop & zoom"
-                                className="group relative mx-auto h-28 w-28 shrink-0 overflow-hidden rounded-full bg-olive-100 shadow-soft ring-2 ring-olive-200 transition hover:ring-mustard focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard sm:mx-0"
+                                className="group relative mx-auto h-28 w-28 shrink-0 overflow-hidden rounded-full bg-olive-100 shadow-soft ring-2 ring-olive-200 transition hover:ring-mustard focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard dark:bg-olive-800 dark:ring-olive-700 sm:mx-0"
                             >
                                 <img
                                     src={displaySrc}
@@ -211,18 +214,18 @@ export default function UpdateProfileInformation({
                                     onDrop={onDrop}
                                     className={`flex w-full items-center gap-3 rounded-2xl border border-dashed px-4 py-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard ${
                                         dragOver
-                                            ? 'border-mustard bg-mustard/10'
-                                            : 'border-mustard/70 bg-olive-50/50 hover:border-mustard hover:bg-mustard/5'
+                                            ? 'border-mustard bg-mustard/10 dark:bg-mustard/15'
+                                            : 'border-mustard/70 bg-olive-50/50 hover:border-mustard hover:bg-mustard/5 dark:border-mustard/50 dark:bg-olive-950/50 dark:hover:bg-mustard/10'
                                     }`}
                                 >
                                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-mustard/15 text-mustard">
                                         <CloudUpload className="h-5 w-5" strokeWidth={1.75} />
                                     </span>
                                     <span className="min-w-0">
-                                        <span className="block text-sm font-semibold text-olive-950">
+                                        <span className="block text-sm font-semibold text-olive-950 dark:text-olive-50">
                                             Replace photo
                                         </span>
-                                        <span className="mt-0.5 block text-xs text-olive-500">
+                                        <span className="mt-0.5 block text-xs text-olive-500 dark:text-olive-400">
                                             Drop a new image or click · max 15MB
                                         </span>
                                     </span>
@@ -231,7 +234,7 @@ export default function UpdateProfileInformation({
                                     <button
                                         type="button"
                                         onClick={editCurrentPhoto}
-                                        className="inline-flex items-center gap-1.5 rounded-xl border border-olive-200 bg-white px-3 py-2 text-sm font-semibold text-olive-800 transition hover:border-mustard/50 hover:bg-mustard/10"
+                                        className="inline-flex items-center gap-1.5 rounded-xl border border-olive-200 bg-white px-3 py-2 text-sm font-semibold text-olive-800 transition hover:border-mustard/50 hover:bg-mustard/10 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-200 dark:hover:bg-olive-800"
                                     >
                                         <Crop className="h-3.5 w-3.5" />
                                         Crop & zoom
@@ -239,7 +242,7 @@ export default function UpdateProfileInformation({
                                     <button
                                         type="button"
                                         onClick={clearAvatar}
-                                        className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-50"
+                                        className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-50 dark:hover:bg-rose-950/40"
                                     >
                                         <Trash2 className="h-3.5 w-3.5" />
                                         Remove photo
@@ -260,17 +263,17 @@ export default function UpdateProfileInformation({
                             onDrop={onDrop}
                             className={`flex w-full flex-col items-center justify-center rounded-2xl border border-dashed px-4 py-10 text-center transition focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard ${
                                 dragOver
-                                    ? 'border-mustard bg-mustard/10'
-                                    : 'border-mustard/70 bg-olive-50/40 hover:border-mustard hover:bg-mustard/5'
+                                    ? 'border-mustard bg-mustard/10 dark:bg-mustard/15'
+                                    : 'border-mustard/70 bg-olive-50/40 hover:border-mustard hover:bg-mustard/5 dark:border-mustard/50 dark:bg-olive-950/40 dark:hover:bg-mustard/10'
                             }`}
                         >
                             <span className="flex h-14 w-14 items-center justify-center rounded-full bg-mustard/15 text-mustard">
                                 <CloudUpload className="h-7 w-7" strokeWidth={1.5} />
                             </span>
-                            <span className="mt-4 text-sm font-semibold text-olive-950">
+                            <span className="mt-4 text-sm font-semibold text-olive-950 dark:text-olive-50">
                                 Drop a photo here or click to upload
                             </span>
-                            <span className="mt-1 text-xs text-olive-500">
+                            <span className="mt-1 text-xs text-olive-500 dark:text-olive-400">
                                 JPG, PNG, WEBP, GIF · max 15MB
                             </span>
                         </button>
@@ -321,13 +324,13 @@ export default function UpdateProfileInformation({
                 </div>
 
                 {mustVerifyEmail && user.email_verified_at === null && (
-                    <div className="rounded-xl border border-olive-100 bg-olive-50/60 px-4 py-3 text-sm text-olive-800">
+                    <div className="rounded-xl border border-olive-100 bg-olive-50/60 px-4 py-3 text-sm text-olive-800 dark:border-olive-800 dark:bg-olive-950/60 dark:text-olive-200">
                         Your email address is unverified.{' '}
                         <Link
                             href={route('verification.send')}
                             method="post"
                             as="button"
-                            className="font-semibold text-olive-950 underline underline-offset-2"
+                            className="font-semibold text-olive-950 underline underline-offset-2 dark:text-olive-50"
                         >
                             Resend verification email
                         </Link>
@@ -343,12 +346,14 @@ export default function UpdateProfileInformation({
                     <button
                         type="submit"
                         disabled={processing}
-                        className="inline-flex items-center justify-center rounded-xl bg-mustard px-4 py-2.5 text-sm font-bold text-earth-dusk transition hover:bg-olive-800 hover:text-white disabled:opacity-50"
+                        className="inline-flex items-center justify-center rounded-xl bg-mustard px-4 py-2.5 text-sm font-bold text-earth-dusk transition hover:bg-olive-800 hover:text-white disabled:opacity-50 dark:bg-mustard dark:text-earth-dusk dark:hover:bg-olive-100 dark:hover:text-earth-dusk"
                     >
                         {processing ? 'Saving…' : 'Save profile'}
                     </button>
                     {recentlySuccessful && (
-                        <p className="text-sm font-medium text-olive-600">Saved.</p>
+                        <p className="text-sm font-medium text-olive-600 dark:text-olive-400">
+                            Saved.
+                        </p>
                     )}
                 </div>
             </form>

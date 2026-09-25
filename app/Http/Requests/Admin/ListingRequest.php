@@ -18,7 +18,7 @@ class ListingRequest extends FormRequest
             'category_id', 'website', 'email', 'phone', 'whatsapp',
             'latitude', 'longitude', 'rating', 'expires_at', 'published_at',
             'image_url', 'logo_url', 'event_poster_url', 'slug', 'tagline', 'price_range',
-            'subcategory', 'property_type', 'venue', 'city', 'address',
+            'property_type', 'venue', 'city', 'address',
             'start_at', 'end_at', 'ticket_price', 'early_bird_price', 'gate_price', 'ticket_url',
         ];
 
@@ -39,8 +39,19 @@ class ListingRequest extends FormRequest
         $merge['social_links'] = $this->decodeArrayField('social_links');
         $merge['details'] = $this->decodeArrayField('details');
         $merge['gallery_urls'] = $this->decodeArrayField('gallery_urls');
+        $merge['subcategory'] = $this->decodeSubcategoryField();
 
         $this->merge($merge);
+    }
+
+    /**
+     * @return list<string>|null
+     */
+    private function decodeSubcategoryField(): ?array
+    {
+        $normalized = \App\Support\ListingSubcategories::normalize($this->input('subcategory'));
+
+        return $normalized === [] ? null : $normalized;
     }
 
     /**
@@ -79,7 +90,8 @@ class ListingRequest extends FormRequest
             'category_id' => ['nullable', 'exists:categories,id'],
             'title' => ['required', 'string', 'max:255'],
             'slug' => ['nullable', 'string', 'max:255', Rule::unique('listings', 'slug')->ignore($listingId)],
-            'subcategory' => ['nullable', 'string', 'max:120'],
+            'subcategory' => ['nullable', 'array', 'max:20'],
+            'subcategory.*' => ['string', 'max:120'],
             'property_type' => ['nullable', 'string', 'max:80'],
             'location' => ['nullable', 'string', 'max:255'],
             'city' => ['nullable', 'string', 'max:120'],

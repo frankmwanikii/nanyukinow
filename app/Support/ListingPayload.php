@@ -47,7 +47,9 @@ class ListingPayload
             'likesCount' => (int) ($listing->likes_count ?? 0),
             'category' => $category?->name,
             'categoryKey' => $categoryKey,
-            'subcategory' => $listing->subcategory,
+            'subcategory' => is_array($listing->subcategory)
+                ? $listing->subcategory
+                : ListingSubcategories::normalize($listing->subcategory),
             'propertyType' => $listing->property_type,
             'is_featured' => (bool) $listing->is_featured,
             'is_trending' => (bool) $listing->is_trending,

@@ -12,6 +12,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { explorePath } from '@/data/categories';
+import { subcategoryLabel } from '@/utils/listingSubcategories';
 
 const FEATURED = [
     {
@@ -263,7 +264,8 @@ export default function SearchSuggestions({
                                         image={listing.image}
                                         label={listing.title}
                                         meta={[
-                                            listing.subcategory || listing.category,
+                                            subcategoryLabel(listing) ||
+                                                listing.category,
                                             listing.location,
                                         ]
                                             .filter(Boolean)

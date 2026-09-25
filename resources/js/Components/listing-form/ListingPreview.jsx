@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import ListingCard from '@/Components/site/ListingCard';
+import { subcategoryLabel } from '@/utils/listingSubcategories';
 import {
     CATEGORY_DETAIL_FIELDS,
     PRICE_LEVELS,
@@ -248,7 +249,7 @@ export default function ListingPreview({
                                 label="Category"
                                 value={[
                                     category?.name,
-                                    formData.subcategory,
+                                    subcategoryLabel(formData),
                                     formData.property_type,
                                 ]
                                     .filter(Boolean)

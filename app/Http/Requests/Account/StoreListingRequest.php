@@ -96,38 +96,9 @@ class StoreListingRequest extends FormRequest
      */
     private function decodeSubcategoryField(): ?array
     {
-        $value = $this->input('subcategory');
+        $normalized = \App\Support\ListingSubcategories::normalize($this->input('subcategory'));
 
-        if ($value === null || $value === '') {
-            return null;
-        }
-
-        if (is_string($value)) {
-            $decoded = json_decode($value, true);
-            if (is_array($decoded)) {
-                $value = $decoded;
-            } else {
-                $value = [trim($value)];
-            }
-        }
-
-        if (! is_array($value)) {
-            return null;
-        }
-
-        $out = [];
-        foreach ($value as $item) {
-            if (! is_string($item) && ! is_numeric($item)) {
-                continue;
-            }
-            $label = trim((string) $item);
-            if ($label === '' || in_array($label, $out, true)) {
-                continue;
-            }
-            $out[] = $label;
-        }
-
-        return $out === [] ? null : $out;
+        return $normalized === [] ? null : $normalized;
     }
 
     /**

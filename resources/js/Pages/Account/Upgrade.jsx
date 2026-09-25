@@ -5,8 +5,8 @@ import { Check, RefreshCw, Send, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 const field =
-    'w-full rounded-lg border border-olive-200 bg-white px-3.5 py-3 text-base text-olive-900 outline-none transition placeholder:text-olive-400 focus:border-mustard focus:ring-2 focus:ring-mustard/30';
-const labelCls = 'mb-1.5 block text-sm font-semibold text-olive-600';
+    'w-full rounded-lg border border-olive-200 bg-white px-3.5 py-3 text-base text-olive-900 outline-none transition placeholder:text-olive-400 focus:border-mustard focus:ring-2 focus:ring-mustard/30 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-50 dark:placeholder:text-olive-500 dark:focus:border-mustard dark:focus:ring-mustard/30';
+const labelCls = 'mb-1.5 block text-sm font-semibold text-olive-600 dark:text-olive-400';
 
 function formatMoney(amount, currency) {
     try {
@@ -63,11 +63,11 @@ function BillingSwitcher({ value, onChange, savingsPercent = 0 }) {
             <div
                 role="radiogroup"
                 aria-label="Billing period"
-                className="relative inline-grid grid-cols-2 rounded-full bg-olive-100/90 p-1"
+                className="relative inline-grid grid-cols-2 rounded-full bg-olive-100/90 p-1 dark:bg-olive-900 dark:ring-1 dark:ring-olive-700"
             >
                 <span
                     aria-hidden
-                    className={`pointer-events-none absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-white shadow-sm ring-1 ring-olive-200/80 transition-transform duration-300 ease-out ${
+                    className={`pointer-events-none absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-white shadow-sm ring-1 ring-olive-200/80 transition-transform duration-300 ease-out dark:bg-mustard dark:ring-mustard/40 ${
                         value === 'year' ? 'translate-x-full' : 'translate-x-0'
                     }`}
                 />
@@ -85,8 +85,8 @@ function BillingSwitcher({ value, onChange, savingsPercent = 0 }) {
                             onClick={() => onChange(opt.id)}
                             className={`relative z-10 min-w-[6.5rem] rounded-full px-4 py-2 text-sm font-semibold transition ${
                                 active
-                                    ? 'text-olive-950'
-                                    : 'text-olive-500 hover:text-olive-800'
+                                    ? 'text-olive-950 dark:text-earth-dusk'
+                                    : 'text-olive-500 hover:text-olive-800 dark:text-olive-400 dark:hover:text-olive-100'
                             }`}
                         >
                             {opt.label}
@@ -95,9 +95,11 @@ function BillingSwitcher({ value, onChange, savingsPercent = 0 }) {
                 })}
             </div>
             {savingsPercent > 0 ? (
-                <p className="text-sm font-medium text-olive-600">
+                <p className="text-sm font-medium text-olive-600 dark:text-olive-400">
                     Save up to{' '}
-                    <span className="font-semibold text-earth-clay">{savingsPercent}%</span>{' '}
+                    <span className="font-semibold text-earth-clay dark:text-mustard">
+                        {savingsPercent}%
+                    </span>{' '}
                     yearly
                 </p>
             ) : null}
@@ -151,72 +153,236 @@ function planState(plan, currentKey, pending) {
     return { isCurrent, isFree, canUpgrade, ctaLabel };
 }
 
-function InclusionMatrix({ plans }) {
-    const allFeatures = [];
-    const seen = new Set();
-    plans.forEach((plan) => {
-        (plan.inclusions || []).forEach((item) => {
-            if (!seen.has(item)) {
-                seen.add(item);
-                allFeatures.push(item);
+const TIER_ORDER = ['free', 'featured', 'premium'];
+
+function planRank(plan) {
+    const idx = TIER_ORDER.indexOf(plan?.key);
+    return idx === -1 ? 99 : idx;
+}
+
+function sortPlans(plans = []) {
+    return [...plans].sort((a, b) => {
+        const byRank = planRank(a) - planRank(b);
+        if (byRank !== 0) return byRank;
+        return (a.sort_order ?? 0) - (b.sort_order ?? 0);
+    });
+}
+
+function isMetaInclusion(item) {
+    const text = String(item || '').trim();
+    if (!text) return true;
+    // Structural “inherits lower tier” notes — not real matrix rows
+    if (/^everything in\b/i.test(text)) return true;
+    // Listing counts come from listing_limit instead
+    if (/^(up to\s+)?\d+\s+(free\s+)?listings?\b/i.test(text)) return true;
+    if (/^\d+\s+free listing\b/i.test(text)) return true;
+    // Broken / incomplete bullets
+    if (/^listings?$/i.test(text)) return true;
+    return false;
+}
+
+function cleanFeatureLabel(item) {
+    const text = String(item || '').trim().replace(/\s+/g, ' ');
+    if (!text) return '';
+    return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+/**
+ * Expand each plan’s inclusions so higher tiers inherit lower-tier features.
+ * Skips meta lines like “Everything in Free”.
+ */
+function buildInclusionMatrix(plans) {
+    const ordered = sortPlans(plans);
+    const expanded = new Map(); // plan.key -> Set<feature>
+    const introduction = new Map(); // feature -> plan.key that first added it
+    const featureOrder = [];
+
+    ordered.forEach((plan, index) => {
+        const set = new Set();
+        if (index > 0) {
+            const prev = expanded.get(ordered[index - 1].key);
+            prev?.forEach((f) => set.add(f));
+        }
+
+        (plan.inclusions || []).forEach((raw) => {
+            if (isMetaInclusion(raw)) return;
+            const feature = cleanFeatureLabel(raw);
+            if (!feature) return;
+            if (!introduction.has(feature)) {
+                introduction.set(feature, plan.key);
+                featureOrder.push(feature);
             }
+            set.add(feature);
         });
+
+        expanded.set(plan.key, set);
     });
 
-    if (allFeatures.length === 0 || plans.length === 0) return null;
+    return { ordered, expanded, featureOrder, introduction };
+}
+
+function MatrixCheck({ on }) {
+    if (on) {
+        return (
+            <span
+                className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-mint/35 text-olive-900 dark:bg-mint/20 dark:text-mint"
+                aria-label="Included"
+            >
+                <Check className="h-3.5 w-3.5" strokeWidth={2.75} />
+            </span>
+        );
+    }
 
     return (
-        <div className="overflow-hidden rounded-xl border border-olive-200 bg-white">
-            <div className="border-b border-olive-100 px-5 py-4 sm:px-6">
-                <h2 className="text-lg font-semibold tracking-tight text-olive-950">
-                    Inclusion matrix
+        <span className="text-sm text-olive-300 dark:text-olive-600" aria-label="Not included">
+            —
+        </span>
+    );
+}
+
+function InclusionMatrix({ plans, currentKey = null }) {
+    const { ordered, expanded, featureOrder } = buildInclusionMatrix(plans);
+
+    if (ordered.length === 0) return null;
+
+    const hasFeatures = featureOrder.length > 0;
+    const hasLimits = ordered.some((p) => Number(p.listing_limit) > 0);
+    if (!hasFeatures && !hasLimits) return null;
+
+    return (
+        <div className="overflow-hidden rounded-2xl border border-olive-200/80 bg-white shadow-soft dark:border-olive-800 dark:bg-olive-900 dark:shadow-none">
+            <div className="border-b border-olive-100 px-5 py-5 sm:px-6 dark:border-olive-800">
+                <h2 className="font-display text-xl font-semibold tracking-tight text-olive-950 dark:text-olive-50">
+                    What’s included
                 </h2>
-                <p className="mt-1 text-sm text-olive-500">
-                    Quick compare of what each tier includes.
+                <p className="mt-1 max-w-xl text-sm text-olive-500 dark:text-olive-400">
+                    Higher plans include everything below them — so you only pay for the extras
+                    you need.
                 </p>
             </div>
+
             <div className="overflow-x-auto">
-                <table className="w-full min-w-[36rem] text-left text-sm">
+                <table className="w-full min-w-[34rem] border-collapse text-left text-sm">
                     <thead>
-                        <tr className="border-b border-olive-100">
-                            <th className="px-5 py-3.5 font-semibold text-olive-500 sm:px-6">
-                                Inclusion
+                        <tr className="border-b border-olive-100 dark:border-olive-800">
+                            <th
+                                scope="col"
+                                className="sticky left-0 z-10 bg-white px-5 py-3.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-olive-400 dark:bg-olive-900 dark:text-olive-500 sm:px-6"
+                            >
+                                Feature
                             </th>
-                            {plans.map((plan) => (
-                                <th
-                                    key={plan.id}
-                                    className="px-4 py-3.5 text-center font-semibold text-olive-900"
-                                >
-                                    {plan.name}
-                                </th>
-                            ))}
+                            {ordered.map((plan) => {
+                                const isYours = currentKey && plan.key === currentKey;
+                                return (
+                                    <th
+                                        key={plan.id || plan.key}
+                                        scope="col"
+                                        className={`px-4 py-3.5 text-center ${
+                                            isYours
+                                                ? 'bg-mustard/10 dark:bg-mustard/10'
+                                                : ''
+                                        }`}
+                                    >
+                                        <span className="block font-display text-sm font-semibold text-olive-950 dark:text-olive-50">
+                                            {plan.name}
+                                        </span>
+                                        {isYours ? (
+                                            <span className="mt-0.5 block text-[10px] font-semibold uppercase tracking-[0.14em] text-mustard">
+                                                Your plan
+                                            </span>
+                                        ) : null}
+                                    </th>
+                                );
+                            })}
                         </tr>
                     </thead>
                     <tbody>
-                        {allFeatures.map((feature, i) => (
-                            <tr
-                                key={feature}
-                                className={i % 2 === 0 ? 'bg-earth-sand/40' : 'bg-white'}
-                            >
-                                <td className="px-5 py-3 text-olive-700 sm:px-6">{feature}</td>
-                                {plans.map((plan) => {
-                                    const has = (plan.inclusions || []).includes(feature);
+                        {hasLimits ? (
+                            <tr className="border-b border-olive-100 dark:border-olive-800">
+                                <th
+                                    scope="row"
+                                    className="sticky left-0 z-10 bg-earth-sand/50 px-5 py-3.5 text-left text-sm font-medium text-olive-800 dark:bg-olive-950/60 dark:text-olive-200 sm:px-6"
+                                >
+                                    Listings included
+                                </th>
+                                {ordered.map((plan) => {
+                                    const isYours = currentKey && plan.key === currentKey;
                                     return (
-                                        <td key={plan.id} className="px-4 py-3 text-center">
-                                            {has ? (
-                                                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-mint/30 text-olive-800">
-                                                    <Check className="h-3.5 w-3.5" strokeWidth={2.75} />
-                                                </span>
-                                            ) : (
-                                                <span className="text-olive-300">—</span>
-                                            )}
+                                        <td
+                                            key={`limit-${plan.id || plan.key}`}
+                                            className={`px-4 py-3.5 text-center ${
+                                                isYours
+                                                    ? 'bg-mustard/10 dark:bg-mustard/10'
+                                                    : 'bg-earth-sand/50 dark:bg-olive-950/60'
+                                            }`}
+                                        >
+                                            <span className="font-display text-base font-semibold tabular-nums text-olive-950 dark:text-olive-50">
+                                                {plan.listing_limit ?? '—'}
+                                            </span>
                                         </td>
                                     );
                                 })}
                             </tr>
-                        ))}
+                        ) : null}
+
+                        {featureOrder.map((feature, index) => {
+                            const zebra = index % 2 === 0;
+                            return (
+                                <tr
+                                    key={feature}
+                                    className="border-b border-olive-100 last:border-b-0 dark:border-olive-800"
+                                >
+                                    <th
+                                        scope="row"
+                                        className={`sticky left-0 z-10 px-5 py-3.5 text-left text-sm font-medium text-olive-800 dark:text-olive-200 sm:px-6 ${
+                                            zebra
+                                                ? 'bg-white dark:bg-olive-900'
+                                                : 'bg-olive-50/60 dark:bg-olive-950/40'
+                                        }`}
+                                    >
+                                        {feature}
+                                    </th>
+                                    {ordered.map((plan) => {
+                                        const isYours =
+                                            currentKey && plan.key === currentKey;
+                                        const has =
+                                            expanded.get(plan.key)?.has(feature) ??
+                                            false;
+                                        return (
+                                            <td
+                                                key={`${plan.id || plan.key}-${feature}`}
+                                                className={`px-4 py-3.5 text-center ${
+                                                    isYours
+                                                        ? 'bg-mustard/10 dark:bg-mustard/10'
+                                                        : zebra
+                                                          ? 'bg-white dark:bg-olive-900'
+                                                          : 'bg-olive-50/60 dark:bg-olive-950/40'
+                                                }`}
+                                            >
+                                                <div className="flex justify-center">
+                                                    <MatrixCheck on={has} />
+                                                </div>
+                                            </td>
+                                        );
+                                    })}
+                                </tr>
+                            );
+                        })}
                     </tbody>
                 </table>
+            </div>
+
+            <div className="flex flex-wrap gap-4 border-t border-olive-100 px-5 py-3.5 text-xs text-olive-500 dark:border-olive-800 dark:text-olive-400 sm:px-6">
+                <span className="inline-flex items-center gap-1.5">
+                    <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-mint/35 dark:bg-mint/20">
+                        <Check className="h-3 w-3 text-olive-900 dark:text-mint" strokeWidth={2.75} />
+                    </span>
+                    Included
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                    <span className="text-olive-300 dark:text-olive-600">—</span>
+                    Not on this plan
+                </span>
             </div>
         </div>
     );
@@ -224,8 +390,12 @@ function InclusionMatrix({ plans }) {
 
 function PlansMatrix({ plans, currentKey, pending, onUpgrade, billing = 'month' }) {
     return (
-        <div className="overflow-hidden rounded-xl border border-olive-200 bg-white">
-            <div className={`grid divide-olive-100 lg:divide-x ${plans.length === 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-2'}`}>
+        <div className="overflow-hidden rounded-2xl border border-olive-200/80 bg-white shadow-soft dark:border-olive-800 dark:bg-olive-950 dark:shadow-none">
+            <div
+                className={`grid divide-olive-100 dark:divide-olive-800 lg:divide-x ${
+                    plans.length === 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-2'
+                }`}
+            >
                 {plans.map((plan) => {
                     const { isCurrent, canUpgrade, ctaLabel } = planState(
                         plan,
@@ -240,14 +410,18 @@ function PlansMatrix({ plans, currentKey, pending, onUpgrade, billing = 'month' 
                     return (
                         <article
                             key={plan.id}
-                            className={`relative flex flex-col border-b border-olive-100 p-6 last:border-b-0 lg:border-b-0 sm:p-7 ${
-                                featured ? 'bg-olive-950 text-white lg:scale-[1.01] lg:shadow-lift' : 'bg-white'
+                            className={`relative flex flex-col border-b border-olive-100 p-6 last:border-b-0 sm:p-7 lg:border-b-0 dark:border-olive-800 ${
+                                featured
+                                    ? 'bg-olive-950 text-white lg:scale-[1.01] lg:shadow-lift dark:bg-olive-800 dark:ring-1 dark:ring-inset dark:ring-mustard/35'
+                                    : 'bg-white dark:bg-olive-900'
                             }`}
                         >
                             <div className="flex items-baseline justify-between gap-3">
                                 <h2
                                     className={`font-display text-lg font-semibold tracking-tight ${
-                                        featured ? 'text-white' : 'text-olive-950'
+                                        featured
+                                            ? 'text-white'
+                                            : 'text-olive-950 dark:text-olive-50'
                                     }`}
                                 >
                                     {plan.name}
@@ -257,7 +431,7 @@ function PlansMatrix({ plans, currentKey, pending, onUpgrade, billing = 'month' 
                                         Popular
                                     </span>
                                 ) : isCurrent ? (
-                                    <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-olive-400">
+                                    <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-olive-400 dark:text-olive-500">
                                         Yours
                                     </span>
                                 ) : null}
@@ -266,7 +440,9 @@ function PlansMatrix({ plans, currentKey, pending, onUpgrade, billing = 'month' 
                             {plan.tagline && (
                                 <p
                                     className={`mt-2 text-sm leading-relaxed ${
-                                        featured ? 'text-white/65' : 'text-olive-500'
+                                        featured
+                                            ? 'text-white/65'
+                                            : 'text-olive-500 dark:text-olive-400'
                                     }`}
                                 >
                                     {plan.tagline}
@@ -277,7 +453,9 @@ function PlansMatrix({ plans, currentKey, pending, onUpgrade, billing = 'month' 
                                 <div className="flex items-baseline gap-1.5">
                                     <span
                                         className={`font-display text-3xl font-semibold tracking-tight tabular-nums sm:text-4xl ${
-                                            featured ? 'text-white' : 'text-olive-950'
+                                            featured
+                                                ? 'text-white'
+                                                : 'text-olive-950 dark:text-olive-50'
                                         }`}
                                     >
                                         {displayPrice(plan, period)}
@@ -285,7 +463,9 @@ function PlansMatrix({ plans, currentKey, pending, onUpgrade, billing = 'month' 
                                     {!plan.price_label && amount > 0 && (
                                         <span
                                             className={`text-sm ${
-                                                featured ? 'text-white/55' : 'text-olive-400'
+                                                featured
+                                                    ? 'text-white/55'
+                                                    : 'text-olive-400 dark:text-olive-500'
                                             }`}
                                         >
                                             {periodSuffix(period)}
@@ -295,7 +475,9 @@ function PlansMatrix({ plans, currentKey, pending, onUpgrade, billing = 'month' 
                                 {period === 'year' && !plan.price_label && amount > 0 ? (
                                     <p
                                         className={`mt-1 text-xs ${
-                                            featured ? 'text-white/50' : 'text-olive-400'
+                                            featured
+                                                ? 'text-white/50'
+                                                : 'text-olive-400 dark:text-olive-500'
                                         }`}
                                     >
                                         {formatMoney(Math.round(amount / 12), plan.currency)}
@@ -304,7 +486,9 @@ function PlansMatrix({ plans, currentKey, pending, onUpgrade, billing = 'month' 
                                 ) : null}
                                 <p
                                     className={`mt-2 text-sm font-medium ${
-                                        featured ? 'text-mustard' : 'text-olive-700'
+                                        featured
+                                            ? 'text-mustard'
+                                            : 'text-olive-700 dark:text-olive-300'
                                     }`}
                                 >
                                     {plan.listing_limit} listing
@@ -312,41 +496,53 @@ function PlansMatrix({ plans, currentKey, pending, onUpgrade, billing = 'month' 
                                 </p>
                             </div>
 
-                            <ul className="mt-8 flex-1 space-y-2.5 border-t border-dashed border-olive-200/80 pt-6">
-                                {(plan.inclusions || []).map((item) => (
-                                    <li
-                                        key={item}
-                                        className={`flex gap-2.5 text-sm leading-snug ${
-                                            featured ? 'text-white/80' : 'text-olive-700'
-                                        }`}
-                                    >
-                                        <Check
-                                            className={`mt-0.5 h-4 w-4 shrink-0 ${
-                                                featured ? 'text-mustard' : 'text-olive-800'
+                            <ul
+                                className={`mt-8 flex-1 space-y-2.5 border-t border-dashed pt-6 ${
+                                    featured
+                                        ? 'border-white/15'
+                                        : 'border-olive-200/80 dark:border-olive-700'
+                                }`}
+                            >
+                                {(plan.inclusions || [])
+                                    .filter((item) => !isMetaInclusion(item))
+                                    .map((item) => (
+                                        <li
+                                            key={item}
+                                            className={`flex gap-2.5 text-sm leading-snug ${
+                                                featured
+                                                    ? 'text-white/80'
+                                                    : 'text-olive-700 dark:text-olive-200'
                                             }`}
-                                            strokeWidth={2.25}
-                                        />
-                                        <span>{item}</span>
-                                    </li>
-                                ))}
+                                        >
+                                            <Check
+                                                className={`mt-0.5 h-4 w-4 shrink-0 ${
+                                                    featured
+                                                        ? 'text-mustard'
+                                                        : 'text-olive-800 dark:text-mustard'
+                                                }`}
+                                                strokeWidth={2.25}
+                                            />
+                                            <span>{cleanFeatureLabel(item)}</span>
+                                        </li>
+                                    ))}
                             </ul>
 
                             <button
                                 type="button"
                                 disabled={!canUpgrade}
                                 onClick={() => canUpgrade && onUpgrade(plan)}
-                                className={`mt-8 w-full px-4 py-2.5 text-center text-sm font-semibold transition disabled:cursor-not-allowed ${
+                                className={`mt-8 w-full rounded-xl px-4 py-2.5 text-center text-sm font-semibold transition disabled:cursor-not-allowed ${
                                     canUpgrade
                                         ? featured
-                                            ? 'bg-mustard text-earth-dusk hover:bg-white'
-                                            : 'bg-olive-900 text-white hover:bg-mustard hover:text-earth-dusk'
+                                            ? 'nn-upgrade-glow bg-mustard text-earth-dusk hover:bg-white'
+                                            : 'bg-olive-900 text-white hover:bg-mustard hover:text-earth-dusk dark:bg-mustard dark:text-earth-dusk dark:hover:bg-olive-100'
                                         : isCurrent
                                           ? featured
                                               ? 'border border-white/25 text-white'
-                                              : 'border border-olive-200 text-olive-500'
+                                              : 'border border-olive-200 text-olive-500 dark:border-olive-700 dark:text-olive-400'
                                           : featured
                                             ? 'border border-white/15 text-white/45'
-                                            : 'border border-olive-100 text-olive-400'
+                                            : 'border border-olive-100 text-olive-400 dark:border-olive-800 dark:text-olive-600'
                                 }`}
                             >
                                 {ctaLabel}
@@ -1029,13 +1225,13 @@ export default function Upgrade({
             <Head title="View plans" />
 
             <div className="space-y-6">
-                <p className="max-w-2xl text-sm text-olive-600">
+                <p className="max-w-2xl text-sm text-olive-600 dark:text-olive-400">
                     Pick the package that fits your business. Upgrade anytime for better placement
                     and more listings.
                 </p>
 
                 {pendingUpgrade && (
-                    <div className="rounded-2xl border border-mustard/40 bg-mustard/15 px-5 py-4 text-sm text-earth-dusk">
+                    <div className="rounded-2xl border border-mustard/40 bg-mustard/15 px-5 py-4 text-sm text-earth-dusk dark:border-mustard/30 dark:bg-mustard/10 dark:text-mustard">
                         Pending upgrade to <strong>{pendingUpgrade.to_label}</strong> via{' '}
                         <strong className="capitalize">{pendingUpgrade.payment_method || 'mpesa'}</strong>{' '}
                         (ref {pendingUpgrade.payment_reference}). Cancel it from your dashboard if
@@ -1059,7 +1255,7 @@ export default function Upgrade({
                     billing={billing}
                 />
 
-                <InclusionMatrix plans={plans} />
+                <InclusionMatrix plans={plans} currentKey={plan.key} />
             </div>
 
             {checkoutPlan && (

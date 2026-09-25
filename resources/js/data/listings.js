@@ -1,4 +1,9 @@
 import { resolveListingTier } from '@/data/listingTiers';
+import {
+    listingHasSubcategory,
+    listingSubcategories,
+    subcategoryLabel,
+} from '@/utils/listingSubcategories';
 
 /** Featured hero marquee — resolved to real listings below (see `featured`). */
 export const FEATURED_LISTING_IDS = ['w1', 't4', 2];
@@ -1430,9 +1435,13 @@ export function getRelatedListings(listing, relatedIds = [], limit = 3) {
     const picked = [];
     const seen = new Set([String(listing.id)]);
 
-    const sameSubcategory = (item) =>
-        Boolean(listing.subcategory) &&
-        item.subcategory === listing.subcategory;
+    const listingSubs = listingSubcategories(listing);
+    const sameSubcategory = (item) => {
+        if (!listingSubs.length) return false;
+        return listingSubcategories(item).some((sub) =>
+            listingSubs.includes(sub),
+        );
+    };
 
     const sameCategory = (item) =>
         item.categoryKey === listing.categoryKey ||
@@ -1455,7 +1464,7 @@ export function getRelatedListings(listing, relatedIds = [], limit = 3) {
     }
 
     // 2) Same subcategory (e.g. all Airbnbs)
-    if (listing.subcategory) {
+    if (listingSubs.length) {
         for (const item of byId.values()) {
             if (sameSubcategory(item) && tryAdd(item)) return picked;
         }
@@ -1491,7 +1500,7 @@ export function filterListings(
 
     return items.filter((item) => {
         if (categoryKey && item.categoryKey !== categoryKey) return false;
-        if (subcategory && item.subcategory !== subcategory) return false;
+        if (subcategory && !listingHasSubcategory(item, subcategory)) return false;
         if (propertyType && item.propertyType !== propertyType) return false;
         if (minRating > 0 && (item.rating ?? 0) < minRating) return false;
         if (openNow && item.isOpen === false) return false;
@@ -1510,7 +1519,7 @@ export function filterListings(
             item.address,
             item.venue,
             item.category,
-            item.subcategory,
+            subcategoryLabel(item, ' '),
             item.propertyType,
             item.tagline,
             item.description,

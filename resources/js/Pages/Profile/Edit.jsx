@@ -10,7 +10,7 @@ export default function Edit({ mustVerifyEmail, status, avatarUrl = null }) {
             <Head title="Profile" />
 
             <div className="space-y-5">
-                <div className="rounded-3xl border border-olive-200/80 bg-white p-6 shadow-soft sm:p-8">
+                <div className="rounded-3xl border border-olive-200/80 bg-white p-6 shadow-soft sm:p-8 dark:border-olive-800 dark:bg-olive-900 dark:shadow-none">
                     <UpdateProfileInformationForm
                         mustVerifyEmail={mustVerifyEmail}
                         status={status}
@@ -19,11 +19,11 @@ export default function Edit({ mustVerifyEmail, status, avatarUrl = null }) {
                     />
                 </div>
 
-                <div className="rounded-3xl border border-olive-200/80 bg-white p-6 shadow-soft sm:p-8">
+                <div className="rounded-3xl border border-olive-200/80 bg-white p-6 shadow-soft sm:p-8 dark:border-olive-800 dark:bg-olive-900 dark:shadow-none">
                     <UpdatePasswordForm className="max-w-xl" />
                 </div>
 
-                <div className="rounded-3xl border border-olive-200/80 bg-white p-6 shadow-soft sm:p-8">
+                <div className="rounded-3xl border border-olive-200/80 bg-white p-6 shadow-soft sm:p-8 dark:border-olive-800 dark:bg-olive-900 dark:shadow-none">
                     <DeleteUserForm className="max-w-xl" />
                 </div>
             </div>

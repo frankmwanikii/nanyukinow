@@ -8,7 +8,7 @@ import {
 } from '@/utils/leafletMaps';
 import { useMapProvider } from '@/utils/mapProvider';
 import { LOOK_LOCATIONS } from '@/data/listings';
-import { Check, Loader2, MapPin, Search, X } from 'lucide-react';
+import { Check, ChevronDown, Loader2, MapPin, Search, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 const DEFAULT_ZOOM = 14;
@@ -119,9 +119,12 @@ export default function PlacesLocationInput({
     const [query, setQuery] = useState('');
     const [predictions, setPredictions] = useState([]);
     const [open, setOpen] = useState(false);
+    const [areasOpen, setAreasOpen] = useState(false);
     const [searching, setSearching] = useState(false);
     const [activeIndex, setActiveIndex] = useState(-1);
     const [mapNote, setMapNote] = useState(null);
+    const areasTriggerRef = useRef(null);
+    const areasMenuRef = useRef(null);
 
     const lat = parseCoord(latitude);
     const lng = parseCoord(longitude);
@@ -132,6 +135,38 @@ export default function PlacesLocationInput({
             : [...selectedAreas, area];
         onChange({ location: formatAreas(next) });
     };
+
+    useEffect(() => {
+        if (!areasOpen) return undefined;
+
+        const onPointerDown = (event) => {
+            const target = event.target;
+            if (
+                areasTriggerRef.current?.contains(target) ||
+                areasMenuRef.current?.contains(target)
+            ) {
+                return;
+            }
+            setAreasOpen(false);
+        };
+        const onKey = (event) => {
+            if (event.key === 'Escape') setAreasOpen(false);
+        };
+
+        document.addEventListener('mousedown', onPointerDown);
+        document.addEventListener('keydown', onKey);
+        return () => {
+            document.removeEventListener('mousedown', onPointerDown);
+            document.removeEventListener('keydown', onKey);
+        };
+    }, [areasOpen]);
+
+    const areasSummary =
+        selectedAreas.length === 0
+            ? 'Select areas…'
+            : selectedAreas.length === areaChoices.length
+              ? 'All areas'
+              : selectedAreas.join(', ');
 
     const applyCoords = useCallback(
         ({ latitude: cLat, longitude: cLng, address, city }) => {
@@ -808,35 +843,75 @@ export default function PlacesLocationInput({
                 <span className={label} id="location-areas-label">
                     Area / location
                 </span>
-                <div
-                    role="group"
-                    aria-labelledby="location-areas-label"
-                    className="mt-1.5 flex flex-wrap gap-2"
-                >
-                    {areaChoices.map((area) => {
-                        const active = selectedAreas.includes(area);
-                        return (
-                            <button
-                                key={area}
-                                type="button"
-                                onClick={() => toggleArea(area)}
-                                aria-pressed={active}
-                                className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-semibold transition ${
-                                    active
-                                        ? 'border-olive-900 bg-olive-900 text-white dark:border-mustard dark:bg-mustard dark:text-earth-dusk'
-                                        : 'border-olive-200 bg-white text-olive-800 hover:border-mustard hover:bg-mustard/15 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-100 dark:hover:border-mustard dark:hover:bg-mustard/10'
-                                }`}
-                            >
-                                {active ? (
-                                    <Check
-                                        className="h-3.5 w-3.5"
-                                        strokeWidth={2.5}
-                                    />
-                                ) : null}
-                                {area}
-                            </button>
-                        );
-                    })}
+                <div className="relative mt-1.5">
+                    <button
+                        ref={areasTriggerRef}
+                        type="button"
+                        id="location-areas"
+                        aria-labelledby="location-areas-label"
+                        aria-haspopup="listbox"
+                        aria-expanded={areasOpen}
+                        onClick={() => setAreasOpen((value) => !value)}
+                        className={`${field} flex items-center justify-between gap-3 text-left ${
+                            selectedAreas.length
+                                ? ''
+                                : 'text-olive-400 dark:text-olive-500'
+                        }`}
+                    >
+                        <span className="min-w-0 flex-1 truncate">
+                            {areasSummary}
+                        </span>
+                        <ChevronDown
+                            className={`h-4 w-4 shrink-0 text-olive-500 transition dark:text-olive-400 ${
+                                areasOpen ? 'rotate-180' : ''
+                            }`}
+                            strokeWidth={2}
+                        />
+                    </button>
+
+                    {areasOpen ? (
+                        <div
+                            ref={areasMenuRef}
+                            role="listbox"
+                            aria-multiselectable="true"
+                            aria-labelledby="location-areas-label"
+                            className="absolute left-0 right-0 z-30 mt-1.5 overflow-hidden rounded-xl border border-olive-200 bg-white py-1 shadow-lift dark:border-olive-700 dark:bg-olive-900"
+                        >
+                            {areaChoices.map((area) => {
+                                const active = selectedAreas.includes(area);
+                                return (
+                                    <button
+                                        key={area}
+                                        type="button"
+                                        role="option"
+                                        aria-selected={active}
+                                        onClick={() => toggleArea(area)}
+                                        className={`flex w-full items-center gap-3 px-3.5 py-2.5 text-left text-sm transition ${
+                                            active
+                                                ? 'bg-mustard/20 font-semibold text-earth-dusk dark:bg-mustard/15 dark:text-mustard'
+                                                : 'text-olive-800 hover:bg-olive-50 dark:text-olive-100 dark:hover:bg-olive-800'
+                                        }`}
+                                    >
+                                        <span
+                                            className={`inline-flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
+                                                active
+                                                    ? 'border-olive-900 bg-olive-900 text-white dark:border-mustard dark:bg-mustard dark:text-earth-dusk'
+                                                    : 'border-olive-300 bg-white dark:border-olive-600 dark:bg-olive-950'
+                                            }`}
+                                        >
+                                            {active ? (
+                                                <Check
+                                                    className="h-3 w-3"
+                                                    strokeWidth={2.5}
+                                                />
+                                            ) : null}
+                                        </span>
+                                        {area}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    ) : null}
                 </div>
                 <p className={help}>
                     Select one or more: Nanyuki, Naromoru, or Timau.

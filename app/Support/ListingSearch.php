@@ -65,7 +65,7 @@ class ListingSearch
                     ->orWhereRaw('LOWER(COALESCE(city, "")) LIKE ?', [$like])
                     ->orWhereRaw('LOWER(COALESCE(address, "")) LIKE ?', [$like])
                     ->orWhereRaw('LOWER(COALESCE(venue, "")) LIKE ?', [$like])
-                    ->orWhereRaw('LOWER(COALESCE(subcategory, "")) LIKE ?', [$like])
+                    ->orWhereRaw('LOWER(CAST(subcategory AS CHAR)) LIKE ?', [$like])
                     ->orWhereRaw('LOWER(COALESCE(property_type, "")) LIKE ?', [$like])
                     ->orWhereRaw('LOWER(COALESCE(phone, "")) LIKE ?', [$like])
                     ->orWhereRaw('LOWER(COALESCE(whatsapp, "")) LIKE ?', [$like])

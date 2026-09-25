@@ -12,6 +12,7 @@ use App\Models\Listing;
 use App\Support\CategoryKey;
 use App\Support\ListingMedia;
 use App\Support\ListingSlug;
+use App\Support\ListingSubcategories;
 use App\Support\Membership;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -283,7 +284,7 @@ class ListingController extends Controller
         return [
             'title' => $data['title'] ?? $existing?->title ?? 'Untitled draft',
             'category_id' => $data['category_id'] ?? $existing?->category_id,
-            'subcategory' => $data['subcategory'] ?? null,
+            'subcategory' => ListingSubcategories::normalize($data['subcategory'] ?? null) ?: null,
             'property_type' => $data['property_type'] ?? null,
             'location' => $data['location'] ?? null,
             'city' => $data['city'] ?? null,
@@ -381,7 +382,7 @@ class ListingController extends Controller
             'title' => $listing->title,
             'slug' => $listing->slug,
             'category_id' => $listing->category_id,
-            'subcategory' => $listing->subcategory,
+            'subcategory' => $listing->subcategory ?: [],
             'property_type' => $listing->property_type,
             'location' => $listing->location,
             'city' => $listing->city,

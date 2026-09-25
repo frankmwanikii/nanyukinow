@@ -8,6 +8,10 @@ import {
     getListingById,
     getListingBySlug,
 } from '@/data/listings';
+import {
+    listingSubcategories,
+    subcategoryLabel,
+} from '@/utils/listingSubcategories';
 
 const WEEKDAY_HOURS = [
     { day: 'Monday', open: '08:00', close: '22:00' },
@@ -125,7 +129,7 @@ const HOTEL_SUBCATEGORIES = new Set([
 function isHotelListing(listing) {
     return (
         listing?.categoryKey === 'stay' &&
-        HOTEL_SUBCATEGORIES.has(listing.subcategory)
+        listingSubcategories(listing).some((sub) => HOTEL_SUBCATEGORIES.has(sub))
     );
 }
 
@@ -2050,8 +2054,13 @@ export function getListingDetail(listing) {
                   ...(propertyType
                       ? [{ label: 'Property type', value: propertyType }]
                       : []),
-                  ...(listing.subcategory
-                      ? [{ label: 'Listing', value: listing.subcategory }]
+                  ...(listingSubcategories(listing).length
+                      ? [
+                            {
+                                label: 'Listing',
+                                value: subcategoryLabel(listing),
+                            },
+                        ]
                       : []),
                   ...rawFacts.filter(
                       (f) =>
@@ -2068,8 +2077,14 @@ export function getListingDetail(listing) {
 
     const baseChipsCategories =
         listing.categoryKey === 'properties'
-            ? [listing.category, propertyType, listing.subcategory].filter(Boolean)
-            : [listing.category, listing.subcategory].filter(Boolean);
+            ? [
+                  listing.category,
+                  propertyType,
+                  ...listingSubcategories(listing),
+              ].filter(Boolean)
+            : [listing.category, ...listingSubcategories(listing)].filter(
+                  Boolean,
+              );
 
     const liveGalleryImages = Array.isArray(listing.gallery)
         ? listing.gallery
@@ -2275,7 +2290,7 @@ export function getListingDetail(listing) {
         const chipCats = [
             listing.category,
             propertyType || explicit?.chips?.categories?.find?.(Boolean),
-            listing.subcategory,
+            ...listingSubcategories(listing),
             ...(Array.isArray(explicit?.chips?.categories)
                 ? explicit.chips.categories
                 : []),

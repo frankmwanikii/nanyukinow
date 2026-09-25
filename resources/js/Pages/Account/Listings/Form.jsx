@@ -19,6 +19,7 @@ import {
 import AccountLayout from '@/Layouts/AccountLayout';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { PROPERTY_TYPES, mainCategories } from '@/data/categories';
+import { listingSubcategories, subcategoryLabel } from '@/utils/listingSubcategories';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -151,7 +152,9 @@ export default function Form({
     const isDraftListing = isDraft || listing?.status === 'draft';
     const isEdit = Boolean(listing?.id) && !isDraftListing;
     const isAdmin = context === 'admin';
-    const [draftId, setDraftId] = useState(listing?.id || null);
+    const [draftKey, setDraftKey] = useState(
+        listing?.slug || listing?.id || null,
+    );
     const { errors: pageErrors } = usePage().props;
     const [amenityOptions, setAmenityOptions] = useState(initialAmenities);
     const [saveState, setSaveState] = useState('idle');
@@ -173,7 +176,7 @@ export default function Form({
                 ? listing.title
                 : '',
         category_id: listing?.category_id || '',
-        subcategory: listing?.subcategory || '',
+        subcategory: listingSubcategories(listing?.subcategory),
         property_type: listing?.property_type || '',
         location: listing?.location || 'Nanyuki',
         city: listing?.city || '',
@@ -287,7 +290,7 @@ export default function Form({
 
         append('title', data.title || 'Untitled draft');
         append('category_id', data.category_id || '');
-        append('subcategory', data.subcategory || '');
+        append('subcategory', JSON.stringify(data.subcategory || []));
         append('property_type', data.property_type || '');
         append('location', data.location || '');
         append('city', data.city || '');
@@ -340,7 +343,7 @@ export default function Form({
         if (isEdit || isAdmin) return;
         const latest = { ...(formDataRef.current || form.data), ...overrides };
         const categoryId = latest.category_id;
-        if (!categoryId && !draftId) return;
+        if (!categoryId && !draftKey) return;
 
         if (draftSaving.current) {
             // Another save is in flight — queue one more pass with latest fields.
@@ -357,8 +360,8 @@ export default function Form({
                 document
                     .querySelector('meta[name="csrf-token"]')
                     ?.getAttribute('content') || '';
-            const url = draftId
-                ? route('account.listings.draft.update', draftId)
+            const url = draftKey
+                ? route('account.listings.draft.update', draftKey)
                 : route('account.listings.draft');
 
             const res = await fetch(url, {
@@ -378,8 +381,8 @@ export default function Form({
             }
 
             const json = await res.json();
-            if (json?.listing?.id) {
-                setDraftId(json.listing.id);
+            if (json?.listing?.slug || json?.listing?.id) {
+                setDraftKey(json.listing.slug || json.listing.id);
                 if (json.listing.image_url) {
                     form.setData('image_url', json.listing.image_url);
                     form.setData('cover', null);
@@ -439,7 +442,7 @@ export default function Form({
         form.setData((data) => ({
             ...data,
             category_id: category.id,
-            subcategory: '',
+            subcategory: [],
             property_type: '',
             details: emptyDetailsFor(key),
             hours:
@@ -509,8 +512,11 @@ export default function Form({
                 form.setError('title', 'Name is required.');
                 return false;
             }
-            if (!form.data.subcategory) {
-                form.setError('subcategory', 'Please choose a subcategory.');
+            if (
+                !Array.isArray(form.data.subcategory) ||
+                form.data.subcategory.length === 0
+            ) {
+                form.setError('subcategory', 'Please choose at least one subcategory.');
                 return false;
             }
             if (categoryKey === 'properties' && !form.data.property_type) {
@@ -607,7 +613,7 @@ export default function Form({
                 }
             }
 
-            if (isEdit || draftId || (isAdmin && listing?.id)) {
+            if (isEdit || draftKey || (isAdmin && listing?.id)) {
                 payload._method = 'put';
             }
 
@@ -627,9 +633,11 @@ export default function Form({
                 form.post(route('admin.listings.store'), options);
             }
         } else {
-            const targetId = isEdit ? listing.id : draftId;
-            if (targetId) {
-                form.post(route('account.listings.update', targetId), options);
+            const targetKey = isEdit
+                ? listing.slug || listing.id
+                : draftKey;
+            if (targetKey) {
+                form.post(route('account.listings.update', targetKey), options);
             } else {
                 form.post(route('account.listings.store'), options);
             }
@@ -669,7 +677,7 @@ export default function Form({
                 </div>
             ) : null}
 
-            {phase === 'category' && !isEdit && !(isAdmin ? listing?.id : draftId) ? (
+            {phase === 'category' && !isEdit && !(isAdmin ? listing?.id : draftKey) ? (
                 <CategoryPicker
                     categories={orderedCategories}
                     selectedId={form.data.category_id}
@@ -731,8 +739,8 @@ export default function Form({
                             {selectedCategory ? (
                                 <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-olive-500 dark:text-olive-500">
                                     {selectedCategory.name}
-                                    {form.data.subcategory
-                                        ? ` · ${form.data.subcategory}`
+                                    {subcategoryLabel(form.data)
+                                        ? ` · ${subcategoryLabel(form.data)}`
                                         : ''}
                                 </p>
                             ) : null}
@@ -777,7 +785,7 @@ export default function Form({
                                         Draft save failed — retry
                                     </button>
                                 </>
-                            ) : draftId ? (
+                            ) : draftKey ? (
                                 <>
                                     <Cloud className="h-3.5 w-3.5" />
                                     Auto-saving as draft
@@ -1451,7 +1459,7 @@ function BasicsStep({
                                 const key = resolveCategoryKey(cat);
                                 patch({
                                     category_id: e.target.value,
-                                    subcategory: '',
+                                    subcategory: [],
                                     property_type: '',
                                     details: emptyDetailsFor(key),
                                 });
@@ -1469,25 +1477,51 @@ function BasicsStep({
                 ) : null}
 
                 <div>
-                    <label className={label} htmlFor="subcategory">
+                    <label className={label} id="subcategory-label">
                         Subcategory
                     </label>
-                    <select
-                        id="subcategory"
-                        className={field}
-                        value={form.data.subcategory}
-                        onChange={(e) =>
-                            patch({ subcategory: e.target.value })
-                        }
-                        required
+                    <p className="mb-2 text-xs text-olive-500 dark:text-olive-400">
+                        Select one or more that apply.
+                    </p>
+                    <div
+                        role="group"
+                        aria-labelledby="subcategory-label"
+                        className="space-y-1 rounded-xl border border-olive-200 bg-white p-2 dark:border-olive-700 dark:bg-olive-950"
                     >
-                        <option value="">Select subcategory…</option>
-                        {subs.map((s) => (
-                            <option key={s} value={s}>
-                                {s}
-                            </option>
-                        ))}
-                    </select>
+                        {subs.map((s) => {
+                            const selected = Array.isArray(form.data.subcategory)
+                                ? form.data.subcategory.includes(s)
+                                : false;
+                            return (
+                                <label
+                                    key={s}
+                                    className={`flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition ${
+                                        selected
+                                            ? 'bg-mustard/20 font-semibold text-earth-dusk dark:bg-mustard/15 dark:text-mustard'
+                                            : 'text-olive-800 hover:bg-olive-50 dark:text-olive-200 dark:hover:bg-olive-900'
+                                    }`}
+                                >
+                                    <input
+                                        type="checkbox"
+                                        className="h-4 w-4 rounded border-olive-300 text-olive-900 focus:ring-mustard/40 dark:border-olive-600 dark:bg-olive-900"
+                                        checked={selected}
+                                        onChange={() => {
+                                            const current = Array.isArray(
+                                                form.data.subcategory,
+                                            )
+                                                ? form.data.subcategory
+                                                : [];
+                                            const next = selected
+                                                ? current.filter((item) => item !== s)
+                                                : [...current, s];
+                                            patch({ subcategory: next });
+                                        }}
+                                    />
+                                    <span>{s}</span>
+                                </label>
+                            );
+                        })}
+                    </div>
                     {form.errors.subcategory ? (
                         <p className="mt-1.5 text-sm text-rose-600">
                             {form.errors.subcategory}

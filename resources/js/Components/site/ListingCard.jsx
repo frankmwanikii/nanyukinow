@@ -19,6 +19,10 @@ import { explorePath } from '@/data/categories';
 import { listingHref } from '@/data/listings';
 import { eventDateRangeLabel } from '@/Components/listing/eventDates';
 import { toggleListingBookmark } from '@/utils/listingBookmark';
+import {
+    listingSubcategories,
+    subcategoryLabel,
+} from '@/utils/listingSubcategories';
 
 const CATEGORY_ICONS = {
     eatDrink: Coffee,
@@ -75,7 +79,7 @@ export default function ListingCard({
     const categoryLabel =
         listing.categoryKey === 'properties' && listing.propertyType
             ? listing.propertyType
-            : listing.subcategory || listing.category || 'Listing';
+            : subcategoryLabel(listing) || listing.category || 'Listing';
     const regionLabel = listing.location
         ? `${listing.location} Area`
         : null;
@@ -94,7 +98,8 @@ export default function ListingCard({
                     }
                   : {
                         category: listing.categoryKey,
-                        subcategory: listing.subcategory || undefined,
+                        subcategory:
+                            listingSubcategories(listing)[0] || undefined,
                     },
           )
         : null;

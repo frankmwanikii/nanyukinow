@@ -148,7 +148,7 @@ class ListingController extends Controller
                 'id' => $listing->id,
                 'user_id' => $listing->user_id,
                 'category_id' => $listing->category_id,
-                'subcategory' => $listing->subcategory,
+                'subcategory' => $listing->subcategory ?: [],
                 'property_type' => $listing->property_type,
                 'title' => $listing->title,
                 'slug' => $listing->slug,

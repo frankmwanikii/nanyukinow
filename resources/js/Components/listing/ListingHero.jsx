@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react';
 import { MessageCircle, Phone, Star, Ticket } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { listingSubcategories } from '@/utils/listingSubcategories';
 
 const primaryBtn =
     'inline-flex items-center justify-center gap-1.5 rounded-full bg-mustard px-3.5 py-2.5 text-xs font-bold text-olive-950 shadow-lift transition hover:bg-white sm:gap-2 sm:px-4 sm:py-2.5 sm:text-sm';
@@ -56,25 +57,34 @@ export default function ListingHero({ listing, secondaryCta }) {
                         ) : null}
                         <div className="min-w-0 flex-1">
                             {listing.categoryKey === 'properties' &&
-                            (listing.propertyType || listing.subcategory) ? (
+                            (listing.propertyType ||
+                                listingSubcategories(listing).length) ? (
                                 <p className="mb-1.5 flex flex-wrap items-center gap-1.5 sm:mb-2 sm:gap-2">
                                     {listing.propertyType ? (
                                         <span className="inline-flex rounded-full bg-mustard px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-olive-950 sm:px-3 sm:py-1 sm:text-[11px]">
                                             {listing.propertyType}
                                         </span>
                                     ) : null}
-                                    {listing.subcategory ? (
-                                        <span className="inline-flex rounded-full bg-white/15 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white ring-1 ring-white/30 backdrop-blur sm:px-3 sm:py-1 sm:text-[11px]">
-                                            {listing.subcategory}
+                                    {listingSubcategories(listing).map((sub) => (
+                                        <span
+                                            key={sub}
+                                            className="inline-flex rounded-full bg-white/15 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white ring-1 ring-white/30 backdrop-blur sm:px-3 sm:py-1 sm:text-[11px]"
+                                        >
+                                            {sub}
                                         </span>
-                                    ) : null}
+                                    ))}
                                 </p>
                             ) : null}
-                            {isEvent && listing.subcategory ? (
-                                <p className="mb-1.5 sm:mb-2">
-                                    <span className="inline-flex rounded-full bg-mustard px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-olive-950 sm:px-3 sm:py-1 sm:text-[11px]">
-                                        {listing.subcategory}
-                                    </span>
+                            {isEvent && listingSubcategories(listing).length ? (
+                                <p className="mb-1.5 flex flex-wrap gap-1.5 sm:mb-2 sm:gap-2">
+                                    {listingSubcategories(listing).map((sub) => (
+                                        <span
+                                            key={sub}
+                                            className="inline-flex rounded-full bg-mustard px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-olive-950 sm:px-3 sm:py-1 sm:text-[11px]"
+                                        >
+                                            {sub}
+                                        </span>
+                                    ))}
                                 </p>
                             ) : null}
                             <h1 className="font-display text-[1.65rem] font-semibold leading-tight tracking-tight text-white sm:text-4xl md:text-5xl">

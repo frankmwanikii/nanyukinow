@@ -64,7 +64,7 @@ class AccountListingFormTest extends TestCase
         $response = $this->actingAs($user)->post(route('account.listings.store'), [
             'title' => 'Cedar Grove Estate',
             'category_id' => $category->id,
-            'subcategory' => 'For Sale',
+            'subcategory' => json_encode(['For Sale']),
             'property_type' => 'Villa',
             'location' => 'Timau',
             'city' => 'Nanyuki',
@@ -91,7 +91,7 @@ class AccountListingFormTest extends TestCase
 
         $listing = Listing::query()->where('title', 'Cedar Grove Estate')->first();
         $this->assertNotNull($listing);
-        $this->assertSame('For Sale', $listing->subcategory);
+        $this->assertSame(['For Sale'], $listing->subcategory);
         $this->assertSame('Villa', $listing->property_type);
         $this->assertSame('pending', $listing->status);
         $this->assertSame(['parking', 'security'], $listing->amenities);
@@ -111,7 +111,7 @@ class AccountListingFormTest extends TestCase
         $this->actingAs($user)->post(route('account.listings.store'), [
             'title' => 'Nanyuki Jazz Night',
             'category_id' => $category->id,
-            'subcategory' => 'Music & Entertainment',
+            'subcategory' => json_encode(['Music & Entertainment']),
             'location' => 'Nanyuki',
             'venue' => 'Town Terrace',
             'start_at' => '2026-10-01T19:00',
@@ -134,6 +134,37 @@ class AccountListingFormTest extends TestCase
         $this->assertSame('Town Terrace', $listing->venue);
         $this->assertSame('From KES 1,200', $listing->ticket_price);
         $this->assertNotNull($listing->start_at);
+    }
+
+    public function test_listing_edit_page_uses_slug_in_url(): void
+    {
+        $this->seedCategories();
+        $user = User::factory()->create();
+        $category = Category::query()->where('slug', 'stay')->firstOrFail();
+
+        $listing = Listing::query()->create([
+            'user_id' => $user->id,
+            'category_id' => $category->id,
+            'title' => 'Frayo',
+            'slug' => 'frayo',
+            'status' => 'published',
+            'is_published' => true,
+            'tier' => 'free',
+            'priority' => 0,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('account.listings.edit', $listing->slug))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Account/Listings/Form')
+                ->where('listing.slug', 'frayo')
+                ->where('listing.title', 'Frayo'));
+
+        $this->assertStringContainsString(
+            '/account/listings/frayo/edit',
+            route('account.listings.edit', $listing->slug),
+        );
     }
 
     public function test_custom_amenity_can_be_created(): void
@@ -218,9 +249,11 @@ class AccountListingFormTest extends TestCase
 
         $create->assertOk()->assertJsonPath('listing.status', 'draft');
         $id = $create->json('listing.id');
+        $slug = $create->json('listing.slug');
         $this->assertNotNull($id);
+        $this->assertNotEmpty($slug);
 
-        $this->actingAs($user)->postJson(route('account.listings.draft.update', $id), [
+        $this->actingAs($user)->postJson(route('account.listings.draft.update', $slug), [
             'category_id' => $category->id,
             'title' => 'My Cafe Draft Updated',
             'location' => 'Nanyuki, Timau',

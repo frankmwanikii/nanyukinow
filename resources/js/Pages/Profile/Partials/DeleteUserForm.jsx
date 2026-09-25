@@ -8,6 +8,10 @@ import { useForm } from '@inertiajs/react';
 import { Eye, EyeOff, X } from 'lucide-react';
 import { useRef, useState } from 'react';
 
+const inputCls =
+    'block w-full rounded-xl border border-olive-200 bg-white pr-11 text-olive-900 shadow-sm focus:border-mustard focus:ring-mustard/30 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-50 dark:placeholder:text-olive-500';
+const labelCls = 'text-olive-600 dark:text-olive-400';
+
 export default function DeleteUserForm({ className = '' }) {
     const [confirmingUserDeletion, setConfirmingUserDeletion] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
@@ -51,11 +55,11 @@ export default function DeleteUserForm({ className = '' }) {
     return (
         <section className={`space-y-6 ${className}`}>
             <header>
-                <h2 className="text-lg font-medium text-gray-900">
+                <h2 className="font-display text-lg font-bold text-olive-950 dark:text-olive-50">
                     Delete Account
                 </h2>
 
-                <p className="mt-1 text-sm text-gray-600">
+                <p className="mt-1 text-sm text-olive-600 dark:text-olive-400">
                     Once your account is deleted, all of its resources and data
                     will be permanently deleted. Before deleting your account,
                     please download any data or information that you wish to
@@ -73,23 +77,27 @@ export default function DeleteUserForm({ className = '' }) {
                         type="button"
                         onClick={closeModal}
                         aria-label="Close"
-                        className="absolute right-4 top-4 rounded-full p-1.5 text-olive-500 transition hover:bg-olive-100 hover:text-olive-900"
+                        className="absolute right-4 top-4 rounded-full p-1.5 text-olive-500 transition hover:bg-olive-100 hover:text-olive-900 dark:hover:bg-olive-800 dark:hover:text-olive-100"
                     >
                         <X className="h-5 w-5" />
                     </button>
 
-                    <h2 className="pr-10 text-lg font-semibold text-olive-950">
+                    <h2 className="pr-10 text-lg font-semibold text-olive-950 dark:text-olive-50">
                         Delete your account?
                     </h2>
 
-                    <p className="mt-2 text-sm text-olive-600">
+                    <p className="mt-2 text-sm text-olive-600 dark:text-olive-400">
                         This cannot be undone. All of your listings, messages,
                         and account data will be permanently deleted. Enter your
                         password to confirm.
                     </p>
 
                     <div className="mt-6">
-                        <InputLabel htmlFor="password" value="Password" />
+                        <InputLabel
+                            htmlFor="password"
+                            value="Password"
+                            className={labelCls}
+                        />
 
                         <div className="relative mt-1">
                             <TextInput
@@ -101,7 +109,7 @@ export default function DeleteUserForm({ className = '' }) {
                                 onChange={(e) =>
                                     setData('password', e.target.value)
                                 }
-                                className="block w-full pr-11"
+                                className={inputCls}
                                 isFocused
                                 placeholder="Enter your password"
                                 autoComplete="current-password"
@@ -115,7 +123,7 @@ export default function DeleteUserForm({ className = '' }) {
                                         ? 'Hide password'
                                         : 'Show password'
                                 }
-                                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-olive-500 transition hover:bg-olive-50 hover:text-olive-800"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-olive-500 transition hover:bg-olive-50 hover:text-olive-800 dark:hover:bg-olive-800 dark:hover:text-olive-200"
                             >
                                 {showPassword ? (
                                     <EyeOff className="h-4 w-4" />
@@ -132,7 +140,11 @@ export default function DeleteUserForm({ className = '' }) {
                     </div>
 
                     <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                        <SecondaryButton type="button" onClick={closeModal}>
+                        <SecondaryButton
+                            type="button"
+                            onClick={closeModal}
+                            className="rounded-xl border-olive-200 bg-white normal-case tracking-normal text-olive-800 hover:bg-olive-50 dark:border-olive-700 dark:bg-transparent dark:text-olive-200 dark:hover:bg-olive-800"
+                        >
                             Cancel
                         </SecondaryButton>
 

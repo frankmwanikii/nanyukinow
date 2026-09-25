@@ -72,7 +72,18 @@ class SaveListingDraftRequest extends FormRequest
             'social_links' => $this->decodeArrayField('social_links'),
             'details' => $this->decodeArrayField('details'),
             'gallery_urls' => $this->decodeArrayField('gallery_urls'),
+            'subcategory' => $this->decodeSubcategoryField(),
         ]);
+    }
+
+    /**
+     * @return list<string>|null
+     */
+    private function decodeSubcategoryField(): ?array
+    {
+        $normalized = \App\Support\ListingSubcategories::normalize($this->input('subcategory'));
+
+        return $normalized === [] ? null : $normalized;
     }
 
     /**

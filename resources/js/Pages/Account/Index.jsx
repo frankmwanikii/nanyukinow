@@ -10,7 +10,6 @@ import {
 import { useConfirm } from '@/Components/ConfirmDialog';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
-    ArrowUpRight,
     Bookmark,
     LayoutList,
     Plus,
@@ -70,7 +69,7 @@ export default function Index({
             confirmLabel: 'Delete',
         });
         if (!ok) return;
-        router.delete(route('account.listings.destroy', listing.id));
+        router.delete(route('account.listings.destroy', listing.slug || listing.id));
     };
 
     const usedPct = plan.listing_limit
@@ -96,7 +95,7 @@ export default function Index({
                 )}
 
                 {/* Metric cards */}
-                <section className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+                <section className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
                     <MetricCard label="Plan">
                         <p className="font-display text-2xl font-semibold text-olive-950 dark:text-olive-50">
                             {plan.label}
@@ -117,27 +116,6 @@ export default function Index({
                                 strokeWidth={1.85}
                             />
                             {bookmarksCount}
-                        </p>
-                    </MetricCard>
-                    <MetricCard
-                        label="Upgrade"
-                        href={
-                            pendingUpgrade || plan.key === 'premium'
-                                ? undefined
-                                : route('account.upgrade')
-                        }
-                    >
-                        <p className="text-sm font-medium text-olive-800 dark:text-olive-200">
-                            {pendingUpgrade ? (
-                                <>Pending {pendingUpgrade.to_label}</>
-                            ) : plan.key === 'premium' ? (
-                                'You’re on Premium'
-                            ) : (
-                                <span className="inline-flex items-center gap-1 font-semibold text-olive-900 dark:text-mustard">
-                                    View plans
-                                    <ArrowUpRight className="h-3.5 w-3.5" />
-                                </span>
-                            )}
                         </p>
                     </MetricCard>
                 </section>
@@ -163,30 +141,15 @@ export default function Index({
                             </div>
                         </div>
                         <div className="flex flex-wrap gap-2">
-                            {plan.can_create ? (
-                                <Link
-                                    href={route('account.listings.create')}
-                                    className="inline-flex items-center gap-1.5 rounded-xl bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-mustard hover:text-earth-dusk dark:bg-mustard dark:text-earth-dusk dark:hover:bg-olive-100"
-                                >
-                                    <Plus className="h-4 w-4" />
-                                    Add listing
-                                </Link>
-                            ) : (
+                            {plan.key !== 'premium' && !pendingUpgrade ? (
                                 <Link
                                     href={route('account.upgrade')}
-                                    className="inline-flex items-center gap-1.5 rounded-xl bg-mustard px-3.5 py-2 text-sm font-semibold text-earth-dusk transition hover:bg-olive-900 hover:text-white"
+                                    className="nn-upgrade-glow inline-flex items-center gap-1.5 rounded-full border border-mustard/70 bg-mustard px-4 py-2 text-sm font-semibold text-earth-dusk transition hover:bg-olive-900 hover:text-white dark:border-mustard dark:bg-mustard dark:text-earth-dusk dark:hover:bg-olive-100"
                                 >
-                                    Upgrade
+                                    <Sparkles className="h-4 w-4" strokeWidth={1.85} />
+                                    Upgrade plan
                                 </Link>
-                            )}
-                            {plan.key !== 'premium' && (
-                                <Link
-                                    href={route('account.upgrade')}
-                                    className="inline-flex items-center gap-1.5 rounded-xl border border-olive-200 px-3.5 py-2 text-sm font-semibold text-olive-800 transition hover:bg-olive-50 dark:border-olive-700 dark:text-olive-200 dark:hover:bg-olive-800"
-                                >
-                                    Compare plans
-                                </Link>
-                            )}
+                            ) : null}
                         </div>
                     </div>
                     <div className="px-4 py-4 sm:px-5">
@@ -231,15 +194,23 @@ export default function Index({
                                 Your listings
                             </h2>
                         </div>
-                        {plan.can_create && (
+                        {plan.can_create ? (
                             <Link
                                 href={route('account.listings.create')}
-                                className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm font-semibold text-olive-800 transition hover:bg-olive-50 hover:text-olive-950 dark:text-olive-200 dark:hover:bg-olive-800 dark:hover:text-olive-50"
+                                className="inline-flex items-center gap-1.5 rounded-xl bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-mustard hover:text-earth-dusk dark:bg-mustard dark:text-earth-dusk dark:hover:bg-olive-100"
                             >
                                 <Plus className="h-4 w-4" />
-                                New
+                                Add listing
                             </Link>
-                        )}
+                        ) : plan.key !== 'premium' ? (
+                            <Link
+                                href={route('account.upgrade')}
+                                className="nn-upgrade-glow inline-flex items-center gap-1.5 rounded-full border border-mustard/70 bg-mustard px-4 py-2 text-sm font-semibold text-earth-dusk transition hover:bg-olive-900 hover:text-white"
+                            >
+                                <Sparkles className="h-4 w-4" strokeWidth={1.85} />
+                                Upgrade plan
+                            </Link>
+                        ) : null}
                     </div>
 
                     {listings.length === 0 ? (
@@ -285,7 +256,7 @@ export default function Index({
                                             <Link
                                                 href={route(
                                                     'account.listings.edit',
-                                                    listing.id,
+                                                    listing.slug || listing.id,
                                                 )}
                                                 className="flex min-w-[12rem] items-center gap-3 rounded-lg outline-none transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-mustard/60"
                                             >
@@ -351,7 +322,7 @@ export default function Index({
                                                         label: 'Edit',
                                                         href: route(
                                                             'account.listings.edit',
-                                                            listing.id,
+                                                            listing.slug || listing.id,
                                                         ),
                                                     },
                                                     {

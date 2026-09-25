@@ -76,12 +76,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/account/listings/draft', [AccountListingController::class, 'saveDraft'])
         ->middleware('throttle:60,1')
         ->name('account.listings.draft');
-    Route::post('/account/listings/{listing}/draft', [AccountListingController::class, 'saveDraft'])
+    Route::post('/account/listings/{listing:slug}/draft', [AccountListingController::class, 'saveDraft'])
         ->middleware('throttle:60,1')
         ->name('account.listings.draft.update');
-    Route::get('/account/listings/{listing}/edit', [AccountListingController::class, 'edit'])->name('account.listings.edit');
-    Route::put('/account/listings/{listing}', [AccountListingController::class, 'update'])->name('account.listings.update');
-    Route::delete('/account/listings/{listing}', [AccountListingController::class, 'destroy'])->name('account.listings.destroy');
+    Route::get('/account/listings/{listing:slug}/edit', [AccountListingController::class, 'edit'])->name('account.listings.edit');
+    Route::put('/account/listings/{listing:slug}', [AccountListingController::class, 'update'])->name('account.listings.update');
+    Route::delete('/account/listings/{listing:slug}', [AccountListingController::class, 'destroy'])->name('account.listings.destroy');
     Route::post('/account/amenities', [\App\Http\Controllers\Account\AmenityController::class, 'store'])
         ->middleware('throttle:30,1')
         ->name('account.amenities.store');
