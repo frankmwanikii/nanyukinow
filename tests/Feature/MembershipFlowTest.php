@@ -132,6 +132,32 @@ class MembershipFlowTest extends TestCase
         $this->assertSame(3, Membership::listingLimit($user->effectivePlan()));
     }
 
+    public function test_yearly_upgrade_stores_yearly_amount_and_period(): void
+    {
+        PricingPlan::ensureDefaults();
+        $user = User::factory()->create(['plan' => Membership::FREE]);
+
+        $standard = PricingPlan::query()->where('key', Membership::STANDARD)->firstOrFail();
+        $standard->update([
+            'price_amount' => 300,
+            'yearly_price_amount' => 3000,
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('account.upgrade.store'), [
+                'to_plan' => Membership::STANDARD,
+                'billing_period' => 'year',
+                'payment_reference' => 'YEARLYREF001',
+                'payment_method' => 'mpesa',
+            ])
+            ->assertRedirect(route('account.index'));
+
+        $upgrade = PlanUpgrade::query()->first();
+        $this->assertNotNull($upgrade);
+        $this->assertSame('year', $upgrade->billing_period);
+        $this->assertSame(3000, $upgrade->amount);
+    }
+
     public function test_approving_premium_upgrade_boosts_standard_listings_and_uses_billing_period(): void
     {
         PricingPlan::ensureDefaults();

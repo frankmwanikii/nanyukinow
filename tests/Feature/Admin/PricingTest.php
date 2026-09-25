@@ -44,6 +44,7 @@ class PricingTest extends TestCase
                 'name' => 'Featured Plus',
                 'tagline' => 'Updated tagline',
                 'price_amount' => 3200,
+                'yearly_price_amount' => 32000,
                 'currency' => 'KES',
                 'billing_period' => 'month',
                 'price_label' => null,
@@ -64,6 +65,7 @@ class PricingTest extends TestCase
 
         $this->assertSame('Featured Plus', $plan->name);
         $this->assertSame(3200, $plan->price_amount);
+        $this->assertSame(32000, $plan->yearly_price_amount);
         $this->assertSame(5, $plan->listing_limit);
         $this->assertTrue($plan->is_highlighted);
         $this->assertContains('Priority support', $plan->inclusions);
@@ -85,6 +87,7 @@ class PricingTest extends TestCase
                 'name' => $premium->name,
                 'tagline' => $premium->tagline,
                 'price_amount' => $premium->price_amount,
+                'yearly_price_amount' => $premium->yearly_price_amount,
                 'currency' => $premium->currency,
                 'billing_period' => $premium->billing_period,
                 'price_label' => $premium->price_label,

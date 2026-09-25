@@ -38,6 +38,9 @@ Route::get('/listings/{slug}', [ListingController::class, 'show'])->name('listin
 Route::post('/listings/{listing:slug}/contact', [\App\Http\Controllers\ListingContactController::class, 'store'])
     ->middleware('throttle:10,1')
     ->name('listings.contact');
+Route::post('/listings/{listing:slug}/claim', [\App\Http\Controllers\ListingClaimController::class, 'store'])
+    ->middleware('throttle:8,1')
+    ->name('listings.claim');
 
 Route::get('/terms', function () {
     return Inertia::render('Terms', [

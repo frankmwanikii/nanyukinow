@@ -1,5 +1,6 @@
-import { CloudUpload, FileText, Send, X } from 'lucide-react';
+import { CloudUpload, FileText, Loader2, Send, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { router, usePage } from '@inertiajs/react';
 import ListingModal from './ListingModal';
 
 const fieldClass =
@@ -20,29 +21,10 @@ function formatBytes(size) {
     return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function simulateUpload(docId, setDocs) {
-    let progress = 0;
-    const tick = () => {
-        progress = Math.min(100, progress + Math.floor(8 + Math.random() * 18));
-        setDocs((prev) =>
-            prev.map((doc) =>
-                doc.id === docId
-                    ? {
-                          ...doc,
-                          progress,
-                          status: progress >= 100 ? 'done' : 'uploading',
-                      }
-                    : doc,
-            ),
-        );
-        if (progress < 100) {
-            window.setTimeout(tick, 120 + Math.random() * 160);
-        }
-    };
-    window.setTimeout(tick, 80);
-}
-
 export default function ClaimListingModal({ open, onClose, listing }) {
+    const { auth } = usePage().props;
+    const user = auth?.user;
+
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
@@ -50,9 +32,22 @@ export default function ClaimListingModal({ open, onClose, listing }) {
     const [reason, setReason] = useState('');
     const [docs, setDocs] = useState([]);
     const [fileError, setFileError] = useState('');
+    const [formError, setFormError] = useState('');
     const [confirmed, setConfirmed] = useState(false);
+    const [sending, setSending] = useState(false);
     const [sent, setSent] = useState(false);
     const fileInputRef = useRef(null);
+
+    useEffect(() => {
+        if (!open) return;
+        if (user?.name) {
+            const parts = String(user.name).trim().split(/\s+/);
+            setFirstName((prev) => prev || parts[0] || '');
+            setLastName((prev) => prev || parts.slice(1).join(' ') || '');
+        }
+        if (user?.email) setEmail((prev) => prev || user.email);
+        if (user?.phone) setPhone((prev) => prev || user.phone);
+    }, [open, user]);
 
     useEffect(() => {
         return () => {
@@ -80,7 +75,9 @@ export default function ClaimListingModal({ open, onClose, listing }) {
         setReason('');
         clearDocs();
         setFileError('');
+        setFormError('');
         setConfirmed(false);
+        setSending(false);
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
@@ -106,15 +103,11 @@ export default function ClaimListingModal({ open, onClose, listing }) {
                 id,
                 file,
                 previewUrl,
-                progress: 0,
-                status: 'uploading',
             });
         }
 
         if (!incoming.length) return;
-
         setDocs((prev) => [...prev, ...incoming]);
-        incoming.forEach((doc) => simulateUpload(doc.id, setDocs));
     };
 
     const onFileChange = (e) => {
@@ -137,17 +130,51 @@ export default function ClaimListingModal({ open, onClose, listing }) {
         setFileError('');
     };
 
-    const uploading = docs.some((doc) => doc.status === 'uploading');
-
     const submit = (e) => {
         e.preventDefault();
-        if (!confirmed || uploading) return;
-        setSent(true);
-        reset();
-        window.setTimeout(() => {
-            setSent(false);
-            onClose();
-        }, 1600);
+        if (!confirmed || sending || !listing?.slug) return;
+
+        setFormError('');
+        setSending(true);
+
+        const body = new FormData();
+        body.append('first_name', firstName.trim());
+        body.append('last_name', lastName.trim());
+        body.append('email', email.trim());
+        body.append('phone', phone.trim());
+        body.append('reason', reason.trim());
+        body.append('confirmed', confirmed ? '1' : '0');
+        docs.forEach((doc) => {
+            if (doc.file) body.append('documents[]', doc.file);
+        });
+
+        router.post(route('listings.claim', listing.slug), body, {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                setSent(true);
+                reset();
+                window.setTimeout(() => {
+                    setSent(false);
+                    onClose();
+                }, 1600);
+            },
+            onError: (errors) => {
+                const first =
+                    errors?.listing ||
+                    errors?.documents ||
+                    errors?.reason ||
+                    errors?.email ||
+                    errors?.confirmed ||
+                    Object.values(errors || {})[0];
+                setFormError(
+                    typeof first === 'string'
+                        ? first
+                        : 'Could not submit this claim. Please check the form and try again.',
+                );
+            },
+            onFinish: () => setSending(false),
+        });
     };
 
     return (
@@ -315,23 +342,6 @@ export default function ClaimListingModal({ open, onClose, listing }) {
                                                 </span>
                                             </div>
                                         )}
-
-                                        {doc.status === 'uploading' ? (
-                                            <div className="absolute inset-0 flex flex-col justify-end bg-earth-dusk/45 p-2.5">
-                                                <div className="mb-1 flex items-center justify-between text-[11px] font-semibold text-white">
-                                                    <span>Uploading…</span>
-                                                    <span>{doc.progress}%</span>
-                                                </div>
-                                                <div className="h-1.5 overflow-hidden rounded-full bg-white/30">
-                                                    <div
-                                                        className="h-full rounded-full bg-mustard transition-[width] duration-150"
-                                                        style={{
-                                                            width: `${doc.progress}%`,
-                                                        }}
-                                                    />
-                                                </div>
-                                            </div>
-                                        ) : null}
                                     </div>
 
                                     <div className="flex items-start justify-between gap-2 px-2.5 py-2">
@@ -340,9 +350,7 @@ export default function ClaimListingModal({ open, onClose, listing }) {
                                                 {doc.file.name}
                                             </p>
                                             <p className="text-[11px] text-olive-500">
-                                                {doc.status === 'done'
-                                                    ? formatBytes(doc.file.size)
-                                                    : `Uploading ${doc.progress}%`}
+                                                {formatBytes(doc.file.size)}
                                             </p>
                                         </div>
                                         <button
@@ -382,14 +390,24 @@ export default function ClaimListingModal({ open, onClose, listing }) {
                     </span>
                 </label>
 
+                {formError ? (
+                    <p className="rounded-xl bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700">
+                        {formError}
+                    </p>
+                ) : null}
+
                 <div className="flex flex-wrap items-center gap-3 pt-1">
                     <button
                         type="submit"
-                        disabled={!confirmed || uploading}
+                        disabled={!confirmed || sending}
                         className="inline-flex items-center gap-2 rounded-full bg-olive-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-mustard hover:text-olive-950 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                        <Send className="h-4 w-4" />
-                        Submit claim
+                        {sending ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                            <Send className="h-4 w-4" />
+                        )}
+                        {sending ? 'Submitting…' : 'Submit claim'}
                     </button>
                     {sent ? (
                         <span className="text-sm font-semibold text-olive-700">

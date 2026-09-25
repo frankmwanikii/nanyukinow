@@ -29,6 +29,9 @@ export default function ListingActionBar({ listing }) {
         listing?.website || listing?.socials?.website,
     );
 
+    const claimStatus = listing?.claim_status || 'unclaimed';
+    const canClaim = claimStatus === 'unclaimed';
+
     const actions = [
         website
             ? {
@@ -44,12 +47,14 @@ export default function ListingActionBar({ listing }) {
             icon: Share2,
             onClick: () => setShareOpen(true),
         },
-        {
-            id: 'claim',
-            label: 'Claim listing',
-            icon: ShieldCheck,
-            onClick: () => setClaimOpen(true),
-        },
+        canClaim
+            ? {
+                  id: 'claim',
+                  label: 'Claim listing',
+                  icon: ShieldCheck,
+                  onClick: () => setClaimOpen(true),
+              }
+            : null,
         {
             id: 'bookmark',
             label: saved ? 'Saved' : 'Bookmark',

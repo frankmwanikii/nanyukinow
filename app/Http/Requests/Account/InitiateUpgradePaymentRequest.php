@@ -23,6 +23,7 @@ class InitiateUpgradePaymentRequest extends FormRequest
 
         return [
             'to_plan' => ['required', Rule::in([Membership::STANDARD, Membership::PREMIUM])],
+            'billing_period' => ['nullable', Rule::in(['month', 'year', 'one_time'])],
             'payment_method' => ['required', Rule::in([PaymentMethods::MPESA, PaymentMethods::PAYPAL])],
             'phone' => [
                 Rule::requiredIf($method === PaymentMethods::MPESA),

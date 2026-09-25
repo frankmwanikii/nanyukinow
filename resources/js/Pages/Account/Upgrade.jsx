@@ -26,10 +26,83 @@ function periodSuffix(period) {
     return '/mo';
 }
 
-function displayPrice(plan) {
+function amountForPeriod(plan, period = 'month') {
+    if (period === 'year') {
+        if (plan.yearly_price_amount != null && plan.yearly_price_amount !== '') {
+            return Number(plan.yearly_price_amount) || 0;
+        }
+        return (Number(plan.price_amount) || 0) * 10;
+    }
+    return Number(plan.price_amount) || 0;
+}
+
+function displayPrice(plan, period = 'month') {
     if (plan.price_label) return plan.price_label;
-    if (Number(plan.price_amount) === 0) return 'Free';
-    return formatMoney(plan.price_amount, plan.currency);
+    const amount = amountForPeriod(plan, period);
+    if (amount === 0) return 'Free';
+    return formatMoney(amount, plan.currency);
+}
+
+function maxYearlySavings(plans = []) {
+    let best = 0;
+    plans.forEach((plan) => {
+        const monthly = Number(plan.price_amount) || 0;
+        if (monthly <= 0) return;
+        const yearly = amountForPeriod(plan, 'year');
+        if (yearly <= 0) return;
+        const full = monthly * 12;
+        if (yearly >= full) return;
+        best = Math.max(best, Math.round(((full - yearly) / full) * 100));
+    });
+    return best;
+}
+
+function BillingSwitcher({ value, onChange, savingsPercent = 0 }) {
+    return (
+        <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div
+                role="radiogroup"
+                aria-label="Billing period"
+                className="relative inline-grid grid-cols-2 rounded-full bg-olive-100/90 p-1"
+            >
+                <span
+                    aria-hidden
+                    className={`pointer-events-none absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-white shadow-sm ring-1 ring-olive-200/80 transition-transform duration-300 ease-out ${
+                        value === 'year' ? 'translate-x-full' : 'translate-x-0'
+                    }`}
+                />
+                {[
+                    { id: 'month', label: 'Monthly' },
+                    { id: 'year', label: 'Yearly' },
+                ].map((opt) => {
+                    const active = value === opt.id;
+                    return (
+                        <button
+                            key={opt.id}
+                            type="button"
+                            role="radio"
+                            aria-checked={active}
+                            onClick={() => onChange(opt.id)}
+                            className={`relative z-10 min-w-[6.5rem] rounded-full px-4 py-2 text-sm font-semibold transition ${
+                                active
+                                    ? 'text-olive-950'
+                                    : 'text-olive-500 hover:text-olive-800'
+                            }`}
+                        >
+                            {opt.label}
+                        </button>
+                    );
+                })}
+            </div>
+            {savingsPercent > 0 ? (
+                <p className="text-sm font-medium text-olive-600">
+                    Save up to{' '}
+                    <span className="font-semibold text-earth-clay">{savingsPercent}%</span>{' '}
+                    yearly
+                </p>
+            ) : null}
+        </div>
+    );
 }
 
 function MpesaIcon({ className = 'h-10 w-auto max-w-[9rem]' }) {
@@ -149,7 +222,7 @@ function InclusionMatrix({ plans }) {
     );
 }
 
-function PlansMatrix({ plans, currentKey, pending, onUpgrade }) {
+function PlansMatrix({ plans, currentKey, pending, onUpgrade, billing = 'month' }) {
     return (
         <div className="overflow-hidden rounded-xl border border-olive-200 bg-white">
             <div className={`grid divide-olive-100 lg:divide-x ${plans.length === 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-2'}`}>
@@ -160,6 +233,9 @@ function PlansMatrix({ plans, currentKey, pending, onUpgrade }) {
                         pending,
                     );
                     const featured = Boolean(plan.is_highlighted);
+                    const period =
+                        plan.billing_period === 'one_time' ? 'one_time' : billing;
+                    const amount = amountForPeriod(plan, period);
 
                     return (
                         <article
@@ -204,18 +280,28 @@ function PlansMatrix({ plans, currentKey, pending, onUpgrade }) {
                                             featured ? 'text-white' : 'text-olive-950'
                                         }`}
                                     >
-                                        {displayPrice(plan)}
+                                        {displayPrice(plan, period)}
                                     </span>
-                                    {!plan.price_label && Number(plan.price_amount) > 0 && (
+                                    {!plan.price_label && amount > 0 && (
                                         <span
                                             className={`text-sm ${
                                                 featured ? 'text-white/55' : 'text-olive-400'
                                             }`}
                                         >
-                                            {periodSuffix(plan.billing_period)}
+                                            {periodSuffix(period)}
                                         </span>
                                     )}
                                 </div>
+                                {period === 'year' && !plan.price_label && amount > 0 ? (
+                                    <p
+                                        className={`mt-1 text-xs ${
+                                            featured ? 'text-white/50' : 'text-olive-400'
+                                        }`}
+                                    >
+                                        {formatMoney(Math.round(amount / 12), plan.currency)}
+                                        /mo billed yearly
+                                    </p>
+                                ) : null}
                                 <p
                                     className={`mt-2 text-sm font-medium ${
                                         featured ? 'text-mustard' : 'text-olive-700'
@@ -308,6 +394,7 @@ function PaymentCheckout({
     upgradeContact,
     onClose,
     form,
+    billing = 'month',
 }) {
     const method = form.data.payment_method;
     const [phone, setPhone] = useState('');
@@ -317,10 +404,10 @@ function PaymentCheckout({
     const [payError, setPayError] = useState(null);
     const [phoneError, setPhoneError] = useState('');
     const [emailError, setEmailError] = useState('');
-    const amountLabel = `${displayPrice(plan)}${
-        !plan.price_label && Number(plan.price_amount) > 0
-            ? ` ${periodSuffix(plan.billing_period)}`
-            : ''
+    const period = plan.billing_period === 'one_time' ? 'one_time' : billing;
+    const amount = amountForPeriod(plan, period);
+    const amountLabel = `${displayPrice(plan, period)}${
+        !plan.price_label && amount > 0 ? ` ${periodSuffix(period)}` : ''
     }`;
 
     const referenceLabel =
@@ -383,8 +470,9 @@ function PaymentCheckout({
 
     const paymentPayload = () => ({
         to_plan: form.data.to_plan || plan.key,
+        billing_period: form.data.billing_period || period,
         payment_method: method,
-        amount: Number(plan.price_amount) || 0,
+        amount,
         currency: plan.currency || 'KES',
         phone: method === 'mpesa' ? phone.trim() : undefined,
         email: method === 'paypal' ? paypalEmail.trim() : undefined,
@@ -494,7 +582,7 @@ function PaymentCheckout({
                                     Due today
                                 </p>
                                 <p className="mt-1 font-display text-2xl font-semibold tabular-nums text-olive-950">
-                                    {displayPrice(plan)}
+                                    {displayPrice(plan, period)}
                                 </p>
                             </div>
                             <div className="text-right text-sm text-olive-600">
@@ -502,8 +590,8 @@ function PaymentCheckout({
                                 <p className="text-xs text-olive-500">
                                     {plan.listing_limit} listing
                                     {plan.listing_limit === 1 ? '' : 's'}
-                                    {!plan.price_label && Number(plan.price_amount) > 0
-                                        ? periodSuffix(plan.billing_period)
+                                    {!plan.price_label && amount > 0
+                                        ? ` ${periodSuffix(period)}`
                                         : ''}
                                 </p>
                             </div>
@@ -900,19 +988,34 @@ export default function Upgrade({
     pendingUpgrade = null,
     paymentMethods = [],
     upgradeContact = {},
+    initialBilling = 'month',
 }) {
     const [checkoutPlan, setCheckoutPlan] = useState(null);
+    const [billing, setBilling] = useState(
+        initialBilling === 'year' ? 'year' : 'month',
+    );
+    const savings = maxYearlySavings(plans);
+    const showSwitcher = plans.some(
+        (p) => Number(p.price_amount) > 0 && p.yearly_price_amount != null,
+    );
 
     const form = useForm({
         to_plan: 'featured',
+        billing_period: billing,
         payment_reference: '',
         payment_method: 'mpesa',
         member_notes: '',
     });
 
+    const setBillingPeriod = (next) => {
+        setBilling(next);
+        form.setData('billing_period', next);
+    };
+
     const openCheckout = (selected) => {
         form.setData({
             to_plan: selected.key,
+            billing_period: billing,
             payment_reference: '',
             payment_method: 'mpesa',
             member_notes: '',
@@ -940,11 +1043,20 @@ export default function Upgrade({
                     </div>
                 )}
 
+                {showSwitcher ? (
+                    <BillingSwitcher
+                        value={billing}
+                        onChange={setBillingPeriod}
+                        savingsPercent={savings}
+                    />
+                ) : null}
+
                 <PlansMatrix
                     plans={plans}
                     currentKey={plan.key}
                     pending={Boolean(pendingUpgrade)}
                     onUpgrade={openCheckout}
+                    billing={billing}
                 />
 
                 <InclusionMatrix plans={plans} />
@@ -952,11 +1064,12 @@ export default function Upgrade({
 
             {checkoutPlan && (
                 <PaymentCheckout
-                    key={checkoutPlan.key}
+                    key={`${checkoutPlan.key}-${billing}`}
                     plan={checkoutPlan}
                     paymentMethods={paymentMethods}
                     upgradeContact={upgradeContact}
                     form={form}
+                    billing={billing}
                     onClose={() => setCheckoutPlan(null)}
                 />
             )}

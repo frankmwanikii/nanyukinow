@@ -46,6 +46,10 @@ export default function Edit({ plan, billingPeriods = [] }) {
         name: plan.name,
         tagline: plan.tagline || '',
         price_amount: plan.price_amount ?? 0,
+        yearly_price_amount:
+            plan.yearly_price_amount === null || plan.yearly_price_amount === undefined
+                ? ''
+                : plan.yearly_price_amount,
         currency: plan.currency || 'KES',
         billing_period: plan.billing_period || 'month',
         price_label: plan.price_label || '',
@@ -62,6 +66,10 @@ export default function Edit({ plan, billingPeriods = [] }) {
             name: plan.name,
             tagline: plan.tagline || '',
             price_amount: plan.price_amount ?? 0,
+            yearly_price_amount:
+                plan.yearly_price_amount === null || plan.yearly_price_amount === undefined
+                    ? ''
+                    : plan.yearly_price_amount,
             currency: plan.currency || 'KES',
             billing_period: plan.billing_period || 'month',
             price_label: plan.price_label || '',
@@ -95,9 +103,18 @@ export default function Edit({ plan, billingPeriods = [] }) {
 
     const save = (e) => {
         e.preventDefault();
-        form.put(route('admin.pricing.update', plan.id), {
-            preserveScroll: true,
-        });
+        form
+            .transform((data) => ({
+                ...data,
+                yearly_price_amount:
+                    data.yearly_price_amount === '' || data.yearly_price_amount === null
+                        ? null
+                        : Number(data.yearly_price_amount),
+            }))
+            .put(route('admin.pricing.update', plan.id), {
+                preserveScroll: true,
+                onFinish: () => form.transform((data) => data),
+            });
     };
 
     const remove = async () => {
@@ -184,9 +201,9 @@ export default function Edit({ plan, billingPeriods = [] }) {
                                 placeholder="Short line under the tier name"
                             />
 
-                            <div className="grid gap-3 sm:grid-cols-3">
+                            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                                 <AdminInput
-                                    label="Price amount"
+                                    label="Monthly price"
                                     type="number"
                                     min="0"
                                     step="1"
@@ -197,6 +214,18 @@ export default function Edit({ plan, billingPeriods = [] }) {
                                     error={form.errors.price_amount}
                                 />
                                 <AdminInput
+                                    label="Yearly price"
+                                    type="number"
+                                    min="0"
+                                    step="1"
+                                    value={form.data.yearly_price_amount}
+                                    onChange={(e) =>
+                                        form.setData('yearly_price_amount', e.target.value)
+                                    }
+                                    error={form.errors.yearly_price_amount}
+                                    placeholder="Optional"
+                                />
+                                <AdminInput
                                     label="Currency"
                                     value={form.data.currency}
                                     onChange={(e) =>
@@ -205,7 +234,7 @@ export default function Edit({ plan, billingPeriods = [] }) {
                                     error={form.errors.currency}
                                 />
                                 <AdminSelect
-                                    label="Billing"
+                                    label="Default period"
                                     value={form.data.billing_period}
                                     onChange={(e) =>
                                         form.setData('billing_period', e.target.value)
@@ -219,6 +248,11 @@ export default function Edit({ plan, billingPeriods = [] }) {
                                     ))}
                                 </AdminSelect>
                             </div>
+                            <p className="-mt-2 text-xs text-olive-500">
+                                Yearly price powers the Monthly / Yearly switcher on the public
+                                pricing and upgrade pages. Leave blank to hide yearly for this
+                                tier.
+                            </p>
 
                             <AdminInput
                                 label="Custom price label"
@@ -358,6 +392,18 @@ export default function Edit({ plan, billingPeriods = [] }) {
                                     {form.data.listing_limit} listing
                                     {Number(form.data.listing_limit) === 1 ? '' : 's'}
                                 </p>
+                                {form.data.yearly_price_amount !== '' &&
+                                form.data.yearly_price_amount != null &&
+                                Number(form.data.price_amount) > 0 ? (
+                                    <p className="mt-2 text-sm font-medium text-olive-700 dark:text-olive-200">
+                                        Yearly:{' '}
+                                        {formatMoney(
+                                            form.data.yearly_price_amount,
+                                            form.data.currency,
+                                        )}
+                                        /yr
+                                    </p>
+                                ) : null}
                             </div>
                             <ul className="space-y-2">
                                 {(form.data.inclusions || [])

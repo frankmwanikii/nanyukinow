@@ -2,12 +2,14 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\ListingClaim;
 use App\Models\SiteSetting;
 use App\Support\MemberMessages;
 use App\Support\MemberNotifications;
 use App\Support\Membership;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use Throwable;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -70,6 +72,19 @@ class HandleInertiaRequests extends Middleware
                 $value = SiteSetting::getValue('map_provider', 'google');
 
                 return $value === 'leaflet' ? 'leaflet' : 'google';
+            },
+            'pendingClaims' => function () use ($request) {
+                if (! $request->user()?->is_admin) {
+                    return 0;
+                }
+
+                try {
+                    return ListingClaim::query()
+                        ->where('status', ListingClaim::STATUS_PENDING)
+                        ->count();
+                } catch (Throwable) {
+                    return 0;
+                }
             },
         ];
     }

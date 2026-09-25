@@ -13,6 +13,7 @@ class PricingPlan extends Model
         'name',
         'tagline',
         'price_amount',
+        'yearly_price_amount',
         'currency',
         'billing_period',
         'price_label',
@@ -28,12 +29,30 @@ class PricingPlan extends Model
     {
         return [
             'price_amount' => 'integer',
+            'yearly_price_amount' => 'integer',
             'inclusions' => 'array',
             'is_highlighted' => 'boolean',
             'is_active' => 'boolean',
             'sort_order' => 'integer',
             'listing_limit' => 'integer',
         ];
+    }
+
+    /**
+     * Resolve the charge amount for a billing period.
+     */
+    public function amountForPeriod(?string $period = 'month'): int
+    {
+        if ($period === 'year') {
+            if ($this->yearly_price_amount !== null) {
+                return max(0, (int) $this->yearly_price_amount);
+            }
+
+            // Fallback: 10 months (≈2 months free) when yearly is unset.
+            return max(0, (int) $this->price_amount) * 10;
+        }
+
+        return max(0, (int) $this->price_amount);
     }
 
     /**
@@ -47,6 +66,7 @@ class PricingPlan extends Model
                 'name' => 'Free',
                 'tagline' => 'One free listing to get discovered in Nanyuki.',
                 'price_amount' => 0,
+                'yearly_price_amount' => 0,
                 'currency' => 'KES',
                 'billing_period' => 'month',
                 'price_label' => 'Free',
@@ -69,6 +89,7 @@ class PricingPlan extends Model
                 'name' => 'Standard',
                 'tagline' => 'Featured badge, better placement, and room to grow.',
                 'price_amount' => 2500,
+                'yearly_price_amount' => 25000,
                 'currency' => 'KES',
                 'billing_period' => 'month',
                 'price_label' => null,
@@ -91,6 +112,7 @@ class PricingPlan extends Model
                 'name' => 'Premium',
                 'tagline' => 'Maximum visibility with premium placement and polish.',
                 'price_amount' => 5500,
+                'yearly_price_amount' => 55000,
                 'currency' => 'KES',
                 'billing_period' => 'month',
                 'price_label' => null,
@@ -131,6 +153,7 @@ class PricingPlan extends Model
             'name' => $this->name,
             'tagline' => $this->tagline,
             'price_amount' => $this->price_amount,
+            'yearly_price_amount' => $this->yearly_price_amount,
             'currency' => $this->currency,
             'billing_period' => $this->billing_period,
             'price_label' => $this->price_label,

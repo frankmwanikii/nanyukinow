@@ -11,6 +11,7 @@ import {
     Wallet,
     FileText,
     Images,
+    BadgeCheck,
     Menu,
     X,
     Moon,
@@ -34,6 +35,7 @@ const nav = [
     { label: 'Users', href: 'admin.users.index', icon: Users },
     { label: 'Pricing', href: 'admin.pricing.index', icon: CircleDollarSign },
     { label: 'Finance', href: 'admin.finance.index', icon: Wallet },
+    { label: 'Claims', href: 'admin.claims.index', icon: BadgeCheck, badgeKey: 'pendingClaims' },
     { label: 'Settings', href: 'admin.settings.index', icon: Settings2 },
 ];
 
@@ -279,7 +281,7 @@ function BrandMark({ className = '' }) {
 }
 
 function AdminShell({ children }) {
-    const { auth } = usePage().props;
+    const { auth, pendingClaims = 0 } = usePage().props;
     const [open, setOpen] = useState(false);
     const { isDark } = useAdminTheme();
     const user = auth?.user;
@@ -374,10 +376,16 @@ function AdminShell({ children }) {
                         <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
                             {nav.map((item) => {
                                 const Icon = item.icon;
+                                const badge =
+                                    item.badgeKey === 'pendingClaims'
+                                        ? Number(pendingClaims) || 0
+                                        : 0;
                                 const active =
                                     route().current(item.href) ||
                                     (item.href === 'admin.listings.index' &&
                                         route().current('admin.listings.*')) ||
+                                    (item.href === 'admin.claims.index' &&
+                                        route().current('admin.claims.*')) ||
                                     (item.href === 'admin.stories.index' &&
                                         route().current('admin.stories.*')) ||
                                     (item.href === 'admin.categories.index' &&
@@ -407,7 +415,12 @@ function AdminShell({ children }) {
                                         }`}
                                     >
                                         <Icon className="h-5 w-5 shrink-0 opacity-80" />
-                                        {item.label}
+                                        <span className="min-w-0 flex-1">{item.label}</span>
+                                        {badge > 0 ? (
+                                            <span className="rounded-full bg-mustard px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-earth-dusk">
+                                                {badge > 99 ? '99+' : badge}
+                                            </span>
+                                        ) : null}
                                     </Link>
                                 );
                             })}

@@ -29,11 +29,17 @@ class UpgradeController extends Controller
             ->latest()
             ->first();
 
+        $billing = $request->string('billing')->toString();
+        if (! in_array($billing, ['month', 'year'], true)) {
+            $billing = 'month';
+        }
+
         return Inertia::render('Account/Upgrade', [
             'plan' => Membership::planSummary($user),
             'plans' => Membership::publicPlans(),
             'pendingUpgrade' => $pending?->toMemberArray(),
             'paymentMethods' => PaymentMethods::memberOptions(),
+            'initialBilling' => $billing,
             'upgradeContact' => [
                 'whatsapp' => SiteSetting::getValue('upgrade_whatsapp', ''),
                 'phone' => SiteSetting::getValue('contact_phone', ''),
@@ -63,6 +69,7 @@ class UpgradeController extends Controller
         $data = $request->validated();
         $toPlan = Membership::normalize($data['to_plan']);
         $method = $data['payment_method'];
+        $billingPeriod = $data['billing_period'] ?? 'month';
         $current = $user->effectivePlan();
 
         if ($toPlan === Membership::FREE || $toPlan === $current) {
@@ -83,12 +90,15 @@ class UpgradeController extends Controller
 
         PricingPlan::ensureDefaults();
         $pricing = PricingPlan::query()->where('key', $toPlan)->first();
+        $amount = $pricing
+            ? $pricing->amountForPeriod($billingPeriod)
+            : (int) ($data['amount'] ?? 0);
 
         $payload = [
             'user_id' => $user->id,
             'to_plan' => $toPlan,
             'payment_method' => $method,
-            'amount' => (float) ($data['amount'] ?? $pricing?->price_amount ?? 0),
+            'amount' => (float) $amount,
             'currency' => $data['currency'] ?? $pricing?->currency ?? 'KES',
             'phone' => $data['phone'] ?? null,
             'email' => $data['email'] ?? null,
@@ -125,6 +135,7 @@ class UpgradeController extends Controller
     {
         $user = $request->user();
         $toPlan = Membership::normalize($request->validated('to_plan'));
+        $billingPeriod = $request->validated('billing_period') ?? 'month';
         $current = $user->effectivePlan();
 
         if ($toPlan === Membership::FREE || $toPlan === $current) {
@@ -160,9 +171,9 @@ class UpgradeController extends Controller
             'user_id' => $user->id,
             'from_plan' => $current,
             'to_plan' => $toPlan,
-            'amount' => (int) ($pricing?->price_amount ?? 0),
+            'amount' => $pricing ? $pricing->amountForPeriod($billingPeriod) : 0,
             'currency' => $pricing?->currency ?? 'KES',
-            'billing_period' => $pricing?->billing_period ?? 'month',
+            'billing_period' => $billingPeriod,
             'status' => PlanUpgrade::STATUS_PENDING,
             'payment_reference' => $request->validated('payment_reference'),
             'payment_method' => $request->validated('payment_method'),

@@ -29,7 +29,22 @@ class AccountUpgradePageTest extends TestCase
                 ->has('plans', 3)
                 ->has('paymentMethods', 2)
                 ->has('upgradeContact')
+                ->where('initialBilling', 'month')
                 ->has('plan'));
+    }
+
+    public function test_upgrade_page_respects_yearly_billing_query(): void
+    {
+        PricingPlan::ensureDefaults();
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get(route('account.upgrade', ['billing' => 'year']))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Account/Upgrade')
+                ->where('initialBilling', 'year')
+                ->where('plans.1.yearly_price_amount', fn ($v) => $v !== null));
     }
 
     public function test_upgrade_page_recovers_from_corrupt_settings_cache(): void

@@ -51,6 +51,7 @@ class PricingController extends Controller
                 'name' => $pricing->name,
                 'tagline' => $pricing->tagline,
                 'price_amount' => $pricing->price_amount,
+                'yearly_price_amount' => $pricing->yearly_price_amount,
                 'currency' => $pricing->currency,
                 'billing_period' => $pricing->billing_period,
                 'price_label' => $pricing->price_label,

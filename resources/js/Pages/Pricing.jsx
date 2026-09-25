@@ -1,6 +1,7 @@
 import SiteLayout from '@/Layouts/SiteLayout';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { Check } from 'lucide-react';
+import { useMemo, useState } from 'react';
 
 function formatMoney(amount, currency) {
     const n = Number(amount) || 0;
@@ -21,10 +22,83 @@ function periodSuffix(period) {
     return '/mo';
 }
 
-function displayPrice(plan) {
+function amountForPeriod(plan, period) {
+    if (period === 'year') {
+        if (plan.yearly_price_amount != null && plan.yearly_price_amount !== '') {
+            return Number(plan.yearly_price_amount) || 0;
+        }
+        return (Number(plan.price_amount) || 0) * 10;
+    }
+    return Number(plan.price_amount) || 0;
+}
+
+function displayPrice(plan, period = 'month') {
     if (plan.price_label) return plan.price_label;
-    if (Number(plan.price_amount) === 0) return 'Free';
-    return formatMoney(plan.price_amount, plan.currency);
+    const amount = amountForPeriod(plan, period);
+    if (amount === 0) return 'Free';
+    return formatMoney(amount, plan.currency);
+}
+
+function maxYearlySavings(plans = []) {
+    let best = 0;
+    plans.forEach((plan) => {
+        const monthly = Number(plan.price_amount) || 0;
+        if (monthly <= 0) return;
+        const yearly = amountForPeriod(plan, 'year');
+        if (yearly <= 0) return;
+        const full = monthly * 12;
+        if (yearly >= full) return;
+        best = Math.max(best, Math.round(((full - yearly) / full) * 100));
+    });
+    return best;
+}
+
+function BillingSwitcher({ value, onChange, savingsPercent = 0 }) {
+    return (
+        <div className="flex flex-col items-center gap-3">
+            <div
+                role="radiogroup"
+                aria-label="Billing period"
+                className="relative inline-grid grid-cols-2 rounded-full bg-olive-100/90 p-1"
+            >
+                <span
+                    aria-hidden
+                    className={`pointer-events-none absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-white shadow-sm ring-1 ring-olive-200/80 transition-transform duration-300 ease-out ${
+                        value === 'year' ? 'translate-x-full' : 'translate-x-0'
+                    }`}
+                />
+                {[
+                    { id: 'month', label: 'Monthly' },
+                    { id: 'year', label: 'Yearly' },
+                ].map((opt) => {
+                    const active = value === opt.id;
+                    return (
+                        <button
+                            key={opt.id}
+                            type="button"
+                            role="radio"
+                            aria-checked={active}
+                            onClick={() => onChange(opt.id)}
+                            className={`relative z-10 min-w-[7.5rem] rounded-full px-5 py-2.5 text-sm font-semibold transition ${
+                                active
+                                    ? 'text-olive-950'
+                                    : 'text-olive-500 hover:text-olive-800'
+                            }`}
+                        >
+                            {opt.label}
+                        </button>
+                    );
+                })}
+            </div>
+            {savingsPercent > 0 ? (
+                <p className="text-sm font-medium text-olive-600">
+                    Save up to{' '}
+                    <span className="font-semibold text-earth-clay">{savingsPercent}%</span> with
+                    yearly billing
+                </p>
+            ) : null}
+        </div>
+    );
 }
 
 export default function Pricing({
@@ -36,6 +110,11 @@ export default function Pricing({
     const { auth } = usePage().props;
     const user = auth?.user;
     const content = page?.content || {};
+    const [billing, setBilling] = useState('month');
+    const savings = useMemo(() => maxYearlySavings(plans), [plans]);
+    const showSwitcher = plans.some(
+        (p) => Number(p.price_amount) > 0 && p.yearly_price_amount != null,
+    );
 
     return (
         <SiteLayout>
@@ -55,6 +134,16 @@ export default function Pricing({
             </div>
 
             <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-16">
+                {showSwitcher ? (
+                    <div className="mb-8">
+                        <BillingSwitcher
+                            value={billing}
+                            onChange={setBilling}
+                            savingsPercent={savings}
+                        />
+                    </div>
+                ) : null}
+
                 <div className="overflow-hidden rounded-xl border border-olive-200 bg-white">
                     <div
                         className={`grid divide-olive-100 lg:divide-x ${
@@ -64,6 +153,11 @@ export default function Pricing({
                         {plans.map((plan) => {
                             const isCurrent = currentPlan?.key === plan.key;
                             const featured = Boolean(plan.is_highlighted);
+                            const period =
+                                plan.billing_period === 'one_time'
+                                    ? 'one_time'
+                                    : billing;
+                            const amount = amountForPeriod(plan, period);
                             let ctaHref = '/register';
                             let ctaLabel = plan.cta_label || 'Get started';
 
@@ -75,10 +169,14 @@ export default function Pricing({
                                             ? 'Upgrade plan'
                                             : 'Add a listing';
                                     if (isCurrent && !currentPlan.can_create) {
-                                        ctaHref = route('account.upgrade');
+                                        ctaHref = route('account.upgrade', {
+                                            billing: period === 'year' ? 'year' : 'month',
+                                        });
                                     }
                                 } else {
-                                    ctaHref = route('account.upgrade');
+                                    ctaHref = route('account.upgrade', {
+                                        billing: period === 'year' ? 'year' : 'month',
+                                    });
                                     ctaLabel = plan.cta_label || 'Upgrade';
                                 }
                             }
@@ -128,18 +226,37 @@ export default function Pricing({
                                                     featured ? 'text-white' : 'text-olive-950'
                                                 }`}
                                             >
-                                                {displayPrice(plan)}
+                                                {displayPrice(plan, period)}
                                             </span>
-                                            {!plan.price_label && Number(plan.price_amount) > 0 && (
+                                            {!plan.price_label && amount > 0 && (
                                                 <span
                                                     className={`text-sm ${
-                                                        featured ? 'text-white/55' : 'text-olive-400'
+                                                        featured
+                                                            ? 'text-white/55'
+                                                            : 'text-olive-400'
                                                     }`}
                                                 >
-                                                    {periodSuffix(plan.billing_period)}
+                                                    {periodSuffix(period)}
                                                 </span>
                                             )}
                                         </div>
+                                        {period === 'year' &&
+                                        !plan.price_label &&
+                                        amount > 0 ? (
+                                            <p
+                                                className={`mt-1 text-xs ${
+                                                    featured
+                                                        ? 'text-white/50'
+                                                        : 'text-olive-400'
+                                                }`}
+                                            >
+                                                {formatMoney(
+                                                    Math.round(amount / 12),
+                                                    plan.currency,
+                                                )}
+                                                /mo billed yearly
+                                            </p>
+                                        ) : null}
                                         <p
                                             className={`mt-2 text-sm font-medium ${
                                                 featured ? 'text-mustard' : 'text-olive-700'
@@ -155,12 +272,16 @@ export default function Pricing({
                                             <li
                                                 key={item}
                                                 className={`flex gap-2.5 text-sm leading-snug ${
-                                                    featured ? 'text-white/80' : 'text-olive-700'
+                                                    featured
+                                                        ? 'text-white/80'
+                                                        : 'text-olive-700'
                                                 }`}
                                             >
                                                 <Check
                                                     className={`mt-0.5 h-4 w-4 shrink-0 ${
-                                                        featured ? 'text-mustard' : 'text-olive-800'
+                                                        featured
+                                                            ? 'text-mustard'
+                                                            : 'text-olive-800'
                                                     }`}
                                                     strokeWidth={2.25}
                                                 />

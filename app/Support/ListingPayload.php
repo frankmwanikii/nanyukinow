@@ -66,6 +66,7 @@ class ListingPayload
             'about' => $listing->description ?: ($details['about'] ?? null),
             'ageLimit' => $details['age_limit'] ?? null,
             'organiser' => $details['organiser'] ?? null,
+            'claim_status' => $listing->claim_status ?: 'unclaimed',
         ];
     }
 

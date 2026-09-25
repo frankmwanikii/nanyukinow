@@ -32,6 +32,13 @@ function displayPrice(plan) {
     return formatMoney(plan.price_amount, plan.currency);
 }
 
+function displayYearly(plan) {
+    if (Number(plan.price_amount) === 0) return null;
+    const yearly = plan.yearly_price_amount;
+    if (yearly === null || yearly === undefined || yearly === '') return null;
+    return formatMoney(yearly, plan.currency);
+}
+
 function periodLabel(period) {
     if (period === 'year') return 'Per year';
     if (period === 'one_time') return 'One-time';
@@ -43,6 +50,10 @@ function planPayload(plan, overrides = {}) {
         name: plan.name,
         tagline: plan.tagline || '',
         price_amount: plan.price_amount ?? 0,
+        yearly_price_amount:
+            plan.yearly_price_amount === null || plan.yearly_price_amount === undefined
+                ? null
+                : plan.yearly_price_amount,
         currency: plan.currency || 'KES',
         billing_period: plan.billing_period || 'month',
         price_label: plan.price_label || '',
@@ -157,13 +168,26 @@ export default function Index({ plans = [], filters = {} }) {
                                         </span>
                                     </Td>
                                     <Td>
-                                        <span className="tabular-nums text-sm font-medium text-olive-900 dark:text-olive-50">
-                                            {displayPrice(plan)}
-                                        </span>
+                                        <div className="space-y-0.5">
+                                            <span className="block tabular-nums text-sm font-medium text-olive-900 dark:text-olive-50">
+                                                {displayPrice(plan)}
+                                                {Number(plan.price_amount) > 0 && !plan.price_label
+                                                    ? '/mo'
+                                                    : ''}
+                                            </span>
+                                            {displayYearly(plan) ? (
+                                                <span className="block tabular-nums text-xs text-olive-500 dark:text-olive-400">
+                                                    {displayYearly(plan)}/yr
+                                                </span>
+                                            ) : null}
+                                        </div>
                                     </Td>
                                     <Td>
                                         <span className="text-sm text-olive-600 dark:text-olive-300">
-                                            {periodLabel(plan.billing_period)}
+                                            {Number(plan.price_amount) > 0 &&
+                                            plan.yearly_price_amount != null
+                                                ? 'Monthly + yearly'
+                                                : periodLabel(plan.billing_period)}
                                         </span>
                                     </Td>
                                     <Td align="center">

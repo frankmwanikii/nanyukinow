@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\ClaimController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\FinanceController;
 use App\Http\Controllers\Admin\GalleryController;
@@ -34,6 +35,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('listings/{listing:slug}', [ListingController::class, 'update'])->name('listings.update');
         Route::delete('listings/{listing:slug}', [ListingController::class, 'destroy'])->name('listings.destroy');
         Route::post('listings/bulk', [ListingController::class, 'bulk'])->name('listings.bulk');
+
+        Route::get('claims', [ClaimController::class, 'index'])->name('claims.index');
+        Route::get('claims/{claim}', [ClaimController::class, 'show'])->name('claims.show');
+        Route::post('claims/{claim}/approve', [ClaimController::class, 'approve'])->name('claims.approve');
+        Route::post('claims/{claim}/reject', [ClaimController::class, 'reject'])->name('claims.reject');
+        Route::post('claims/{claim}/reopen', [ClaimController::class, 'reopen'])->name('claims.reopen');
+        Route::delete('claims/{claim}', [ClaimController::class, 'destroy'])->name('claims.destroy');
 
         Route::get('categories', [CategoryController::class, 'index'])->name('categories.index');
         Route::get('categories/create', [CategoryController::class, 'create'])->name('categories.create');

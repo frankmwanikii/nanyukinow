@@ -21,6 +21,7 @@ class PricingPlanUpdateRequest extends FormRequest
             'name' => ['required', 'string', 'max:80'],
             'tagline' => ['nullable', 'string', 'max:200'],
             'price_amount' => ['required', 'integer', 'min:0', 'max:99999999'],
+            'yearly_price_amount' => ['nullable', 'integer', 'min:0', 'max:99999999'],
             'currency' => ['required', 'string', 'max:8'],
             'billing_period' => ['required', Rule::in(['month', 'year', 'one_time'])],
             'price_label' => ['nullable', 'string', 'max:40'],
@@ -51,6 +52,9 @@ class PricingPlanUpdateRequest extends FormRequest
             'is_active' => $this->boolean('is_active'),
             'price_label' => $this->filled('price_label') ? $this->string('price_label')->toString() : null,
             'tagline' => $this->filled('tagline') ? $this->string('tagline')->toString() : null,
+            'yearly_price_amount' => $this->filled('yearly_price_amount')
+                ? $this->integer('yearly_price_amount')
+                : null,
         ]);
     }
 }
