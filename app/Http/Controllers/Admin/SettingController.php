@@ -16,10 +16,11 @@ class SettingController extends Controller
         $this->ensureDefaults();
         $this->ensureBillingDefaults();
         $this->ensurePaymentGatewayDefaults();
+        $this->ensureMapsDefaults();
         $this->ensureSocialDefaults();
 
         $settings = SiteSetting::query()
-            ->whereIn('group', ['branding', 'pages', 'billing', 'payments', 'social', 'seo'])
+            ->whereIn('group', ['branding', 'pages', 'billing', 'payments', 'maps', 'social', 'seo'])
             ->orderBy('group')
             ->orderBy('sort_order')
             ->get()
@@ -349,6 +350,22 @@ class SettingController extends Controller
         }
     }
 
+    private function ensureMapsDefaults(): void
+    {
+        SiteSetting::query()->firstOrCreate(
+            ['key' => 'map_provider'],
+            [
+                'group' => 'maps',
+                'key' => 'map_provider',
+                'label' => 'Map provider',
+                'type' => 'select',
+                'value' => 'google',
+                'help' => 'Google Maps needs an API key. OpenStreetMap (Leaflet) is free and needs no key.',
+                'sort_order' => 1,
+            ],
+        );
+    }
+
     /**
      * @return list<array{value: string, label: string}>|null
      */
@@ -362,6 +379,10 @@ class SettingController extends Controller
             'paypal_mode', 'mpesa_mode', 'intasend_mode' => [
                 ['value' => 'sandbox', 'label' => 'Sandbox (test)'],
                 ['value' => 'live', 'label' => 'Live (production)'],
+            ],
+            'map_provider' => [
+                ['value' => 'google', 'label' => 'Google Maps'],
+                ['value' => 'leaflet', 'label' => 'OpenStreetMap (Leaflet)'],
             ],
             default => null,
         };

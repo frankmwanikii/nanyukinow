@@ -11,10 +11,10 @@ use App\Models\Category;
 use App\Models\Listing;
 use App\Support\CategoryKey;
 use App\Support\ListingMedia;
+use App\Support\ListingSlug;
 use App\Support\Membership;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -81,7 +81,7 @@ class ListingController extends Controller
             $listing = Listing::query()->create([
                 'user_id' => $user->id,
                 'title' => $title,
-                'slug' => $this->uniqueSlug($title.'-draft-'.$user->id),
+                'slug' => ListingSlug::make($title),
                 'category_id' => $data['category_id'] ?? null,
                 'location' => $data['location'] ?? 'Nanyuki',
                 'tier' => $tier,
@@ -94,14 +94,17 @@ class ListingController extends Controller
             ]);
         }
 
+        $title = trim((string) ($data['title'] ?? '')) ?: ($listing->title ?: 'Untitled draft');
+
         $payload = $this->buildListingPayload($request, [
             ...$data,
-            'title' => trim((string) ($data['title'] ?? '')) ?: $listing->title ?: 'Untitled draft',
+            'title' => $title,
             'category_id' => $data['category_id'] ?? $listing->category_id,
         ], $listing);
 
         $listing->update([
             ...$payload,
+            'slug' => ListingSlug::make($title, $listing->id, $listing->slug),
             'tier' => $tier,
             'status' => 'draft',
             'is_published' => false,
@@ -133,7 +136,7 @@ class ListingController extends Controller
         $listing = Listing::query()->create([
             ...$payload,
             'user_id' => $user->id,
-            'slug' => $this->uniqueSlug($data['title']),
+            'slug' => ListingSlug::make($data['title']),
             'tier' => $tier,
             'status' => 'pending',
             'claim_status' => 'claimed',
@@ -178,9 +181,17 @@ class ListingController extends Controller
 
         $payload = $this->buildListingPayload($request, $data, $listing);
         $wasDraft = $listing->status === 'draft';
+        $nextSlug = ListingSlug::make(
+            $data['title'],
+            $listing->id,
+            $wasDraft || ListingSlug::isPlaceholder($listing->slug)
+                ? null
+                : ($data['slug'] ?? $listing->slug),
+        );
 
         $listing->update([
             ...$payload,
+            'slug' => $nextSlug,
             'tier' => $tier,
             'status' => $wasDraft ? 'pending' : $listing->status,
             'is_published' => $wasDraft ? false : $listing->is_published,
@@ -417,19 +428,5 @@ class ListingController extends Controller
                 'category_key' => $a->category_key,
             ])
             ->all();
-    }
-
-    private function uniqueSlug(string $title): string
-    {
-        $base = Str::slug($title) ?: 'listing';
-        $slug = $base;
-        $i = 1;
-
-        while (Listing::query()->where('slug', $slug)->exists()) {
-            $slug = $base.'-'.$i;
-            $i++;
-        }
-
-        return $slug;
     }
 }

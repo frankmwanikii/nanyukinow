@@ -1,6 +1,8 @@
 import { MapPin, Navigation } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { getMapsApiKey, loadGoogleMaps } from '@/utils/googleMaps';
+import { L, createOsmMap, leafletPinIcon } from '@/utils/leafletMaps';
+import { directionsUrlFor, useMapProvider } from '@/utils/mapProvider';
 
 function parseCoord(value) {
     const n = typeof value === 'number' ? value : Number.parseFloat(value);
@@ -18,23 +20,57 @@ function googlePinSvg() {
 }
 
 export default function DirectionsMap({ listing }) {
+    const provider = useMapProvider();
     const containerRef = useRef(null);
     const mapRef = useRef(null);
     const googleKey = getMapsApiKey();
-    const [status, setStatus] = useState(googleKey ? 'loading' : 'missing');
+    const [status, setStatus] = useState('loading');
 
     const lat = parseCoord(listing?.lat);
     const lng = parseCoord(listing?.lng);
     const hasCoords = lat !== null && lng !== null;
 
     useEffect(() => {
-        if (!hasCoords || !googleKey) {
-            setStatus(googleKey ? 'loading' : 'missing');
+        if (!hasCoords) {
+            setStatus(
+                provider === 'leaflet' || googleKey ? 'unavailable' : 'missing',
+            );
             return undefined;
         }
 
         let cancelled = false;
         setStatus('loading');
+
+        if (provider === 'leaflet') {
+            if (!containerRef.current) return undefined;
+
+            containerRef.current.innerHTML = '';
+            const map = createOsmMap(containerRef.current, {
+                center: { lat, lng },
+                zoom: 14,
+            });
+
+            L.marker([lat, lng], {
+                icon: leafletPinIcon({ teardrop: true }),
+                title: listing?.title || listing?.address || '',
+            }).addTo(map);
+
+            mapRef.current = map;
+            requestAnimationFrame(() => map.invalidateSize());
+            setStatus('ready');
+
+            return () => {
+                cancelled = true;
+                map.remove();
+                mapRef.current = null;
+                if (containerRef.current) containerRef.current.innerHTML = '';
+            };
+        }
+
+        if (!googleKey) {
+            setStatus('missing');
+            return undefined;
+        }
 
         loadGoogleMaps(googleKey, { libraries: [] })
             .then((maps) => {
@@ -79,17 +115,21 @@ export default function DirectionsMap({ listing }) {
         lat,
         lng,
         googleKey,
+        provider,
         listing?.title,
         listing?.address,
     ]);
 
     if (!listing) return null;
 
-    const directionsUrl = hasCoords
-        ? `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`
-        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-              listing.address || listing.title || 'Nanyuki',
-          )}`;
+    const directionsUrl = directionsUrlFor(provider, {
+        lat: hasCoords ? lat : null,
+        lng: hasCoords ? lng : null,
+        query: listing.address || listing.title || 'Nanyuki',
+    });
+
+    const showMap =
+        hasCoords && (provider === 'leaflet' || Boolean(googleKey));
 
     return (
         <section
@@ -103,21 +143,24 @@ export default function DirectionsMap({ listing }) {
             </div>
 
             <div className="relative z-0 mt-4 overflow-hidden bg-olive-100">
-                {hasCoords && googleKey ? (
+                {showMap ? (
                     <div
                         ref={containerRef}
                         className="nn-directions-map h-56 w-full sm:h-64"
                     />
                 ) : (
                     <div className="flex h-56 items-center justify-center px-4 text-center text-sm text-olive-600 sm:h-64">
-                        {!googleKey
+                        {provider === 'google' && !googleKey
                             ? 'Google Maps API key required'
                             : 'Map unavailable'}
                     </div>
                 )}
                 {status === 'error' ? (
                     <p className="absolute inset-x-0 bottom-2 px-3 text-center text-xs text-rose-700">
-                        Google Map failed to load — check API key & billing.
+                        Map failed to load
+                        {provider === 'google'
+                            ? ' — check API key & billing.'
+                            : '.'}
                     </p>
                 ) : null}
             </div>

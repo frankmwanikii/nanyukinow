@@ -35,6 +35,22 @@
     }
 }
 
+/* Hide browser-default search clear (ugly blue X on dark nav) */
+.site-nav-search::-webkit-search-decoration,
+.site-nav-search::-webkit-search-cancel-button,
+.site-nav-search::-webkit-search-results-button,
+.site-nav-search::-webkit-search-results-decoration {
+    -webkit-appearance: none;
+    appearance: none;
+    display: none;
+}
+
+.site-nav-search[type='search']::-ms-clear {
+    display: none;
+    width: 0;
+    height: 0;
+}
+
 /* Rich text editor — restore lists (Tailwind Preflight zeros them) + content chrome */
 @layer components {
     .nn-editor ul {

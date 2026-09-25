@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\SiteSetting;
 use App\Support\MemberMessages;
 use App\Support\MemberNotifications;
 use App\Support\Membership;
@@ -65,6 +66,11 @@ class HandleInertiaRequests extends Middleware
             ],
             'notifications' => fn () => MemberNotifications::forUser($request->user()),
             'messages' => fn () => MemberMessages::forUser($request->user()),
+            'mapProvider' => function () {
+                $value = SiteSetting::getValue('map_provider', 'google');
+
+                return $value === 'leaflet' ? 'leaflet' : 'google';
+            },
         ];
     }
 }

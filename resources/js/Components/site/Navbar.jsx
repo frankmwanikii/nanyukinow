@@ -557,8 +557,23 @@ export default function Navbar({ compact = false }) {
                         aria-expanded={searchOpen}
                         aria-controls="nav-search-suggestions"
                         autoComplete="off"
-                        className="w-full border-0 bg-transparent py-2 pl-7 pr-2 text-[15px] text-white placeholder:text-white/65 focus:outline-none focus:ring-0 sm:text-base"
+                        className={`site-nav-search w-full border-0 bg-transparent py-2 pl-7 text-[15px] text-white placeholder:text-white/65 focus:outline-none focus:ring-0 sm:text-base ${
+                            query.trim() ? 'pr-9' : 'pr-2'
+                        }`}
                     />
+                    {query.trim() ? (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setQuery('');
+                                setSearchOpen(false);
+                            }}
+                            className="absolute right-0 z-10 inline-flex h-7 w-7 items-center justify-center rounded-full text-white/75 transition hover:bg-white/10 hover:text-white"
+                            aria-label="Clear search"
+                        >
+                            <X className="h-4 w-4" strokeWidth={2.25} />
+                        </button>
+                    ) : null}
                     {searchOpen ? (
                         <SearchSuggestions
                             query={query}

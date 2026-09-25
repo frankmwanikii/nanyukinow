@@ -13,9 +13,9 @@ use App\Notifications\ListingReviewedNotification;
 use App\Support\CategoryKey;
 use App\Support\ListingMedia;
 use App\Support\ListingPayload;
+use App\Support\ListingSlug;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -313,15 +313,11 @@ class ListingController extends Controller
             $posterUrl = ListingMedia::store($request->file('event_poster'), 'listings/posters');
         }
 
-        $data['slug'] = Str::slug($data['slug'] ?: $data['title']);
-
-        if (Listing::query()
-            ->when($listing, fn ($q) => $q->where('id', '!=', $listing->id))
-            ->where('slug', $data['slug'])
-            ->exists()
-        ) {
-            $data['slug'] .= '-'.Str::lower(Str::random(4));
-        }
+        $data['slug'] = ListingSlug::make(
+            (string) ($data['title'] ?? 'listing'),
+            $listing?->id,
+            isset($data['slug']) ? (string) $data['slug'] : $listing?->slug,
+        );
 
         $data['is_featured'] = (bool) ($data['is_featured'] ?? false);
         $data['is_trending'] = (bool) ($data['is_trending'] ?? false);

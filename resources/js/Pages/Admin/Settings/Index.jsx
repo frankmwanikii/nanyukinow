@@ -28,6 +28,10 @@ const groupMeta = {
         title: 'Payment gateways',
         blurb: 'Only credentials for the active provider and environment are shown.',
     },
+    maps: {
+        title: 'Maps',
+        blurb: 'Choose Google Maps or free OpenStreetMap (Leaflet) for Explore, listing directions, and location pickers.',
+    },
     social: {
         title: 'Social links',
         blurb: 'Profiles linked from the site footer.',
@@ -38,7 +42,7 @@ const groupMeta = {
     },
 };
 
-const groupOrder = ['branding', 'pages', 'billing', 'payments', 'social', 'seo'];
+const groupOrder = ['branding', 'pages', 'billing', 'payments', 'maps', 'social', 'seo'];
 
 const byKey = (items = []) =>
     Object.fromEntries(items.map((item) => [item.key, item]));
