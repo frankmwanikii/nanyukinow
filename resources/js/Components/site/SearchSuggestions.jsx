@@ -3,20 +3,15 @@ import {
     BedDouble,
     Camera,
     Home,
+    Loader2,
     PawPrint,
     Search,
     ShoppingCart,
     UtensilsCrossed,
 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { explorePath } from '@/data/categories';
-import {
-    allListings,
-    enrichListing,
-    filterListings,
-    listingHref,
-} from '@/data/listings';
 
 const FEATURED = [
     {
@@ -78,16 +73,22 @@ function matchesQuery(item, q) {
     return hay.includes(q);
 }
 
-function SuggestionRow({ href, Icon, label, meta, onSelect }) {
+function SuggestionRow({ href, Icon, label, meta, image, onSelect }) {
     return (
         <Link
             href={href}
             onClick={onSelect}
             className="group flex items-center gap-3.5 px-4 py-2.5 text-left transition hover:bg-olive-50"
         >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center text-olive-800 transition group-hover:rounded-full group-hover:bg-mustard group-hover:text-olive-950">
-                <Icon className="h-5 w-5" strokeWidth={1.6} />
-            </span>
+            {image ? (
+                <span className="h-9 w-9 shrink-0 overflow-hidden rounded-lg bg-olive-100 ring-1 ring-olive-200/70">
+                    <img src={image} alt="" className="h-full w-full object-cover" />
+                </span>
+            ) : (
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center text-olive-800 transition group-hover:rounded-full group-hover:bg-mustard group-hover:text-olive-950">
+                    <Icon className="h-5 w-5" strokeWidth={1.6} />
+                </span>
+            )}
             <span className="min-w-0 flex-1">
                 <span className="block truncate text-[15px] font-medium text-olive-900">
                     {label}
@@ -111,7 +112,12 @@ export default function SearchSuggestions({
     id,
 }) {
     const q = query.trim().toLowerCase();
+    const rawQ = query.trim();
     const [coords, setCoords] = useState(null);
+    const [listings, setListings] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const abortRef = useRef(null);
 
     useEffect(() => {
         const update = () => {
@@ -137,21 +143,65 @@ export default function SearchSuggestions({
         };
     }, [anchorRef, headerRef]);
 
+    useEffect(() => {
+        if (abortRef.current) {
+            abortRef.current.abort();
+            abortRef.current = null;
+        }
+
+        if (!rawQ) {
+            setListings([]);
+            setLoading(false);
+            setError(null);
+            return undefined;
+        }
+
+        const controller = new AbortController();
+        abortRef.current = controller;
+        const timer = window.setTimeout(async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                const url = route('listings.search', { q: rawQ, limit: 8 });
+                const response = await fetch(url, {
+                    headers: { Accept: 'application/json' },
+                    signal: controller.signal,
+                    credentials: 'same-origin',
+                });
+                if (!response.ok) {
+                    throw new Error('Search failed');
+                }
+                const data = await response.json();
+                if (!controller.signal.aborted) {
+                    setListings(Array.isArray(data.results) ? data.results : []);
+                }
+            } catch (err) {
+                if (err?.name === 'AbortError') return;
+                if (!controller.signal.aborted) {
+                    setListings([]);
+                    setError('Could not search listings right now.');
+                }
+            } finally {
+                if (!controller.signal.aborted) {
+                    setLoading(false);
+                }
+            }
+        }, 220);
+
+        return () => {
+            window.clearTimeout(timer);
+            controller.abort();
+        };
+    }, [rawQ]);
+
     const featured = useMemo(
         () => FEATURED.filter((item) => matchesQuery(item, q)),
         [q],
     );
 
-    const listings = useMemo(() => {
-        if (!q) return [];
-        return filterListings(allListings, { query: q })
-            .slice(0, 6)
-            .map((item, i) => enrichListing(item, i));
-    }, [q]);
-
     const hasFeatured = featured.length > 0;
     const hasListings = listings.length > 0;
-    const empty = q && !hasFeatured && !hasListings;
+    const empty = Boolean(rawQ) && !loading && !hasFeatured && !hasListings && !error;
 
     if (!coords || typeof document === 'undefined') return null;
 
@@ -191,37 +241,57 @@ export default function SearchSuggestions({
                 </div>
             ) : null}
 
-            {hasListings ? (
+            {rawQ ? (
                 <div className={hasFeatured ? 'border-t border-olive-100' : ''}>
-                    <p className="px-4 pb-2 pt-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-olive-500">
+                    <p className="flex items-center gap-2 px-4 pb-2 pt-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-olive-500">
                         Results
+                        {loading ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin text-olive-400" />
+                        ) : null}
                     </p>
                     <div className="mx-4 border-t border-olive-100" />
-                    <ul className="py-1.5">
-                        {listings.map((listing) => (
-                            <li key={listing.id}>
-                                <SuggestionRow
-                                    href={listingHref(listing)}
-                                    Icon={Search}
-                                    label={listing.title}
-                                    meta={[listing.subcategory, listing.location]
-                                        .filter(Boolean)
-                                        .join(' · ')}
-                                    onSelect={onSelect}
-                                />
-                            </li>
-                        ))}
-                    </ul>
+                    {hasListings ? (
+                        <ul className="py-1.5">
+                            {listings.map((listing) => (
+                                <li key={listing.id}>
+                                    <SuggestionRow
+                                        href={
+                                            listing.href ||
+                                            `/listings/${encodeURIComponent(listing.slug)}`
+                                        }
+                                        Icon={Search}
+                                        image={listing.image}
+                                        label={listing.title}
+                                        meta={[
+                                            listing.subcategory || listing.category,
+                                            listing.location,
+                                        ]
+                                            .filter(Boolean)
+                                            .join(' · ')}
+                                        onSelect={onSelect}
+                                    />
+                                </li>
+                            ))}
+                        </ul>
+                    ) : null}
+                    {loading && !hasListings ? (
+                        <p className="px-4 py-4 text-sm text-olive-500">
+                            Searching listings…
+                        </p>
+                    ) : null}
+                    {error ? (
+                        <p className="px-4 py-4 text-sm text-rose-600">{error}</p>
+                    ) : null}
                 </div>
             ) : null}
 
             {empty ? (
                 <div className="px-4 py-6 text-center">
                     <p className="text-sm text-olive-600">
-                        No matches for “{query.trim()}”
+                        No matches for “{rawQ}”
                     </p>
                     <Link
-                        href={explorePath({ q: query.trim() })}
+                        href={explorePath({ q: rawQ })}
                         onClick={onSelect}
                         className="mt-3 inline-flex text-sm font-semibold text-olive-800 underline-offset-2 hover:text-mustard hover:underline"
                     >
@@ -230,14 +300,14 @@ export default function SearchSuggestions({
                 </div>
             ) : null}
 
-            {q && (hasFeatured || hasListings) ? (
+            {rawQ && (hasFeatured || hasListings) ? (
                 <div className="border-t border-olive-100 px-4 py-2.5">
                     <Link
-                        href={explorePath({ q: query.trim() })}
+                        href={explorePath({ q: rawQ })}
                         onClick={onSelect}
                         className="text-sm font-semibold text-olive-800 transition hover:text-mustard"
                     >
-                        See all results for “{query.trim()}”
+                        See all results for “{rawQ}”
                     </Link>
                 </div>
             ) : null}

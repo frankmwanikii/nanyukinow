@@ -1323,7 +1323,10 @@ export function enrichListing(item, index = 0) {
         '+254 711 556 890',
     ];
     const prices = ['$', '$$', '$$$'];
-    const location = resolveLocation(item, index);
+    const hasCoords =
+        Number.isFinite(Number(item.lat ?? item.latitude)) &&
+        Number.isFinite(Number(item.lng ?? item.longitude));
+    const location = item.location || item.city || resolveLocation(item, index);
     const center = AREA_COORDS[location];
     const slug = item.slug || slugForListing(item);
 
@@ -1331,21 +1334,25 @@ export function enrichListing(item, index = 0) {
         ...item,
         slug,
         location,
-        area: location,
-        lat: center
-            ? jitterCoord(center.lat, index)
-            : item.lat,
-        lng: center
-            ? jitterCoord(center.lng, index + 2, 0.022)
-            : item.lng,
-        isOpen: item.isOpen ?? index % 5 !== 3,
+        area: item.area || location,
+        lat: hasCoords
+            ? Number(item.lat ?? item.latitude)
+            : center
+              ? jitterCoord(center.lat, index)
+              : item.lat,
+        lng: hasCoords
+            ? Number(item.lng ?? item.longitude)
+            : center
+              ? jitterCoord(center.lng, index + 2, 0.022)
+              : item.lng,
+        isOpen: item.isOpen ?? true,
         phone: item.phone ?? phones[index % phones.length],
         tagline:
             item.tagline ??
             item.subcategory ??
             item.category ??
             'Local favourite',
-        priceLevel: item.priceLevel ?? prices[index % prices.length],
+        priceLevel: item.priceLevel ?? item.price_range ?? prices[index % prices.length],
         verified: item.verified ?? true,
         score:
             item.score ??
@@ -1474,7 +1481,12 @@ export function filterListings(
         openNow = false,
     } = {},
 ) {
-    const q = query.trim().toLowerCase();
+    const tokens = String(query || '')
+        .trim()
+        .toLowerCase()
+        .split(/[\s,.;:\/\\|]+/)
+        .map((t) => t.trim())
+        .filter((t) => t.length > 0);
     const area = location && location !== 'all' ? location : null;
 
     return items.filter((item) => {
@@ -1483,23 +1495,35 @@ export function filterListings(
         if (propertyType && item.propertyType !== propertyType) return false;
         if (minRating > 0 && (item.rating ?? 0) < minRating) return false;
         if (openNow && item.isOpen === false) return false;
-        if (area && item.location !== area && item.area !== area) return false;
+        if (area && item.location !== area && item.area !== area && item.city !== area) {
+            return false;
+        }
 
-        if (!q) return true;
+        if (tokens.length === 0) return true;
 
         const haystack = [
             item.title,
+            item.slug,
             item.location,
             item.area,
+            item.city,
+            item.address,
+            item.venue,
             item.category,
             item.subcategory,
             item.propertyType,
             item.tagline,
+            item.description,
+            item.about,
+            item.phone,
+            item.whatsapp,
+            item.email,
+            ...(Array.isArray(item.amenities) ? item.amenities : []),
         ]
             .filter(Boolean)
             .join(' ')
             .toLowerCase();
 
-        return haystack.includes(q);
+        return tokens.every((token) => haystack.includes(token));
     });
 }

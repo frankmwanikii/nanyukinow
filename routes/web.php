@@ -14,6 +14,10 @@ Route::get('/', [ListingController::class, 'home'])->name('home');
 
 Route::get('/explore', [ListingController::class, 'explore'])->name('explore');
 
+Route::get('/listings/search', [ListingController::class, 'search'])
+    ->middleware('throttle:60,1')
+    ->name('listings.search');
+
 Route::get('/pricing', PricingPageController::class)->name('pricing');
 
 Route::get('/stories', function () {

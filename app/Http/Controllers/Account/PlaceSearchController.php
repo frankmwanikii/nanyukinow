@@ -59,20 +59,7 @@ class PlaceSearchController extends Controller
      */
     private function searchLocalListings(string $q): array
     {
-        $term = '%'.Str::lower($q).'%';
-
-        $listings = Listing::query()
-            ->where('is_published', true)
-            ->where(function ($query) use ($term) {
-                $query->whereRaw('LOWER(title) LIKE ?', [$term])
-                    ->orWhereRaw('LOWER(COALESCE(location, "")) LIKE ?', [$term])
-                    ->orWhereRaw('LOWER(COALESCE(address, "")) LIKE ?', [$term])
-                    ->orWhereRaw('LOWER(COALESCE(city, "")) LIKE ?', [$term])
-                    ->orWhereRaw('LOWER(COALESCE(venue, "")) LIKE ?', [$term]);
-            })
-            ->orderByDesc('rating')
-            ->limit(6)
-            ->get(['id', 'title', 'location', 'address', 'city', 'venue', 'latitude', 'longitude']);
+        $listings = \App\Support\ListingSearch::results($q, 6);
 
         return $listings->map(function (Listing $listing) {
             $lat = $listing->latitude;

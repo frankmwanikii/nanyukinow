@@ -6,6 +6,8 @@ use App\Models\Listing;
 use App\Models\Location;
 use App\Models\SitePage;
 use App\Support\ListingPayload;
+use App\Support\ListingSearch;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -14,10 +16,10 @@ class ListingController extends Controller
 {
     public function home(): Response
     {
-        $published = Listing::query()
-            ->with('category')
-            ->where('is_published', true)
+        $published = ListingSearch::publishedQuery()
+            ->orderByDesc('priority')
             ->orderByDesc('rating')
+            ->orderByDesc('id')
             ->get();
 
         $payload = ListingPayload::collection($published);
@@ -60,10 +62,10 @@ class ListingController extends Controller
             $allowed = ['Nanyuki', 'Timau', 'Naromoru'];
         }
 
-        $listings = Listing::query()
-            ->with('category')
-            ->where('is_published', true)
+        $listings = ListingSearch::publishedQuery()
+            ->orderByDesc('priority')
             ->orderByDesc('rating')
+            ->orderByDesc('id')
             ->get();
 
         return Inertia::render('Explore', [
@@ -75,6 +77,37 @@ class ListingController extends Controller
             'q' => $request->string('q')->toString() ?: null,
             'location' => in_array($location, $allowed, true) ? $location : null,
             'page' => SitePage::findBySlug('explore')?->toPublicArray(),
+        ]);
+    }
+
+    /**
+     * Live autocomplete / typeahead against every published listing.
+     */
+    public function search(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'q' => ['nullable', 'string', 'max:120'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:20'],
+        ]);
+
+        $q = trim((string) ($data['q'] ?? ''));
+        $limit = (int) ($data['limit'] ?? 8);
+
+        if ($q === '') {
+            return response()->json([
+                'q' => '',
+                'results' => [],
+                'count' => 0,
+            ]);
+        }
+
+        $results = ListingSearch::suggestions($q, $limit);
+
+        return response()->json([
+            'q' => $q,
+            'results' => $results,
+            'count' => count($results),
+            'explore_href' => route('explore', ['q' => $q]),
         ]);
     }
 
@@ -93,14 +126,17 @@ class ListingController extends Controller
             abort(404);
         }
 
-        $related = Listing::query()
-            ->with('category')
-            ->where('is_published', true)
+        if ($listing->isExpired() && ! $canPreview) {
+            abort(404);
+        }
+
+        $related = ListingSearch::publishedQuery()
             ->where('id', '!=', $listing->id)
             ->when(
                 $listing->category_id,
                 fn ($query) => $query->where('category_id', $listing->category_id),
             )
+            ->orderByDesc('priority')
             ->orderByDesc('rating')
             ->limit(6)
             ->get();
