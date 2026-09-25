@@ -397,13 +397,7 @@ export default function Index({
                                         <Td><StatusBadge status={listing.tier} /></Td>
                                         <Td align="center">
                                             <span className="tabular-nums text-sm text-olive-700 dark:text-olive-200">
-                                                {listing.priority === 4
-                                                    ? '4 · Promoted'
-                                                    : listing.priority === 3
-                                                      ? '3 · Premium'
-                                                      : listing.priority === 1
-                                                        ? '1 · Standard'
-                                                        : `${listing.priority ?? 0} · Free`}
+                                                {listing.priority ?? 0}
                                             </span>
                                         </Td>
                                         <Td>

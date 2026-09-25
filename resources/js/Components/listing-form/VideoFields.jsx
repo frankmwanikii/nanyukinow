@@ -1,28 +1,28 @@
 import { field, help, label } from './fieldStyles';
+import {
+    isLikelyVideoUrl,
+    resolvePlayback,
+} from '@/utils/videoUrl';
 import { Film, Link2 } from 'lucide-react';
-
-function isLikelyVideoUrl(value) {
-    if (!value || typeof value !== 'string') return false;
-    const v = value.trim();
-    if (!/^https?:\/\//i.test(v)) return false;
-    return (
-        /\.(mp4|webm|ogg)(\?|$)/i.test(v) ||
-        /youtube\.com|youtu\.be|vimeo\.com/i.test(v)
-    );
-}
+import { useMemo } from 'react';
 
 /**
  * Optional listing video — YouTube, Vimeo, or direct MP4/WebM URL.
+ * Shows an embedded player preview (no poster / play-button overlay).
  */
 export default function VideoFields({
     videoUrl = '',
     videoTitle = '',
     onChange,
-    coverPreview = null,
 }) {
     const url = videoUrl || '';
     const title = videoTitle || '';
     const valid = !url.trim() || isLikelyVideoUrl(url);
+
+    const playback = useMemo(
+        () => resolvePlayback(url.trim(), { autoplay: false }),
+        [url],
+    );
 
     return (
         <div className="space-y-4 rounded-2xl border border-olive-200 bg-white p-4 sm:p-5">
@@ -81,33 +81,35 @@ export default function VideoFields({
                     disabled={!url.trim()}
                 />
                 <p className={help}>
-                    Shown under the play button. Leave blank to use “Preview ·
-                    listing name”.
+                    Optional label for the video section. Leave blank to use the
+                    default.
                 </p>
             </div>
 
-            {url.trim() && valid ? (
-                <div className="overflow-hidden rounded-xl bg-earth-dusk">
-                    <div className="relative aspect-video">
-                        {coverPreview ? (
-                            <img
-                                src={coverPreview}
-                                alt=""
-                                className="h-full w-full object-cover opacity-80"
+            {url.trim() && valid && playback.url ? (
+                <div>
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-olive-500">
+                        Preview
+                    </p>
+                    <div className="overflow-hidden rounded-xl bg-earth-dusk ring-1 ring-olive-200">
+                        {playback.kind === 'iframe' ? (
+                            <iframe
+                                src={playback.url}
+                                title={title.trim() || 'Listing video preview'}
+                                className="aspect-video w-full bg-black"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
                             />
                         ) : (
-                            <div className="flex h-full items-center justify-center bg-olive-900 text-sm text-olive-200">
-                                Cover image used as poster when available
-                            </div>
+                            <video
+                                src={playback.url}
+                                controls
+                                playsInline
+                                className="aspect-video w-full bg-black"
+                            >
+                                Your browser does not support embedded video.
+                            </video>
                         )}
-                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-earth-dusk/40 text-white">
-                            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-mustard text-olive-950">
-                                ▶
-                            </span>
-                            <span className="text-sm font-semibold">
-                                {title.trim() || 'Preview'}
-                            </span>
-                        </div>
                     </div>
                 </div>
             ) : null}

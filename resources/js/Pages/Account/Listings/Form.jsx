@@ -1022,7 +1022,6 @@ export default function Form({
                                                 form.data.details
                                                     ?.video_title || ''
                                             }
-                                            coverPreview={coverPreview}
                                             onChange={(partial) =>
                                                 patch({
                                                     details: {
