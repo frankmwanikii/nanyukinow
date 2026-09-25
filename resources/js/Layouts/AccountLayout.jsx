@@ -1,7 +1,10 @@
 import SiteLayout from '@/Layouts/SiteLayout';
 import { MemberAvatar } from '@/Components/site/MemberAccountMenu';
+import ThemeToggle from '@/Components/ThemeToggle';
+import { ThemeProvider, useTheme } from '@/hooks/useUiTheme';
 import { Link, usePage } from '@inertiajs/react';
 import {
+    Bookmark,
     CreditCard,
     Home,
     LayoutDashboard,
@@ -60,23 +63,23 @@ function NavLink({ item, onNavigate }) {
         <Link
             href={item.href}
             onClick={onNavigate}
-            className={`group relative flex items-center gap-3 rounded-xl px-3 py-3 text-[15px] font-semibold transition ${
+            className={`group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] font-semibold transition ${
                 item.active
-                    ? 'bg-olive-100 text-olive-950'
-                    : 'text-olive-700 hover:bg-olive-50 hover:text-olive-950'
+                    ? 'bg-mustard/20 text-earth-dusk dark:bg-mustard/15 dark:text-mustard'
+                    : 'text-olive-700 hover:bg-olive-50 hover:text-olive-950 dark:text-olive-300 dark:hover:bg-white/5 dark:hover:text-white'
             }`}
         >
             {item.active ? (
                 <span
                     aria-hidden
-                    className="absolute inset-y-2.5 left-0 w-[3px] rounded-r-full bg-mustard"
+                    className="absolute inset-y-2 left-0 w-[3px] rounded-r-full bg-mustard"
                 />
             ) : null}
             <Icon
                 className={`h-5 w-5 shrink-0 ${
                     item.active
-                        ? 'text-olive-900'
-                        : 'text-olive-500 group-hover:text-olive-800'
+                        ? 'text-earth-dusk dark:text-mustard'
+                        : 'text-olive-500 group-hover:text-olive-800 dark:text-olive-400 dark:group-hover:text-olive-200'
                 }`}
                 strokeWidth={1.85}
             />
@@ -90,8 +93,9 @@ function NavLink({ item, onNavigate }) {
     );
 }
 
-export default function AccountLayout({ title = 'Account', children }) {
+function AccountShell({ title = 'Account', children }) {
     const { auth, messages, notifications } = usePage().props;
+    const { isDark, setTheme } = useTheme();
     const user = auth?.user;
     const [mobileOpen, setMobileOpen] = useState(false);
     const navH = useSiteNavHeight();
@@ -108,6 +112,12 @@ export default function AccountLayout({ title = 'Account', children }) {
                     href: route('account.index'),
                     icon: LayoutDashboard,
                     active: navActive(['account.index']),
+                },
+                {
+                    label: 'Bookmarks',
+                    href: route('account.bookmarks'),
+                    icon: Bookmark,
+                    active: navActive(['account.bookmarks']),
                 },
                 {
                     label: 'Add listing',
@@ -168,13 +178,13 @@ export default function AccountLayout({ title = 'Account', children }) {
     const DesktopSidebar = () => (
         <div className="flex h-full flex-col overflow-y-auto">
             {user ? (
-                <div className="flex shrink-0 items-center gap-3 border-b border-olive-100 px-4 py-5">
+                <div className="flex shrink-0 items-center gap-3 border-b border-olive-100 px-4 py-5 dark:border-olive-800">
                     <MemberAvatar user={user} size="md" />
                     <div className="min-w-0 flex-1">
-                        <p className="truncate text-[15px] font-semibold leading-snug text-olive-950">
+                        <p className="truncate text-[15px] font-semibold leading-snug text-olive-950 dark:text-olive-50">
                             {user.name}
                         </p>
-                        <p className="mt-0.5 truncate text-sm text-olive-500">
+                        <p className="mt-0.5 truncate text-sm text-olive-500 dark:text-olive-400">
                             {user.plan_label || 'Free'}
                         </p>
                     </div>
@@ -187,13 +197,13 @@ export default function AccountLayout({ title = 'Account', children }) {
                 ))}
             </nav>
 
-            <div className="shrink-0 border-t border-olive-100 px-2.5 py-3">
+            <div className="shrink-0 border-t border-olive-100 px-2.5 py-3 dark:border-olive-800">
                 <Link
                     href={route('home')}
-                    className="flex items-center gap-3 rounded-xl px-3 py-3 text-[15px] font-semibold text-olive-700 transition hover:bg-olive-50 hover:text-olive-950"
+                    className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] font-semibold text-olive-700 transition hover:bg-olive-50 hover:text-olive-950 dark:text-olive-300 dark:hover:bg-white/5 dark:hover:text-white"
                 >
                     <Home
-                        className="h-5 w-5 text-olive-500"
+                        className="h-5 w-5 text-olive-500 dark:text-olive-400"
                         strokeWidth={1.85}
                     />
                     Browse site
@@ -205,7 +215,7 @@ export default function AccountLayout({ title = 'Account', children }) {
     const mobileMenu =
         typeof document !== 'undefined' && mobileOpen
             ? createPortal(
-                  <>
+                  <div className={isDark ? 'dark' : ''}>
                       <button
                           type="button"
                           aria-label="Close menu"
@@ -213,33 +223,33 @@ export default function AccountLayout({ title = 'Account', children }) {
                           onClick={() => setMobileOpen(false)}
                       />
                       <aside
-                          className="fixed inset-y-0 left-0 z-[2001] flex h-[100dvh] w-[min(19rem,88vw)] flex-col bg-white shadow-2xl lg:hidden"
+                          className="fixed inset-y-0 left-0 z-[2001] flex h-[100dvh] w-[min(19rem,88vw)] flex-col bg-white shadow-2xl dark:bg-olive-950 dark:text-olive-50 lg:hidden"
                           role="dialog"
                           aria-modal="true"
                           aria-label="Account menu"
                       >
-                          <div className="flex shrink-0 items-start gap-3 border-b border-olive-100 bg-[#f7f5f0] px-4 pb-4 pt-[max(1rem,env(safe-area-inset-top))]">
+                          <div className="flex shrink-0 items-start gap-3 border-b border-olive-100 bg-[#f7f5f0] px-4 pb-4 pt-[max(1rem,env(safe-area-inset-top))] dark:border-olive-800 dark:bg-olive-900">
                               {user ? (
                                   <>
                                       <MemberAvatar user={user} size="md" />
                                       <div className="min-w-0 flex-1 pt-0.5">
-                                          <p className="truncate font-display text-base font-semibold leading-snug text-olive-950">
+                                          <p className="truncate font-display text-base font-semibold leading-snug text-olive-950 dark:text-olive-50">
                                               {user.name}
                                           </p>
-                                          <p className="mt-0.5 truncate text-sm text-olive-500">
+                                          <p className="mt-0.5 truncate text-sm text-olive-500 dark:text-olive-400">
                                               {user.plan_label || 'Free'} plan
                                           </p>
                                       </div>
                                   </>
                               ) : (
-                                  <p className="flex-1 pt-1 font-display text-base font-semibold text-olive-950">
+                                  <p className="flex-1 pt-1 font-display text-base font-semibold text-olive-950 dark:text-olive-50">
                                       Account
                                   </p>
                               )}
                               <button
                                   type="button"
                                   onClick={() => setMobileOpen(false)}
-                                  className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-olive-600 transition hover:bg-olive-100 hover:text-olive-950"
+                                  className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-olive-600 transition hover:bg-olive-100 hover:text-olive-950 dark:text-olive-300 dark:hover:bg-olive-800 dark:hover:text-olive-50"
                                   aria-label="Close menu"
                               >
                                   <X className="h-5 w-5" strokeWidth={2} />
@@ -259,30 +269,39 @@ export default function AccountLayout({ title = 'Account', children }) {
                               ))}
                           </nav>
 
-                          <div className="shrink-0 border-t border-olive-100 px-3 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+                          <div className="shrink-0 space-y-2 border-t border-olive-100 px-3 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] dark:border-olive-800">
+                              <div className="flex items-center justify-between px-3 py-1">
+                                  <span className="text-sm font-semibold text-olive-600 dark:text-olive-400">
+                                      Appearance
+                                  </span>
+                                  <ThemeToggle isDark={isDark} setTheme={setTheme} />
+                              </div>
                               <Link
                                   href={route('home')}
                                   onClick={() => setMobileOpen(false)}
-                                  className="flex items-center gap-3 rounded-xl px-3 py-3 text-[15px] font-semibold text-olive-700 transition hover:bg-olive-50 hover:text-olive-950"
+                                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] font-semibold text-olive-700 transition hover:bg-olive-50 hover:text-olive-950 dark:text-olive-300 dark:hover:bg-white/5 dark:hover:text-white"
                               >
                                   <Home
-                                      className="h-5 w-5 text-olive-500"
+                                      className="h-5 w-5 text-olive-500 dark:text-olive-400"
                                       strokeWidth={1.85}
                                   />
                                   Browse site
                               </Link>
                           </div>
                       </aside>
-                  </>,
+                  </div>,
                   document.body,
               )
             : null;
 
     return (
-        <SiteLayout hideFooter compactNav>
-            <div style={{ paddingTop: navPx }} className="min-h-svh">
+        <div className={isDark ? 'dark' : ''}>
+            <div
+                style={{ paddingTop: navPx }}
+                className="min-h-svh bg-earth-sand text-earth-dusk dark:bg-olive-950 dark:text-olive-50"
+            >
                 <aside
-                    className="fixed bottom-0 left-0 z-30 hidden w-60 border-r border-olive-200 bg-white lg:block xl:w-64"
+                    className="fixed bottom-0 left-0 z-30 hidden w-60 border-r border-olive-200/80 bg-white dark:border-olive-900 dark:bg-olive-950 lg:block xl:w-64"
                     style={{ top: navPx }}
                 >
                     <DesktopSidebar />
@@ -290,23 +309,24 @@ export default function AccountLayout({ title = 'Account', children }) {
 
                 {mobileMenu}
 
-                <div className="min-w-0 bg-[#f4f2ec] lg:pl-60 xl:pl-64">
+                <div className="min-w-0 lg:pl-60 xl:pl-64">
                     <header
-                        className="sticky z-20 flex items-center gap-3 border-b border-olive-200/80 bg-[#f4f2ec]/95 px-4 py-3 backdrop-blur sm:px-6"
+                        className="sticky z-20 flex items-center gap-3 border-b border-olive-200/70 bg-earth-sand/90 px-4 py-3 backdrop-blur-md dark:border-olive-800 dark:bg-olive-950/90 sm:px-6"
                         style={{ top: navPx }}
                     >
                         <button
                             type="button"
                             onClick={() => setMobileOpen(true)}
-                            className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-olive-700 transition hover:bg-olive-100 lg:hidden"
+                            className="inline-flex h-10 w-10 items-center justify-center rounded-full text-olive-700 transition hover:bg-olive-100 dark:text-olive-200 dark:hover:bg-olive-800 lg:hidden"
                             aria-label="Open menu"
                             aria-expanded={mobileOpen}
                         >
                             <Menu className="h-5 w-5" strokeWidth={1.85} />
                         </button>
-                        <h1 className="truncate font-display text-xl font-semibold tracking-tight text-olive-950 sm:text-2xl">
+                        <h1 className="min-w-0 flex-1 truncate font-display text-xl font-semibold tracking-tight text-olive-950 dark:text-olive-50 sm:text-2xl">
                             {title}
                         </h1>
+                        <ThemeToggle isDark={isDark} setTheme={setTheme} />
                     </header>
 
                     <div className="px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
@@ -314,6 +334,16 @@ export default function AccountLayout({ title = 'Account', children }) {
                     </div>
                 </div>
             </div>
+        </div>
+    );
+}
+
+export default function AccountLayout({ title = 'Account', children }) {
+    return (
+        <SiteLayout hideFooter compactNav>
+            <ThemeProvider>
+                <AccountShell title={title}>{children}</AccountShell>
+            </ThemeProvider>
         </SiteLayout>
     );
 }

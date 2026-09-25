@@ -1,21 +1,65 @@
 import AccountLayout from '@/Layouts/AccountLayout';
+import {
+    ActionMenu,
+    DataTable,
+    ExpiryCell,
+    StatusBadge,
+    Td,
+    Th,
+} from '@/Components/Admin/ui';
 import { useConfirm } from '@/Components/ConfirmDialog';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
     ArrowUpRight,
-    Pencil,
+    Bookmark,
+    LayoutList,
     Plus,
-    Trash2,
+    Sparkles,
 } from 'lucide-react';
 
-function statusTone(status, published) {
-    if (status === 'pending') return 'text-earth-dusk';
-    if (status === 'published' && published) return 'text-olive-800';
-    if (status === 'draft') return 'text-olive-500';
-    return 'text-olive-500';
+function formatDate(iso) {
+    if (!iso) return '—';
+    return new Date(iso).toLocaleDateString(undefined, {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+    });
 }
 
-export default function Index({ plan, listings = [], pendingUpgrade = null }) {
+function MetricCard({ label, children, href }) {
+    const inner = (
+        <>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-olive-400 dark:text-olive-500">
+                {label}
+            </p>
+            <div className="mt-2">{children}</div>
+        </>
+    );
+
+    if (href) {
+        return (
+            <Link
+                href={href}
+                className="rounded-2xl border border-olive-200/80 bg-white p-4 shadow-soft transition hover:border-olive-300 hover:shadow-lift dark:border-olive-800 dark:bg-olive-900 dark:shadow-none dark:hover:border-olive-700 sm:p-5"
+            >
+                {inner}
+            </Link>
+        );
+    }
+
+    return (
+        <div className="rounded-2xl border border-olive-200/80 bg-white p-4 shadow-soft dark:border-olive-800 dark:bg-olive-900 dark:shadow-none sm:p-5">
+            {inner}
+        </div>
+    );
+}
+
+export default function Index({
+    plan,
+    listings = [],
+    bookmarksCount = 0,
+    pendingUpgrade = null,
+}) {
     const { flash } = usePage().props;
     const { confirm, dialog } = useConfirm();
 
@@ -41,85 +85,88 @@ export default function Index({ plan, listings = [], pendingUpgrade = null }) {
             <div className="space-y-5">
                 {(flash?.success || flash?.error) && (
                     <div
-                        className={`border px-4 py-3 text-sm ${
+                        className={`rounded-2xl border px-4 py-3 text-sm ${
                             flash.error
-                                ? 'border-rose-200 bg-rose-50 text-rose-800'
-                                : 'border-olive-200 bg-white text-olive-900'
+                                ? 'border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300'
+                                : 'border-olive-200 bg-white text-olive-900 dark:border-olive-800 dark:bg-olive-900 dark:text-olive-100'
                         }`}
                     >
                         {flash.error || flash.success}
                     </div>
                 )}
 
-                {/* Metric strip */}
-                <section className="grid grid-cols-2 border border-olive-200 bg-white lg:grid-cols-4">
-                    <div className="border-b border-olive-100 px-4 py-4 sm:px-5 lg:border-b-0 lg:border-r">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-olive-400">
-                            Plan
-                        </p>
-                        <p className="mt-2 font-display text-2xl font-semibold text-olive-950">
+                {/* Metric cards */}
+                <section className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+                    <MetricCard label="Plan">
+                        <p className="font-display text-2xl font-semibold text-olive-950 dark:text-olive-50">
                             {plan.label}
                         </p>
-                    </div>
-                    <div className="border-b border-l border-olive-100 px-4 py-4 sm:px-5 lg:border-b-0 lg:border-l-0 lg:border-r">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-olive-400">
-                            Listings
-                        </p>
-                        <p className="mt-2 font-display text-2xl font-semibold tabular-nums text-olive-950">
+                    </MetricCard>
+                    <MetricCard label="Listings">
+                        <p className="font-display text-2xl font-semibold tabular-nums text-olive-950 dark:text-olive-50">
                             {plan.listings_used}
-                            <span className="text-base font-normal text-olive-400">
+                            <span className="text-base font-normal text-olive-400 dark:text-olive-500">
                                 /{plan.listing_limit}
                             </span>
                         </p>
-                    </div>
-                    <div className="border-olive-100 px-4 py-4 sm:px-5 lg:border-r">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-olive-400">
-                            Slots left
+                    </MetricCard>
+                    <MetricCard label="Bookmarks" href={route('account.bookmarks')}>
+                        <p className="inline-flex items-center gap-2 font-display text-2xl font-semibold tabular-nums text-olive-950 dark:text-olive-50">
+                            <Bookmark
+                                className="h-5 w-5 text-olive-500 dark:text-olive-400"
+                                strokeWidth={1.85}
+                            />
+                            {bookmarksCount}
                         </p>
-                        <p className="mt-2 font-display text-2xl font-semibold tabular-nums text-olive-950">
-                            {Math.max(0, (plan.listing_limit || 0) - (plan.listings_used || 0))}
-                        </p>
-                    </div>
-                    <div className="border-l border-olive-100 px-4 py-4 sm:px-5 lg:border-l-0">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-olive-400">
-                            Upgrade
-                        </p>
-                        <p className="mt-2 text-sm font-medium text-olive-800">
+                    </MetricCard>
+                    <MetricCard
+                        label="Upgrade"
+                        href={
+                            pendingUpgrade || plan.key === 'premium'
+                                ? undefined
+                                : route('account.upgrade')
+                        }
+                    >
+                        <p className="text-sm font-medium text-olive-800 dark:text-olive-200">
                             {pendingUpgrade ? (
                                 <>Pending {pendingUpgrade.to_label}</>
                             ) : plan.key === 'premium' ? (
                                 'You’re on Premium'
                             ) : (
-                                <Link
-                                    href={route('account.upgrade')}
-                                    className="inline-flex items-center gap-1 font-semibold text-olive-900 underline-offset-2 hover:underline"
-                                >
+                                <span className="inline-flex items-center gap-1 font-semibold text-olive-900 dark:text-mustard">
                                     View plans
                                     <ArrowUpRight className="h-3.5 w-3.5" />
-                                </Link>
+                                </span>
                             )}
                         </p>
-                    </div>
+                    </MetricCard>
                 </section>
 
-                {/* Plan usage + actions */}
-                <section className="border border-olive-200 bg-white">
-                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-olive-100 px-4 py-3 sm:px-5">
-                        <div>
-                            <h2 className="text-sm font-semibold text-olive-950">Plan usage</h2>
-                            <p className="mt-0.5 text-xs text-olive-500">
-                                {plan.is_expired
-                                    ? 'Plan expired — you’re on Free until renewed.'
-                                    : plan.expires_at
-                                      ? `Renews ${new Date(plan.expires_at).toLocaleDateString()}`
-                                      : 'Free plan limits apply'}
-                            </p>
+                {/* Plan usage */}
+                <section className="overflow-hidden rounded-2xl border border-olive-200/80 bg-white shadow-soft dark:border-olive-800 dark:bg-olive-900 dark:shadow-none">
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-olive-100 px-4 py-4 sm:px-5 dark:border-olive-800">
+                        <div className="flex min-w-0 items-start gap-3">
+                            <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-olive-50 text-olive-700 dark:bg-olive-950 dark:text-olive-300">
+                                <Sparkles className="h-4 w-4" strokeWidth={1.85} />
+                            </span>
+                            <div>
+                                <h2 className="text-sm font-semibold text-olive-950 dark:text-olive-50">
+                                    Plan usage
+                                </h2>
+                                <p className="mt-0.5 text-xs text-olive-500 dark:text-olive-400">
+                                    {plan.is_expired
+                                        ? 'Plan expired — you’re on Free until renewed.'
+                                        : plan.expires_at
+                                          ? `Renews ${new Date(plan.expires_at).toLocaleDateString()}`
+                                          : 'Free plan limits apply'}
+                                </p>
+                            </div>
                         </div>
                         <div className="flex flex-wrap gap-2">
                             {plan.can_create ? (
                                 <Link
                                     href={route('account.listings.create')}
-                                    className="inline-flex items-center gap-1.5 bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-mustard hover:text-earth-dusk"
+                                    className="inline-flex items-center gap-1.5 rounded-xl bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-mustard hover:text-earth-dusk dark:bg-mustard dark:text-earth-dusk dark:hover:bg-olive-100"
                                 >
                                     <Plus className="h-4 w-4" />
                                     Add listing
@@ -127,7 +174,7 @@ export default function Index({ plan, listings = [], pendingUpgrade = null }) {
                             ) : (
                                 <Link
                                     href={route('account.upgrade')}
-                                    className="inline-flex items-center gap-1.5 bg-mustard px-3.5 py-2 text-sm font-semibold text-earth-dusk transition hover:bg-olive-900 hover:text-white"
+                                    className="inline-flex items-center gap-1.5 rounded-xl bg-mustard px-3.5 py-2 text-sm font-semibold text-earth-dusk transition hover:bg-olive-900 hover:text-white"
                                 >
                                     Upgrade
                                 </Link>
@@ -135,7 +182,7 @@ export default function Index({ plan, listings = [], pendingUpgrade = null }) {
                             {plan.key !== 'premium' && (
                                 <Link
                                     href={route('account.upgrade')}
-                                    className="inline-flex items-center gap-1.5 border border-olive-200 px-3.5 py-2 text-sm font-semibold text-olive-800 transition hover:bg-olive-50"
+                                    className="inline-flex items-center gap-1.5 rounded-xl border border-olive-200 px-3.5 py-2 text-sm font-semibold text-olive-800 transition hover:bg-olive-50 dark:border-olive-700 dark:text-olive-200 dark:hover:bg-olive-800"
                                 >
                                     Compare plans
                                 </Link>
@@ -143,14 +190,14 @@ export default function Index({ plan, listings = [], pendingUpgrade = null }) {
                         </div>
                     </div>
                     <div className="px-4 py-4 sm:px-5">
-                        <div className="h-1.5 overflow-hidden bg-olive-100">
+                        <div className="h-2 overflow-hidden rounded-full bg-olive-100 dark:bg-olive-800">
                             <div
-                                className="h-full bg-olive-800 transition-all"
+                                className="h-full rounded-full bg-olive-800 transition-all dark:bg-mustard"
                                 style={{ width: `${usedPct}%` }}
                             />
                         </div>
                         {pendingUpgrade && (
-                            <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border border-olive-100 bg-[#f4f2ec] px-3 py-2.5 text-sm text-olive-800">
+                            <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-olive-100 bg-earth-sand px-3 py-2.5 text-sm text-olive-800 dark:border-olive-800 dark:bg-olive-950 dark:text-olive-200">
                                 <span>
                                     Pending upgrade to <strong>{pendingUpgrade.to_label}</strong>
                                     {pendingUpgrade.payment_reference
@@ -164,7 +211,7 @@ export default function Index({ plan, listings = [], pendingUpgrade = null }) {
                                             route('account.upgrade.cancel', pendingUpgrade.id),
                                         )
                                     }
-                                    className="font-semibold text-rose-600 hover:underline"
+                                    className="font-semibold text-rose-600 hover:underline dark:text-rose-400"
                                 >
                                     Cancel
                                 </button>
@@ -174,13 +221,20 @@ export default function Index({ plan, listings = [], pendingUpgrade = null }) {
                 </section>
 
                 {/* Listings */}
-                <section className="border border-olive-200 bg-white">
-                    <div className="flex items-center justify-between gap-3 border-b border-olive-100 px-4 py-3 sm:px-5">
-                        <h2 className="text-sm font-semibold text-olive-950">Your listings</h2>
+                <section className="overflow-hidden rounded-2xl border border-olive-200/80 bg-white shadow-soft dark:border-olive-800 dark:bg-olive-900 dark:shadow-none">
+                    <div className="flex items-center justify-between gap-3 border-b border-olive-100 px-4 py-4 sm:px-5 dark:border-olive-800">
+                        <div className="flex items-center gap-2.5">
+                            <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-olive-50 text-olive-700 dark:bg-olive-950 dark:text-olive-300">
+                                <LayoutList className="h-4 w-4" strokeWidth={1.85} />
+                            </span>
+                            <h2 className="text-sm font-semibold text-olive-950 dark:text-olive-50">
+                                Your listings
+                            </h2>
+                        </div>
                         {plan.can_create && (
                             <Link
                                 href={route('account.listings.create')}
-                                className="inline-flex items-center gap-1 text-sm font-semibold text-olive-800 hover:text-olive-950"
+                                className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm font-semibold text-olive-800 transition hover:bg-olive-50 hover:text-olive-950 dark:text-olive-200 dark:hover:bg-olive-800 dark:hover:text-olive-50"
                             >
                                 <Plus className="h-4 w-4" />
                                 New
@@ -190,8 +244,10 @@ export default function Index({ plan, listings = [], pendingUpgrade = null }) {
 
                     {listings.length === 0 ? (
                         <div className="px-4 py-12 text-center sm:px-5">
-                            <p className="text-sm font-semibold text-olive-900">No listings yet</p>
-                            <p className="mx-auto mt-1 max-w-sm text-sm text-olive-500">
+                            <p className="text-sm font-semibold text-olive-900 dark:text-olive-100">
+                                No listings yet
+                            </p>
+                            <p className="mx-auto mt-1 max-w-sm text-sm text-olive-500 dark:text-olive-400">
                                 Your plan includes {plan.listing_limit} listing
                                 {plan.listing_limit === 1 ? '' : 's'}. Submit one for review to go
                                 live.
@@ -199,7 +255,7 @@ export default function Index({ plan, listings = [], pendingUpgrade = null }) {
                             {plan.can_create && (
                                 <Link
                                     href={route('account.listings.create')}
-                                    className="mt-5 inline-flex items-center gap-1.5 bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-mustard hover:text-earth-dusk"
+                                    className="mt-5 inline-flex items-center gap-1.5 rounded-xl bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-mustard hover:text-earth-dusk dark:bg-mustard dark:text-earth-dusk"
                                 >
                                     <Plus className="h-4 w-4" />
                                     Create listing
@@ -207,69 +263,109 @@ export default function Index({ plan, listings = [], pendingUpgrade = null }) {
                             )}
                         </div>
                     ) : (
-                        <ul className="divide-y divide-olive-100">
-                            {listings.map((listing) => (
-                                <li
-                                    key={listing.id}
-                                    className="flex flex-wrap items-center gap-3 px-4 py-3.5 sm:gap-4 sm:px-5"
-                                >
-                                    <div className="h-12 w-12 shrink-0 overflow-hidden bg-olive-100">
-                                        {listing.image_url ? (
-                                            <img
-                                                src={listing.image_url}
-                                                alt=""
-                                                className="h-full w-full object-cover"
-                                            />
-                                        ) : (
-                                            <div className="flex h-full items-center justify-center text-[10px] font-semibold text-olive-400">
-                                                N/A
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className="min-w-0 flex-1">
-                                        <p className="truncate text-sm font-semibold text-olive-950">
-                                            {listing.title}
-                                        </p>
-                                        <p className="mt-0.5 text-xs text-olive-500">
-                                            <span
-                                                className={`font-medium capitalize ${statusTone(listing.status, listing.is_published)}`}
-                                            >
-                                                {listing.status}
-                                            </span>
-                                            <span className="text-olive-300"> · </span>
-                                            {listing.tier_label}
-                                            <span className="text-olive-300"> · </span>
-                                            {listing.category || 'Uncategorized'}
-                                        </p>
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                        {listing.is_published && listing.status === 'published' && (
+                        <DataTable>
+                            <thead>
+                                <tr>
+                                    <Th>Title</Th>
+                                    <Th>Category</Th>
+                                    <Th>Last modified</Th>
+                                    <Th>Expiry date</Th>
+                                    <Th>Date published</Th>
+                                    <Th>Status</Th>
+                                    <Th align="right">Actions</Th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {listings.map((listing) => (
+                                    <tr
+                                        key={listing.id}
+                                        className="transition hover:bg-olive-50/60 dark:hover:bg-olive-800/40"
+                                    >
+                                        <Td>
                                             <Link
-                                                href={route('listings.show', listing.slug)}
-                                                className="px-2.5 py-1.5 text-sm font-medium text-olive-600 hover:bg-olive-50 hover:text-olive-950"
+                                                href={route(
+                                                    'account.listings.edit',
+                                                    listing.id,
+                                                )}
+                                                className="flex min-w-[12rem] items-center gap-3 rounded-lg outline-none transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-mustard/60"
                                             >
-                                                View
+                                                <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-olive-100 dark:bg-olive-800">
+                                                    {listing.image_url ? (
+                                                        <img
+                                                            src={listing.image_url}
+                                                            alt=""
+                                                            className="h-full w-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        <div className="flex h-full items-center justify-center text-[9px] font-semibold text-olive-400 dark:text-olive-500">
+                                                            N/A
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <p className="truncate text-sm font-semibold text-olive-950 underline-offset-2 hover:underline dark:text-olive-50">
+                                                    {listing.title || 'Untitled'}
+                                                </p>
                                             </Link>
-                                        )}
-                                        <Link
-                                            href={route('account.listings.edit', listing.id)}
-                                            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-sm font-medium text-olive-700 hover:bg-olive-50"
-                                        >
-                                            <Pencil className="h-3.5 w-3.5" />
-                                            Edit
-                                        </Link>
-                                        <button
-                                            type="button"
-                                            onClick={() => remove(listing)}
-                                            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-sm font-medium text-rose-600 hover:bg-rose-50"
-                                        >
-                                            <Trash2 className="h-3.5 w-3.5" />
-                                            Delete
-                                        </button>
-                                    </div>
-                                </li>
-                            ))}
-                        </ul>
+                                        </Td>
+                                        <Td>
+                                            <span className="text-sm text-olive-700 dark:text-olive-200">
+                                                {listing.category || '—'}
+                                            </span>
+                                        </Td>
+                                        <Td>
+                                            <span className="whitespace-nowrap text-sm text-olive-600 dark:text-olive-300">
+                                                {formatDate(listing.updated_at)}
+                                            </span>
+                                        </Td>
+                                        <Td>
+                                            <ExpiryCell
+                                                expiresAt={listing.expires_at}
+                                                isExpired={listing.is_expired}
+                                            />
+                                        </Td>
+                                        <Td>
+                                            <span className="whitespace-nowrap text-sm text-olive-600 dark:text-olive-300">
+                                                {formatDate(listing.published_at)}
+                                            </span>
+                                        </Td>
+                                        <Td>
+                                            <StatusBadge status={listing.status} />
+                                        </Td>
+                                        <Td align="right">
+                                            <ActionMenu
+                                                label="Actions"
+                                                items={[
+                                                    ...(listing.is_published &&
+                                                    listing.status === 'published'
+                                                        ? [
+                                                              {
+                                                                  label: 'View',
+                                                                  href: route(
+                                                                      'listings.show',
+                                                                      listing.slug,
+                                                                  ),
+                                                              },
+                                                          ]
+                                                        : []),
+                                                    {
+                                                        label: 'Edit',
+                                                        href: route(
+                                                            'account.listings.edit',
+                                                            listing.id,
+                                                        ),
+                                                    },
+                                                    {
+                                                        label: 'Delete',
+                                                        danger: true,
+                                                        onClick: () => remove(listing),
+                                                    },
+                                                ]}
+                                            />
+                                        </Td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </DataTable>
                     )}
                 </section>
             </div>

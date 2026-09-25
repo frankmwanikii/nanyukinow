@@ -65,6 +65,18 @@
 
 /* Rich text editor — restore lists (Tailwind Preflight zeros them) + content chrome */
 @layer components {
+    /* Custom chevron only — kill the native select arrow (avoids double caret). */
+    .nn-editor-size {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        background-image: none;
+    }
+
+    .nn-editor-size::-ms-expand {
+        display: none;
+    }
+
     .nn-editor ul {
         list-style-type: disc !important;
         list-style-position: outside;
@@ -89,7 +101,7 @@
     }
 
     .nn-editor h3 {
-        @apply mb-2 mt-3 text-lg font-bold text-olive-950;
+        @apply mb-2 mt-3 text-lg font-bold text-olive-950 dark:text-olive-50;
     }
 
     .nn-editor p {
@@ -97,7 +109,16 @@
     }
 
     .nn-editor a {
-        @apply text-olive-800 underline decoration-mustard underline-offset-2;
+        @apply text-olive-800 underline decoration-mustard underline-offset-2 dark:text-mustard;
+    }
+
+    .dark .nn-editor {
+        @apply text-olive-50;
+    }
+
+    .dark .nn-editor:empty:before,
+    .dark .nn-editor:has(> br:only-child):before {
+        color: theme('colors.olive.500');
     }
 
     .nn-editor img,

@@ -698,7 +698,7 @@ export default function Form({
                             <div className="flex flex-wrap items-center justify-end gap-2">
                                 <Link
                                     href={route('admin.listings.index')}
-                                    className="rounded-xl border border-olive-200 px-4 py-2.5 text-sm font-semibold text-olive-700"
+                                    className="rounded-xl border border-olive-200 px-4 py-2.5 text-sm font-semibold text-olive-700 dark:border-olive-700 dark:text-olive-200 dark:hover:bg-olive-800"
                                 >
                                     Cancel
                                 </Link>
@@ -706,7 +706,7 @@ export default function Form({
                                     type="button"
                                     disabled={form.processing}
                                     onClick={(e) => submit(e, 'draft')}
-                                    className="inline-flex items-center gap-2 rounded-xl border border-olive-200 bg-white px-4 py-2.5 text-sm font-semibold text-olive-800 disabled:opacity-50"
+                                    className="inline-flex items-center gap-2 rounded-xl border border-olive-200 bg-white px-4 py-2.5 text-sm font-semibold text-olive-800 disabled:opacity-50 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-100 dark:hover:bg-olive-800"
                                 >
                                     <Save className="h-4 w-4" />
                                     {form.processing ? 'Saving…' : 'Save draft'}
@@ -725,11 +725,11 @@ export default function Form({
                         <>
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <div>
-                            <p className="text-sm text-olive-600">
+                            <p className="text-sm text-olive-600 dark:text-olive-400">
                                 {categoryIntro(categoryKey)}
                             </p>
                             {selectedCategory ? (
-                                <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-olive-500">
+                                <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-olive-500 dark:text-olive-500">
                                     {selectedCategory.name}
                                     {form.data.subcategory
                                         ? ` · ${form.data.subcategory}`
@@ -741,7 +741,7 @@ export default function Form({
                             <button
                                 type="button"
                                 onClick={() => setPhase('category')}
-                                className="inline-flex items-center gap-1 text-sm font-semibold text-olive-700 hover:text-olive-950"
+                                className="inline-flex items-center gap-1 text-sm font-semibold text-olive-700 hover:text-olive-950 dark:text-olive-300 dark:hover:text-olive-50"
                             >
                                 <ChevronLeft className="h-4 w-4" />
                                 Change category
@@ -786,15 +786,15 @@ export default function Form({
                         </div>
                     ) : null}
 
-                    <div className="rounded-2xl border border-olive-100 bg-white p-3 shadow-soft">
-                        <div className="mb-2 flex items-center justify-between text-xs font-semibold text-olive-600">
+                    <div className="rounded-2xl border border-olive-100 bg-white p-3 shadow-soft dark:border-olive-800 dark:bg-olive-900 dark:shadow-none">
+                        <div className="mb-2 flex items-center justify-between text-xs font-semibold text-olive-600 dark:text-olive-400">
                             <span>
                                 Step {stepIndex + 1} of {STEPS.length} ·{' '}
                                 {step.title}
                             </span>
                             <span>{Math.round(progress)}%</span>
                         </div>
-                        <div className="h-2 overflow-hidden rounded-full bg-olive-100">
+                        <div className="h-2 overflow-hidden rounded-full bg-olive-100 dark:bg-olive-800">
                             <motion.div
                                 className="h-full rounded-full bg-mustard"
                                 animate={{ width: `${progress}%` }}
@@ -820,10 +820,10 @@ export default function Form({
                                         disabled={!canJump}
                                         className={`shrink-0 rounded-lg px-2 py-1.5 text-[11px] font-semibold transition sm:flex-1 sm:px-1 ${
                                             i === stepIndex
-                                                ? 'bg-olive-900 text-white'
+                                                ? 'bg-olive-900 text-white dark:bg-mustard dark:text-earth-dusk'
                                                 : canJump
-                                                  ? 'bg-mustard/40 text-olive-900 hover:bg-mustard/55'
-                                                  : 'cursor-not-allowed bg-olive-50 text-olive-400'
+                                                  ? 'bg-mustard/40 text-olive-900 hover:bg-mustard/55 dark:bg-olive-800 dark:text-olive-100 dark:hover:bg-olive-700'
+                                                  : 'cursor-not-allowed bg-olive-50 text-olive-400 dark:bg-olive-950 dark:text-olive-600'
                                         }`}
                                     >
                                         {s.title}
@@ -849,9 +849,7 @@ export default function Form({
                                         categoryKey={categoryKey}
                                         subs={subs}
                                         isEdit={isEdit}
-                                        isAdmin={isAdmin}
                                         categories={categories}
-                                        allowedTiers={allowedTiers}
                                         patch={patch}
                                     />
                                 ) : null}
@@ -1061,7 +1059,7 @@ export default function Form({
                         </AnimatePresence>
 
                         {Object.keys(form.errors).length > 0 ? (
-                            <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                            <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300">
                                 Please fix the highlighted fields before continuing.
                                 <ul className="mt-2 list-disc pl-5">
                                     {Object.entries(form.errors)
@@ -1074,7 +1072,7 @@ export default function Form({
                         ) : null}
 
                         <div
-                            className={`flex flex-wrap items-center justify-between gap-2 border-t border-olive-100 pt-5 ${
+                            className={`flex flex-wrap items-center justify-between gap-2 border-t border-olive-100 pt-5 dark:border-olive-800 ${
                                 isAdmin ? '' : 'pb-20 sm:pb-0'
                             }`}
                         >
@@ -1089,7 +1087,7 @@ export default function Form({
                                     }
                                     back();
                                 }}
-                                className="inline-flex items-center gap-1 rounded-xl border border-olive-200 px-4 py-2.5 text-sm font-semibold text-olive-700"
+                                className="inline-flex items-center gap-1 rounded-xl border border-olive-200 px-4 py-2.5 text-sm font-semibold text-olive-700 dark:border-olive-700 dark:text-olive-200 dark:hover:bg-olive-800"
                             >
                                 <ChevronLeft className="h-4 w-4" />
                                 {step.id === 'preview' ? 'Edit details' : 'Back'}
@@ -1098,7 +1096,7 @@ export default function Form({
                             <div className="flex flex-wrap gap-2">
                                 <Link
                                     href={isAdmin ? route('admin.listings.index') : route('account.index')}
-                                    className="rounded-xl border border-olive-200 px-4 py-2.5 text-sm font-semibold text-olive-700"
+                                    className="rounded-xl border border-olive-200 px-4 py-2.5 text-sm font-semibold text-olive-700 dark:border-olive-700 dark:text-olive-200 dark:hover:bg-olive-800"
                                 >
                                     Cancel
                                 </Link>
@@ -1108,7 +1106,7 @@ export default function Form({
                                             type="button"
                                             disabled={form.processing}
                                             onClick={(e) => submit(e, 'draft')}
-                                            className="inline-flex items-center gap-2 rounded-xl border border-olive-200 bg-white px-4 py-2.5 text-sm font-semibold text-olive-800 disabled:opacity-50"
+                                            className="inline-flex items-center gap-2 rounded-xl border border-olive-200 bg-white px-4 py-2.5 text-sm font-semibold text-olive-800 disabled:opacity-50 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-100 dark:hover:bg-olive-800"
                                         >
                                             <Save className="h-4 w-4" />
                                             {form.processing ? 'Saving…' : 'Save draft'}
@@ -1127,7 +1125,7 @@ export default function Form({
                                     <button
                                         type="button"
                                         onClick={next}
-                                        className="inline-flex items-center gap-2 rounded-xl bg-olive-900 px-4 py-2.5 text-sm font-bold text-white"
+                                        className="inline-flex items-center gap-2 rounded-xl bg-olive-900 px-4 py-2.5 text-sm font-bold text-white dark:bg-mustard dark:text-earth-dusk"
                                     >
                                         Continue
                                         <ChevronRight className="h-4 w-4" />
@@ -1382,7 +1380,7 @@ function AdminControls({ form, owners, statuses, claimStatuses, allowedTiers, li
                         checked={data.is_published}
                         onChange={(e) => setData('is_published', e.target.checked)}
                     />
-                    <span className="text-sm font-medium text-olive-700">Published on site</span>
+                    <span className="text-sm font-medium text-olive-700 dark:text-olive-200">Published on site</span>
                 </label>
                 <label className="flex items-center gap-2">
                     <input
@@ -1391,7 +1389,7 @@ function AdminControls({ form, owners, statuses, claimStatuses, allowedTiers, li
                         checked={data.is_featured}
                         onChange={(e) => setData('is_featured', e.target.checked)}
                     />
-                    <span className="text-sm font-medium text-olive-700">Featured</span>
+                    <span className="text-sm font-medium text-olive-700 dark:text-olive-200">Featured</span>
                 </label>
                 <label className="flex items-center gap-2">
                     <input
@@ -1400,7 +1398,7 @@ function AdminControls({ form, owners, statuses, claimStatuses, allowedTiers, li
                         checked={data.is_trending}
                         onChange={(e) => setData('is_trending', e.target.checked)}
                     />
-                    <span className="text-sm font-medium text-olive-700">Trending</span>
+                    <span className="text-sm font-medium text-olive-700 dark:text-olive-200">Trending</span>
                 </label>
             </div>
         </div>
@@ -1412,9 +1410,7 @@ function BasicsStep({
     categoryKey,
     subs,
     isEdit,
-    isAdmin = false,
     categories,
-    allowedTiers,
     patch,
 }) {
     return (
@@ -1437,7 +1433,7 @@ function BasicsStep({
                 ) : null}
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-4">
                 {isEdit ? (
                     <div>
                         <label className={label} htmlFor="category_id">
@@ -1472,7 +1468,7 @@ function BasicsStep({
                     </div>
                 ) : null}
 
-                <div className={isEdit ? '' : 'sm:col-span-2'}>
+                <div>
                     <label className={label} htmlFor="subcategory">
                         Subcategory
                     </label>
@@ -1500,7 +1496,7 @@ function BasicsStep({
                 </div>
 
                 {categoryKey === 'properties' ? (
-                    <div className="sm:col-span-2">
+                    <div>
                         <label className={label} htmlFor="property_type">
                             Property type
                         </label>
@@ -1525,26 +1521,6 @@ function BasicsStep({
                                 {form.errors.property_type}
                             </p>
                         ) : null}
-                    </div>
-                ) : null}
-
-                {!isAdmin && allowedTiers.length > 1 ? (
-                    <div>
-                        <label className={label} htmlFor="tier">
-                            Plan
-                        </label>
-                        <select
-                            id="tier"
-                            className={field}
-                            value={form.data.tier}
-                            onChange={(e) => patch({ tier: e.target.value })}
-                        >
-                            {allowedTiers.map((t) => (
-                                <option key={t} value={t}>
-                                    {tierLabels[t] || t}
-                                </option>
-                            ))}
-                        </select>
                     </div>
                 ) : null}
             </div>
@@ -1606,10 +1582,10 @@ function ContactStep({ form, patch }) {
     return (
         <div className="space-y-5">
             <div>
-                <h3 className="font-display text-lg font-semibold text-olive-950">
+                <h3 className="font-display text-lg font-semibold text-olive-950 dark:text-white">
                     Contact & social
                 </h3>
-                <p className="mt-1 text-sm text-olive-600">
+                <p className="mt-1 text-sm text-olive-600 dark:text-olive-400">
                     How should people reach you?
                 </p>
             </div>
@@ -1636,13 +1612,13 @@ function ContactStep({ form, patch }) {
                 ))}
             </div>
 
-            <div className="space-y-3 rounded-2xl border border-olive-200 bg-olive-50/40 p-4 sm:p-5">
+            <div className="space-y-3 rounded-2xl border border-olive-200 bg-olive-50/40 p-4 sm:p-5 dark:border-olive-800 dark:bg-olive-950/50">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                        <h4 className="text-sm font-semibold text-olive-950">
+                        <h4 className="text-sm font-semibold text-olive-950 dark:text-olive-50">
                             More website links
                         </h4>
-                        <p className="mt-0.5 text-xs text-olive-500">
+                        <p className="mt-0.5 text-xs text-olive-500 dark:text-olive-400">
                             Booking pages, menus, online shops, Google Maps, or other
                             sites you want visitors to open.
                         </p>
@@ -1650,7 +1626,7 @@ function ContactStep({ form, patch }) {
                     <button
                         type="button"
                         onClick={addLink}
-                        className="inline-flex items-center gap-1.5 rounded-xl border border-olive-200 bg-white px-3 py-1.5 text-xs font-semibold text-olive-800 transition hover:border-mustard"
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-olive-200 bg-white px-3 py-1.5 text-xs font-semibold text-olive-800 transition hover:border-mustard dark:border-olive-700 dark:bg-olive-900 dark:text-olive-100 dark:hover:border-mustard"
                     >
                         <Plus className="h-3.5 w-3.5" />
                         Add link
@@ -1658,7 +1634,7 @@ function ContactStep({ form, patch }) {
                 </div>
 
                 {websiteLinks.length === 0 ? (
-                    <p className="text-sm text-olive-500">
+                    <p className="text-sm text-olive-500 dark:text-olive-400">
                         No extra links yet. Use Add link for booking, menu, or shop URLs.
                     </p>
                 ) : (
@@ -1666,7 +1642,7 @@ function ContactStep({ form, patch }) {
                         {websiteLinks.map((item, index) => (
                             <div
                                 key={index}
-                                className="grid gap-2 rounded-xl border border-olive-200 bg-white p-3 sm:grid-cols-[minmax(0,0.9fr)_minmax(0,1.4fr)_auto] sm:items-end"
+                                className="grid gap-2 rounded-xl border border-olive-200 bg-white p-3 sm:grid-cols-[minmax(0,0.9fr)_minmax(0,1.4fr)_auto] sm:items-end dark:border-olive-700 dark:bg-olive-900"
                             >
                                 <div>
                                     <label
@@ -1705,7 +1681,7 @@ function ContactStep({ form, patch }) {
                                 <button
                                     type="button"
                                     onClick={() => removeLink(index)}
-                                    className="inline-flex h-11 items-center justify-center rounded-xl border border-olive-200 px-3 text-olive-500 transition hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600"
+                                    className="inline-flex h-11 items-center justify-center rounded-xl border border-olive-200 px-3 text-olive-500 transition hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 dark:border-olive-700 dark:text-olive-400 dark:hover:border-rose-700 dark:hover:bg-rose-950/40 dark:hover:text-rose-400"
                                     aria-label={`Remove link ${index + 1}`}
                                 >
                                     <Trash2 className="h-4 w-4" />
@@ -1746,15 +1722,19 @@ function ContactStep({ form, patch }) {
 function CategoryPicker({ categories, selectedId, onPick, error }) {
     return (
         <div>
-            <p className="mb-2 text-sm text-olive-600">
+            <p className="mb-2 text-sm text-olive-600 dark:text-olive-400">
                 Choose a category — each one has its own fields tailored to that
                 listing type.
             </p>
-            <h2 className="mb-5 font-display text-xl font-semibold text-olive-950 sm:text-2xl">
+            <h2 className="mb-5 font-display text-xl font-semibold text-olive-950 dark:text-white sm:text-2xl">
                 What are you listing?
             </h2>
 
-            {error ? <p className="mb-4 text-sm text-rose-600">{error}</p> : null}
+            {error ? (
+                <p className="mb-4 text-sm text-rose-600 dark:text-rose-400">
+                    {error}
+                </p>
+            ) : null}
 
             <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
                 {categories.map((category) => {
@@ -1769,10 +1749,10 @@ function CategoryPicker({ categories, selectedId, onPick, error }) {
                             whileHover={{ y: -4 }}
                             whileTap={{ scale: 0.98 }}
                             onClick={() => onPick(category)}
-                            className={`group relative flex flex-col items-center gap-3 rounded-2xl bg-white px-3 py-6 text-center shadow-soft ring-1 transition sm:py-8 ${
+                            className={`group relative flex flex-col items-center gap-3 rounded-2xl bg-white px-3 py-6 text-center shadow-soft ring-1 transition dark:bg-olive-900 dark:shadow-none sm:py-8 ${
                                 selected
                                     ? 'ring-2 ring-mustard shadow-lift'
-                                    : 'ring-olive-200/60 hover:shadow-lift hover:ring-olive-300'
+                                    : 'ring-olive-200/60 hover:shadow-lift hover:ring-olive-300 dark:ring-olive-700 dark:hover:ring-olive-600'
                             }`}
                         >
                             {selected ? (
@@ -1783,10 +1763,10 @@ function CategoryPicker({ categories, selectedId, onPick, error }) {
                                     />
                                 </span>
                             ) : null}
-                            <span className="flex h-12 w-12 items-center justify-center text-olive-700 transition group-hover:text-olive-900">
+                            <span className="flex h-12 w-12 items-center justify-center text-olive-700 transition group-hover:text-olive-900 dark:text-olive-300 dark:group-hover:text-olive-100">
                                 <Icon className="h-8 w-8" strokeWidth={1.5} />
                             </span>
-                            <span className="font-display text-sm font-semibold text-earth-dusk sm:text-base">
+                            <span className="font-display text-sm font-semibold text-earth-dusk dark:text-olive-50 sm:text-base">
                                 {category.name}
                             </span>
                         </motion.button>
@@ -1797,7 +1777,7 @@ function CategoryPicker({ categories, selectedId, onPick, error }) {
             <div className="mt-6">
                 <Link
                     href={route('account.index')}
-                    className="inline-flex items-center gap-1 text-sm font-semibold text-olive-600 transition hover:text-olive-900"
+                    className="inline-flex items-center gap-1 text-sm font-semibold text-olive-600 transition hover:text-olive-900 dark:text-olive-400 dark:hover:text-olive-100"
                 >
                     <ChevronLeft className="h-4 w-4" />
                     Back to account

@@ -848,6 +848,11 @@ export function ActionMenu({ label = 'Actions', items = [] }) {
                             style={{ top: coords.top, right: coords.right }}
                             className="fixed z-50 min-w-[8.5rem] overflow-hidden rounded-lg border border-olive-200 bg-white py-1 shadow-lift dark:border-olive-700 dark:bg-olive-900"
                         >
+                            {label ? (
+                                <div className="border-b border-olive-100 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-olive-400 dark:border-olive-800 dark:text-olive-500">
+                                    {label}
+                                </div>
+                            ) : null}
                             {items.map((item) => {
                                 const close = () => setOpen(false);
                                 if (item.href) {

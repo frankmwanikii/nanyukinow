@@ -1,44 +1,78 @@
-import {
-    Bookmark,
-    Flag,
-    Globe,
-    Heart,
-    Share2,
-    ShieldCheck,
-} from 'lucide-react';
-import { useState } from 'react';
+import { Globe, Share2, ShieldCheck, Bookmark, Heart, Flag } from 'lucide-react';
+import { router, usePage } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
 import ShareListingModal from './ShareListingModal';
 import ClaimListingModal from './ClaimListingModal';
 import ReportListingModal from './ReportListingModal';
-
-function normalizeWebsiteUrl(url) {
-    if (!url || typeof url !== 'string') return null;
-    const trimmed = url.trim();
-    if (!trimmed) return null;
-    if (/^https?:\/\//i.test(trimmed)) return trimmed;
-    return `https://${trimmed}`;
-}
+import { listingVisitUrl } from '@/utils/listingVisit';
+import { toggleListingBookmark } from '@/utils/listingBookmark';
 
 export default function ListingActionBar({ listing }) {
-    const [saved, setSaved] = useState(false);
+    const { auth } = usePage().props;
+    const bookmarkedIds = auth?.user?.bookmarkedListingIds ?? [];
+    const bookmarkKey = Array.isArray(bookmarkedIds)
+        ? bookmarkedIds.map(Number).sort((a, b) => a - b).join(',')
+        : '';
+    const [saved, setSaved] = useState(() =>
+        bookmarkedIds.includes(Number(listing?.id)),
+    );
+    const [bookmarkBusy, setBookmarkBusy] = useState(false);
     const [shareOpen, setShareOpen] = useState(false);
     const [claimOpen, setClaimOpen] = useState(false);
     const [reportOpen, setReportOpen] = useState(false);
 
-    const website = normalizeWebsiteUrl(
-        listing?.website || listing?.socials?.website,
+    useEffect(() => {
+        const ids = bookmarkKey
+            ? bookmarkKey.split(',').map(Number)
+            : [];
+        setSaved(ids.includes(Number(listing?.id)));
+    }, [bookmarkKey, listing?.id]);
+
+    const hasWebsite = Boolean(
+        listing?.website ||
+            listing?.socials?.website ||
+            (listing?.websiteLinks || []).length,
     );
+    const visitHref =
+        hasWebsite && listing?.slug
+            ? listingVisitUrl(listing.slug)
+            : null;
 
     const claimStatus = listing?.claim_status || 'unclaimed';
     const canClaim = claimStatus === 'unclaimed';
 
+    const toggleBookmark = async () => {
+        if (bookmarkBusy || !listing?.slug) return;
+        if (!auth?.user) {
+            router.visit(route('login'));
+            return;
+        }
+
+        const next = !saved;
+        setSaved(next);
+        setBookmarkBusy(true);
+        try {
+            const data = await toggleListingBookmark(listing.slug, next);
+            if (typeof data.bookmarked === 'boolean') {
+                setSaved(data.bookmarked);
+            }
+        } catch (err) {
+            setSaved(!next);
+            if (err?.status === 401) {
+                router.visit(route('login'));
+            }
+        } finally {
+            setBookmarkBusy(false);
+        }
+    };
+
     const actions = [
-        website
+        visitHref
             ? {
                   id: 'website',
                   label: 'Website',
                   icon: Globe,
-                  href: website,
+                  href: visitHref,
               }
             : null,
         {
@@ -59,8 +93,9 @@ export default function ListingActionBar({ listing }) {
             id: 'bookmark',
             label: saved ? 'Saved' : 'Bookmark',
             icon: saved ? Heart : Bookmark,
-            onClick: () => setSaved((v) => !v),
+            onClick: toggleBookmark,
             active: saved,
+            disabled: bookmarkBusy,
         },
         {
             id: 'report',
@@ -71,7 +106,7 @@ export default function ListingActionBar({ listing }) {
     ].filter(Boolean);
 
     const actionClass = (active) =>
-        `inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-sm font-semibold transition ${
+        `inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-3.5 py-2 text-sm font-semibold transition ${
             active
                 ? 'bg-mustard/25 text-olive-950'
                 : 'text-olive-800 hover:bg-white/70'
@@ -80,48 +115,49 @@ export default function ListingActionBar({ listing }) {
     return (
         <>
             <div className="border-b border-olive-200/50 bg-earth-sand">
-                <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-center gap-2 px-4 py-2.5 sm:gap-2.5 sm:px-6 sm:py-3">
-                    {actions.map((action) => {
-                        const Icon = action.icon;
-                        const iconClass = `h-[1.15rem] w-[1.15rem] ${
-                            action.active
-                                ? 'fill-mustard text-mustard'
-                                : 'text-olive-700'
-                        }`;
+                <div className="overflow-x-auto overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    <div className="mx-auto flex w-max min-w-full max-w-[1400px] flex-nowrap items-center justify-start gap-1 px-4 py-2.5 sm:justify-center sm:gap-2.5 sm:px-6 sm:py-3">
+                        {actions.map((action) => {
+                            const Icon = action.icon;
+                            const iconClass = `h-[1.15rem] w-[1.15rem] ${
+                                action.active
+                                    ? 'fill-mustard text-mustard'
+                                    : 'text-olive-700'
+                            }`;
 
-                        if (action.href) {
+                            if (action.href) {
+                                return (
+                                    <a
+                                        key={action.id}
+                                        href={action.href}
+                                        className={actionClass(false)}
+                                    >
+                                        <Icon
+                                            className={iconClass}
+                                            strokeWidth={1.75}
+                                        />
+                                        {action.label}
+                                    </a>
+                                );
+                            }
+
                             return (
-                                <a
+                                <button
                                     key={action.id}
-                                    href={action.href}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className={actionClass(false)}
+                                    type="button"
+                                    onClick={action.onClick}
+                                    disabled={action.disabled}
+                                    className={`${actionClass(action.active)} disabled:opacity-60`}
                                 >
                                     <Icon
                                         className={iconClass}
                                         strokeWidth={1.75}
                                     />
                                     {action.label}
-                                </a>
+                                </button>
                             );
-                        }
-
-                        return (
-                            <button
-                                key={action.id}
-                                type="button"
-                                onClick={action.onClick}
-                                className={actionClass(action.active)}
-                            >
-                                <Icon
-                                    className={iconClass}
-                                    strokeWidth={1.75}
-                                />
-                                {action.label}
-                            </button>
-                        );
-                    })}
+                        })}
+                    </div>
                 </div>
             </div>
 

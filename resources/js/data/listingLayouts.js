@@ -1,6 +1,10 @@
 /**
  * Per-category section order for listing detail pages.
- * Omit a key (or leave detail data empty) and DetailSection collapses cleanly.
+ * Omit a key (or leave detail data empty) and the section collapses —
+ * live listings never invent placeholder content for empty fields.
+ *
+ * About is always first in `main` so it leads the Overview on every
+ * category (mobile and desktop).
  */
 
 /** Shared page tabs — Overview = full listing, Contact & Reviews are dedicated pages. */
@@ -22,19 +26,20 @@ export const categoryLayouts = {
     eatDrink: {
         subnav: listingPageTabs,
         main: [
+            'about',
             'visualTour',
             'video',
             'menus',
             'amenities',
             'chips',
-            'priceRange',
         ],
-        side: ['about', 'map', 'hours', 'payments'],
+        side: ['map', 'hours', 'payments'],
         ctaSecondary: 'View menu',
     },
     stay: {
         subnav: listingPageTabs,
         main: [
+            'about',
             'visualTour',
             'video',
             'facts',
@@ -42,12 +47,13 @@ export const categoryLayouts = {
             'houseRules',
             'chips',
         ],
-        side: ['about', 'map', 'hours', 'payments'],
+        side: ['map', 'hours', 'payments'],
         ctaSecondary: 'Check availability',
     },
     thingsToDo: {
         subnav: listingPageTabs,
         main: [
+            'about',
             'visualTour',
             'video',
             'facts',
@@ -56,12 +62,13 @@ export const categoryLayouts = {
             'amenities',
             'chips',
         ],
-        side: ['about', 'map', 'hours', 'payments'],
+        side: ['map', 'hours', 'payments'],
         ctaSecondary: 'Enquire',
     },
     services: {
         subnav: listingPageTabs,
         main: [
+            'about',
             'offerings',
             'facts',
             'credentials',
@@ -69,18 +76,19 @@ export const categoryLayouts = {
             'video',
             'chips',
         ],
-        side: ['about', 'map', 'hours', 'payments'],
+        side: ['map', 'hours', 'payments'],
         ctaSecondary: 'Request service',
     },
     shopping: {
         subnav: shoppingPageTabs,
-        main: ['visualTour', 'video', 'chips', 'amenities', 'brands'],
-        side: ['about', 'map', 'hours', 'payments'],
+        main: ['about', 'visualTour', 'video', 'chips', 'amenities', 'brands'],
+        side: ['map', 'hours', 'payments'],
         ctaSecondary: 'Call store',
     },
     properties: {
         subnav: listingPageTabs,
         main: [
+            'about',
             'visualTour',
             'video',
             'facts',
@@ -88,12 +96,13 @@ export const categoryLayouts = {
             'highlights',
             'chips',
         ],
-        side: ['about', 'agent', 'map', 'payments'],
+        side: ['agent', 'map', 'payments'],
         ctaSecondary: 'Contact agent',
     },
     events: {
         subnav: listingPageTabs,
         main: [
+            'about',
             'visualTour',
             'eventWhen',
             'eventWhere',
@@ -104,7 +113,7 @@ export const categoryLayouts = {
             'video',
             'chips',
         ],
-        side: ['about', 'map', 'eventSchedule', 'payments'],
+        side: ['map', 'eventSchedule', 'payments'],
         ctaSecondary: 'Get tickets',
     },
 };

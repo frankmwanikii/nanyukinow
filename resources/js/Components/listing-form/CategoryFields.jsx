@@ -5,8 +5,27 @@ import {
     categoryStepTitle,
 } from './categoryFieldConfig';
 import { field, help, label } from './fieldStyles';
+import RichTextEditor from './RichTextEditor';
 import { Plus, X } from 'lucide-react';
 import { useState } from 'react';
+
+/** Migrate legacy tag arrays into HTML the rich editor can open. */
+function richTextValue(value) {
+    if (typeof value === 'string') return value;
+    if (Array.isArray(value) && value.length) {
+        return `<ul>${value
+            .filter(Boolean)
+            .map(
+                (item) =>
+                    `<li>${String(item)
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')}</li>`,
+            )
+            .join('')}</ul>`;
+    }
+    return '';
+}
 
 function TagsInput({ value = [], onChange, placeholder }) {
     const [draft, setDraft] = useState('');
@@ -51,7 +70,7 @@ function TagsInput({ value = [], onChange, placeholder }) {
                     {value.map((item) => (
                         <span
                             key={item}
-                            className="inline-flex items-center gap-1 rounded-full bg-olive-100 px-3 py-1 text-xs font-semibold text-olive-900"
+                            className="inline-flex items-center gap-1 rounded-full bg-olive-100 px-3 py-1 text-xs font-semibold text-olive-900 dark:bg-olive-800 dark:text-olive-100"
                         >
                             {item}
                             <button
@@ -91,7 +110,7 @@ export default function CategoryFields({
     return (
         <div className="space-y-5">
             <div>
-                <h3 className="font-display text-lg font-semibold text-olive-950">
+                <h3 className="font-display text-lg font-semibold text-olive-950 dark:text-white">
                     {categoryStepTitle(categoryKey)}
                 </h3>
                 <p className={help}>
@@ -211,11 +230,25 @@ export default function CategoryFields({
                     <div
                         key={f.key}
                         className={
-                            f.type === 'tags' || f.key.includes('highlight')
+                            f.type === 'tags' ||
+                            f.type === 'richtext' ||
+                            f.key.includes('highlight')
                                 ? 'sm:col-span-2'
                                 : ''
                         }
                     >
+                        {f.type === 'richtext' ? (
+                            <RichTextEditor
+                                id={`detail_${f.key}`}
+                                label={f.label}
+                                value={richTextValue(details[f.key])}
+                                onChange={(html) => setDetail(f.key, html)}
+                                placeholder={f.placeholder}
+                                help={f.help}
+                                allowImages={false}
+                            />
+                        ) : (
+                            <>
                         <label className={label} htmlFor={`detail_${f.key}`}>
                             {f.label}
                             {f.required ? (
@@ -259,6 +292,8 @@ export default function CategoryFields({
                             />
                         )}
                         {f.help ? <p className={help}>{f.help}</p> : null}
+                            </>
+                        )}
                     </div>
                 ))}
             </div>

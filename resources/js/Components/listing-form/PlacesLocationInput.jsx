@@ -700,7 +700,7 @@ export default function PlacesLocationInput({
                         <ul
                             id="places_suggestions"
                             role="listbox"
-                            className="absolute left-0 right-0 top-full z-30 mt-1.5 max-h-64 overflow-auto rounded-2xl border border-olive-200 bg-white py-1.5 shadow-lift"
+                            className="absolute left-0 right-0 top-full z-30 mt-1.5 max-h-64 overflow-auto rounded-2xl border border-olive-200 bg-white py-1.5 shadow-lift dark:border-olive-700 dark:bg-olive-900"
                         >
                             {predictions.length ? (
                                 predictions.map((p, index) => (
@@ -713,8 +713,8 @@ export default function PlacesLocationInput({
                                             type="button"
                                             className={`flex w-full items-start gap-2.5 px-3.5 py-2.5 text-left transition ${
                                                 index === activeIndex
-                                                    ? 'bg-mustard/25'
-                                                    : 'hover:bg-olive-50'
+                                                    ? 'bg-mustard/25 dark:bg-mustard/15'
+                                                    : 'hover:bg-olive-50 dark:hover:bg-olive-800'
                                             }`}
                                             onMouseDown={(e) =>
                                                 e.preventDefault()
@@ -727,7 +727,7 @@ export default function PlacesLocationInput({
                                             <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-mustard-deep" />
                                             <span className="min-w-0 flex-1">
                                                 <span className="flex items-center gap-2">
-                                                    <span className="block text-sm font-semibold text-olive-950">
+                                                    <span className="block text-sm font-semibold text-olive-950 dark:text-olive-50">
                                                         {p.structured_formatting
                                                             ?.main_text ||
                                                             p.description}
@@ -740,7 +740,7 @@ export default function PlacesLocationInput({
                                                 </span>
                                                 {p.structured_formatting
                                                     ?.secondary_text ? (
-                                                    <span className="mt-0.5 block truncate text-xs text-olive-500">
+                                                    <span className="mt-0.5 block truncate text-xs text-olive-500 dark:text-olive-400">
                                                         {
                                                             p
                                                                 .structured_formatting
@@ -753,7 +753,7 @@ export default function PlacesLocationInput({
                                     </li>
                                 ))
                             ) : (
-                                <li className="px-3.5 py-3 text-sm text-olive-500">
+                                <li className="px-3.5 py-3 text-sm text-olive-500 dark:text-olive-400">
                                     No places found — try another search.
                                 </li>
                             )}
@@ -769,14 +769,14 @@ export default function PlacesLocationInput({
                 </p>
             </div>
 
-            <div className="relative z-0 overflow-hidden rounded-2xl border border-olive-200 bg-olive-100 shadow-soft">
+            <div className="relative z-0 overflow-hidden rounded-2xl border border-olive-200 bg-olive-100 shadow-soft dark:border-olive-800 dark:bg-olive-900">
                 <div
                     ref={mapElRef}
                     className="h-56 w-full sm:h-72"
                     role="img"
                     aria-label="Location map"
                 />
-                <div className="flex flex-wrap items-center justify-between gap-2 border-t border-olive-200 bg-white px-3 py-2 text-xs text-olive-600">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-t border-olive-200 bg-white px-3 py-2 text-xs text-olive-600 dark:border-olive-800 dark:bg-olive-950 dark:text-olive-400">
                     {status === 'loading' ? (
                         <span className="inline-flex items-center gap-2">
                             <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -790,14 +790,14 @@ export default function PlacesLocationInput({
                                     : `Search or click the map to drop a pin · ${isLeaflet ? 'OSM' : 'Google'}`}
                             </span>
                             {lat != null && lng != null ? (
-                                <span className="font-semibold tabular-nums text-olive-800">
+                                <span className="font-semibold tabular-nums text-olive-800 dark:text-olive-200">
                                     {Number(lat).toFixed(5)},{' '}
                                     {Number(lng).toFixed(5)}
                                 </span>
                             ) : null}
                         </>
                     ) : (
-                        <span className="text-rose-600">
+                        <span className="text-rose-600 dark:text-rose-400">
                             {mapNote || `${providerLabel} not configured`}
                         </span>
                     )}
@@ -823,8 +823,8 @@ export default function PlacesLocationInput({
                                 aria-pressed={active}
                                 className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-semibold transition ${
                                     active
-                                        ? 'border-olive-900 bg-olive-900 text-white'
-                                        : 'border-olive-200 bg-white text-olive-800 hover:border-mustard hover:bg-mustard/15'
+                                        ? 'border-olive-900 bg-olive-900 text-white dark:border-mustard dark:bg-mustard dark:text-earth-dusk'
+                                        : 'border-olive-200 bg-white text-olive-800 hover:border-mustard hover:bg-mustard/15 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-100 dark:hover:border-mustard dark:hover:bg-mustard/10'
                                 }`}
                             >
                                 {active ? (

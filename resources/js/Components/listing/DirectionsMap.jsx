@@ -122,6 +122,9 @@ export default function DirectionsMap({ listing }) {
 
     if (!listing) return null;
 
+    // Hide the whole Directions block until a pin (or usable address) exists.
+    if (!hasCoords && !listing.address) return null;
+
     const directionsUrl = directionsUrlFor(provider, {
         lat: hasCoords ? lat : null,
         lng: hasCoords ? lng : null,
@@ -131,18 +134,21 @@ export default function DirectionsMap({ listing }) {
     const showMap =
         hasCoords && (provider === 'leaflet' || Boolean(googleKey));
 
+    // Without coordinates, don't show an empty "Map unavailable" card.
+    if (!hasCoords) return null;
+
     return (
         <section
             id="contact"
-            className="relative z-0 overflow-hidden rounded-2xl bg-white shadow-soft isolate"
+            className="relative z-0 overflow-hidden rounded-xl border border-olive-200/70 bg-white isolate"
         >
-            <div className="px-5 pt-5 sm:px-6 sm:pt-6">
+            <div className="px-4 pt-4 sm:px-5 sm:pt-5">
                 <h2 className="font-display text-lg font-semibold text-earth-dusk sm:text-xl">
                     Directions
                 </h2>
             </div>
 
-            <div className="relative z-0 mt-4 overflow-hidden bg-olive-100">
+            <div className="relative z-0 mt-3 overflow-hidden bg-olive-100 sm:mt-4">
                 {showMap ? (
                     <div
                         ref={containerRef}
@@ -165,7 +171,7 @@ export default function DirectionsMap({ listing }) {
                 ) : null}
             </div>
 
-            <div className="space-y-3 px-5 py-4 sm:px-6 sm:py-5">
+            <div className="space-y-3 px-4 py-4 sm:px-5 sm:py-5">
                 <p className="flex items-start gap-2 text-sm font-medium text-olive-800">
                     <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-mustard" />
                     <span>{listing.address || listing.location}</span>

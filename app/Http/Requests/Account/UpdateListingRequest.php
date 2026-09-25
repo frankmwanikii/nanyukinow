@@ -27,7 +27,8 @@ class UpdateListingRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:160'],
             'category_id' => ['required', 'integer', 'exists:categories,id'],
-            'subcategory' => ['nullable', 'string', 'max:120'],
+            'subcategory' => ['nullable', 'array', 'max:20'],
+            'subcategory.*' => ['string', 'max:120'],
             'property_type' => ['nullable', 'string', 'max:80'],
             'location' => ['nullable', 'string', 'max:180'],
             'city' => ['nullable', 'string', 'max:120'],
@@ -86,7 +87,18 @@ class UpdateListingRequest extends FormRequest
             'social_links' => $this->decodeArrayField('social_links'),
             'details' => $this->decodeArrayField('details'),
             'gallery_urls' => $this->decodeArrayField('gallery_urls'),
+            'subcategory' => $this->decodeSubcategoryField(),
         ]);
+    }
+
+    /**
+     * @return list<string>|null
+     */
+    private function decodeSubcategoryField(): ?array
+    {
+        $normalized = \App\Support\ListingSubcategories::normalize($this->input('subcategory'));
+
+        return $normalized === [] ? null : $normalized;
     }
 
     /**

@@ -1,4 +1,4 @@
-import { Link, router } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import {
     BedDouble,
     Bookmark,
@@ -13,11 +13,12 @@ import {
     Star,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import ListingTierBadge from '@/Components/site/ListingTierBadge';
 import { explorePath } from '@/data/categories';
 import { listingHref } from '@/data/listings';
 import { eventDateRangeLabel } from '@/Components/listing/eventDates';
+import { toggleListingBookmark } from '@/utils/listingBookmark';
 
 const CATEGORY_ICONS = {
     eatDrink: Coffee,
@@ -29,6 +30,16 @@ const CATEGORY_ICONS = {
     events: CalendarDays,
 };
 
+function csrfToken() {
+    const raw = document.cookie
+        .split('; ')
+        .find((row) => row.startsWith('XSRF-TOKEN='))
+        ?.split('=')
+        .slice(1)
+        .join('=');
+    return raw ? decodeURIComponent(raw) : null;
+}
+
 export default function ListingCard({
     listing,
     featured = false,
@@ -37,11 +48,21 @@ export default function ListingCard({
     inert = false,
     footerTone = 'white',
 }) {
+    const { auth } = usePage().props;
+    const bookmarkedIds = auth?.user?.bookmarkedListingIds ?? [];
+    const bookmarkKey = Array.isArray(bookmarkedIds)
+        ? bookmarkedIds.map(Number).sort((a, b) => a - b).join(',')
+        : '';
     const [liked, setLiked] = useState(false);
-    const [bookmarked, setBookmarked] = useState(false);
-    const [likeCount, setLikeCount] = useState(() =>
-        Math.max(1, Math.round((listing.rating || 4) * 12) % 40 || 1),
+    const [bookmarked, setBookmarked] = useState(() =>
+        bookmarkedIds.includes(Number(listing.id)),
     );
+    const [bookmarkBusy, setBookmarkBusy] = useState(false);
+    const [likeCount, setLikeCount] = useState(
+        () => Number(listing.likesCount ?? listing.likes_count ?? 0) || 0,
+    );
+    const [likeBusy, setLikeBusy] = useState(false);
+    const rating = Number(listing.rating ?? 0) || 0;
     const href = listingHref(listing);
     const isEvent = listing.categoryKey === 'events';
     const cover = isEvent
@@ -50,8 +71,7 @@ export default function ListingCard({
     const dateLabel = isEvent
         ? eventDateRangeLabel(listing.startDate, listing.endDate)
         : null;
-    const CategoryIcon =
-        CATEGORY_ICONS[listing.categoryKey] || Home;
+    const CategoryIcon = CATEGORY_ICONS[listing.categoryKey] || Home;
     const categoryLabel =
         listing.categoryKey === 'properties' && listing.propertyType
             ? listing.propertyType
@@ -84,6 +104,80 @@ export default function ListingCard({
     const tier = listing.tier || 'free';
     const hasTierBadge = tier === 'premium' || tier === 'featured';
     const leftBadgeOffset = hasTierBadge ? 'left-14 sm:left-[3.75rem]' : 'left-3';
+
+    useEffect(() => {
+        const ids = bookmarkKey
+            ? bookmarkKey.split(',').map(Number)
+            : [];
+        setBookmarked(ids.includes(Number(listing.id)));
+    }, [bookmarkKey, listing.id]);
+
+    const toggleBookmark = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (bookmarkBusy || inert || !listing.slug) return;
+
+        if (!auth?.user) {
+            router.visit(route('login'));
+            return;
+        }
+
+        const next = !bookmarked;
+        setBookmarked(next);
+        setBookmarkBusy(true);
+        try {
+            const data = await toggleListingBookmark(listing.slug, next);
+            if (typeof data.bookmarked === 'boolean') {
+                setBookmarked(data.bookmarked);
+            }
+        } catch (err) {
+            setBookmarked(!next);
+            if (err?.status === 401) {
+                router.visit(route('login'));
+            }
+        } finally {
+            setBookmarkBusy(false);
+        }
+    };
+
+    const toggleLike = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (likeBusy || inert || !listing.slug) return;
+
+        const nextLiked = !liked;
+        setLiked(nextLiked);
+        setLikeCount((n) => Math.max(0, n + (nextLiked ? 1 : -1)));
+        setLikeBusy(true);
+
+        try {
+            const token = csrfToken();
+            const response = await fetch(route('listings.like', listing.slug), {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    ...(token ? { 'X-XSRF-TOKEN': token } : {}),
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({ liked: nextLiked }),
+            });
+            if (!response.ok) throw new Error('Like failed');
+            const data = await response.json();
+            if (typeof data.likesCount === 'number') {
+                setLikeCount(data.likesCount);
+            }
+            if (typeof data.liked === 'boolean') {
+                setLiked(data.liked);
+            }
+        } catch {
+            setLiked(!nextLiked);
+            setLikeCount((n) => Math.max(0, n + (nextLiked ? -1 : 1)));
+        } finally {
+            setLikeBusy(false);
+        }
+    };
 
     return (
         <motion.article
@@ -120,14 +214,6 @@ export default function ListingCard({
                             className="absolute left-3 top-3 z-[1] drop-shadow-sm"
                         />
                     ) : null}
-                    {listing.categoryKey === 'properties' &&
-                    listing.propertyType ? (
-                        <span
-                            className={`absolute top-3 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-olive-900 shadow-sm ${leftBadgeOffset}`}
-                        >
-                            {listing.propertyType}
-                        </span>
-                    ) : null}
                     {isEvent && dateLabel ? (
                         <span
                             className={`absolute top-3 inline-flex max-w-[70%] items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-bold text-olive-900 shadow-sm ${leftBadgeOffset}`}
@@ -138,22 +224,10 @@ export default function ListingCard({
                             </span>
                         </span>
                     ) : null}
-                    {!isEvent &&
-                    listing.subcategory &&
-                    listing.categoryKey !== 'properties' ? (
-                        <span
-                            className={`absolute top-3 max-w-[55%] truncate rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-olive-900 shadow-sm ${leftBadgeOffset}`}
-                        >
-                            {listing.subcategory}
-                        </span>
-                    ) : null}
                     {priceLabel ? (
                         <span
                             className={`absolute top-3 max-w-[40%] truncate rounded-full bg-mustard px-2.5 py-1 text-[11px] font-bold text-earth-dusk shadow-sm ${
-                                isEvent ||
-                                listing.propertyType ||
-                                (listing.subcategory &&
-                                    listing.categoryKey !== 'properties')
+                                isEvent && dateLabel
                                     ? 'right-14'
                                     : leftBadgeOffset
                             }`}
@@ -164,15 +238,9 @@ export default function ListingCard({
 
                     <button
                         type="button"
-                        onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            setLiked((v) => {
-                                setLikeCount((n) => (v ? n - 1 : n + 1));
-                                return !v;
-                            });
-                        }}
-                        className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-olive-800 shadow-sm backdrop-blur transition hover:bg-white"
+                        disabled={likeBusy || inert || !listing.slug}
+                        onClick={toggleLike}
+                        className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-olive-800 shadow-sm backdrop-blur transition hover:bg-white disabled:opacity-60"
                         aria-label={liked ? 'Unlike listing' : 'Like listing'}
                     >
                         <Heart
@@ -247,23 +315,18 @@ export default function ListingCard({
                     <div
                         className={`flex shrink-0 items-center gap-3 ${footerText}`}
                     >
-                        {listing.rating ? (
-                            <span
-                                className={`inline-flex items-center gap-1 text-sm font-medium ${footerText}`}
-                                title="Rating"
-                            >
-                                <Star className="h-4 w-4 fill-mustard text-mustard" />
-                                {listing.rating}
-                            </span>
-                        ) : null}
+                        <span
+                            className={`inline-flex items-center gap-1 text-sm font-medium ${footerText}`}
+                            title="Rating"
+                        >
+                            <Star className="h-4 w-4 fill-mustard text-mustard" />
+                            {rating > 0 ? rating.toFixed(1) : '0'}
+                        </span>
                         <button
                             type="button"
-                            onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                setBookmarked((v) => !v);
-                            }}
-                            className={`inline-flex items-center justify-center transition hover:opacity-70 ${footerText}`}
+                            disabled={bookmarkBusy || inert || !listing.slug}
+                            onClick={toggleBookmark}
+                            className={`inline-flex items-center justify-center transition hover:opacity-70 disabled:opacity-60 ${footerText}`}
                             title="Bookmark"
                             aria-label={
                                 bookmarked
@@ -276,16 +339,23 @@ export default function ListingCard({
                                 strokeWidth={1.75}
                             />
                         </button>
-                        <span
-                            className={`inline-flex items-center gap-1 text-sm font-medium ${footerText}`}
+                        <button
+                            type="button"
+                            disabled={likeBusy || inert || !listing.slug}
+                            onClick={toggleLike}
+                            className={`inline-flex items-center gap-1 text-sm font-medium transition hover:opacity-70 disabled:opacity-60 ${footerText}`}
                             title="Likes"
-                            aria-label={`${likeCount} likes`}
+                            aria-label={
+                                liked
+                                    ? `Unlike listing, ${likeCount} likes`
+                                    : `Like listing, ${likeCount} likes`
+                            }
                         >
                             <Heart
                                 className={`h-4 w-4 ${liked ? 'fill-mustard text-mustard' : ''}`}
                             />
                             {likeCount}
-                        </span>
+                        </button>
                     </div>
                 </div>
             </Link>

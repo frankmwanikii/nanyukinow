@@ -5,9 +5,9 @@ import { useState } from 'react';
 
 function Section({ title, blurb, children }) {
     return (
-        <div className="space-y-3 rounded-2xl border border-olive-200 bg-white p-4 sm:p-5">
+        <div className="space-y-3 rounded-2xl border border-olive-200 bg-white p-4 sm:p-5 dark:border-olive-800 dark:bg-olive-950/60">
             <div>
-                <h3 className="font-display text-base font-semibold text-olive-950 sm:text-lg">
+                <h3 className="font-display text-base font-semibold text-olive-950 dark:text-white sm:text-lg">
                     {title}
                 </h3>
                 {blurb ? <p className={help}>{blurb}</p> : null}
@@ -41,7 +41,7 @@ function ImagePickButton({ image, onPick, onClear }) {
                     className="h-14 w-14 rounded-xl object-cover ring-1 ring-olive-200"
                 />
             ) : (
-                <span className="flex h-14 w-14 items-center justify-center rounded-xl bg-olive-50 text-olive-400 ring-1 ring-olive-200">
+                <span className="flex h-14 w-14 items-center justify-center rounded-xl bg-olive-50 text-olive-400 ring-1 ring-olive-200 dark:bg-olive-900 dark:text-olive-500 dark:ring-olive-700">
                     <ImagePlus className="h-5 w-5" />
                 </span>
             )}
@@ -49,7 +49,7 @@ function ImagePickButton({ image, onPick, onClear }) {
                 <button
                     type="button"
                     onClick={onPick}
-                    className="rounded-xl border border-olive-200 bg-white px-3 py-1.5 text-xs font-semibold text-olive-800 hover:border-mustard"
+                    className="rounded-xl border border-olive-200 bg-white px-3 py-1.5 text-xs font-semibold text-olive-800 hover:border-mustard dark:border-olive-700 dark:bg-olive-900 dark:text-olive-100 dark:hover:border-mustard"
                 >
                     {image ? 'Replace image' : 'Add image'}
                 </button>
@@ -57,7 +57,7 @@ function ImagePickButton({ image, onPick, onClear }) {
                     <button
                         type="button"
                         onClick={onClear}
-                        className="rounded-xl px-3 py-1.5 text-xs font-semibold text-olive-500 hover:text-rose-700"
+                        className="rounded-xl px-3 py-1.5 text-xs font-semibold text-olive-500 hover:text-rose-700 dark:text-olive-400 dark:hover:text-rose-400"
                     >
                         Clear
                     </button>

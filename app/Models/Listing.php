@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use App\Casts\SubcategoryList;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Listing extends Model
@@ -42,6 +44,7 @@ class Listing extends Model
         'tier',
         'priority',
         'views_count',
+        'likes_count',
         'price_range',
         'gallery',
         'hours',
@@ -64,11 +67,13 @@ class Listing extends Model
             'longitude' => 'float',
             'priority' => 'integer',
             'views_count' => 'integer',
+            'likes_count' => 'integer',
             'gallery' => 'array',
             'hours' => 'array',
             'amenities' => 'array',
             'social_links' => 'array',
             'details' => 'array',
+            'subcategory' => SubcategoryList::class,
             'start_at' => 'datetime',
             'end_at' => 'datetime',
             'expires_at' => 'datetime',
@@ -92,6 +97,12 @@ class Listing extends Model
     public function claims(): HasMany
     {
         return $this->hasMany(ListingClaim::class);
+    }
+
+    public function bookmarkedByUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'listing_bookmarks')
+            ->withTimestamps();
     }
 
     public function scopePublished(Builder $query): Builder

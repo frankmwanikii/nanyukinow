@@ -10,21 +10,33 @@ export default function AboutBlock({
     title = 'About',
     sectionId = 'overview',
 }) {
-    if (!about && !(docs && docs.length)) return null;
+    const aboutText = (() => {
+        if (!about) return null;
+        const raw = String(about).trim();
+        if (!raw) return null;
+        const stripped = raw
+            .replace(/<br\s*\/?>/gi, '')
+            .replace(/&nbsp;/gi, ' ')
+            .replace(/<[^>]+>/g, '')
+            .trim();
+        return stripped ? raw : null;
+    })();
 
-    const isHtml = about && looksLikeHtml(about);
+    if (!aboutText && !(docs && docs.length)) return null;
+
+    const isHtml = aboutText && looksLikeHtml(aboutText);
 
     return (
         <DetailSection id={sectionId || undefined} title={title}>
-            {about ? (
+            {aboutText ? (
                 isHtml ? (
                     <div
                         className="nn-editor text-sm leading-relaxed text-olive-800 sm:text-[0.95rem] sm:leading-7"
-                        dangerouslySetInnerHTML={{ __html: about }}
+                        dangerouslySetInnerHTML={{ __html: aboutText }}
                     />
                 ) : (
                     <div className="space-y-3 text-sm leading-relaxed text-olive-800 sm:text-[0.95rem] sm:leading-7">
-                        {String(about)
+                        {String(aboutText)
                             .split(/\n\s*\n/)
                             .map((para) => para.trim())
                             .filter(Boolean)
@@ -35,7 +47,7 @@ export default function AboutBlock({
                 )
             ) : null}
             {docs?.length ? (
-                <div className={`${about ? 'mt-4' : ''} grid grid-cols-2 gap-3`}>
+                <div className={`${aboutText ? 'mt-4' : ''} grid grid-cols-2 gap-3`}>
                     {docs.map((doc) => (
                         <figure
                             key={doc.title}

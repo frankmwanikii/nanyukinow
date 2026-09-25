@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Account\BillingController as AccountBillingController;
+use App\Http\Controllers\Account\BookmarkController as AccountBookmarkController;
 use App\Http\Controllers\Account\DashboardController as AccountDashboardController;
 use App\Http\Controllers\Account\ListingController as AccountListingController;
 use App\Http\Controllers\Account\UpgradeController as AccountUpgradeController;
@@ -35,6 +36,14 @@ Route::get('/stories/{slug}', function (string $slug) {
 })->name('stories.show');
 
 Route::get('/listings/{slug}', [ListingController::class, 'show'])->name('listings.show');
+Route::get('/listings/{slug}/visit', [ListingController::class, 'visit'])
+    ->name('listings.visit');
+Route::post('/listings/{listing:slug}/like', [ListingController::class, 'like'])
+    ->middleware('throttle:30,1')
+    ->name('listings.like');
+Route::post('/listings/{listing:slug}/bookmark', [ListingController::class, 'bookmark'])
+    ->middleware(['auth', 'throttle:30,1'])
+    ->name('listings.bookmark');
 Route::post('/listings/{listing:slug}/contact', [\App\Http\Controllers\ListingContactController::class, 'store'])
     ->middleware('throttle:10,1')
     ->name('listings.contact');
@@ -60,6 +69,7 @@ Route::middleware('auth')->group(function () {
     })->name('dashboard');
 
     Route::get('/account', AccountDashboardController::class)->name('account.index');
+    Route::get('/account/bookmarks', AccountBookmarkController::class)->name('account.bookmarks');
 
     Route::get('/account/listings/create', [AccountListingController::class, 'create'])->name('account.listings.create');
     Route::post('/account/listings', [AccountListingController::class, 'store'])->name('account.listings.store');

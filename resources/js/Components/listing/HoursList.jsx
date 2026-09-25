@@ -76,7 +76,9 @@ function todayHoursLabel(row) {
     if (!row) return 'Hours not listed for today';
 
     const closed =
-        !row.close || String(row.open).toLowerCase() === 'closed';
+        row.closed === true ||
+        !row.close ||
+        String(row.open).toLowerCase() === 'closed';
     if (closed) return 'Closed today';
 
     const open = formatTime12(row.open);
@@ -98,7 +100,11 @@ function toMinutes(parsed) {
  */
 function isOpenNow(row, date) {
     if (!row) return false;
-    if (!row.close || String(row.open).toLowerCase() === 'closed') {
+    if (
+        row.closed === true ||
+        !row.close ||
+        String(row.open).toLowerCase() === 'closed'
+    ) {
         return false;
     }
 
@@ -168,6 +174,7 @@ export default function HoursList({ hours, title = 'Working hours' }) {
             <ul className="divide-y divide-olive-100">
                 {hours.map((row) => {
                     const closed =
+                        row.closed === true ||
                         !row.close ||
                         String(row.open).toLowerCase() === 'closed';
                     const isToday =

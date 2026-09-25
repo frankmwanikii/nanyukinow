@@ -43,7 +43,8 @@ class ListingPayload
                 ->values()
                 ->all(),
             'details' => $details,
-            'rating' => $listing->rating !== null ? (float) $listing->rating : null,
+            'rating' => $listing->rating !== null ? (float) $listing->rating : 0,
+            'likesCount' => (int) ($listing->likes_count ?? 0),
             'category' => $category?->name,
             'categoryKey' => $categoryKey,
             'subcategory' => $listing->subcategory,

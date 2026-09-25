@@ -25,13 +25,13 @@ export default function VideoFields({
     );
 
     return (
-        <div className="space-y-4 rounded-2xl border border-olive-200 bg-white p-4 sm:p-5">
+        <div className="space-y-4 rounded-2xl border border-olive-200 bg-white p-4 sm:p-5 dark:border-olive-800 dark:bg-olive-950/60">
             <div className="flex items-start gap-3">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-mustard/25 text-olive-900">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-mustard/25 text-olive-900 dark:bg-mustard/15 dark:text-mustard">
                     <Film className="h-5 w-5" />
                 </span>
                 <div>
-                    <h3 className="font-display text-lg font-semibold text-olive-950">
+                    <h3 className="font-display text-lg font-semibold text-olive-950 dark:text-white">
                         Video
                     </h3>
                     <p className={help}>
@@ -88,10 +88,10 @@ export default function VideoFields({
 
             {url.trim() && valid && playback.url ? (
                 <div>
-                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-olive-500">
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-olive-500 dark:text-olive-400">
                         Preview
                     </p>
-                    <div className="overflow-hidden rounded-xl bg-earth-dusk ring-1 ring-olive-200">
+                    <div className="overflow-hidden rounded-xl bg-earth-dusk ring-1 ring-olive-200 dark:ring-olive-700">
                         {playback.kind === 'iframe' ? (
                             <iframe
                                 src={playback.url}

@@ -32,10 +32,19 @@ export default function ListingShow({
     const layout = listing
         ? getLayoutForCategory(listing.categoryKey)
         : null;
+    const subnav = useMemo(() => {
+        const items = layout?.subnav || [];
+        const hasProducts =
+            Array.isArray(listing?.products) &&
+            listing.products.some(
+                (p) => p?.name || p?.title || typeof p === 'string',
+            );
+        return items.filter((t) => (t.id === 'products' ? hasProducts : true));
+    }, [layout, listing]);
     const allowedTabs = useMemo(() => {
-        const ids = (layout?.subnav || []).map((t) => t.id);
+        const ids = subnav.map((t) => t.id);
         return new Set(ids.length ? ids : ['overview', 'contact', 'reviews']);
-    }, [layout]);
+    }, [subnav]);
 
     const [tab, setTab] = useState(() => readTabFromHash(allowedTabs));
 
@@ -96,7 +105,7 @@ export default function ListingShow({
                 secondaryCta={layout.ctaSecondary}
             />
             <ListingSubnav
-                items={layout.subnav}
+                items={subnav}
                 active={tab}
                 onChange={changeTab}
             />
@@ -105,12 +114,12 @@ export default function ListingShow({
             <div className="bg-earth-sand pb-8 pt-4 sm:pt-6 lg:pb-14">
                 {tab === 'overview' ? (
                     <div className="mx-auto grid max-w-[1400px] gap-4 px-4 sm:px-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(280px,1fr)] lg:items-start lg:gap-5">
-                        <div className="flex flex-col gap-4">
+                        <div className="flex min-w-0 flex-col gap-4">
                             {layout.main.map((key) =>
                                 renderListingSection(key, listing),
                             )}
                         </div>
-                        <aside className="flex flex-col gap-4 lg:sticky lg:top-36">
+                        <aside className="flex min-w-0 flex-col gap-4 lg:sticky lg:top-36">
                             {layout.side.map((key) =>
                                 renderListingSection(key, listing),
                             )}

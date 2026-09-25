@@ -58,6 +58,18 @@ class HandleInertiaRequests extends Middleware
                         'plan' => $request->user()->effectivePlan(),
                         'plan_label' => Membership::label($request->user()->effectivePlan()),
                         'listings_remaining' => Membership::remainingSlots($request->user()),
+                        'bookmarkedListingIds' => (function () use ($request) {
+                            try {
+                                return $request->user()
+                                    ->bookmarkedListings()
+                                    ->pluck('listings.id')
+                                    ->map(fn ($id) => (int) $id)
+                                    ->values()
+                                    ->all();
+                            } catch (Throwable) {
+                                return [];
+                            }
+                        })(),
                     ]
                     : null,
             ],

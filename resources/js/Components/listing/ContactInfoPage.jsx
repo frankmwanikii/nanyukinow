@@ -8,6 +8,7 @@ import EventSchedule from './EventSchedule';
 import AgentCard from './AgentCard';
 import WaysToPay from './WaysToPay';
 import RecaptchaField from './RecaptchaField';
+import { listingVisitUrl } from '@/utils/listingVisit';
 
 const MAX_FILES = 5;
 const MAX_BYTES = 8 * 1024 * 1024;
@@ -543,13 +544,10 @@ export default function ContactInfoPage({ listing }) {
                                 <div className="flex flex-wrap gap-2">
                                     {listing.website ? (
                                         <a
-                                            href={
-                                                /^https?:\/\//i.test(listing.website)
-                                                    ? listing.website
-                                                    : `https://${listing.website}`
-                                            }
-                                            target="_blank"
-                                            rel="noreferrer"
+                                            href={listingVisitUrl(
+                                                listing.slug,
+                                                listing.website,
+                                            )}
                                             className="inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-2 text-sm font-semibold text-olive-800 ring-1 ring-olive-200 transition hover:bg-olive-700 hover:text-white hover:ring-olive-700"
                                         >
                                             <Globe className="h-4 w-4" />
@@ -559,13 +557,10 @@ export default function ContactInfoPage({ listing }) {
                                     {(listing.websiteLinks || []).map((item) => (
                                         <a
                                             key={`${item.label}-${item.url}`}
-                                            href={
-                                                /^https?:\/\//i.test(item.url)
-                                                    ? item.url
-                                                    : `https://${item.url}`
-                                            }
-                                            target="_blank"
-                                            rel="noreferrer"
+                                            href={listingVisitUrl(
+                                                listing.slug,
+                                                item.url,
+                                            )}
                                             className="inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-2 text-sm font-semibold text-olive-800 ring-1 ring-olive-200 transition hover:bg-olive-700 hover:text-white hover:ring-olive-700"
                                         >
                                             <Globe className="h-4 w-4" />

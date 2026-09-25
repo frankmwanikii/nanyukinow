@@ -34,11 +34,15 @@ function stripHtml(html) {
 function Row({ label, value }) {
     const empty = !hasValue(value) && value !== 0;
     return (
-        <div className="grid gap-1 border-b border-olive-100 py-3.5 last:border-b-0 sm:grid-cols-[11rem_minmax(0,1fr)] sm:gap-4">
-            <dt className="text-sm font-medium text-olive-500">{label}</dt>
+        <div className="grid gap-1 border-b border-olive-100 py-3.5 last:border-b-0 dark:border-olive-800 sm:grid-cols-[11rem_minmax(0,1fr)] sm:gap-4">
+            <dt className="text-sm font-medium text-olive-500 dark:text-olive-400">
+                {label}
+            </dt>
             <dd
                 className={`min-w-0 break-words text-sm ${
-                    empty ? 'text-olive-400' : 'font-medium text-olive-950'
+                    empty
+                        ? 'text-olive-400 dark:text-olive-600'
+                        : 'font-medium text-olive-950 dark:text-olive-50'
                 }`}
             >
                 {empty ? '—' : value}
@@ -177,19 +181,19 @@ export default function ListingPreview({
     return (
         <div className="space-y-4">
             <div>
-                <h3 className="font-display text-xl font-semibold text-olive-950">
+                <h3 className="font-display text-xl font-semibold text-olive-950 dark:text-white">
                     Preview
                 </h3>
-                <p className="mt-1 text-sm text-olive-600">
+                <p className="mt-1 text-sm text-olive-600 dark:text-olive-400">
                     Pick a section to verify its fields. Edit jumps you back to
                     that step.
                 </p>
             </div>
 
-            <div className="overflow-hidden rounded-2xl border border-olive-200 bg-white shadow-soft lg:grid lg:grid-cols-[13.5rem_minmax(0,1fr)]">
+            <div className="overflow-hidden rounded-2xl border border-olive-200 bg-white shadow-soft dark:border-olive-800 dark:bg-olive-900 dark:shadow-none lg:grid lg:grid-cols-[13.5rem_minmax(0,1fr)]">
                 <nav
                     aria-label="Preview sections"
-                    className="border-b border-olive-100 bg-olive-50/60 lg:border-b-0 lg:border-r lg:border-olive-100"
+                    className="border-b border-olive-100 bg-olive-50/60 dark:border-olive-800 dark:bg-olive-950/60 lg:border-b-0 lg:border-r lg:border-olive-100 dark:lg:border-olive-800"
                 >
                     <ul className="flex gap-1 overflow-x-auto p-2 lg:block lg:space-y-0.5 lg:overflow-visible lg:p-3">
                         {sections.map(({ id, label, Icon }) => {
@@ -201,15 +205,15 @@ export default function ListingPreview({
                                         onClick={() => setSection(id)}
                                         className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition ${
                                             isActive
-                                                ? 'bg-olive-900 text-white shadow-soft'
-                                                : 'text-olive-700 hover:bg-white hover:text-olive-950'
+                                                ? 'bg-olive-900 text-white shadow-soft dark:bg-mustard dark:text-earth-dusk'
+                                                : 'text-olive-700 hover:bg-white hover:text-olive-950 dark:text-olive-300 dark:hover:bg-olive-800 dark:hover:text-olive-50'
                                         }`}
                                     >
                                         <Icon
                                             className={`h-4 w-4 shrink-0 ${
                                                 isActive
-                                                    ? 'text-mustard'
-                                                    : 'text-olive-500'
+                                                    ? 'text-mustard dark:text-earth-dusk'
+                                                    : 'text-olive-500 dark:text-olive-400'
                                             }`}
                                         />
                                         <span className="truncate">{label}</span>
@@ -221,15 +225,15 @@ export default function ListingPreview({
                 </nav>
 
                 <div className="min-w-0 p-4 sm:p-5">
-                    <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-olive-100 pb-3">
-                        <h4 className="text-base font-semibold text-olive-950">
+                    <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-olive-100 pb-3 dark:border-olive-800">
+                        <h4 className="text-base font-semibold text-olive-950 dark:text-olive-50">
                             {active.label}
                         </h4>
                         {active.step && onEditStep ? (
                             <button
                                 type="button"
                                 onClick={goEdit}
-                                className="inline-flex items-center gap-1.5 rounded-lg border border-olive-200 bg-white px-3 py-1.5 text-xs font-semibold text-olive-800 transition hover:border-mustard/50 hover:bg-mustard/10"
+                                className="inline-flex items-center gap-1.5 rounded-lg border border-olive-200 bg-white px-3 py-1.5 text-xs font-semibold text-olive-800 transition hover:border-mustard/50 hover:bg-mustard/10 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-100 dark:hover:border-mustard/50 dark:hover:bg-mustard/10"
                             >
                                 <Pencil className="h-3 w-3" />
                                 Edit this section
@@ -312,6 +316,29 @@ export default function ListingPreview({
                                                                 </li>
                                                             ))}
                                                     </ul>
+                                                ) : null
+                                            }
+                                        />
+                                    );
+                                }
+                                if (
+                                    field.type === 'richtext' ||
+                                    (typeof raw === 'string' &&
+                                        /<[a-z][\s\S]*>/i.test(raw))
+                                ) {
+                                    const text = stripHtml(raw);
+                                    return (
+                                        <Row
+                                            key={field.key}
+                                            label={field.label}
+                                            value={
+                                                text ? (
+                                                    <div
+                                                        className="nn-editor text-olive-800 dark:text-olive-100"
+                                                        dangerouslySetInnerHTML={{
+                                                            __html: raw,
+                                                        }}
+                                                    />
                                                 ) : null
                                             }
                                         />

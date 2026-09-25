@@ -73,14 +73,26 @@ export function renderListingSection(key, listing) {
                     }
                 />
             );
-        case 'houseRules':
+        case 'houseRules': {
+            const rules = listing.houseRules;
+            if (typeof rules === 'string') {
+                return (
+                    <AboutBlock
+                        key={key}
+                        about={rules}
+                        title="House rules"
+                        sectionId={null}
+                    />
+                );
+            }
             return (
                 <BulletList
                     key={key}
                     title="House rules"
-                    items={listing.houseRules}
+                    items={rules}
                 />
             );
+        }
         case 'included':
             return (
                 <BulletList
@@ -134,17 +146,12 @@ export function renderListingSection(key, listing) {
                 <ChipRow
                     key={key}
                     chips={listing.chips}
-                    priceRangeLabel={null}
+                    priceRangeLabel={listing.priceRangeLabel}
                 />
             );
         case 'priceRange':
-            return listing.priceRangeLabel ? (
-                <ChipRow
-                    key={key}
-                    chips={null}
-                    priceRangeLabel={listing.priceRangeLabel}
-                />
-            ) : null;
+            // Merged into the chips Details card to avoid duplicate cards.
+            return null;
         case 'menus':
             return (
                 <MenuGallery

@@ -104,9 +104,9 @@ export const CATEGORY_DETAIL_FIELDS = {
         {
             key: 'house_rules',
             label: 'House rules',
-            type: 'tags',
-            placeholder: 'Add a rule and press Enter',
-            help: 'e.g. No parties, No smoking',
+            type: 'richtext',
+            placeholder: 'Quiet hours, pets, smoking, check-in notes…',
+            help: 'Shown on the listing page. Use lists for clear rules.',
         },
     ],
     thingsToDo: [
@@ -328,7 +328,8 @@ export function emptyDetailsFor(categoryKey) {
     };
 
     fields.forEach((f) => {
-        details[f.key] = f.type === 'tags' ? [] : '';
+        details[f.key] =
+            f.type === 'tags' ? [] : f.type === 'richtext' ? '' : '';
     });
 
     if (categoryKey === 'stay') {

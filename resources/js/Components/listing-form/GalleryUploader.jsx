@@ -190,13 +190,13 @@ function CoverLogoStage({
                                 onClick={onBrowseCover}
                                 className="absolute inset-0 flex flex-col items-center justify-center gap-2.5 px-6 text-center transition hover:bg-mustard/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-mustard"
                             >
-                                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-olive-100">
-                                    <Upload className="h-5 w-5 text-olive-700" />
+                                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-olive-100 dark:bg-olive-900 dark:ring-olive-700">
+                                    <Upload className="h-5 w-5 text-olive-700 dark:text-olive-300" />
                                 </span>
-                                <span className="text-sm font-semibold text-olive-900">
+                                <span className="text-sm font-semibold text-olive-900 dark:text-olive-100">
                                     Add cover photo
                                 </span>
-                                <span className="max-w-xs text-xs text-olive-500">
+                                <span className="max-w-xs text-xs text-olive-500 dark:text-olive-400">
                                     Drag & drop or click · JPG, PNG, WebP
                                 </span>
                             </button>
@@ -220,13 +220,13 @@ function CoverLogoStage({
                     onFiles={onFileLogo}
                     className="mx-auto w-full max-w-[16rem] lg:mx-0 lg:max-w-none"
                 >
-                    <div className="group relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl bg-olive-50/80 p-5 ring-1 ring-olive-200/80 sm:p-6">
+                    <div className="group relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl bg-olive-50/80 p-5 ring-1 ring-olive-200/80 dark:bg-olive-950/80 dark:ring-olive-700 sm:p-6">
                         {logoPreview ? (
                             <>
                                 <button
                                     type="button"
                                     onClick={onViewLogo}
-                                    className="relative h-full w-full max-h-[14rem] max-w-[14rem] cursor-zoom-in overflow-hidden rounded-full bg-white shadow-lift ring-4 ring-white focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard focus-visible:ring-offset-2"
+                                    className="relative h-full w-full max-h-[14rem] max-w-[14rem] cursor-zoom-in overflow-hidden rounded-full bg-white shadow-lift ring-4 ring-white focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard focus-visible:ring-offset-2 dark:bg-olive-900 dark:ring-olive-800 dark:focus-visible:ring-offset-olive-950"
                                     aria-label="View logo full size"
                                 >
                                     <img
@@ -247,13 +247,13 @@ function CoverLogoStage({
                             <button
                                 type="button"
                                 onClick={onBrowseLogo}
-                                className="flex h-full w-full max-h-[14rem] max-w-[14rem] flex-col items-center justify-center gap-2 rounded-full border-2 border-dashed border-olive-300 bg-white text-olive-600 transition hover:border-mustard hover:bg-mustard/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard"
+                                className="flex h-full w-full max-h-[14rem] max-w-[14rem] flex-col items-center justify-center gap-2 rounded-full border-2 border-dashed border-olive-300 bg-white text-olive-600 transition hover:border-mustard hover:bg-mustard/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard dark:border-olive-700 dark:bg-olive-950 dark:text-olive-400 dark:hover:border-mustard dark:hover:bg-mustard/10"
                             >
                                 <ImagePlus className="h-6 w-6" />
-                                <span className="text-sm font-semibold text-olive-900">
+                                <span className="text-sm font-semibold text-olive-900 dark:text-olive-100">
                                     Add logo
                                 </span>
-                                <span className="px-4 text-center text-[11px] text-olive-500">
+                                <span className="px-4 text-center text-[11px] text-olive-500 dark:text-olive-400">
                                     Square crop · round on the card
                                 </span>
                             </button>
@@ -655,12 +655,12 @@ export default function GalleryUploader({
                 </p>
             ) : null}
 
-            <div className="rounded-2xl bg-olive-50/70 p-4 ring-1 ring-olive-100 sm:p-5">
+            <div className="rounded-2xl bg-olive-50/70 p-4 ring-1 ring-olive-100 dark:bg-olive-950/50 dark:ring-olive-800 sm:p-5">
                 <div className="flex flex-wrap items-end justify-between gap-3">
                     <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
                             <p className={label}>Gallery</p>
-                            <span className="rounded-full bg-white px-2.5 py-0.5 text-[11px] font-semibold text-olive-700 ring-1 ring-olive-200">
+                            <span className="rounded-full bg-white px-2.5 py-0.5 text-[11px] font-semibold text-olive-700 ring-1 ring-olive-200 dark:bg-olive-900 dark:text-olive-200 dark:ring-olive-700">
                                 {galleryCount} / {MAX_GALLERY}
                             </span>
                         </div>
@@ -687,19 +687,19 @@ export default function GalleryUploader({
                 </div>
 
                 {queueTotal > 0 && cropState?.kind === 'gallery' ? (
-                    <div className="mt-4 rounded-xl bg-white px-4 py-3 ring-1 ring-olive-100">
+                    <div className="mt-4 rounded-xl bg-white px-4 py-3 ring-1 ring-olive-100 dark:bg-olive-950 dark:ring-olive-800">
                         <div className="flex items-center justify-between gap-3 text-sm">
-                            <span className="inline-flex items-center gap-2 font-semibold text-olive-900">
+                            <span className="inline-flex items-center gap-2 font-semibold text-olive-900 dark:text-olive-100">
                                 <Loader2 className="h-4 w-4 animate-spin text-mustard" />
                                 Cropping photo {cropping} of {queueTotal}
                             </span>
-                            <span className="text-xs font-semibold text-olive-500">
+                            <span className="text-xs font-semibold text-olive-500 dark:text-olive-400">
                                 {cropPct}%
                             </span>
                         </div>
-                        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-olive-100">
+                        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-olive-100 dark:bg-olive-800">
                             <div
-                                className="h-full rounded-full bg-olive-800 transition-all duration-300"
+                                className="h-full rounded-full bg-olive-800 transition-all duration-300 dark:bg-mustard"
                                 style={{ width: `${cropPct}%` }}
                             />
                         </div>
@@ -720,7 +720,7 @@ export default function GalleryUploader({
                                 return (
                                     <li
                                         key={item.id}
-                                        className="group relative overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-olive-200/80"
+                                        className="group relative overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-olive-200/80 dark:bg-olive-950 dark:ring-olive-700"
                                     >
                                         <button
                                             type="button"
@@ -791,7 +791,7 @@ export default function GalleryUploader({
                                     <button
                                         type="button"
                                         onClick={() => openAddMenu('gallery')}
-                                        className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-olive-300 bg-white/70 text-olive-600 transition hover:border-mustard hover:bg-mustard/5 hover:text-olive-900"
+                                        className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-olive-300 bg-white/70 text-olive-600 transition hover:border-mustard hover:bg-mustard/5 hover:text-olive-900 dark:border-olive-700 dark:bg-olive-950/70 dark:text-olive-400 dark:hover:border-mustard dark:hover:bg-mustard/10 dark:hover:text-olive-100"
                                     >
                                         <ImagePlus className="h-6 w-6" />
                                         <span className="text-xs font-semibold">
@@ -805,13 +805,13 @@ export default function GalleryUploader({
                         <button
                             type="button"
                             onClick={() => openAddMenu('gallery')}
-                            className="flex w-full flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-olive-300 bg-white/80 px-4 py-12 text-center transition hover:border-mustard hover:bg-mustard/5"
+                            className="flex w-full flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-olive-300 bg-white/80 px-4 py-12 text-center transition hover:border-mustard hover:bg-mustard/5 dark:border-olive-700 dark:bg-olive-950/80 dark:hover:border-mustard dark:hover:bg-mustard/10"
                         >
-                            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-olive-50 ring-1 ring-olive-100">
-                                <ImagePlus className="h-6 w-6 text-olive-700" />
+                            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-olive-50 ring-1 ring-olive-100 dark:bg-olive-900 dark:ring-olive-700">
+                                <ImagePlus className="h-6 w-6 text-olive-700 dark:text-olive-300" />
                             </span>
                             <span>
-                                <span className="block text-sm font-semibold text-olive-950">
+                                <span className="block text-sm font-semibold text-olive-950 dark:text-olive-50">
                                     Drop gallery photos here
                                 </span>
                                 <span className="mt-1 block text-xs text-olive-500">

@@ -23,7 +23,8 @@ class SaveListingDraftRequest extends FormRequest
         return [
             'title' => ['nullable', 'string', 'max:160'],
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
-            'subcategory' => ['nullable', 'string', 'max:120'],
+            'subcategory' => ['nullable', 'array', 'max:20'],
+            'subcategory.*' => ['string', 'max:120'],
             'property_type' => ['nullable', 'string', 'max:80'],
             'location' => ['nullable', 'string', 'max:180'],
             'city' => ['nullable', 'string', 'max:120'],

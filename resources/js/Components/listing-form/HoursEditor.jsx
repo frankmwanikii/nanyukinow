@@ -18,14 +18,14 @@ function StatusToggle({ closed, onChange }) {
             onClick={() => onChange(!closed)}
             className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-1.5 text-xs font-semibold transition ${
                 closed
-                    ? 'bg-olive-100 text-olive-600 ring-1 ring-olive-200'
-                    : 'bg-olive-900 text-white'
+                    ? 'bg-olive-100 text-olive-600 ring-1 ring-olive-200 dark:bg-olive-800 dark:text-olive-300 dark:ring-olive-700'
+                    : 'bg-olive-900 text-white dark:bg-mustard dark:text-earth-dusk'
             }`}
         >
             <span
                 className={`flex h-6 w-6 items-center justify-center rounded-full transition ${
                     closed
-                        ? 'bg-white text-olive-500 shadow-sm'
+                        ? 'bg-white text-olive-500 shadow-sm dark:bg-olive-950 dark:text-olive-400'
                         : 'bg-mustard text-olive-950'
                 }`}
             >
@@ -48,8 +48,10 @@ function TimeField({ value, disabled, onChange, ariaLabel }) {
             value={value || '08:00'}
             disabled={disabled}
             onChange={(e) => onChange(e.target.value)}
-            className={`h-10 w-[6.75rem] shrink-0 rounded-xl border bg-white px-2 text-sm font-semibold tabular-nums text-olive-900 outline-none transition focus:border-mustard focus:ring-2 focus:ring-mustard/30 disabled:cursor-not-allowed disabled:bg-olive-50/80 disabled:text-olive-400 sm:w-[7.5rem] ${
-                disabled ? 'border-olive-100' : 'border-olive-200'
+            className={`h-10 w-[6.75rem] shrink-0 rounded-xl border bg-white px-2 text-sm font-semibold tabular-nums text-olive-900 outline-none transition focus:border-mustard focus:ring-2 focus:ring-mustard/30 disabled:cursor-not-allowed disabled:bg-olive-50/80 disabled:text-olive-400 dark:bg-olive-950 dark:text-olive-50 dark:disabled:bg-olive-900 dark:disabled:text-olive-600 sm:w-[7.5rem] ${
+                disabled
+                    ? 'border-olive-100 dark:border-olive-800'
+                    : 'border-olive-200 dark:border-olive-700'
             }`}
         />
     );
@@ -102,7 +104,7 @@ export default function HoursEditor({ hours, onChange }) {
             <div className="flex flex-wrap items-end justify-between gap-3">
                 <div>
                     <p className={label}>Opening hours</p>
-                    <p className="text-xs text-olive-500">
+                    <p className="text-xs text-olive-500 dark:text-olive-400">
                         Set Monday, then apply the same hours across the week.
                     </p>
                 </div>
@@ -110,7 +112,7 @@ export default function HoursEditor({ hours, onChange }) {
                     <button
                         type="button"
                         onClick={() => copyToAll(0)}
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-olive-900 px-3 py-2 text-xs font-semibold text-white transition hover:bg-olive-800"
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-olive-900 px-3 py-2 text-xs font-semibold text-white transition hover:bg-olive-800 dark:bg-mustard dark:text-earth-dusk dark:hover:bg-mustard/90"
                     >
                         <Copy className="h-3.5 w-3.5" strokeWidth={2} />
                         Copy schedule to all
@@ -118,22 +120,22 @@ export default function HoursEditor({ hours, onChange }) {
                     <button
                         type="button"
                         onClick={() => copyWeekdays(0)}
-                        className="inline-flex items-center gap-1.5 rounded-xl border border-olive-200 bg-white px-3 py-2 text-xs font-semibold text-olive-800 transition hover:border-olive-300 hover:bg-olive-50"
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-olive-200 bg-white px-3 py-2 text-xs font-semibold text-olive-800 transition hover:border-olive-300 hover:bg-olive-50 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-100 dark:hover:border-olive-600 dark:hover:bg-olive-900"
                     >
                         Mon–Sat · Sun closed
                     </button>
                 </div>
             </div>
 
-            <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-olive-200/80">
-                <div className="hidden items-center gap-3 border-b border-olive-100 bg-olive-50/70 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-olive-500 md:grid md:grid-cols-[6.5rem_minmax(0,1fr)_7.5rem_2.25rem]">
+            <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-olive-200/80 dark:bg-olive-950 dark:shadow-none dark:ring-olive-800">
+                <div className="hidden items-center gap-3 border-b border-olive-100 bg-olive-50/70 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-olive-500 dark:border-olive-800 dark:bg-olive-900/70 dark:text-olive-400 md:grid md:grid-cols-[6.5rem_minmax(0,1fr)_7.5rem_2.25rem]">
                     <span>Day</span>
                     <span>Hours</span>
                     <span className="text-center">Status</span>
                     <span className="sr-only">Copy</span>
                 </div>
 
-                <ul className="divide-y divide-olive-100">
+                <ul className="divide-y divide-olive-100 dark:divide-olive-800">
                     {rows.map((row, index) => {
                         const day = formatDay(row.day || DAYS[index]);
                         const closed = Boolean(row.closed);
@@ -142,12 +144,14 @@ export default function HoursEditor({ hours, onChange }) {
                             <li
                                 key={day.full}
                                 className={`px-3 py-3.5 transition md:px-4 ${
-                                    closed ? 'bg-olive-50/50' : 'bg-white'
+                                    closed
+                                        ? 'bg-olive-50/50 dark:bg-olive-900/40'
+                                        : 'bg-white dark:bg-olive-950'
                                 }`}
                             >
                                 <div className="flex flex-col gap-3 md:grid md:grid-cols-[6.5rem_minmax(0,1fr)_7.5rem_2.25rem] md:items-center md:gap-3">
                                     <div className="flex items-center justify-between gap-3 md:block">
-                                        <p className="text-sm font-semibold text-olive-950">
+                                        <p className="text-sm font-semibold text-olive-950 dark:text-olive-50">
                                             <span className="md:hidden">
                                                 {day.short}
                                             </span>
@@ -213,7 +217,7 @@ export default function HoursEditor({ hours, onChange }) {
                                             title={`Copy ${day.full} hours to every day`}
                                             disabled={closed}
                                             onClick={() => copyToAll(index)}
-                                            className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-olive-500 transition hover:bg-olive-100 hover:text-olive-900 disabled:pointer-events-none disabled:opacity-30"
+                                            className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-olive-500 transition hover:bg-olive-100 hover:text-olive-900 disabled:pointer-events-none disabled:opacity-30 dark:text-olive-400 dark:hover:bg-olive-800 dark:hover:text-olive-100"
                                         >
                                             <Copy
                                                 className="h-3.5 w-3.5"

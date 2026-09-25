@@ -1902,6 +1902,55 @@ function parseCoord(value) {
     return Number.isFinite(n) ? n : null;
 }
 
+/** Live DB payloads from ListingPayload — never invent placeholder section content. */
+function isLiveListing(listing) {
+    return (
+        listing != null &&
+        (Object.prototype.hasOwnProperty.call(listing, 'claim_status') ||
+            Object.prototype.hasOwnProperty.call(listing, 'websiteLinks'))
+    );
+}
+
+function nonEmptyList(value) {
+    return Array.isArray(value) && value.some((item) => {
+        if (item == null || item === '') return false;
+        if (typeof item === 'string') return item.trim().length > 0;
+        if (typeof item === 'object') {
+            return Object.values(item).some(
+                (v) => v != null && String(v).trim() !== '',
+            );
+        }
+        return true;
+    });
+}
+
+function textOrNull(value) {
+    if (value == null) return null;
+    const raw = String(value).trim();
+    if (!raw) return null;
+    // Empty rich-text shells (e.g. <p><br></p>)
+    const stripped = raw
+        .replace(/<br\s*\/?>/gi, '')
+        .replace(/&nbsp;/gi, ' ')
+        .replace(/<[^>]+>/g, '')
+        .trim();
+    return stripped ? raw : null;
+}
+
+function normalizeHours(hours) {
+    if (!Array.isArray(hours) || !hours.length) return null;
+    const rows = hours.filter(
+        (row) =>
+            row &&
+            (row.day ||
+                row.open ||
+                row.close ||
+                row.closed === true ||
+                row.closed === false),
+    );
+    return rows.length ? rows : null;
+}
+
 /** Build facts rows from category-specific details saved on the listing. */
 function buildFactsFromDetails(listing) {
     const d = listing?.details;
@@ -1958,7 +2007,8 @@ function buildFactsFromDetails(listing) {
 }
 
 /**
- * Merge base listing with rich detail (or category defaults).
+ * Merge base listing with rich detail (or category defaults for demo catalogue only).
+ * Live DB listings never receive invented section content — empty details hide sections.
  */
 export function getListingDetail(listing) {
     if (!listing) return null;
@@ -1976,15 +2026,24 @@ export function getListingDetail(listing) {
         lng: parseCoord(listing.lng) ?? parseCoord(catalog?.lng),
     });
 
-    const explicit = listingDetailsById[listing.id] ?? listingDetailsById[String(listing.id)];
-    const defaults = DEFAULTS_BY_CATEGORY[listing.categoryKey] ?? DEFAULTS_BY_CATEGORY.eatDrink;
+    const live = isLiveListing(listing);
+    const explicit = live
+        ? null
+        : (listingDetailsById[listing.id] ??
+          listingDetailsById[String(listing.id)]);
+    const defaults = live
+        ? {}
+        : (DEFAULTS_BY_CATEGORY[listing.categoryKey] ??
+          DEFAULTS_BY_CATEGORY.eatDrink);
 
     const propertyType = listing.propertyType || listing.details?.property_type || null;
     const detailFacts = buildFactsFromDetails(listing);
     const rawFacts =
         detailFacts.length > 0
             ? detailFacts
-            : (explicit?.facts ?? defaults.facts ?? []);
+            : live
+              ? []
+              : (explicit?.facts ?? defaults.facts ?? []);
     const facts =
         listing.categoryKey === 'properties'
             ? [
@@ -2012,24 +2071,63 @@ export function getListingDetail(listing) {
             ? [listing.category, propertyType, listing.subcategory].filter(Boolean)
             : [listing.category, listing.subcategory].filter(Boolean);
 
+    const liveGalleryImages = Array.isArray(listing.gallery)
+        ? listing.gallery
+              .map((src) => (typeof src === 'string' ? src : src?.src))
+              .filter(Boolean)
+        : [];
+
+    const aboutText =
+        textOrNull(listing.about) ||
+        textOrNull(listing.description) ||
+        textOrNull(listing.details?.about) ||
+        (live
+            ? null
+            : `${listing.title} is a local favourite in ${listing.location}. Reach out to confirm hours, pricing, and availability.`);
+
+    const agentFromDetails =
+        listing.categoryKey === 'properties'
+            ? (() => {
+                  const name = textOrNull(listing.details?.agent_name);
+                  const phone =
+                      textOrNull(listing.details?.agent_phone) ||
+                      textOrNull(listing.phone);
+                  const email =
+                      textOrNull(listing.details?.agent_email) ||
+                      textOrNull(listing.email);
+                  if (!name && !phone && !email) return null;
+                  return {
+                      name: name || 'Listing agent',
+                      phone: phone || null,
+                      email: email || null,
+                      note: 'Contact for viewings and details.',
+                  };
+              })()
+            : null;
+
     const base = {
-        about:
-            listing.about ||
-            listing.details?.about ||
-            `${listing.title} is a local favourite in ${listing.location}. Reach out to confirm hours, pricing, and availability.`,
-        address: listing.address || `${listing.location}, Kenya`,
-        gallery:
-            Array.isArray(listing.gallery) && listing.gallery.length
-                ? ensureGalleryDepth([
+        about: aboutText,
+        address: textOrNull(listing.address) || (live ? null : `${listing.location}, Kenya`),
+        gallery: liveGalleryImages.length
+            ? live
+                ? [
                       {
                           label: 'Gallery',
                           kind: 'main',
-                          images: listing.gallery.map((src) =>
-                              typeof src === 'string' ? src : src?.src,
-                          ).filter(Boolean),
+                          images: liveGalleryImages,
+                          cover: liveGalleryImages[0],
+                      },
+                  ]
+                : ensureGalleryDepth([
+                      {
+                          label: 'Gallery',
+                          kind: 'main',
+                          images: liveGalleryImages,
                       },
                   ])
-                : buildGallery(listing, defaults),
+            : live
+              ? []
+              : buildGallery(listing, defaults),
         video: (() => {
             const src =
                 listing.details?.video_url ||
@@ -2049,36 +2147,46 @@ export function getListingDetail(listing) {
                     `Preview · ${listing.title}`,
             };
         })(),
-        amenities:
-            Array.isArray(listing.amenities) && listing.amenities.length
-                ? listing.amenities
-                : (defaults.amenities ?? []),
+        amenities: nonEmptyList(listing.amenities)
+            ? listing.amenities
+            : live
+              ? []
+              : (defaults.amenities ?? []),
         facts,
         propertyType,
-        houseRules:
-            listing.details?.house_rules?.length
-                ? listing.details.house_rules
-                : (defaults.houseRules ?? []),
-        included:
-            listing.details?.included?.length
-                ? listing.details.included
-                : (defaults.included ?? []),
-        bring:
-            listing.details?.bring?.length
-                ? listing.details.bring
-                : (defaults.bring ?? []),
-        offerings:
-            listing.details?.offerings?.length
-                ? listing.details.offerings
-                : (defaults.offerings ?? []),
-        credentials:
-            listing.details?.credentials?.length
-                ? listing.details.credentials
-                : (defaults.credentials ?? []),
-        brands:
-            listing.details?.brands?.length
-                ? listing.details.brands
-                : (defaults.brands ?? []),
+        houseRules: (() => {
+            const raw = listing.details?.house_rules;
+            if (typeof raw === 'string') {
+                return textOrNull(raw) || (live ? null : (defaults.houseRules ?? null));
+            }
+            if (nonEmptyList(raw)) return raw;
+            return live ? null : (defaults.houseRules ?? []);
+        })(),
+        included: nonEmptyList(listing.details?.included)
+            ? listing.details.included
+            : live
+              ? []
+              : (defaults.included ?? []),
+        bring: nonEmptyList(listing.details?.bring)
+            ? listing.details.bring
+            : live
+              ? []
+              : (defaults.bring ?? []),
+        offerings: nonEmptyList(listing.details?.offerings)
+            ? listing.details.offerings
+            : live
+              ? []
+              : (defaults.offerings ?? []),
+        credentials: nonEmptyList(listing.details?.credentials)
+            ? listing.details.credentials
+            : live
+              ? []
+              : (defaults.credentials ?? []),
+        brands: nonEmptyList(listing.details?.brands)
+            ? listing.details.brands
+            : live
+              ? []
+              : (defaults.brands ?? []),
         docs: [],
         menus: Array.isArray(listing.details?.menus)
             ? listing.details.menus.filter((m) => m?.image || m?.title)
@@ -2086,10 +2194,11 @@ export function getListingDetail(listing) {
         products: Array.isArray(listing.details?.products)
             ? listing.details.products.filter((p) => p?.name)
             : null,
-        highlights:
-            listing.details?.highlights?.length
-                ? listing.details.highlights
-                : (defaults.highlights ?? []),
+        highlights: nonEmptyList(listing.details?.highlights)
+            ? listing.details.highlights
+            : live
+              ? []
+              : (defaults.highlights ?? []),
         sponsors: Array.isArray(listing.details?.sponsors)
             ? listing.details.sponsors.filter((s) => s?.name || s?.logo)
             : null,
@@ -2103,23 +2212,14 @@ export function getListingDetail(listing) {
         ticketUrl: listing.ticketUrl || null,
         ageLimit: listing.ageLimit || listing.details?.age_limit || null,
         organiser: listing.organiser || listing.details?.organiser || null,
-        agent:
-            listing.categoryKey === 'properties'
-                ? {
-                      name:
-                          listing.details?.agent_name || 'Listing agent',
-                      phone:
-                          listing.details?.agent_phone || listing.phone,
-                      email: listing.details?.agent_email || listing.email || null,
-                      note: 'Contact for viewings and details.',
-                  }
+        agent: agentFromDetails,
+        hours: normalizeHours(listing.hours)
+            ? normalizeHours(listing.hours)
+            : live
+              ? null
+              : defaults.withHours
+                ? WEEKDAY_HOURS
                 : null,
-        hours:
-            Array.isArray(listing.hours) && listing.hours.length
-                ? listing.hours.filter((h) => !h.closed)
-                : defaults.withHours
-                  ? WEEKDAY_HOURS
-                  : null,
         hoursStatus: listing.isOpen === false ? 'closed' : 'open',
         eventSchedule: Array.isArray(listing.details?.event_schedule)
             ? listing.details.event_schedule.filter((r) => r?.label)
@@ -2127,18 +2227,13 @@ export function getListingDetail(listing) {
         agenda: Array.isArray(listing.details?.agenda)
             ? listing.details.agenda.filter((a) => a?.title || a?.time)
             : null,
-        payments:
-            Array.isArray(listing.details?.payments) &&
-            listing.details.payments.length
-                ? listing.details.payments
-                : (defaults.payments ?? []),
-        email:
-            listing.email ||
-            `hello@${String(listing.title || 'listing')
-                .toLowerCase()
-                .replace(/[^a-z0-9]+/g, '')
-                .slice(0, 18) || 'listing'}.co.ke`,
-        website: listing.website || null,
+        payments: nonEmptyList(listing.details?.payments)
+            ? listing.details.payments
+            : live
+              ? []
+              : (defaults.payments ?? []),
+        email: textOrNull(listing.email),
+        website: textOrNull(listing.website),
         socials: {
             instagram: listing.socials?.instagram || null,
             facebook: listing.socials?.facebook || null,
@@ -2157,14 +2252,21 @@ export function getListingDetail(listing) {
               ] || listing.priceLevel
             : listing.details?.price || null,
         chips: {
-            region: `${listing.location} Area`,
+            region: listing.location ? `${listing.location} Area` : null,
             categories: baseChipsCategories,
             tags: listing.tagline ? [listing.tagline] : [],
         },
-        reviewSummary: {
-            count: Math.max(8, Math.round((listing.rating || 4) * 18)),
-            highlight: 'Well liked by recent visitors.',
-        },
+        reviewSummary: live
+            ? listing.rating
+                ? {
+                      count: null,
+                      highlight: null,
+                  }
+                : null
+            : {
+                  count: Math.max(8, Math.round((listing.rating || 4) * 18)),
+                  highlight: 'Well liked by recent visitors.',
+              },
         relatedIds: [],
     };
 
@@ -2183,13 +2285,16 @@ export function getListingDetail(listing) {
 
     // Live DB payloads (ListingPayload) always win over static demo details so
     // admin edits and the public site show the same content.
-    const hasLiveGallery =
-        Array.isArray(listing.gallery) && listing.gallery.length > 0;
+    const hasLiveGallery = liveGalleryImages.length > 0;
     const posterSrc =
         listing.eventPoster || explicit?.eventPoster || null;
-    let gallery = ensureGalleryDepth(
-        hasLiveGallery ? base.gallery : (explicit?.gallery ?? base.gallery),
-    );
+    let gallery = live
+        ? base.gallery
+        : ensureGalleryDepth(
+              hasLiveGallery
+                  ? base.gallery
+                  : (explicit?.gallery ?? base.gallery),
+          );
     if (listing.categoryKey === 'events' && posterSrc) {
         const spaces = normalizeGallerySpaces(gallery);
         const hasPosterSpace = spaces.some(
@@ -2218,37 +2323,51 @@ export function getListingDetail(listing) {
                 ? facts
                 : detailFacts.length > 0
                   ? facts
-                  : (explicit?.facts ?? base.facts),
+                  : live
+                    ? facts
+                    : (explicit?.facts ?? base.facts),
         gallery,
         chips: mergedChips,
-        reviewSummary: {
-            ...(explicit?.reviewSummary || {}),
-            ...base.reviewSummary,
-        },
+        reviewSummary: live
+            ? base.reviewSummary
+            : {
+                  ...(explicit?.reviewSummary || {}),
+                  ...base.reviewSummary,
+              },
         video: base.video || explicit?.video || null,
         menus:
             base.menus !== null
                 ? base.menus
-                : (explicit?.menus ?? []),
+                : live
+                  ? []
+                  : (explicit?.menus ?? []),
         products:
             base.products !== null
                 ? base.products
-                : (explicit?.products ??
-                  productsForShoppingListing(listing)),
+                : live
+                  ? []
+                  : (explicit?.products ??
+                    productsForShoppingListing(listing)),
         sponsors:
             base.sponsors !== null
                 ? base.sponsors
-                : (explicit?.sponsors ?? defaults.sponsors ?? []),
+                : live
+                  ? []
+                  : (explicit?.sponsors ?? defaults.sponsors ?? []),
         agenda:
             base.agenda !== null
                 ? base.agenda
-                : (explicit?.agenda ?? defaults.agenda ?? []),
+                : live
+                  ? []
+                  : (explicit?.agenda ?? defaults.agenda ?? []),
         eventSchedule:
             base.eventSchedule !== null
                 ? base.eventSchedule
-                : (explicit?.eventSchedule ??
-                  defaults.eventSchedule ??
-                  null),
+                : live
+                  ? null
+                  : (explicit?.eventSchedule ??
+                    defaults.eventSchedule ??
+                    null),
         about: base.about,
         address: listing.address || explicit?.address || base.address,
         email: listing.email || explicit?.email || base.email,
@@ -2256,5 +2375,6 @@ export function getListingDetail(listing) {
         amenities: base.amenities,
         hours: base.hours,
         socials: base.socials,
+        agent: base.agent,
     };
 }

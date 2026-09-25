@@ -70,6 +70,13 @@ class User extends Authenticatable
         return $this->hasMany(Listing::class);
     }
 
+    public function bookmarkedListings(): BelongsToMany
+    {
+        return $this->belongsToMany(Listing::class, 'listing_bookmarks')
+            ->withTimestamps()
+            ->orderByPivot('created_at', 'desc');
+    }
+
     public function stories(): HasMany
     {
         return $this->hasMany(Story::class);

@@ -225,7 +225,7 @@ export default function VisualTour({
                 ) : null}
 
                 <div
-                    className={`overflow-hidden rounded-xl ${
+                    className={`min-w-0 overflow-hidden rounded-xl ${
                         showSide
                             ? 'grid gap-1.5 sm:grid-cols-4 sm:grid-rows-2 sm:gap-2'
                             : ''
@@ -283,8 +283,8 @@ export default function VisualTour({
                 </div>
 
                 {showSide ? (
-                    <div className="mt-3 flex items-center justify-between gap-3 sm:hidden">
-                        <div className="flex gap-1.5 overflow-x-auto">
+                    <div className="mt-3 flex min-w-0 items-center justify-between gap-3 sm:hidden">
+                        <div className="flex min-w-0 flex-1 gap-1.5 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                             {mosaicSources.slice(0, 6).map((src, index) => (
                                 <button
                                     key={`${src}-m-${index}`}

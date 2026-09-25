@@ -31,7 +31,18 @@ class DashboardController extends Controller
                 'image_url' => $listing->image_url,
                 'updated_at' => $listing->updated_at?->toIso8601String(),
                 'expires_at' => $listing->expires_at?->toIso8601String(),
+                'published_at' => $listing->published_at?->toIso8601String(),
+                'is_expired' => $listing->isExpired(),
             ]);
+
+        $bookmarksCount = 0;
+        try {
+            $bookmarksCount = $user->bookmarkedListings()
+                ->published()
+                ->count();
+        } catch (\Throwable) {
+            $bookmarksCount = 0;
+        }
 
         $pendingUpgrade = PlanUpgrade::query()
             ->where('user_id', $user->id)
@@ -42,6 +53,7 @@ class DashboardController extends Controller
         return Inertia::render('Account/Index', [
             'plan' => Membership::planSummary($user),
             'listings' => $listings,
+            'bookmarksCount' => $bookmarksCount,
             'pendingUpgrade' => $pendingUpgrade?->toMemberArray(),
         ]);
     }

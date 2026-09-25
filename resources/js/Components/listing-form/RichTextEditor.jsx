@@ -1,6 +1,7 @@
 import { field, label } from './fieldStyles';
 import {
     Bold,
+    ChevronDown,
     Heading2,
     ImagePlus,
     Italic,
@@ -149,8 +150,10 @@ function ToolBtn({ title, active, disabled, onClick, children, className = '' })
                 e.preventDefault();
                 if (!disabled) onClick?.();
             }}
-            className={`inline-flex h-8 min-w-8 items-center justify-center rounded-lg px-1.5 text-olive-700 transition hover:bg-white hover:text-olive-950 disabled:cursor-not-allowed disabled:opacity-40 ${
-                active ? 'bg-white text-olive-950 shadow-sm ring-1 ring-olive-200' : ''
+            className={`inline-flex h-8 min-w-8 items-center justify-center rounded-lg px-1.5 text-olive-700 transition hover:bg-white hover:text-olive-950 disabled:cursor-not-allowed disabled:opacity-40 dark:text-olive-300 dark:hover:bg-olive-800 dark:hover:text-olive-50 ${
+                active
+                    ? 'bg-white text-olive-950 shadow-sm ring-1 ring-olive-200 dark:bg-olive-800 dark:text-olive-50 dark:ring-olive-600'
+                    : ''
             } ${className}`}
         >
             {children}
@@ -159,7 +162,12 @@ function ToolBtn({ title, active, disabled, onClick, children, className = '' })
 }
 
 function Divider() {
-    return <span className="mx-0.5 hidden h-5 w-px bg-olive-200 sm:block" aria-hidden />;
+    return (
+        <span
+            className="mx-0.5 hidden h-5 w-px bg-olive-200 dark:bg-olive-700 sm:block"
+            aria-hidden
+        />
+    );
 }
 
 export default function RichTextEditor({
@@ -306,30 +314,39 @@ export default function RichTextEditor({
                 {labelText}
             </label>
             <div
-                className={`overflow-hidden rounded-xl border bg-white transition focus-within:border-mustard focus-within:ring-2 focus-within:ring-mustard/30 ${
-                    error ? 'border-rose-400' : 'border-olive-200'
+                className={`overflow-hidden rounded-xl border bg-white transition focus-within:border-mustard focus-within:ring-2 focus-within:ring-mustard/30 dark:bg-olive-950 dark:focus-within:border-mustard dark:focus-within:ring-mustard/30 ${
+                    error
+                        ? 'border-rose-400'
+                        : 'border-olive-200 dark:border-olive-700'
                 }`}
             >
-                <div className="flex flex-wrap items-center gap-0.5 border-b border-olive-100 bg-gradient-to-b from-olive-50 to-olive-50/40 px-2 py-1.5">
+                <div className="flex flex-wrap items-center gap-0.5 border-b border-olive-100 bg-gradient-to-b from-olive-50 to-olive-50/40 px-2 py-1.5 dark:border-olive-800 dark:from-olive-900 dark:to-olive-900/80">
                     {!compact ? (
                         <>
                             <label className="sr-only" htmlFor={`${listId}-size`}>
                                 Font size
                             </label>
-                            <select
-                                id={`${listId}-size`}
-                                value={fontSize}
-                                title="Font size"
-                                onMouseDown={rememberSelection}
-                                onChange={(e) => applySize(e.target.value)}
-                                className="mr-1 h-8 rounded-lg border-0 bg-white/80 px-2 text-xs font-semibold text-olive-800 shadow-sm ring-1 ring-olive-200 focus:ring-2 focus:ring-mustard/40"
-                            >
-                                {FONT_SIZES.map((s) => (
-                                    <option key={s.value} value={s.value}>
-                                        {s.label}
-                                    </option>
-                                ))}
-                            </select>
+                            <span className="relative mr-1 inline-flex">
+                                <select
+                                    id={`${listId}-size`}
+                                    value={fontSize}
+                                    title="Font size"
+                                    onMouseDown={rememberSelection}
+                                    onChange={(e) => applySize(e.target.value)}
+                                    className="nn-editor-size h-8 rounded-lg border-0 bg-white/80 py-0 pl-2.5 pr-7 text-xs font-semibold text-olive-800 shadow-sm ring-1 ring-olive-200 focus:ring-2 focus:ring-mustard/40 dark:bg-olive-950 dark:text-olive-100 dark:ring-olive-700"
+                                >
+                                    {FONT_SIZES.map((s) => (
+                                        <option key={s.value} value={s.value}>
+                                            {s.label}
+                                        </option>
+                                    ))}
+                                </select>
+                                <ChevronDown
+                                    className="pointer-events-none absolute right-1.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-olive-600 dark:text-olive-300"
+                                    strokeWidth={2.25}
+                                    aria-hidden
+                                />
+                            </span>
                             <Divider />
                         </>
                     ) : null}
@@ -464,13 +481,15 @@ export default function RichTextEditor({
                               }
                             : undefined
                     }
-                    className={`nn-editor ${field} ${editorMinH} rounded-none border-0 text-base leading-relaxed focus:ring-0 empty:before:pointer-events-none empty:before:text-olive-400 empty:before:content-[attr(data-placeholder)]`}
+                    className={`nn-editor ${field} ${editorMinH} rounded-none border-0 text-base leading-relaxed focus:ring-0 empty:before:pointer-events-none empty:before:text-olive-400 empty:before:content-[attr(data-placeholder)] dark:empty:before:text-olive-500`}
                 />
             </div>
             {error ? (
-                <p className="mt-1.5 text-sm text-rose-600">{error}</p>
+                <p className="mt-1.5 text-sm text-rose-600 dark:text-rose-400">
+                    {error}
+                </p>
             ) : (
-                <p className="mt-1.5 text-xs text-olive-500">
+                <p className="mt-1.5 text-xs text-olive-500 dark:text-olive-400">
                     {helpText ?? defaultHelp}
                 </p>
             )}
