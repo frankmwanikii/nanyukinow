@@ -4,12 +4,13 @@ import {
     AdminInput,
     AdminPasswordInput,
     AdminSelect,
+    AdminTabs,
     AdminTextarea,
     PageHeader,
 } from '@/Components/Admin/ui';
 import { Head, useForm } from '@inertiajs/react';
 import { Image as ImageIcon, Save } from 'lucide-react';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 const groupMeta = {
     branding: {
@@ -343,54 +344,65 @@ export default function Index({ groupedSettings }) {
         ];
     }, [groupedSettings]);
 
+    const [tab, setTab] = useState(groups[0] || 'branding');
+    const activeGroup = groups.includes(tab) ? tab : groups[0];
+    const activeMeta = groupMeta[activeGroup] || {
+        title: activeGroup,
+        blurb: null,
+    };
+    const activeItems = groupedSettings[activeGroup] || [];
+
+    const tabItems = groups.map((group) => ({
+        id: group,
+        label: (groupMeta[group] || { title: group }).title,
+    }));
+
     return (
         <AdminLayout>
             <Head title="Settings" />
 
-            <PageHeader title="Settings" />
+            <PageHeader
+                title="Settings"
+                description="Site-wide branding, billing, payments, maps, and SEO."
+            />
 
-            <form onSubmit={save} className="space-y-4 pb-8">
-                {groups.map((group) => {
-                    const meta = groupMeta[group] || {
-                        title: group,
-                        blurb: null,
-                    };
-                    const items = groupedSettings[group] || [];
+            <AdminTabs
+                items={tabItems}
+                value={activeGroup}
+                onChange={setTab}
+                label="Settings groups"
+            />
 
-                    return (
-                        <Panel key={group} title={meta.title} blurb={meta.blurb}>
-                            {group === 'payments' ? (
-                                <PaymentsFields
-                                    items={items}
-                                    valueFor={valueFor}
-                                    updateValue={updateValue}
+            <form onSubmit={save} className="w-full space-y-4 pb-8">
+                <Panel title={activeMeta.title} blurb={activeMeta.blurb}>
+                    {activeGroup === 'payments' ? (
+                        <PaymentsFields
+                            items={activeItems}
+                            valueFor={valueFor}
+                            updateValue={updateValue}
+                        />
+                    ) : activeGroup === 'branding' ? (
+                        <BrandingFields
+                            items={activeItems}
+                            valueFor={valueFor}
+                            updateValue={updateValue}
+                        />
+                    ) : (
+                        <FieldGrid>
+                            {activeItems.map((item) => (
+                                <Field
+                                    key={item.key}
+                                    item={item}
+                                    value={valueFor(item.key)}
+                                    onChange={updateValue}
+                                    className={
+                                        item.type === 'textarea' ? 'sm:col-span-2' : ''
+                                    }
                                 />
-                            ) : group === 'branding' ? (
-                                <BrandingFields
-                                    items={items}
-                                    valueFor={valueFor}
-                                    updateValue={updateValue}
-                                />
-                            ) : (
-                                <FieldGrid>
-                                    {items.map((item) => (
-                                        <Field
-                                            key={item.key}
-                                            item={item}
-                                            value={valueFor(item.key)}
-                                            onChange={updateValue}
-                                            className={
-                                                item.type === 'textarea'
-                                                    ? 'sm:col-span-2'
-                                                    : ''
-                                            }
-                                        />
-                                    ))}
-                                </FieldGrid>
-                            )}
-                        </Panel>
-                    );
-                })}
+                            ))}
+                        </FieldGrid>
+                    )}
+                </Panel>
 
                 <div className="flex items-center justify-end gap-3 pt-1">
                     {form.isDirty ? (

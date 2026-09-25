@@ -143,7 +143,7 @@ class ListingController extends Controller
             'is_published' => false,
             'is_featured' => in_array($tier, [Membership::STANDARD, Membership::PREMIUM], true),
             'is_trending' => false,
-            'priority' => $tier === Membership::PREMIUM ? 20 : ($tier === Membership::STANDARD ? 10 : 0),
+            'priority' => Membership::listingPriority($tier),
         ]);
 
         $this->bumpAmenityUsage($payload['amenities'] ?? []);
@@ -196,7 +196,9 @@ class ListingController extends Controller
             'status' => $wasDraft ? 'pending' : $listing->status,
             'is_published' => $wasDraft ? false : $listing->is_published,
             'is_featured' => in_array($tier, [Membership::STANDARD, Membership::PREMIUM], true),
-            'priority' => $tier === Membership::PREMIUM ? 20 : ($tier === Membership::STANDARD ? 10 : 0),
+            'priority' => Membership::isPromotedPriority($listing->priority)
+                ? (int) $listing->priority
+                : Membership::listingPriority($tier),
         ]);
 
         $this->bumpAmenityUsage($payload['amenities'] ?? []);
@@ -304,7 +306,7 @@ class ListingController extends Controller
             'gallery' => $galleryUrls,
             'amenities' => $amenities,
             'hours' => $data['hours'] ?? null,
-            'social_links' => $data['social_links'] ?? null,
+            'social_links' => $this->normalizeSocialLinks($data['social_links'] ?? null),
             'details' => $data['details'] ?? null,
             'start_at' => $data['start_at'] ?? null,
             'end_at' => $data['end_at'] ?? null,
@@ -312,6 +314,41 @@ class ListingController extends Controller
             'early_bird_price' => $data['early_bird_price'] ?? null,
             'gate_price' => $data['gate_price'] ?? null,
             'ticket_url' => $data['ticket_url'] ?? null,
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $social
+     * @return array<string, mixed>|null
+     */
+    private function normalizeSocialLinks(?array $social): ?array
+    {
+        if ($social === null) {
+            return null;
+        }
+
+        $links = [];
+        foreach ($social['links'] ?? [] as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+            $url = trim((string) ($item['url'] ?? ''));
+            if ($url === '') {
+                continue;
+            }
+            $label = trim((string) ($item['label'] ?? ''));
+            $links[] = [
+                'label' => $label !== '' ? $label : 'Website',
+                'url' => $url,
+            ];
+        }
+
+        return [
+            'instagram' => filled($social['instagram'] ?? null) ? trim((string) $social['instagram']) : null,
+            'facebook' => filled($social['facebook'] ?? null) ? trim((string) $social['facebook']) : null,
+            'tiktok' => filled($social['tiktok'] ?? null) ? trim((string) $social['tiktok']) : null,
+            'youtube' => filled($social['youtube'] ?? null) ? trim((string) $social['youtube']) : null,
+            'links' => $links,
         ];
     }
 

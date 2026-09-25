@@ -35,9 +35,11 @@ import {
     FileText,
     Home,
     Loader2,
+    Plus,
     Save,
     Settings,
     ShoppingCart,
+    Trash2,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -199,6 +201,12 @@ export default function Form({
             facebook: listing?.social_links?.facebook || '',
             tiktok: listing?.social_links?.tiktok || '',
             youtube: listing?.social_links?.youtube || '',
+            links: Array.isArray(listing?.social_links?.links)
+                ? listing.social_links.links.map((item) => ({
+                      label: item?.label || '',
+                      url: item?.url || '',
+                  }))
+                : [],
         },
         details: {
             ...emptyDetailsFor(initialKey || 'eatDrink'),
@@ -1307,16 +1315,28 @@ function AdminControls({ form, owners, statuses, claimStatuses, allowedTiers, li
 
                 <div>
                     <label className={label} htmlFor="priority">
-                        Priority
+                        Sort priority
                     </label>
-                    <input
+                    <select
                         id="priority"
-                        type="number"
-                        min="0"
                         className={field}
-                        value={data.priority}
+                        value={String(
+                            [0, 1, 3, 4].includes(Number(data.priority))
+                                ? Number(data.priority)
+                                : 0,
+                        )}
                         onChange={(e) => setData('priority', e.target.value)}
-                    />
+                    >
+                        <option value="0">0 · Free</option>
+                        <option value="1">1 · Standard</option>
+                        <option value="3">3 · Premium</option>
+                        <option value="4">4 · Promoted (below hero)</option>
+                    </select>
+                    <p className="mt-1.5 text-xs text-olive-500">
+                        Promoted listings appear in the strip under the homepage
+                        hero. Plan tier still syncs Free/Standard/Premium unless
+                        Promoted is selected.
+                    </p>
                     {errors.priority ? (
                         <p className="mt-1.5 text-sm text-rose-600">{errors.priority}</p>
                     ) : null}
@@ -1556,6 +1576,34 @@ function BasicsStep({
 }
 
 function ContactStep({ form, patch }) {
+    const websiteLinks = Array.isArray(form.data.social_links?.links)
+        ? form.data.social_links.links
+        : [];
+
+    const setWebsiteLinks = (links) => {
+        patch({
+            social_links: {
+                ...form.data.social_links,
+                links,
+            },
+        });
+    };
+
+    const updateLink = (index, key, value) => {
+        const next = websiteLinks.map((item, i) =>
+            i === index ? { ...item, [key]: value } : item,
+        );
+        setWebsiteLinks(next);
+    };
+
+    const addLink = () => {
+        setWebsiteLinks([...websiteLinks, { label: '', url: '' }]);
+    };
+
+    const removeLink = (index) => {
+        setWebsiteLinks(websiteLinks.filter((_, i) => i !== index));
+    };
+
     return (
         <div className="space-y-5">
             <div>
@@ -1571,7 +1619,7 @@ function ContactStep({ form, patch }) {
                     ['phone', 'Phone'],
                     ['whatsapp', 'WhatsApp'],
                     ['email', 'Email', 'email'],
-                    ['website', 'Website'],
+                    ['website', 'Primary website'],
                 ].map(([key, text, type]) => (
                     <div key={key}>
                         <label className={label} htmlFor={key}>
@@ -1588,6 +1636,87 @@ function ContactStep({ form, patch }) {
                     </div>
                 ))}
             </div>
+
+            <div className="space-y-3 rounded-2xl border border-olive-200 bg-olive-50/40 p-4 sm:p-5">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                        <h4 className="text-sm font-semibold text-olive-950">
+                            More website links
+                        </h4>
+                        <p className="mt-0.5 text-xs text-olive-500">
+                            Booking pages, menus, online shops, Google Maps, or other
+                            sites you want visitors to open.
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={addLink}
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-olive-200 bg-white px-3 py-1.5 text-xs font-semibold text-olive-800 transition hover:border-mustard"
+                    >
+                        <Plus className="h-3.5 w-3.5" />
+                        Add link
+                    </button>
+                </div>
+
+                {websiteLinks.length === 0 ? (
+                    <p className="text-sm text-olive-500">
+                        No extra links yet. Use Add link for booking, menu, or shop URLs.
+                    </p>
+                ) : (
+                    <div className="space-y-3">
+                        {websiteLinks.map((item, index) => (
+                            <div
+                                key={index}
+                                className="grid gap-2 rounded-xl border border-olive-200 bg-white p-3 sm:grid-cols-[minmax(0,0.9fr)_minmax(0,1.4fr)_auto] sm:items-end"
+                            >
+                                <div>
+                                    <label
+                                        className={label}
+                                        htmlFor={`website_link_label_${index}`}
+                                    >
+                                        Label
+                                    </label>
+                                    <input
+                                        id={`website_link_label_${index}`}
+                                        className={field}
+                                        value={item.label || ''}
+                                        onChange={(e) =>
+                                            updateLink(index, 'label', e.target.value)
+                                        }
+                                        placeholder="e.g. Book a table"
+                                    />
+                                </div>
+                                <div>
+                                    <label
+                                        className={label}
+                                        htmlFor={`website_link_url_${index}`}
+                                    >
+                                        URL
+                                    </label>
+                                    <input
+                                        id={`website_link_url_${index}`}
+                                        className={field}
+                                        value={item.url || ''}
+                                        onChange={(e) =>
+                                            updateLink(index, 'url', e.target.value)
+                                        }
+                                        placeholder="https://"
+                                    />
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => removeLink(index)}
+                                    className="inline-flex h-11 items-center justify-center rounded-xl border border-olive-200 px-3 text-olive-500 transition hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600"
+                                    aria-label={`Remove link ${index + 1}`}
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+
             <div className="grid gap-4 sm:grid-cols-2">
                 {['instagram', 'facebook', 'tiktok', 'youtube'].map((net) => (
                     <div key={net}>

@@ -64,7 +64,7 @@ export default function Form({ category }) {
                 }
             />
 
-            <form onSubmit={save} className="mx-auto max-w-2xl space-y-4">
+            <form onSubmit={save} className="w-full space-y-4">
                 <FormPanel title="Category details">
                     <div className="grid gap-4">
                         <AdminInput

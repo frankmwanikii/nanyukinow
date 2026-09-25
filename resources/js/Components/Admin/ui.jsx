@@ -554,6 +554,53 @@ export function PageHeader({ title, description, actions, className = '' }) {
     );
 }
 
+/**
+ * Top section tabs — preferred over sidebars for admin detail / edit pages.
+ * items: [{ id, label, icon?, badge? }]
+ */
+export function AdminTabs({
+    items = [],
+    value,
+    onChange,
+    label = 'Sections',
+    className = '',
+}) {
+    return (
+        <nav
+            className={`mb-6 flex flex-wrap gap-1 border-b border-olive-200 dark:border-olive-800 ${className}`}
+            aria-label={label}
+        >
+            {items.map((item) => {
+                const active = value === item.id;
+                const Icon = item.icon;
+                return (
+                    <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => onChange?.(item.id)}
+                        className={`relative inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition ${
+                            active
+                                ? 'text-olive-950 dark:text-white'
+                                : 'text-olive-500 hover:text-olive-800 dark:text-olive-400 dark:hover:text-olive-100'
+                        }`}
+                    >
+                        {Icon ? <Icon className="h-4 w-4 opacity-80" /> : null}
+                        {item.label}
+                        {item.badge != null && item.badge !== '' ? (
+                            <span className="rounded-full bg-mustard/80 px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-earth-dusk">
+                                {item.badge}
+                            </span>
+                        ) : null}
+                        {active ? (
+                            <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-mustard" />
+                        ) : null}
+                    </button>
+                );
+            })}
+        </nav>
+    );
+}
+
 export function FormPanel({ title, description, children, className = '' }) {
     return (
         <section

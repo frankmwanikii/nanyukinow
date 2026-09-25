@@ -1,4 +1,4 @@
-import { CloudUpload, FileText, Mail, MapPin, Phone, Send, X } from 'lucide-react';
+import { CloudUpload, FileText, Globe, Mail, MapPin, Phone, Send, X } from 'lucide-react';
 import { router, usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import DetailSection from './DetailSection';
@@ -533,6 +533,48 @@ export default function ContactInfoPage({ listing }) {
                                 <span>{listing.address}</span>
                             </p>
                         ) : null}
+
+                        {(listing.website ||
+                            (listing.websiteLinks || []).length > 0) && (
+                            <div>
+                                <p className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-olive-500">
+                                    Website links
+                                </p>
+                                <div className="flex flex-wrap gap-2">
+                                    {listing.website ? (
+                                        <a
+                                            href={
+                                                /^https?:\/\//i.test(listing.website)
+                                                    ? listing.website
+                                                    : `https://${listing.website}`
+                                            }
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-2 text-sm font-semibold text-olive-800 ring-1 ring-olive-200 transition hover:bg-olive-700 hover:text-white hover:ring-olive-700"
+                                        >
+                                            <Globe className="h-4 w-4" />
+                                            Website
+                                        </a>
+                                    ) : null}
+                                    {(listing.websiteLinks || []).map((item) => (
+                                        <a
+                                            key={`${item.label}-${item.url}`}
+                                            href={
+                                                /^https?:\/\//i.test(item.url)
+                                                    ? item.url
+                                                    : `https://${item.url}`
+                                            }
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-2 text-sm font-semibold text-olive-800 ring-1 ring-olive-200 transition hover:bg-olive-700 hover:text-white hover:ring-olive-700"
+                                        >
+                                            <Globe className="h-4 w-4" />
+                                            {item.label || 'Link'}
+                                        </a>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
                         <div className="grid gap-3 sm:grid-cols-2">
                             {tel ? (

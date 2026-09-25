@@ -14,6 +14,7 @@ use App\Support\CategoryKey;
 use App\Support\ListingMedia;
 use App\Support\ListingPayload;
 use App\Support\ListingSlug;
+use App\Support\Membership;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -243,7 +244,7 @@ class ListingController extends Controller
         $data = $request->validate([
             'ids' => ['required', 'array'],
             'ids.*' => ['integer', 'exists:listings,id'],
-            'action' => ['required', 'in:publish,unpublish,feature,unfeature,delete,archive'],
+            'action' => ['required', 'in:publish,unpublish,feature,unfeature,promote,unpromote,delete,archive'],
         ]);
 
         $query = Listing::query()->whereIn('id', $data['ids']);
@@ -259,8 +260,22 @@ class ListingController extends Controller
         } else {
             match ($data['action']) {
                 'unpublish' => $query->update(['is_published' => false, 'status' => 'draft']),
-                'feature' => $query->update(['is_featured' => true, 'tier' => 'featured']),
-                'unfeature' => $query->update(['is_featured' => false]),
+                'feature' => $query->update([
+                    'is_featured' => true,
+                    'tier' => Membership::STANDARD,
+                    'priority' => Membership::listingPriority(Membership::STANDARD),
+                ]),
+                'unfeature' => $query->update([
+                    'is_featured' => false,
+                    'tier' => Membership::FREE,
+                    'priority' => Membership::listingPriority(Membership::FREE),
+                ]),
+                'promote' => $query->update(['priority' => Membership::PROMOTED_PRIORITY]),
+                'unpromote' => $query->get()->each(function (Listing $listing): void {
+                    $listing->update([
+                        'priority' => Membership::listingPriority($listing->tier),
+                    ]);
+                }),
                 'archive' => $query->update(['status' => 'archived', 'is_published' => false]),
                 'delete' => $query->delete(),
                 default => null,
@@ -323,8 +338,20 @@ class ListingController extends Controller
         $data['is_trending'] = (bool) ($data['is_trending'] ?? false);
         $data['is_published'] = (bool) ($data['is_published'] ?? false);
 
-        if (($data['tier'] ?? 'free') === 'featured' || ($data['tier'] ?? '') === 'premium') {
+        $tier = Membership::normalize($data['tier'] ?? Membership::FREE);
+        $data['tier'] = $tier;
+
+        if (in_array($tier, [Membership::STANDARD, Membership::PREMIUM], true)) {
             $data['is_featured'] = true;
+        }
+
+        // Priority: Free=0, Standard=1, Premium=3, Promoted=4 (below hero).
+        // Admin may pin promoted (4); otherwise sync from plan tier.
+        $requestedPriority = isset($data['priority']) ? (int) $data['priority'] : null;
+        if ($requestedPriority === Membership::PROMOTED_PRIORITY) {
+            $data['priority'] = Membership::PROMOTED_PRIORITY;
+        } else {
+            $data['priority'] = Membership::listingPriority($tier);
         }
 
         if ($data['is_published'] && empty($data['published_at'])) {
@@ -354,6 +381,9 @@ class ListingController extends Controller
             $decoded = json_decode($data['social_links'], true);
             $data['social_links'] = json_last_error() === JSON_ERROR_NONE ? $decoded : [];
         }
+        if (isset($data['social_links']) && is_array($data['social_links'])) {
+            $data['social_links'] = $this->normalizeSocialLinks($data['social_links']);
+        }
 
         // Normalize details (already array or JSON string)
         if (isset($data['details']) && is_string($data['details'])) {
@@ -366,6 +396,37 @@ class ListingController extends Controller
         $data['event_poster_url'] = $posterUrl;
 
         return $data;
+    }
+
+    /**
+     * @param  array<string, mixed>  $social
+     * @return array<string, mixed>
+     */
+    private function normalizeSocialLinks(array $social): array
+    {
+        $links = [];
+        foreach ($social['links'] ?? [] as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+            $url = trim((string) ($item['url'] ?? ''));
+            if ($url === '') {
+                continue;
+            }
+            $label = trim((string) ($item['label'] ?? ''));
+            $links[] = [
+                'label' => $label !== '' ? $label : 'Website',
+                'url' => $url,
+            ];
+        }
+
+        return [
+            'instagram' => filled($social['instagram'] ?? null) ? trim((string) $social['instagram']) : null,
+            'facebook' => filled($social['facebook'] ?? null) ? trim((string) $social['facebook']) : null,
+            'tiktok' => filled($social['tiktok'] ?? null) ? trim((string) $social['tiktok']) : null,
+            'youtube' => filled($social['youtube'] ?? null) ? trim((string) $social['youtube']) : null,
+            'links' => $links,
+        ];
     }
 
     /**

@@ -244,6 +244,8 @@ export default function Index({
                         <AdminButton size="sm" variant="secondary" onClick={() => runBulk('publish')}>Publish</AdminButton>
                         <AdminButton size="sm" variant="secondary" onClick={() => runBulk('unpublish')}>Unpublish</AdminButton>
                         <AdminButton size="sm" variant="secondary" onClick={() => runBulk('feature')}>Feature</AdminButton>
+                        <AdminButton size="sm" variant="secondary" onClick={() => runBulk('promote')}>Promote</AdminButton>
+                        <AdminButton size="sm" variant="secondary" onClick={() => runBulk('unpromote')}>Unpromote</AdminButton>
                         <AdminButton size="sm" variant="secondary" onClick={() => runBulk('archive')}>Archive</AdminButton>
                         <AdminButton size="sm" variant="danger" onClick={() => runBulk('delete')}>
                             <Trash2 className="h-3.5 w-3.5" /> Delete
@@ -395,7 +397,13 @@ export default function Index({
                                         <Td><StatusBadge status={listing.tier} /></Td>
                                         <Td align="center">
                                             <span className="tabular-nums text-sm text-olive-700 dark:text-olive-200">
-                                                {listing.priority}
+                                                {listing.priority === 4
+                                                    ? '4 · Promoted'
+                                                    : listing.priority === 3
+                                                      ? '3 · Premium'
+                                                      : listing.priority === 1
+                                                        ? '1 · Standard'
+                                                        : `${listing.priority ?? 0} · Free`}
                                             </span>
                                         </Td>
                                         <Td>

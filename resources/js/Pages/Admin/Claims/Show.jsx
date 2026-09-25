@@ -3,6 +3,7 @@ import {
     AdminButton,
     AdminCheckbox,
     AdminSelect,
+    AdminTabs,
     AdminTextarea,
     FormPanel,
     PageHeader,
@@ -39,49 +40,21 @@ function isImageUrl(url = '') {
 }
 
 function ClaimTabs({ tab, onChange, docsCount }) {
-    const items = [
-        { id: 'review', label: 'Review' },
-        {
-            id: 'documents',
-            label: 'Documents',
-            badge: docsCount > 0 ? docsCount : null,
-        },
-        { id: 'advanced', label: 'Advanced', icon: Settings2 },
-    ];
-
     return (
-        <nav
-            className="mb-6 flex flex-wrap gap-1 border-b border-olive-200 dark:border-olive-800"
-            aria-label="Claim sections"
-        >
-            {items.map((item) => {
-                const active = tab === item.id;
-                const Icon = item.icon;
-                return (
-                    <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => onChange(item.id)}
-                        className={`relative inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition ${
-                            active
-                                ? 'text-olive-950 dark:text-white'
-                                : 'text-olive-500 hover:text-olive-800 dark:text-olive-400 dark:hover:text-olive-100'
-                        }`}
-                    >
-                        {Icon ? <Icon className="h-4 w-4 opacity-80" /> : null}
-                        {item.label}
-                        {item.badge ? (
-                            <span className="rounded-full bg-mustard/80 px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-earth-dusk">
-                                {item.badge}
-                            </span>
-                        ) : null}
-                        {active ? (
-                            <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-mustard" />
-                        ) : null}
-                    </button>
-                );
-            })}
-        </nav>
+        <AdminTabs
+            label="Claim sections"
+            value={tab}
+            onChange={onChange}
+            items={[
+                { id: 'review', label: 'Review' },
+                {
+                    id: 'documents',
+                    label: 'Documents',
+                    badge: docsCount > 0 ? docsCount : null,
+                },
+                { id: 'advanced', label: 'Advanced', icon: Settings2 },
+            ]}
+        />
     );
 }
 
@@ -175,7 +148,7 @@ export default function Show({ claim, suggestedOwners = [] }) {
             />
 
             {tab === 'review' ? (
-                <div className="mx-auto max-w-3xl space-y-5">
+                <div className="w-full space-y-5">
                     <FormPanel title="Listing">
                         <div className="flex items-start gap-4">
                             {claim.listing?.image ? (
@@ -317,7 +290,7 @@ export default function Show({ claim, suggestedOwners = [] }) {
             ) : null}
 
             {tab === 'documents' ? (
-                <div className="mx-auto max-w-3xl space-y-5">
+                <div className="w-full space-y-5">
                     <FormPanel
                         title="Supporting documents"
                         description={
@@ -366,7 +339,7 @@ export default function Show({ claim, suggestedOwners = [] }) {
             ) : null}
 
             {tab === 'advanced' ? (
-                <div className="mx-auto max-w-3xl space-y-5">
+                <div className="w-full space-y-5">
                     <FormPanel
                         title="Ownership on approve"
                         description="Control who receives the listing when this claim is approved."
@@ -466,7 +439,7 @@ export default function Show({ claim, suggestedOwners = [] }) {
             ) : null}
 
             {pending ? (
-                <div className="mx-auto mt-5 max-w-3xl">
+                <div className="mt-5 w-full">
                     <FormPanel title="Decision">
                         {!action ? (
                             <div className="flex flex-wrap gap-2">

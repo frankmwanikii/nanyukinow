@@ -34,6 +34,14 @@ class ListingPayload
             'amenities' => $listing->amenities ?? [],
             'hours' => $listing->hours ?? [],
             'socials' => $listing->social_links ?? [],
+            'websiteLinks' => collect($listing->social_links['links'] ?? [])
+                ->filter(fn ($item) => is_array($item) && filled($item['url'] ?? null))
+                ->map(fn (array $item) => [
+                    'label' => filled($item['label'] ?? null) ? (string) $item['label'] : 'Website',
+                    'url' => (string) $item['url'],
+                ])
+                ->values()
+                ->all(),
             'details' => $details,
             'rating' => $listing->rating !== null ? (float) $listing->rating : null,
             'category' => $category?->name,

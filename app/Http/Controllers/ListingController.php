@@ -7,6 +7,7 @@ use App\Models\Location;
 use App\Models\SitePage;
 use App\Support\ListingPayload;
 use App\Support\ListingSearch;
+use App\Support\Membership;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -25,7 +26,10 @@ class ListingController extends Controller
         $payload = ListingPayload::collection($published);
 
         $featured = ListingPayload::collection(
-            $published->where('is_featured', true)->take(12)->values()
+            $published
+                ->filter(fn ($listing) => Membership::isPromotedPriority($listing->priority))
+                ->take(12)
+                ->values()
         );
 
         $trending = ListingPayload::collection(
@@ -36,6 +40,15 @@ class ListingController extends Controller
             $trending = array_slice($payload, 0, 8);
         }
 
+        // Below-hero strip: promoted only — fall back to premium then standard.
+        if ($featured === []) {
+            $featured = ListingPayload::collection(
+                $published
+                    ->filter(fn ($listing) => (int) $listing->priority >= 3)
+                    ->take(12)
+                    ->values()
+            );
+        }
         if ($featured === []) {
             $featured = array_slice($payload, 0, 6);
         }

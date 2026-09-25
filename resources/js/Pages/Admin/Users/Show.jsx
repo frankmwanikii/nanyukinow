@@ -6,6 +6,7 @@ import {
     AdminCheckbox,
     AdminInput,
     AdminPasswordInput,
+    AdminTabs,
     DataCard,
     DataTable,
     EmptyState,
@@ -86,8 +87,8 @@ function MembershipPanel({ membership, stats }) {
     const remaining = membership?.days_remaining;
 
     return (
-        <div className="grid gap-3 lg:grid-cols-12">
-            <section className="relative overflow-hidden rounded-2xl border border-olive-200/80 bg-white p-5 shadow-soft lg:col-span-7 dark:border-olive-800 dark:bg-olive-900">
+        <div className="space-y-3">
+            <section className="relative overflow-hidden rounded-2xl border border-olive-200/80 bg-white p-5 shadow-soft dark:border-olive-800 dark:bg-olive-900">
                 <div
                     className="pointer-events-none absolute -right-8 -top-10 h-36 w-36 rounded-full bg-mustard/20 blur-2xl"
                     aria-hidden
@@ -162,7 +163,7 @@ function MembershipPanel({ membership, stats }) {
                 ) : null}
             </section>
 
-            <div className="grid gap-3 sm:grid-cols-3 lg:col-span-5 lg:grid-cols-1">
+            <div className="grid gap-3 sm:grid-cols-3">
                 <MetaTile
                     icon={CalendarClock}
                     label="Subscribed / started"
@@ -209,61 +210,33 @@ function MetaTile({ icon: Icon, label, value, emphasis = false }) {
 }
 
 function ProfileTabs({ user, tab }) {
-    const items = [
-        { id: 'profile', label: 'Profile', icon: UserRound },
-        {
-            id: 'listings',
-            label: 'Listings',
-            icon: LayoutList,
-            badge: user.listings_count,
-        },
-        {
-            id: 'payments',
-            label: 'Payment history',
-            icon: CreditCard,
-            badge: user.payments_count,
-        },
-    ];
-
     return (
-        <nav
-            className="mb-6 flex flex-wrap gap-1 border-b border-olive-200 dark:border-olive-800"
-            aria-label="Member sections"
-        >
-            {items.map((item) => {
-                const active = tab === item.id;
-                const Icon = item.icon;
-                return (
-                    <button
-                        key={item.id}
-                        type="button"
-                        onClick={() =>
-                            router.get(
-                                route('admin.users.show', memberRouteKey(user)),
-                                { tab: item.id },
-                                { preserveState: true },
-                            )
-                        }
-                        className={`relative inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition ${
-                            active
-                                ? 'text-olive-950 dark:text-white'
-                                : 'text-olive-500 hover:text-olive-800 dark:text-olive-400 dark:hover:text-olive-100'
-                        }`}
-                    >
-                        <Icon className="h-3.5 w-3.5" />
-                        {item.label}
-                        {item.badge > 0 ? (
-                            <span className="rounded-full bg-olive-100 px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-olive-700 dark:bg-olive-800 dark:text-olive-200">
-                                {item.badge}
-                            </span>
-                        ) : null}
-                        {active ? (
-                            <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-mustard" />
-                        ) : null}
-                    </button>
-                );
-            })}
-        </nav>
+        <AdminTabs
+            label="Member sections"
+            value={tab}
+            onChange={(id) =>
+                router.get(
+                    route('admin.users.show', memberRouteKey(user)),
+                    { tab: id },
+                    { preserveState: true },
+                )
+            }
+            items={[
+                { id: 'profile', label: 'Profile', icon: UserRound },
+                {
+                    id: 'listings',
+                    label: 'Listings',
+                    icon: LayoutList,
+                    badge: user.listings_count > 0 ? user.listings_count : null,
+                },
+                {
+                    id: 'payments',
+                    label: 'Payment history',
+                    icon: CreditCard,
+                    badge: user.payments_count > 0 ? user.payments_count : null,
+                },
+            ]}
+        />
     );
 }
 

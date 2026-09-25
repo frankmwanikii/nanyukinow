@@ -388,7 +388,7 @@ export default function Edit({ user }) {
         <AdminLayout>
             <Head title="Your profile" />
 
-            <div className="mx-auto max-w-3xl space-y-6">
+            <div className="w-full space-y-6">
                 <PageHeader
                     title="Your profile"
                     description={`Update how you appear in the admin, your email, and your password${authUser?.name ? ` for ${authUser.name}` : ''}.`}

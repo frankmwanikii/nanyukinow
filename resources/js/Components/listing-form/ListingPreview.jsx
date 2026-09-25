@@ -537,6 +537,25 @@ export default function ListingPreview({
                             <Row label="WhatsApp" value={formData.whatsapp} />
                             <Row label="Email" value={formData.email} />
                             <Row label="Website" value={formData.website} />
+                            <Row
+                                label="More links"
+                                value={
+                                    (formData.social_links?.links || []).filter(
+                                        (item) => item?.url,
+                                    ).length ? (
+                                        <ul className="space-y-1">
+                                            {(formData.social_links?.links || [])
+                                                .filter((item) => item?.url)
+                                                .map((item, i) => (
+                                                    <li key={`${item.url}-${i}`}>
+                                                        {item.label || 'Link'}:{' '}
+                                                        {item.url}
+                                                    </li>
+                                                ))}
+                                        </ul>
+                                    ) : null
+                                }
+                            />
                             {showHours ? (
                                 <Row
                                     label="Hours"

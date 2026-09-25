@@ -4,6 +4,7 @@ import {
     AdminCheckbox,
     AdminInput,
     AdminSelect,
+    AdminTabs,
     AdminTextarea,
     FormPanel,
     PageHeader,
@@ -11,8 +12,17 @@ import {
 } from '@/Components/Admin/ui';
 import { useConfirm } from '@/Components/ConfirmDialog';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { ArrowLeft, Plus, Save, Trash2 } from 'lucide-react';
-import { useEffect } from 'react';
+import {
+    ArrowLeft,
+    Eye,
+    Plus,
+    Save,
+    Settings2,
+    Tag,
+    Trash2,
+    Wallet,
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 function formatMoney(amount, currency) {
     const n = Number(amount) || 0;
@@ -27,20 +37,80 @@ function formatMoney(amount, currency) {
     }
 }
 
-function displayPrice(plan) {
-    if (plan.price_label) return plan.price_label;
-    if (Number(plan.price_amount) === 0) return 'Free';
-    return formatMoney(plan.price_amount, plan.currency);
+function amountForPeriod(data, period) {
+    if (period === 'year') {
+        if (data.yearly_price_amount !== '' && data.yearly_price_amount != null) {
+            return Number(data.yearly_price_amount) || 0;
+        }
+        return (Number(data.price_amount) || 0) * 10;
+    }
+    return Number(data.price_amount) || 0;
 }
 
-function periodLabel(period) {
-    if (period === 'year') return 'Per year';
-    if (period === 'one_time') return 'One-time';
-    return 'Per month';
+function displayPrice(data, period = 'month') {
+    if (data.price_label) return data.price_label;
+    const amount = amountForPeriod(data, period);
+    if (amount === 0) return 'Free';
+    return formatMoney(amount, data.currency);
 }
+
+function periodSuffix(period) {
+    if (period === 'year') return '/year';
+    if (period === 'one_time') return ' one-time';
+    return '/mo';
+}
+
+function BillingSwitcher({ value, onChange, disabled = false }) {
+    return (
+        <div
+            role="radiogroup"
+            aria-label="Billing period preview"
+            className="relative inline-grid grid-cols-2 rounded-full bg-olive-100/90 p-1 dark:bg-olive-800/80"
+        >
+            <span
+                aria-hidden
+                className={`pointer-events-none absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-white shadow-sm ring-1 ring-olive-200/80 transition-transform duration-300 ease-out dark:bg-olive-950 dark:ring-olive-700 ${
+                    value === 'year' ? 'translate-x-full' : 'translate-x-0'
+                }`}
+            />
+            {[
+                { id: 'month', label: 'Monthly' },
+                { id: 'year', label: 'Yearly' },
+            ].map((opt) => {
+                const active = value === opt.id;
+                return (
+                    <button
+                        key={opt.id}
+                        type="button"
+                        role="radio"
+                        aria-checked={active}
+                        disabled={disabled}
+                        onClick={() => onChange(opt.id)}
+                        className={`relative z-10 min-w-[6.5rem] rounded-full px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                            active
+                                ? 'text-olive-950 dark:text-white'
+                                : 'text-olive-500 hover:text-olive-800 dark:text-olive-400'
+                        }`}
+                    >
+                        {opt.label}
+                    </button>
+                );
+            })}
+        </div>
+    );
+}
+
+const TABS = [
+    { id: 'general', label: 'General', icon: Tag },
+    { id: 'pricing', label: 'Pricing', icon: Wallet },
+    { id: 'advanced', label: 'Advanced', icon: Settings2 },
+    { id: 'preview', label: 'Preview', icon: Eye },
+];
 
 export default function Edit({ plan, billingPeriods = [] }) {
     const { confirm, dialog } = useConfirm();
+    const [tab, setTab] = useState('general');
+    const [previewBilling, setPreviewBilling] = useState('month');
 
     const form = useForm({
         name: plan.name,
@@ -102,19 +172,77 @@ export default function Edit({ plan, billingPeriods = [] }) {
     };
 
     const save = (e) => {
-        e.preventDefault();
-        form
-            .transform((data) => ({
-                ...data,
-                yearly_price_amount:
-                    data.yearly_price_amount === '' || data.yearly_price_amount === null
-                        ? null
-                        : Number(data.yearly_price_amount),
-            }))
-            .put(route('admin.pricing.update', plan.id), {
-                preserveScroll: true,
-                onFinish: () => form.transform((data) => data),
-            });
+        e?.preventDefault?.();
+
+        const inclusions = (form.data.inclusions || [])
+            .map((item) => String(item || '').trim())
+            .filter(Boolean);
+
+        if (inclusions.length === 0) {
+            form.setError('inclusions', 'Add at least one inclusion.');
+            setTab('general');
+            return;
+        }
+
+        const payload = {
+            name: form.data.name,
+            tagline: form.data.tagline || null,
+            price_amount: Number(form.data.price_amount) || 0,
+            yearly_price_amount:
+                form.data.yearly_price_amount === '' ||
+                form.data.yearly_price_amount === null ||
+                form.data.yearly_price_amount === undefined
+                    ? null
+                    : Number(form.data.yearly_price_amount),
+            currency: (form.data.currency || 'KES').toUpperCase(),
+            billing_period: form.data.billing_period || 'month',
+            price_label: form.data.price_label || null,
+            inclusions,
+            cta_label: form.data.cta_label || 'Get started',
+            is_highlighted: Boolean(form.data.is_highlighted),
+            is_active: Boolean(form.data.is_active),
+            sort_order: Number(form.data.sort_order) || 0,
+            listing_limit: Number(form.data.listing_limit) || 0,
+        };
+
+        form.transform(() => payload);
+        form.put(route('admin.pricing.update', plan.id), {
+            preserveScroll: true,
+            onSuccess: () => {
+                form.setDefaults({
+                    ...form.data,
+                    ...payload,
+                    tagline: payload.tagline || '',
+                    price_label: payload.price_label || '',
+                    yearly_price_amount:
+                        payload.yearly_price_amount === null
+                            ? ''
+                            : payload.yearly_price_amount,
+                });
+            },
+            onError: (errors) => {
+                if (
+                    errors.price_amount ||
+                    errors.yearly_price_amount ||
+                    errors.currency ||
+                    errors.billing_period
+                ) {
+                    setTab('pricing');
+                } else if (
+                    errors.listing_limit ||
+                    errors.sort_order ||
+                    errors.is_highlighted ||
+                    errors.is_active
+                ) {
+                    setTab('advanced');
+                } else {
+                    setTab('general');
+                }
+            },
+            onFinish: () => {
+                form.transform((data) => data);
+            },
+        });
     };
 
     const remove = async () => {
@@ -128,6 +256,42 @@ export default function Edit({ plan, billingPeriods = [] }) {
             onSuccess: () => router.visit(route('admin.pricing.index')),
         });
     };
+
+    const hasYearly =
+        form.data.yearly_price_amount !== '' &&
+        form.data.yearly_price_amount != null &&
+        Number(form.data.price_amount) > 0;
+    const previewPeriod =
+        form.data.billing_period === 'one_time'
+            ? 'one_time'
+            : hasYearly
+              ? previewBilling
+              : 'month';
+    const previewAmount = amountForPeriod(form.data, previewPeriod);
+    const errorCount = Object.keys(form.errors || {}).length;
+
+    const actionBar = (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+            <AdminButton type="button" size="sm" variant="danger" onClick={remove}>
+                <Trash2 className="h-3.5 w-3.5" />
+                Delete tier
+            </AdminButton>
+            <div className="flex flex-wrap items-center gap-2">
+                {form.isDirty ? (
+                    <span className="text-sm text-olive-500">Unsaved changes</span>
+                ) : null}
+                {errorCount > 0 ? (
+                    <span className="text-sm font-medium text-rose-600">
+                        Fix {errorCount} error{errorCount === 1 ? '' : 's'} to save
+                    </span>
+                ) : null}
+                <AdminButton type="submit" disabled={form.processing}>
+                    <Save className="h-4 w-4" />
+                    {form.processing ? 'Saving…' : 'Save plan'}
+                </AdminButton>
+            </div>
+        </div>
+    );
 
     return (
         <AdminLayout>
@@ -165,17 +329,42 @@ export default function Edit({ plan, billingPeriods = [] }) {
                         >
                             View public page
                         </AdminButton>
+                        <AdminButton
+                            size="sm"
+                            type="button"
+                            disabled={form.processing}
+                            onClick={save}
+                        >
+                            <Save className="h-3.5 w-3.5" />
+                            {form.processing ? 'Saving…' : 'Save plan'}
+                        </AdminButton>
                     </div>
                 }
             />
 
-            <div className="grid gap-6 xl:grid-cols-12">
-                <div className="xl:col-span-8">
+            <AdminTabs
+                items={TABS}
+                value={tab}
+                onChange={setTab}
+                label="Pricing sections"
+            />
+
+            <form onSubmit={save} className="w-full space-y-5 pb-24">
+                {errorCount > 0 ? (
+                    <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800 dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-200">
+                        Couldn’t save — check the highlighted fields
+                        {form.errors.inclusions
+                            ? ` (${form.errors.inclusions})`
+                            : ''}
+                        .
+                    </div>
+                ) : null}
+                {tab === 'general' ? (
                     <FormPanel
-                        title={`Edit · ${plan.key}`}
-                        description="Changes publish immediately to the public pricing page and upgrade flow."
+                        title="General"
+                        description="Name, tagline, CTA, and what’s included in this tier."
                     >
-                        <form onSubmit={save} className="space-y-5">
+                        <div className="space-y-5">
                             <div className="grid gap-3 sm:grid-cols-2">
                                 <AdminInput
                                     label="Display name"
@@ -200,59 +389,6 @@ export default function Edit({ plan, billingPeriods = [] }) {
                                 error={form.errors.tagline}
                                 placeholder="Short line under the tier name"
                             />
-
-                            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                                <AdminInput
-                                    label="Monthly price"
-                                    type="number"
-                                    min="0"
-                                    step="1"
-                                    value={form.data.price_amount}
-                                    onChange={(e) =>
-                                        form.setData('price_amount', e.target.value)
-                                    }
-                                    error={form.errors.price_amount}
-                                />
-                                <AdminInput
-                                    label="Yearly price"
-                                    type="number"
-                                    min="0"
-                                    step="1"
-                                    value={form.data.yearly_price_amount}
-                                    onChange={(e) =>
-                                        form.setData('yearly_price_amount', e.target.value)
-                                    }
-                                    error={form.errors.yearly_price_amount}
-                                    placeholder="Optional"
-                                />
-                                <AdminInput
-                                    label="Currency"
-                                    value={form.data.currency}
-                                    onChange={(e) =>
-                                        form.setData('currency', e.target.value.toUpperCase())
-                                    }
-                                    error={form.errors.currency}
-                                />
-                                <AdminSelect
-                                    label="Default period"
-                                    value={form.data.billing_period}
-                                    onChange={(e) =>
-                                        form.setData('billing_period', e.target.value)
-                                    }
-                                    error={form.errors.billing_period}
-                                >
-                                    {billingPeriods.map((p) => (
-                                        <option key={p.value} value={p.value}>
-                                            {p.label}
-                                        </option>
-                                    ))}
-                                </AdminSelect>
-                            </div>
-                            <p className="-mt-2 text-xs text-olive-500">
-                                Yearly price powers the Monthly / Yearly switcher on the public
-                                pricing and upgrade pages. Leave blank to hide yearly for this
-                                tier.
-                            </p>
 
                             <AdminInput
                                 label="Custom price label"
@@ -305,7 +441,96 @@ export default function Edit({ plan, billingPeriods = [] }) {
                                     </p>
                                 )}
                             </div>
+                        </div>
+                    </FormPanel>
+                ) : null}
 
+                {tab === 'pricing' ? (
+                    <FormPanel
+                        title="Pricing"
+                        description="Monthly and yearly amounts power the public billing switcher."
+                    >
+                        <div className="space-y-5">
+                            <div className="grid gap-3 sm:grid-cols-2">
+                                <AdminInput
+                                    label="Monthly price"
+                                    type="number"
+                                    min="0"
+                                    step="1"
+                                    value={form.data.price_amount}
+                                    onChange={(e) =>
+                                        form.setData('price_amount', e.target.value)
+                                    }
+                                    error={form.errors.price_amount}
+                                />
+                                <AdminInput
+                                    label="Yearly price"
+                                    type="number"
+                                    min="0"
+                                    step="1"
+                                    value={form.data.yearly_price_amount}
+                                    onChange={(e) =>
+                                        form.setData('yearly_price_amount', e.target.value)
+                                    }
+                                    error={form.errors.yearly_price_amount}
+                                    placeholder="Optional"
+                                />
+                                <AdminInput
+                                    label="Currency"
+                                    value={form.data.currency}
+                                    onChange={(e) =>
+                                        form.setData('currency', e.target.value.toUpperCase())
+                                    }
+                                    error={form.errors.currency}
+                                />
+                                <AdminSelect
+                                    label="Default period"
+                                    value={form.data.billing_period}
+                                    onChange={(e) =>
+                                        form.setData('billing_period', e.target.value)
+                                    }
+                                    error={form.errors.billing_period}
+                                >
+                                    {billingPeriods.map((p) => (
+                                        <option key={p.value} value={p.value}>
+                                            {p.label}
+                                        </option>
+                                    ))}
+                                </AdminSelect>
+                            </div>
+                            <p className="text-xs text-olive-500">
+                                Leave yearly blank to hide yearly billing for this tier on the
+                                public pricing and upgrade pages.
+                            </p>
+                            {hasYearly ? (
+                                <div className="rounded-xl border border-olive-100 bg-olive-50/70 px-4 py-3 dark:border-olive-800 dark:bg-olive-950/40">
+                                    <p className="text-xs font-semibold uppercase tracking-wide text-olive-500">
+                                        Quick check
+                                    </p>
+                                    <p className="mt-1 text-sm text-olive-800 dark:text-olive-200">
+                                        {displayPrice(form.data, 'month')}
+                                        /mo · {displayPrice(form.data, 'year')}/yr
+                                        {Number(form.data.price_amount) > 0
+                                            ? ` (${formatMoney(
+                                                  Math.round(
+                                                      amountForPeriod(form.data, 'year') / 12,
+                                                  ),
+                                                  form.data.currency,
+                                              )}/mo billed yearly)`
+                                            : ''}
+                                    </p>
+                                </div>
+                            ) : null}
+                        </div>
+                    </FormPanel>
+                ) : null}
+
+                {tab === 'advanced' ? (
+                    <FormPanel
+                        title="Advanced"
+                        description="Visibility, listing limits, and sort order."
+                    >
+                        <div className="space-y-5">
                             <div className="flex flex-wrap gap-5">
                                 <AdminCheckbox
                                     label="Highlight as recommended"
@@ -345,86 +570,157 @@ export default function Edit({ plan, billingPeriods = [] }) {
                                     error={form.errors.sort_order}
                                 />
                             </div>
-
-                            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-olive-100 pt-5 dark:border-olive-800">
-                                <AdminButton
-                                    type="button"
-                                    size="sm"
-                                    variant="danger"
-                                    onClick={remove}
-                                >
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                    Delete tier
-                                </AdminButton>
-                                <AdminButton type="submit" disabled={form.processing}>
-                                    <Save className="h-4 w-4" />
-                                    {form.processing ? 'Saving…' : 'Save plan'}
-                                </AdminButton>
-                            </div>
-                        </form>
+                        </div>
                     </FormPanel>
-                </div>
+                ) : null}
 
-                <aside className="xl:col-span-4">
-                    <div className="sticky top-6 overflow-hidden rounded-2xl border border-olive-200/80 bg-white shadow-soft dark:border-olive-800 dark:bg-olive-900">
-                        <div className="border-b border-olive-100 bg-gradient-to-br from-olive-50 to-mustard/10 px-5 py-4 dark:border-olive-800 dark:from-olive-950 dark:to-olive-900">
-                            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-olive-500">
-                                Live preview
-                            </p>
-                            <h2 className="mt-1 font-display text-xl font-bold text-olive-950 dark:text-white">
-                                {form.data.name || plan.name}
-                            </h2>
-                            <p className="mt-1 text-sm text-olive-600 dark:text-olive-300">
-                                {form.data.tagline || '—'}
-                            </p>
-                        </div>
-                        <div className="space-y-4 px-5 py-5">
-                            <div>
-                                <p className="font-display text-3xl font-bold tracking-tight text-olive-950 dark:text-white">
-                                    {form.data.price_label ||
-                                        displayPrice({
-                                            ...form.data,
-                                            price_label: form.data.price_label,
-                                        })}
-                                </p>
-                                <p className="mt-1 text-sm text-olive-500">
-                                    {periodLabel(form.data.billing_period)} ·{' '}
-                                    {form.data.listing_limit} listing
-                                    {Number(form.data.listing_limit) === 1 ? '' : 's'}
-                                </p>
-                                {form.data.yearly_price_amount !== '' &&
-                                form.data.yearly_price_amount != null &&
-                                Number(form.data.price_amount) > 0 ? (
-                                    <p className="mt-2 text-sm font-medium text-olive-700 dark:text-olive-200">
-                                        Yearly:{' '}
-                                        {formatMoney(
-                                            form.data.yearly_price_amount,
-                                            form.data.currency,
-                                        )}
-                                        /yr
-                                    </p>
-                                ) : null}
-                            </div>
-                            <ul className="space-y-2">
-                                {(form.data.inclusions || [])
-                                    .filter((i) => String(i || '').trim())
-                                    .map((item, i) => (
-                                        <li
-                                            key={`${i}-${item}`}
-                                            className="flex gap-2 text-sm text-olive-700 dark:text-olive-200"
+                {tab === 'preview' ? (
+                    <FormPanel
+                        title="Preview"
+                        description="How this tier appears on the public pricing page."
+                    >
+                        <div className="space-y-5">
+                            {hasYearly && form.data.billing_period !== 'one_time' ? (
+                                <div className="flex justify-center">
+                                    <BillingSwitcher
+                                        value={previewBilling}
+                                        onChange={setPreviewBilling}
+                                    />
+                                </div>
+                            ) : null}
+
+                            <article
+                                className={`mx-auto max-w-sm overflow-hidden rounded-xl border border-olive-200 ${
+                                    form.data.is_highlighted
+                                        ? 'bg-olive-950 text-white'
+                                        : 'bg-white'
+                                }`}
+                            >
+                                <div className="p-6 sm:p-7">
+                                    <div className="flex items-baseline justify-between gap-3">
+                                        <h3
+                                            className={`font-display text-lg font-semibold tracking-tight ${
+                                                form.data.is_highlighted
+                                                    ? 'text-white'
+                                                    : 'text-olive-950'
+                                            }`}
                                         >
-                                            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-mustard" />
-                                            <span>{item}</span>
-                                        </li>
-                                    ))}
-                            </ul>
-                            <div className="rounded-xl bg-olive-50 px-3.5 py-3 text-center text-sm font-semibold text-olive-900 dark:bg-olive-950/60 dark:text-olive-50">
-                                {form.data.cta_label || 'Get started'}
-                            </div>
+                                            {form.data.name || plan.name}
+                                        </h3>
+                                        {form.data.is_highlighted ? (
+                                            <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-mustard">
+                                                Popular
+                                            </span>
+                                        ) : null}
+                                    </div>
+                                    {form.data.tagline ? (
+                                        <p
+                                            className={`mt-2 text-sm leading-relaxed ${
+                                                form.data.is_highlighted
+                                                    ? 'text-white/65'
+                                                    : 'text-olive-500'
+                                            }`}
+                                        >
+                                            {form.data.tagline}
+                                        </p>
+                                    ) : null}
+
+                                    <div className="mt-8">
+                                        <div className="flex items-baseline gap-1.5">
+                                            <span
+                                                className={`font-display text-3xl font-semibold tracking-tight tabular-nums ${
+                                                    form.data.is_highlighted
+                                                        ? 'text-white'
+                                                        : 'text-olive-950'
+                                                }`}
+                                            >
+                                                {displayPrice(form.data, previewPeriod)}
+                                            </span>
+                                            {!form.data.price_label && previewAmount > 0 ? (
+                                                <span
+                                                    className={`text-sm ${
+                                                        form.data.is_highlighted
+                                                            ? 'text-white/55'
+                                                            : 'text-olive-400'
+                                                    }`}
+                                                >
+                                                    {periodSuffix(previewPeriod)}
+                                                </span>
+                                            ) : null}
+                                        </div>
+                                        {previewPeriod === 'year' &&
+                                        !form.data.price_label &&
+                                        previewAmount > 0 ? (
+                                            <p
+                                                className={`mt-1 text-xs ${
+                                                    form.data.is_highlighted
+                                                        ? 'text-white/50'
+                                                        : 'text-olive-400'
+                                                }`}
+                                            >
+                                                {formatMoney(
+                                                    Math.round(previewAmount / 12),
+                                                    form.data.currency,
+                                                )}
+                                                /mo billed yearly
+                                            </p>
+                                        ) : null}
+                                        <p
+                                            className={`mt-2 text-sm font-medium ${
+                                                form.data.is_highlighted
+                                                    ? 'text-mustard'
+                                                    : 'text-olive-700'
+                                            }`}
+                                        >
+                                            {form.data.listing_limit} listing
+                                            {Number(form.data.listing_limit) === 1 ? '' : 's'}{' '}
+                                            included
+                                        </p>
+                                    </div>
+
+                                    <ul className="mt-8 space-y-2.5 border-t border-dashed border-olive-200/70 pt-6">
+                                        {(form.data.inclusions || [])
+                                            .filter((i) => String(i || '').trim())
+                                            .map((item, i) => (
+                                                <li
+                                                    key={`${i}-${item}`}
+                                                    className={`flex gap-2.5 text-sm leading-snug ${
+                                                        form.data.is_highlighted
+                                                            ? 'text-white/80'
+                                                            : 'text-olive-700'
+                                                    }`}
+                                                >
+                                                    <span
+                                                        className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${
+                                                            form.data.is_highlighted
+                                                                ? 'bg-mustard'
+                                                                : 'bg-olive-800'
+                                                        }`}
+                                                    />
+                                                    <span>{item}</span>
+                                                </li>
+                                            ))}
+                                    </ul>
+
+                                    <div
+                                        className={`mt-8 px-4 py-2.5 text-center text-sm font-semibold ${
+                                            form.data.is_highlighted
+                                                ? 'bg-mustard text-earth-dusk'
+                                                : 'bg-olive-900 text-white'
+                                        }`}
+                                    >
+                                        {form.data.cta_label || 'Get started'}
+                                    </div>
+                                </div>
+                            </article>
                         </div>
-                    </div>
-                </aside>
-            </div>
+                    </FormPanel>
+                ) : null}
+
+                <div className="sticky bottom-0 z-20 -mx-4 border-t border-olive-200 bg-earth-sand/95 px-4 py-3 backdrop-blur-sm sm:-mx-6 sm:px-6 dark:border-olive-800 dark:bg-olive-950/95">
+                    {actionBar}
+                </div>
+            </form>
         </AdminLayout>
     );
 }

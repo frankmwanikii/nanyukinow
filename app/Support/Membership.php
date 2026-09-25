@@ -14,6 +14,9 @@ class Membership
 
     public const PREMIUM = 'premium';
 
+    /** Below-hero marquee / homepage spotlight. */
+    public const PROMOTED_PRIORITY = 4;
+
     /** @var array<string, int> */
     public const DEFAULT_LIMITS = [
         self::FREE => 1,
@@ -34,6 +37,24 @@ class Membership
         self::STANDARD => 'Featured',
         self::PREMIUM => 'Premium',
     ];
+
+    /**
+     * Sort priority from membership tier.
+     * Free = 0, Standard = 1, Premium = 3. Promoted (4) is set separately by admins.
+     */
+    public static function listingPriority(?string $tier): int
+    {
+        return match (self::normalize($tier)) {
+            self::PREMIUM => 3,
+            self::STANDARD => 1,
+            default => 0,
+        };
+    }
+
+    public static function isPromotedPriority(?int $priority): bool
+    {
+        return (int) $priority >= self::PROMOTED_PRIORITY;
+    }
 
     public static function normalize(?string $plan): string
     {
@@ -183,10 +204,20 @@ class Membership
 
         $user->listings()
             ->whereIn('tier', $lowerTiers)
-            ->update([
-                'tier' => $plan,
-                'is_featured' => true,
-            ]);
+            ->get()
+            ->each(function ($listing) use ($plan): void {
+                $updates = [
+                    'tier' => $plan,
+                    'is_featured' => true,
+                ];
+
+                // Don't demote admin-promoted (below-hero) listings.
+                if (! self::isPromotedPriority($listing->priority)) {
+                    $updates['priority'] = self::listingPriority($plan);
+                }
+
+                $listing->update($updates);
+            });
     }
 
     public static function planSummary(User $user): array

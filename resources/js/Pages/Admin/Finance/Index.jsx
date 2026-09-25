@@ -5,6 +5,7 @@ import {
     AdminInput,
     AdminNotice,
     AdminSelect,
+    AdminTabs,
     AdminTextarea,
     DataCard,
     DataTable,
@@ -71,53 +72,31 @@ function formatDate(iso, withTime = false) {
 }
 
 function SectionTabs({ tab, pendingCount }) {
-    const items = [
-        { id: 'overview', label: 'Overview' },
-        { id: 'payments', label: 'Payments', badge: pendingCount },
-    ];
-
     return (
-        <nav
-            className="mb-6 flex flex-wrap gap-1 border-b border-olive-200 dark:border-olive-800"
-            aria-label="Finance sections"
-        >
-            {items.map((item) => {
-                const active = tab === item.id;
-                return (
-                    <button
-                        key={item.id}
-                        type="button"
-                        onClick={() =>
-                            router.get(
-                                route('admin.finance.index'),
-                                item.id === 'payments'
-                                    ? {
-                                          tab: 'payments',
-                                          ...(pendingCount > 0 ? { status: 'pending' } : {}),
-                                      }
-                                    : { tab: item.id },
-                                { preserveState: true },
-                            )
-                        }
-                        className={`relative inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition ${
-                            active
-                                ? 'text-olive-950 dark:text-white'
-                                : 'text-olive-500 hover:text-olive-800 dark:text-olive-400 dark:hover:text-olive-100'
-                        }`}
-                    >
-                        {item.label}
-                        {item.badge > 0 ? (
-                            <span className="rounded-full bg-mustard/80 px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-earth-dusk">
-                                {item.badge}
-                            </span>
-                        ) : null}
-                        {active ? (
-                            <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-mustard" />
-                        ) : null}
-                    </button>
-                );
-            })}
-        </nav>
+        <AdminTabs
+            label="Finance sections"
+            value={tab}
+            onChange={(id) =>
+                router.get(
+                    route('admin.finance.index'),
+                    id === 'payments'
+                        ? {
+                              tab: 'payments',
+                              ...(pendingCount > 0 ? { status: 'pending' } : {}),
+                          }
+                        : { tab: id },
+                    { preserveState: true },
+                )
+            }
+            items={[
+                { id: 'overview', label: 'Overview' },
+                {
+                    id: 'payments',
+                    label: 'Payments',
+                    badge: pendingCount > 0 ? pendingCount : null,
+                },
+            ]}
+        />
     );
 }
 
