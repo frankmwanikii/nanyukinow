@@ -573,7 +573,7 @@ function CopyButton({ value, label = 'Copy' }) {
         <button
             type="button"
             onClick={copy}
-            className="text-xs font-semibold text-olive-700 underline-offset-2 hover:underline"
+            className="text-xs font-semibold text-olive-700 underline-offset-2 hover:underline dark:text-olive-300"
         >
             {copied ? 'Copied' : label}
         </button>
@@ -741,17 +741,17 @@ function PaymentCheckout({
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="checkout-title"
-                className="relative z-10 flex max-h-[94vh] w-full max-w-md flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:mx-4 sm:rounded-2xl"
+                className="relative z-10 flex max-h-[94vh] w-full max-w-md flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl dark:bg-olive-900 dark:shadow-none dark:ring-1 dark:ring-olive-800 sm:mx-4 sm:rounded-2xl"
             >
                 {/* Header */}
-                <div className="flex shrink-0 items-start justify-between gap-3 border-b border-olive-100 px-5 py-4">
+                <div className="flex shrink-0 items-start justify-between gap-3 border-b border-olive-100 px-5 py-4 dark:border-olive-800">
                     <div className="min-w-0">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-olive-400">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-olive-400 dark:text-olive-500">
                             Secure checkout
                         </p>
                         <h2
                             id="checkout-title"
-                            className="mt-1 font-display text-xl font-semibold tracking-tight text-olive-950"
+                            className="mt-1 font-display text-xl font-semibold tracking-tight text-olive-950 dark:text-olive-50"
                         >
                             Upgrade to {plan.name}
                         </h2>
@@ -759,7 +759,7 @@ function PaymentCheckout({
                     <button
                         type="button"
                         onClick={onClose}
-                        className="inline-flex h-9 w-9 shrink-0 items-center justify-center text-olive-500 transition hover:bg-olive-50 hover:text-olive-900"
+                        className="inline-flex h-9 w-9 shrink-0 items-center justify-center text-olive-500 transition hover:bg-olive-50 hover:text-olive-900 dark:text-olive-400 dark:hover:bg-olive-800 dark:hover:text-olive-50"
                         aria-label="Close"
                     >
                         <X className="h-5 w-5" />
@@ -772,18 +772,18 @@ function PaymentCheckout({
                 >
                     <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-5">
                         {/* Order summary */}
-                        <div className="flex items-center justify-between gap-3 border border-olive-200 bg-[#f4f2ec] px-4 py-3.5">
+                        <div className="flex items-center justify-between gap-3 border border-olive-200 bg-[#f4f2ec] px-4 py-3.5 dark:border-olive-700 dark:bg-olive-950">
                             <div>
-                                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-olive-400">
+                                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-olive-400 dark:text-olive-500">
                                     Due today
                                 </p>
-                                <p className="mt-1 font-display text-2xl font-semibold tabular-nums text-olive-950">
+                                <p className="mt-1 font-display text-2xl font-semibold tabular-nums text-olive-950 dark:text-olive-50">
                                     {displayPrice(plan, period)}
                                 </p>
                             </div>
-                            <div className="text-right text-sm text-olive-600">
-                                <p className="font-semibold text-olive-900">{plan.name}</p>
-                                <p className="text-xs text-olive-500">
+                            <div className="text-right text-sm text-olive-600 dark:text-olive-400">
+                                <p className="font-semibold text-olive-900 dark:text-olive-100">{plan.name}</p>
+                                <p className="text-xs text-olive-500 dark:text-olive-400">
                                     {plan.listing_limit} listing
                                     {plan.listing_limit === 1 ? '' : 's'}
                                     {!plan.price_label && amount > 0
@@ -799,11 +799,11 @@ function PaymentCheckout({
                             <div
                                 role="radiogroup"
                                 aria-label="Payment method"
-                                className="relative grid grid-cols-2 rounded-full bg-olive-100/90 p-1"
+                                className="relative grid grid-cols-2 rounded-full bg-olive-100/90 p-1 dark:bg-olive-950 dark:ring-1 dark:ring-olive-700"
                             >
                                 <span
                                     aria-hidden
-                                    className={`pointer-events-none absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-white shadow-sm ring-1 ring-olive-200/80 transition-transform duration-300 ease-out ${
+                                    className={`pointer-events-none absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-white shadow-sm ring-1 ring-olive-200/80 transition-transform duration-300 ease-out dark:bg-mustard dark:ring-mustard/40 ${
                                         method === 'paypal' ? 'translate-x-full' : 'translate-x-0'
                                     }`}
                                 />
@@ -819,8 +819,8 @@ function PaymentCheckout({
                                             onClick={() => selectMethod(opt.value)}
                                             className={`relative z-10 flex items-center justify-center rounded-full px-3 py-3 transition ${
                                                 active
-                                                    ? 'text-olive-950'
-                                                    : 'text-olive-500 hover:text-olive-800'
+                                                    ? 'text-olive-950 dark:text-earth-dusk'
+                                                    : 'text-olive-500 hover:text-olive-800 dark:text-olive-400 dark:hover:text-olive-100'
                                             }`}
                                         >
                                             <MethodIcon
@@ -896,12 +896,12 @@ function PaymentCheckout({
                         )}
 
                         {payError && !offlinePayment && (
-                            <div className="flex flex-wrap items-center justify-between gap-3 border border-rose-200 bg-rose-50 px-3.5 py-3">
+                            <div className="flex flex-wrap items-center justify-between gap-3 border border-rose-200 bg-rose-50 px-3.5 py-3 dark:border-rose-900 dark:bg-rose-950/40">
                                 <div className="min-w-0">
-                                    <p className="text-sm font-semibold text-rose-800">
+                                    <p className="text-sm font-semibold text-rose-800 dark:text-rose-300">
                                         Payment failed
                                     </p>
-                                    <p className="mt-0.5 text-sm text-rose-700">{payError}</p>
+                                    <p className="mt-0.5 text-sm text-rose-700 dark:text-rose-400">{payError}</p>
                                 </div>
                                 <button
                                     type="button"
@@ -934,15 +934,15 @@ function PaymentCheckout({
                                 }}
                                 className={`flex w-full items-center justify-between gap-3 border px-3.5 py-3 text-left transition ${
                                     offlinePayment
-                                        ? 'border-olive-900 bg-[#f4f2ec]'
-                                        : 'border-olive-200 hover:border-olive-300'
+                                        ? 'border-olive-900 bg-[#f4f2ec] dark:border-mustard/50 dark:bg-olive-950'
+                                        : 'border-olive-200 hover:border-olive-300 dark:border-olive-700 dark:hover:border-olive-600'
                                 }`}
                             >
                                 <span>
-                                    <span className="block text-sm font-semibold text-olive-950">
+                                    <span className="block text-sm font-semibold text-olive-950 dark:text-olive-50">
                                         Offline payment
                                     </span>
-                                    <span className="mt-0.5 block text-xs text-olive-500">
+                                    <span className="mt-0.5 block text-xs text-olive-500 dark:text-olive-400">
                                         {method === 'mpesa'
                                             ? 'Pay via Lipa na M-Pesa, then enter your code'
                                             : 'Pay via PayPal, then enter your transaction ID'}
@@ -950,7 +950,9 @@ function PaymentCheckout({
                                 </span>
                                 <span
                                     className={`text-xs font-bold uppercase tracking-wide ${
-                                        offlinePayment ? 'text-olive-900' : 'text-olive-400'
+                                        offlinePayment
+                                            ? 'text-olive-900 dark:text-mustard'
+                                            : 'text-olive-400 dark:text-olive-500'
                                     }`}
                                 >
                                     {offlinePayment ? 'Hide' : 'Open'}
@@ -958,11 +960,11 @@ function PaymentCheckout({
                             </button>
 
                             {offlinePayment && (
-                                <div className="space-y-4 border border-olive-200 p-4">
+                                <div className="space-y-4 border border-olive-200 p-4 dark:border-olive-700">
                                     {method === 'mpesa' ? (
                                         <>
                                             <div>
-                                                <p className="text-sm font-semibold text-olive-950">
+                                                <p className="text-sm font-semibold text-olive-950 dark:text-olive-50">
                                                     How to pay with M-Pesa
                                                 </p>
                                                 <ol className="mt-3 space-y-2.5">
@@ -982,9 +984,9 @@ function PaymentCheckout({
                                                     ].map((step, i) => (
                                                         <li
                                                             key={step}
-                                                            className="flex gap-2.5 text-sm text-olive-800"
+                                                            className="flex gap-2.5 text-sm text-olive-800 dark:text-olive-200"
                                                         >
-                                                            <span className="flex h-5 w-5 shrink-0 items-center justify-center bg-olive-900 text-[10px] font-bold text-white">
+                                                            <span className="flex h-5 w-5 shrink-0 items-center justify-center bg-olive-900 text-[10px] font-bold text-white dark:bg-mustard dark:text-earth-dusk">
                                                                 {i + 1}
                                                             </span>
                                                             <span className="min-w-0 leading-snug">
@@ -997,31 +999,31 @@ function PaymentCheckout({
 
                                             <div className="grid grid-cols-2 gap-2">
                                                 {upgradeContact.mpesa_paybill && (
-                                                    <div className="border border-olive-100 bg-[#f4f2ec] px-3 py-2.5">
+                                                    <div className="border border-olive-100 bg-[#f4f2ec] px-3 py-2.5 dark:border-olive-700 dark:bg-olive-950">
                                                         <div className="flex items-center justify-between gap-2">
-                                                            <p className="text-[10px] font-semibold uppercase tracking-wide text-olive-400">
+                                                            <p className="text-[10px] font-semibold uppercase tracking-wide text-olive-400 dark:text-olive-500">
                                                                 Paybill / Till
                                                             </p>
                                                             <CopyButton
                                                                 value={upgradeContact.mpesa_paybill}
                                                             />
                                                         </div>
-                                                        <p className="mt-1 font-display text-lg font-semibold tabular-nums text-olive-950">
+                                                        <p className="mt-1 font-display text-lg font-semibold tabular-nums text-olive-950 dark:text-olive-50">
                                                             {upgradeContact.mpesa_paybill}
                                                         </p>
                                                     </div>
                                                 )}
                                                 {upgradeContact.mpesa_account && (
-                                                    <div className="border border-olive-100 bg-[#f4f2ec] px-3 py-2.5">
+                                                    <div className="border border-olive-100 bg-[#f4f2ec] px-3 py-2.5 dark:border-olive-700 dark:bg-olive-950">
                                                         <div className="flex items-center justify-between gap-2">
-                                                            <p className="text-[10px] font-semibold uppercase tracking-wide text-olive-400">
+                                                            <p className="text-[10px] font-semibold uppercase tracking-wide text-olive-400 dark:text-olive-500">
                                                                 Account
                                                             </p>
                                                             <CopyButton
                                                                 value={upgradeContact.mpesa_account}
                                                             />
                                                         </div>
-                                                        <p className="mt-1 font-display text-lg font-semibold text-olive-950">
+                                                        <p className="mt-1 font-display text-lg font-semibold text-olive-950 dark:text-olive-50">
                                                             {upgradeContact.mpesa_account}
                                                         </p>
                                                     </div>
@@ -1031,7 +1033,7 @@ function PaymentCheckout({
                                     ) : (
                                         <>
                                             <div>
-                                                <p className="text-sm font-semibold text-olive-950">
+                                                <p className="text-sm font-semibold text-olive-950 dark:text-olive-50">
                                                     How to pay with PayPal
                                                 </p>
                                                 <ol className="mt-3 space-y-2.5">
@@ -1045,9 +1047,9 @@ function PaymentCheckout({
                                                     ].map((step, i) => (
                                                         <li
                                                             key={step}
-                                                            className="flex gap-2.5 text-sm text-olive-800"
+                                                            className="flex gap-2.5 text-sm text-olive-800 dark:text-olive-200"
                                                         >
-                                                            <span className="flex h-5 w-5 shrink-0 items-center justify-center bg-olive-900 text-[10px] font-bold text-white">
+                                                            <span className="flex h-5 w-5 shrink-0 items-center justify-center bg-olive-900 text-[10px] font-bold text-white dark:bg-mustard dark:text-earth-dusk">
                                                                 {i + 1}
                                                             </span>
                                                             <span className="min-w-0 leading-snug">
@@ -1058,12 +1060,12 @@ function PaymentCheckout({
                                                 </ol>
                                             </div>
                                             {upgradeContact.paypal_email && (
-                                                <div className="flex items-center justify-between gap-3 border border-olive-100 bg-[#f4f2ec] px-3 py-2.5">
+                                                <div className="flex items-center justify-between gap-3 border border-olive-100 bg-[#f4f2ec] px-3 py-2.5 dark:border-olive-700 dark:bg-olive-950">
                                                     <div className="min-w-0">
-                                                        <p className="text-[10px] font-semibold uppercase tracking-wide text-olive-400">
+                                                        <p className="text-[10px] font-semibold uppercase tracking-wide text-olive-400 dark:text-olive-500">
                                                             Send to
                                                         </p>
-                                                        <p className="truncate font-semibold text-olive-950">
+                                                        <p className="truncate font-semibold text-olive-950 dark:text-olive-50">
                                                             {upgradeContact.paypal_email}
                                                         </p>
                                                     </div>
@@ -1073,7 +1075,7 @@ function PaymentCheckout({
                                                 </div>
                                             )}
                                             {upgradeContact.paypal_note && (
-                                                <p className="text-xs text-olive-500">
+                                                <p className="text-xs text-olive-500 dark:text-olive-400">
                                                     {upgradeContact.paypal_note}
                                                 </p>
                                             )}
@@ -1128,7 +1130,7 @@ function PaymentCheckout({
                     </div>
 
                     {/* Sticky footer CTA */}
-                    <div className="shrink-0 border-t border-olive-100 bg-white px-5 py-4">
+                    <div className="shrink-0 border-t border-olive-100 bg-white px-5 py-4 dark:border-olive-800 dark:bg-olive-900">
                         <button
                             type="submit"
                             disabled={
@@ -1136,7 +1138,7 @@ function PaymentCheckout({
                                 paying ||
                                 (offlinePayment && !form.data.payment_reference.trim())
                             }
-                            className="inline-flex w-full items-center justify-center gap-2 bg-olive-900 px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-mustard hover:text-earth-dusk disabled:cursor-not-allowed disabled:opacity-50"
+                            className="inline-flex w-full items-center justify-center gap-2 bg-olive-900 px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-mustard hover:text-earth-dusk disabled:cursor-not-allowed disabled:opacity-50 dark:bg-mustard dark:text-earth-dusk dark:hover:bg-olive-100"
                         >
                             {paying || form.processing ? (
                                 <RefreshCw className="h-4 w-4 animate-spin" />
@@ -1162,7 +1164,7 @@ function PaymentCheckout({
                                       : `Pay with PayPal · ${amountLabel}`}
                         </button>
                         {offlinePayment && (
-                            <p className="mt-2 text-center text-[11px] text-olive-400">
+                            <p className="mt-2 text-center text-[11px] text-olive-400 dark:text-olive-500">
                                 Plan activates after payment is verified
                             </p>
                         )}
