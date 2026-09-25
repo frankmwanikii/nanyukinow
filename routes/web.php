@@ -78,9 +78,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/account/media/browse', [\App\Http\Controllers\Account\EditorMediaController::class, 'browse'])
         ->middleware('throttle:60,1')
         ->name('account.media.browse');
-    Route::get('/account/places/search', \App\Http\Controllers\Account\PlaceSearchController::class)
+    Route::get('/account/places/search', [\App\Http\Controllers\Account\PlaceSearchController::class, 'search'])
         ->middleware('throttle:60,1')
         ->name('account.places.search');
+    Route::get('/account/places/reverse', [\App\Http\Controllers\Account\PlaceSearchController::class, 'reverse'])
+        ->middleware('throttle:60,1')
+        ->name('account.places.reverse');
 
     Route::get('/account/billing', AccountBillingController::class)->name('account.billing');
 

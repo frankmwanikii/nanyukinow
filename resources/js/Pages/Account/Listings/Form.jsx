@@ -1,6 +1,8 @@
 import AmenitiesPicker from '@/Components/listing-form/AmenitiesPicker';
 import CategoryFields from '@/Components/listing-form/CategoryFields';
+import CategoryExtrasEditor from '@/Components/listing-form/CategoryExtrasEditor';
 import GalleryUploader from '@/Components/listing-form/GalleryUploader';
+import VideoFields from '@/Components/listing-form/VideoFields';
 import HoursEditor from '@/Components/listing-form/HoursEditor';
 import ListingPreview from '@/Components/listing-form/ListingPreview';
 import PlacesLocationInput from '@/Components/listing-form/PlacesLocationInput';
@@ -116,7 +118,7 @@ const STEPS = [
     { id: 'location', title: 'Location' },
     { id: 'details', title: 'Details' },
     { id: 'amenities', title: 'Features' },
-    { id: 'media', title: 'Photos' },
+    { id: 'media', title: 'Photos & video' },
     { id: 'contact', title: 'Contact' },
     { id: 'preview', title: 'Preview' },
 ];
@@ -895,6 +897,18 @@ export default function Form({
                                                 patch(partial)
                                             }
                                         />
+                                        <CategoryExtrasEditor
+                                            categoryKey={categoryKey}
+                                            details={form.data.details}
+                                            onDetailsChange={(details) =>
+                                                patch({ details })
+                                            }
+                                            libraryRoute={
+                                                isAdmin
+                                                    ? route('admin.gallery.browse')
+                                                    : route('account.media.browse')
+                                            }
+                                        />
                                         {categoryKey !== 'properties' &&
                                         categoryKey !== 'events' ? (
                                             <HoursEditor
@@ -933,6 +947,7 @@ export default function Form({
                                 ) : null}
 
                                 {step.id === 'media' ? (
+                                    <>
                                     <GalleryUploader
                                         coverPreview={coverPreview}
                                         logoPreview={logoPreview}
@@ -989,6 +1004,28 @@ export default function Form({
                                         }}
                                         onGalleryChange={setGalleryItems}
                                     />
+                                    <div className="mt-6">
+                                        <VideoFields
+                                            videoUrl={
+                                                form.data.details?.video_url ||
+                                                ''
+                                            }
+                                            videoTitle={
+                                                form.data.details
+                                                    ?.video_title || ''
+                                            }
+                                            coverPreview={coverPreview}
+                                            onChange={(partial) =>
+                                                patch({
+                                                    details: {
+                                                        ...form.data.details,
+                                                        ...partial,
+                                                    },
+                                                })
+                                            }
+                                        />
+                                    </div>
+                                    </>
                                 ) : null}
 
                                 {step.id === 'contact' ? (

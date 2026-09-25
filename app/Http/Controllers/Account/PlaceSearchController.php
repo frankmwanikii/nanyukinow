@@ -19,7 +19,7 @@ class PlaceSearchController extends Controller
     /** Viewbox: west,north,east,south around Nanyuki / Laikipia */
     private const VIEWBOX = '36.70,0.20,37.45,-0.30';
 
-    public function __invoke(Request $request): JsonResponse
+    public function search(Request $request): JsonResponse
     {
         $data = $request->validate([
             'q' => ['required', 'string', 'min:2', 'max:120'],
@@ -51,6 +51,50 @@ class PlaceSearchController extends Controller
 
         return response()->json([
             'results' => array_slice($sorted, 0, 10),
+        ]);
+    }
+
+    public function reverse(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'lat' => ['required', 'numeric', 'between:-90,90'],
+            'lng' => ['required', 'numeric', 'between:-180,180'],
+        ]);
+
+        $lat = (float) $data['lat'];
+        $lng = (float) $data['lng'];
+        $ua = 'NanyukiNow/1.0 (https://nanyukinow.co.ke; places@nanyukinow.co.ke)';
+
+        $response = Http::withHeaders([
+            'User-Agent' => $ua,
+            'Accept' => 'application/json',
+        ])
+            ->timeout(6)
+            ->get('https://nominatim.openstreetmap.org/reverse', [
+                'format' => 'jsonv2',
+                'lat' => $lat,
+                'lon' => $lng,
+                'addressdetails' => 1,
+                'zoom' => 18,
+            ]);
+
+        if (! $response->successful()) {
+            return response()->json([
+                'address' => null,
+                'city' => null,
+            ]);
+        }
+
+        $row = $response->json() ?? [];
+        $addr = $row['address'] ?? [];
+
+        return response()->json([
+            'address' => $row['display_name'] ?? null,
+            'city' => $addr['city']
+                ?? $addr['town']
+                ?? $addr['village']
+                ?? $addr['county']
+                ?? null,
         ]);
     }
 

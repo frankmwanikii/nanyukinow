@@ -15,7 +15,7 @@ export function directionsUrlFor(provider, { lat, lng, query }) {
         typeof lat === 'number' &&
         typeof lng === 'number'
     ) {
-        return `https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=${lat}%2C${lng}`;
+        return `https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=%3B${lat}%2C${lng}`;
     }
 
     if (typeof lat === 'number' && typeof lng === 'number') {

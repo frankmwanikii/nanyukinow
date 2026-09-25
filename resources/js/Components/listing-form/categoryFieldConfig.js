@@ -319,6 +319,12 @@ export function emptyDetailsFor(categoryKey) {
     const details = {
         payments: ['Cash', 'M-Pesa'],
         video_url: '',
+        video_title: '',
+        menus: [],
+        agenda: [],
+        sponsors: [],
+        event_schedule: [],
+        products: [],
     };
 
     fields.forEach((f) => {

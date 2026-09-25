@@ -51,6 +51,18 @@
     height: 0;
 }
 
+/* Leaflet: keep tiles/markers under site chrome */
+.leaflet-container {
+    font: inherit;
+    z-index: 0;
+}
+
+.nn-directions-map.leaflet-container,
+.nn-directions-map .leaflet-container {
+    height: 100%;
+    width: 100%;
+}
+
 /* Rich text editor — restore lists (Tailwind Preflight zeros them) + content chrome */
 @layer components {
     .nn-editor ul {

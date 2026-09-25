@@ -1941,13 +1941,17 @@ function buildFactsFromDetails(listing) {
         if (d.capacity) pairs.push({ label: 'Capacity', value: String(d.capacity) });
         if (d.avg_meal) pairs.push({ label: 'Avg meal', value: String(d.avg_meal) });
         if (d.reservations) pairs.push({ label: 'Reservations', value: String(d.reservations) });
+        if (d.dress_code) pairs.push({ label: 'Dress code', value: String(d.dress_code) });
     } else if (key === 'shopping') {
         if (d.specialty) pairs.push({ label: 'Specialty', value: String(d.specialty) });
         if (d.delivery) pairs.push({ label: 'Delivery', value: String(d.delivery) });
+        if (d.return_policy) pairs.push({ label: 'Returns', value: String(d.return_policy) });
     } else if (key === 'events') {
         if (listing.venue) pairs.push({ label: 'Venue', value: String(listing.venue) });
         if (d.organiser) pairs.push({ label: 'Organiser', value: String(d.organiser) });
         if (d.age_limit) pairs.push({ label: 'Age limit', value: String(d.age_limit) });
+        if (d.doors_open) pairs.push({ label: 'Doors open', value: String(d.doors_open) });
+        if (d.dress_code) pairs.push({ label: 'Dress code', value: String(d.dress_code) });
     }
 
     return pairs;
@@ -2026,13 +2030,25 @@ export function getListingDetail(listing) {
                       },
                   ])
                 : buildGallery(listing, defaults),
-        video: listing.image
-            ? {
-                  poster: listing.image,
-                  src: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
-                  title: `Preview · ${listing.title}`,
-              }
-            : null,
+        video: (() => {
+            const src =
+                listing.details?.video_url ||
+                listing.video?.src ||
+                null;
+            if (!src) return null;
+            return {
+                poster:
+                    listing.details?.video_poster ||
+                    listing.image ||
+                    listing.video?.poster ||
+                    null,
+                src,
+                title:
+                    listing.details?.video_title ||
+                    listing.video?.title ||
+                    `Preview · ${listing.title}`,
+            };
+        })(),
         amenities:
             Array.isArray(listing.amenities) && listing.amenities.length
                 ? listing.amenities
@@ -2064,13 +2080,19 @@ export function getListingDetail(listing) {
                 ? listing.details.brands
                 : (defaults.brands ?? []),
         docs: [],
-        menus: [],
-        products: productsForShoppingListing(listing),
+        menus: Array.isArray(listing.details?.menus)
+            ? listing.details.menus.filter((m) => m?.image || m?.title)
+            : null,
+        products: Array.isArray(listing.details?.products)
+            ? listing.details.products.filter((p) => p?.name)
+            : null,
         highlights:
             listing.details?.highlights?.length
                 ? listing.details.highlights
                 : (defaults.highlights ?? []),
-        sponsors: defaults.sponsors ?? [],
+        sponsors: Array.isArray(listing.details?.sponsors)
+            ? listing.details.sponsors.filter((s) => s?.name || s?.logo)
+            : null,
         eventPoster: listing.eventPoster || null,
         startDate: listing.startDate || null,
         endDate: listing.endDate || null,
@@ -2099,8 +2121,12 @@ export function getListingDetail(listing) {
                   ? WEEKDAY_HOURS
                   : null,
         hoursStatus: listing.isOpen === false ? 'closed' : 'open',
-        eventSchedule: defaults.eventSchedule ?? null,
-        agenda: defaults.agenda ?? [],
+        eventSchedule: Array.isArray(listing.details?.event_schedule)
+            ? listing.details.event_schedule.filter((r) => r?.label)
+            : null,
+        agenda: Array.isArray(listing.details?.agenda)
+            ? listing.details.agenda.filter((a) => a?.title || a?.time)
+            : null,
         payments:
             Array.isArray(listing.details?.payments) &&
             listing.details.payments.length
@@ -2199,10 +2225,30 @@ export function getListingDetail(listing) {
             ...(explicit?.reviewSummary || {}),
             ...base.reviewSummary,
         },
+        video: base.video || explicit?.video || null,
+        menus:
+            base.menus !== null
+                ? base.menus
+                : (explicit?.menus ?? []),
         products:
-            Array.isArray(base.products) && base.products.length
+            base.products !== null
                 ? base.products
-                : (explicit?.products ?? []),
+                : (explicit?.products ??
+                  productsForShoppingListing(listing)),
+        sponsors:
+            base.sponsors !== null
+                ? base.sponsors
+                : (explicit?.sponsors ?? defaults.sponsors ?? []),
+        agenda:
+            base.agenda !== null
+                ? base.agenda
+                : (explicit?.agenda ?? defaults.agenda ?? []),
+        eventSchedule:
+            base.eventSchedule !== null
+                ? base.eventSchedule
+                : (explicit?.eventSchedule ??
+                  defaults.eventSchedule ??
+                  null),
         about: base.about,
         address: listing.address || explicit?.address || base.address,
         email: listing.email || explicit?.email || base.email,

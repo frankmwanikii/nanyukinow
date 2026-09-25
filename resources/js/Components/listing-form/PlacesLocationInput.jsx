@@ -1,10 +1,16 @@
 import { field, help, label } from './fieldStyles';
 import { getMapsApiKey, loadGoogleMaps } from '@/utils/googleMaps';
+import {
+    L,
+    NANYUKI,
+    createOsmMap,
+    leafletPinIcon,
+} from '@/utils/leafletMaps';
+import { useMapProvider } from '@/utils/mapProvider';
 import { LOOK_LOCATIONS } from '@/data/listings';
 import { Check, Loader2, MapPin, Search, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-const NANYUKI = { lat: -0.0166, lng: 37.0728 };
 const DEFAULT_ZOOM = 14;
 const AREA_OPTIONS = LOOK_LOCATIONS;
 
@@ -68,7 +74,7 @@ function placeToCoords(place) {
 }
 
 /**
- * Google Maps + Places location picker for listing forms.
+ * Location picker — Google Maps + Places, or OpenStreetMap (Leaflet) + Photon/Nominatim.
  */
 export default function PlacesLocationInput({
     apiKey,
@@ -79,6 +85,9 @@ export default function PlacesLocationInput({
     errors = {},
     areas = AREA_OPTIONS,
 }) {
+    const provider = useMapProvider();
+    const isLeaflet = provider === 'leaflet';
+
     const mapElRef = useRef(null);
     const mapRef = useRef(null);
     const markerRef = useRef(null);
@@ -104,7 +113,9 @@ export default function PlacesLocationInput({
     const selectedAreas = useMemo(() => parseAreas(location), [location]);
     const areaChoices = areas?.length ? areas : AREA_OPTIONS;
 
-    const [status, setStatus] = useState(key ? 'loading' : 'missing');
+    const [status, setStatus] = useState(
+        isLeaflet ? 'loading' : key ? 'loading' : 'missing',
+    );
     const [query, setQuery] = useState('');
     const [predictions, setPredictions] = useState([]);
     const [open, setOpen] = useState(false);
@@ -122,40 +133,119 @@ export default function PlacesLocationInput({
         onChange({ location: formatAreas(next) });
     };
 
-    const reverseGeocode = useCallback((rLat, rLng) => {
-        const maps = mapsRef.current;
-        if (!maps) return;
-        new maps.Geocoder().geocode(
-            { location: { lat: rLat, lng: rLng } },
-            (results, s) => {
-                if (s !== 'OK' || !results?.[0]) return;
-                const formatted = results[0].formatted_address || '';
-                suppressSearchRef.current = true;
-                setQuery(formatted);
+    const applyCoords = useCallback(
+        ({ latitude: cLat, longitude: cLng, address, city }) => {
+            const inferred = inferAreasFromText(address, city);
+            const current = parseAreas(locationRef.current);
+            const merged =
+                current.length > 0
+                    ? current
+                    : inferred.length
+                      ? inferred
+                      : current;
 
-                const inferred = inferAreasFromText(formatted);
-                const current = parseAreas(locationRef.current);
-                const merged =
-                    current.length > 0
-                        ? current
-                        : inferred.length
-                          ? inferred
-                          : current;
+            onChangeRef.current({
+                latitude: cLat,
+                longitude: cLng,
+                address: address || '',
+                city: city || '',
+                ...(merged.length ? { location: formatAreas(merged) } : {}),
+            });
+        },
+        [],
+    );
 
-                onChangeRef.current({
-                    latitude: rLat,
-                    longitude: rLng,
-                    address: formatted,
-                    city: '',
-                    ...(merged.length
-                        ? { location: formatAreas(merged) }
-                        : {}),
+    const reverseGeocodeOsm = useCallback(async (rLat, rLng) => {
+        try {
+            const res = await fetch(
+                `/account/places/reverse?lat=${encodeURIComponent(rLat)}&lng=${encodeURIComponent(rLng)}`,
+                {
+                    headers: {
+                        Accept: 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    credentials: 'same-origin',
+                },
+            );
+            if (!res.ok) return;
+            const data = await res.json();
+            const formatted = data.address || '';
+            if (!formatted) return;
+            suppressSearchRef.current = true;
+            setQuery(formatted);
+            applyCoords({
+                latitude: rLat,
+                longitude: rLng,
+                address: formatted,
+                city: data.city || '',
+            });
+        } catch {
+            /* ignore */
+        }
+    }, [applyCoords]);
+
+    const reverseGeocodeGoogle = useCallback(
+        (rLat, rLng) => {
+            const maps = mapsRef.current;
+            if (!maps) return;
+            new maps.Geocoder().geocode(
+                { location: { lat: rLat, lng: rLng } },
+                (results, s) => {
+                    if (s !== 'OK' || !results?.[0]) return;
+                    const formatted = results[0].formatted_address || '';
+                    suppressSearchRef.current = true;
+                    setQuery(formatted);
+                    applyCoords({
+                        latitude: rLat,
+                        longitude: rLng,
+                        address: formatted,
+                        city: '',
+                    });
+                },
+            );
+        },
+        [applyCoords],
+    );
+
+    const reverseGeocode = useCallback(
+        (rLat, rLng) => {
+            if (isLeaflet) reverseGeocodeOsm(rLat, rLng);
+            else reverseGeocodeGoogle(rLat, rLng);
+        },
+        [isLeaflet, reverseGeocodeOsm, reverseGeocodeGoogle],
+    );
+
+    const moveMapLeaflet = useCallback(
+        (nextLat, nextLng, { zoom = 16 } = {}) => {
+            if (nextLat == null || nextLng == null) return;
+            const map = mapRef.current;
+            if (!map) return;
+
+            map.setView([nextLat, nextLng], Math.max(map.getZoom(), zoom));
+
+            if (markerRef.current) {
+                markerRef.current.setLatLng([nextLat, nextLng]);
+            } else {
+                const marker = L.marker([nextLat, nextLng], {
+                    icon: leafletPinIcon({ teardrop: true }),
+                    draggable: true,
+                    title: 'Drag to fine-tune',
+                }).addTo(map);
+
+                marker.on('dragend', () => {
+                    const pos = marker.getLatLng();
+                    const dLat = Number(pos.lat.toFixed(7));
+                    const dLng = Number(pos.lng.toFixed(7));
+                    onChangeRef.current({ latitude: dLat, longitude: dLng });
+                    reverseGeocode(dLat, dLng);
                 });
-            },
-        );
-    }, []);
+                markerRef.current = marker;
+            }
+        },
+        [reverseGeocode],
+    );
 
-    const moveMap = useCallback(
+    const moveMapGoogle = useCallback(
         (nextLat, nextLng, { zoom = 16 } = {}) => {
             if (nextLat == null || nextLng == null) return;
             const maps = mapsRef.current;
@@ -190,37 +280,31 @@ export default function PlacesLocationInput({
         [reverseGeocode],
     );
 
+    const moveMap = useCallback(
+        (nextLat, nextLng, opts) => {
+            if (isLeaflet) moveMapLeaflet(nextLat, nextLng, opts);
+            else moveMapGoogle(nextLat, nextLng, opts);
+        },
+        [isLeaflet, moveMapLeaflet, moveMapGoogle],
+    );
+
     const applyPlace = useCallback(
         (place) => {
             const coords = placeToCoords(place);
-            const inferred = inferAreasFromText(
-                place.name,
-                place.formatted_address,
-            );
-            const current = parseAreas(locationRef.current);
-            const merged =
-                current.length > 0
-                    ? current
-                    : inferred.length
-                      ? inferred
-                      : current;
-
             suppressSearchRef.current = true;
             setQuery(place.formatted_address || place.name || '');
             setPredictions([]);
             setOpen(false);
             setActiveIndex(-1);
-
-            onChangeRef.current({
+            applyCoords({
                 latitude: coords.latitude,
                 longitude: coords.longitude,
                 address: coords.address,
                 city: '',
-                ...(merged.length ? { location: formatAreas(merged) } : {}),
             });
             moveMap(coords.latitude, coords.longitude);
         },
-        [moveMap],
+        [applyCoords, moveMap],
     );
 
     const selectPrediction = useCallback(
@@ -229,35 +313,19 @@ export default function PlacesLocationInput({
                 prediction?.latitude != null &&
                 prediction?.longitude != null &&
                 Number.isFinite(Number(prediction.latitude)) &&
-                Number.isFinite(Number(prediction.longitude)) &&
-                prediction.source === 'local'
+                Number.isFinite(Number(prediction.longitude))
             ) {
-                const inferred = inferAreasFromText(
-                    prediction.location_label,
-                    prediction.address,
-                    prediction.description,
-                );
-                const current = parseAreas(locationRef.current);
-                const merged =
-                    current.length > 0
-                        ? current
-                        : inferred.length
-                          ? inferred
-                          : current;
-
+                const address =
+                    prediction.address || prediction.description || '';
                 suppressSearchRef.current = true;
-                setQuery(prediction.address || prediction.description || '');
+                setQuery(address);
                 setPredictions([]);
                 setOpen(false);
-                onChangeRef.current({
+                applyCoords({
                     latitude: Number(Number(prediction.latitude).toFixed(7)),
                     longitude: Number(Number(prediction.longitude).toFixed(7)),
-                    address:
-                        prediction.address || prediction.description || '',
-                    city: '',
-                    ...(merged.length
-                        ? { location: formatAreas(merged) }
-                        : {}),
+                    address,
+                    city: prediction.city || '',
                 });
                 moveMap(
                     Number(prediction.latitude),
@@ -269,6 +337,8 @@ export default function PlacesLocationInput({
             const service = placesServiceRef.current;
             if (!service || !prediction?.place_id) return;
             if (String(prediction.place_id).startsWith('local-')) return;
+            if (String(prediction.place_id).startsWith('photon-')) return;
+            if (String(prediction.place_id).startsWith('osm-')) return;
 
             service.getDetails(
                 {
@@ -291,10 +361,10 @@ export default function PlacesLocationInput({
                 },
             );
         },
-        [applyPlace, moveMap],
+        [applyCoords, applyPlace, moveMap],
     );
 
-    const searchLocalListings = useCallback(async (q) => {
+    const searchPlacesApi = useCallback(async (q) => {
         try {
             const res = await fetch(
                 `/account/places/search?q=${encodeURIComponent(q)}`,
@@ -308,11 +378,39 @@ export default function PlacesLocationInput({
             );
             if (!res.ok) return [];
             const data = await res.json();
-            return (data.results || []).filter((r) => r.source === 'local');
+            return data.results || [];
         } catch {
             return [];
         }
     }, []);
+
+    const searchOsm = useCallback(
+        async (q) => {
+            setSearching(true);
+            const list = (await searchPlacesApi(q)).slice(0, 10);
+            setSearching(false);
+            setPredictions(list);
+            setOpen(true);
+            setActiveIndex(list.length ? 0 : -1);
+
+            const first = list.find(
+                (r) =>
+                    r.latitude != null &&
+                    r.longitude != null &&
+                    Number.isFinite(Number(r.latitude)),
+            );
+            if (
+                first &&
+                first.place_id !== lastPreviewIdRef.current
+            ) {
+                lastPreviewIdRef.current = first.place_id;
+                moveMap(Number(first.latitude), Number(first.longitude), {
+                    zoom: 13,
+                });
+            }
+        },
+        [moveMap, searchPlacesApi],
+    );
 
     const searchGoogle = useCallback(
         async (q) => {
@@ -320,7 +418,9 @@ export default function PlacesLocationInput({
             if (!service) return;
 
             setSearching(true);
-            const localHits = await searchLocalListings(q);
+            const localHits = (await searchPlacesApi(q)).filter(
+                (r) => r.source === 'local',
+            );
 
             const request = {
                 input: q,
@@ -375,7 +475,7 @@ export default function PlacesLocationInput({
                 }
             });
         },
-        [moveMap, searchLocalListings],
+        [moveMap, searchPlacesApi],
     );
 
     const runSearch = useCallback(
@@ -387,12 +487,56 @@ export default function PlacesLocationInput({
                 setSearching(false);
                 return;
             }
-            searchGoogle(q);
+            if (isLeaflet) searchOsm(q);
+            else searchGoogle(q);
         },
-        [searchGoogle],
+        [isLeaflet, searchOsm, searchGoogle],
     );
 
     useEffect(() => {
+        const signal = { cancelled: false };
+
+        if (isLeaflet) {
+            setStatus('loading');
+            setMapNote(null);
+
+            if (!mapElRef.current) return undefined;
+
+            const startLat = lat ?? NANYUKI.lat;
+            const startLng = lng ?? NANYUKI.lng;
+            const map = createOsmMap(mapElRef.current, {
+                center: { lat: startLat, lng: startLng },
+                zoom: lat != null ? 15 : DEFAULT_ZOOM,
+            });
+
+            mapRef.current = map;
+            map.on('click', (e) => {
+                const cLat = Number(e.latlng.lat.toFixed(7));
+                const cLng = Number(e.latlng.lng.toFixed(7));
+                moveMapLeaflet(cLat, cLng);
+                onChangeRef.current({ latitude: cLat, longitude: cLng });
+                reverseGeocodeOsm(cLat, cLng);
+            });
+
+            if (lat != null && lng != null) {
+                moveMapLeaflet(lat, lng, { zoom: 15 });
+            }
+
+            requestAnimationFrame(() => map.invalidateSize());
+            setStatus('ready');
+
+            return () => {
+                signal.cancelled = true;
+                if (markerRef.current) {
+                    map.removeLayer(markerRef.current);
+                    markerRef.current = null;
+                }
+                map.remove();
+                mapRef.current = null;
+                if (mapElRef.current) mapElRef.current.innerHTML = '';
+            };
+        }
+
         if (!key) {
             setStatus('missing');
             setMapNote(
@@ -401,7 +545,6 @@ export default function PlacesLocationInput({
             return undefined;
         }
 
-        const signal = { cancelled: false };
         setStatus('loading');
 
         (async () => {
@@ -436,13 +579,13 @@ export default function PlacesLocationInput({
                     if (!e.latLng) return;
                     const cLat = Number(e.latLng.lat().toFixed(7));
                     const cLng = Number(e.latLng.lng().toFixed(7));
-                    moveMap(cLat, cLng);
+                    moveMapGoogle(cLat, cLng);
                     onChangeRef.current({ latitude: cLat, longitude: cLng });
-                    reverseGeocode(cLat, cLng);
+                    reverseGeocodeGoogle(cLat, cLng);
                 });
 
                 if (lat != null && lng != null) {
-                    moveMap(lat, lng, { zoom: 15 });
+                    moveMapGoogle(lat, lng, { zoom: 15 });
                 }
 
                 if (!signal.cancelled) {
@@ -468,7 +611,7 @@ export default function PlacesLocationInput({
             if (mapElRef.current) mapElRef.current.innerHTML = '';
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [key]);
+    }, [key, isLeaflet]);
 
     useEffect(() => {
         if (status !== 'ready') return;
@@ -502,11 +645,16 @@ export default function PlacesLocationInput({
         }
     };
 
+    const providerLabel = isLeaflet ? 'OpenStreetMap' : 'Google Maps';
+    const searchDisabled = isLeaflet
+        ? status !== 'ready'
+        : status !== 'ready';
+
     return (
         <div className="space-y-4">
             <div>
                 <label className={label} htmlFor="places_search">
-                    Find on Google Maps
+                    Find on {providerLabel}
                 </label>
                 <div className="relative z-20">
                     <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-olive-500" />
@@ -528,7 +676,7 @@ export default function PlacesLocationInput({
                         aria-expanded={open}
                         aria-controls="places_suggestions"
                         aria-autocomplete="list"
-                        disabled={status !== 'ready'}
+                        disabled={searchDisabled}
                     />
                     {searching || status === 'loading' ? (
                         <Loader2 className="absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-olive-400" />
@@ -614,10 +762,10 @@ export default function PlacesLocationInput({
                 </div>
                 <p className={help}>
                     {status === 'ready'
-                        ? 'Pick a Google suggestion or tap the map to set the pin.'
+                        ? `Pick a suggestion or tap the map to set the pin.`
                         : status === 'loading'
-                          ? 'Loading Google Maps…'
-                          : mapNote || 'Google Maps unavailable.'}
+                          ? `Loading ${providerLabel}…`
+                          : mapNote || `${providerLabel} unavailable.`}
                 </p>
             </div>
 
@@ -632,14 +780,14 @@ export default function PlacesLocationInput({
                     {status === 'loading' ? (
                         <span className="inline-flex items-center gap-2">
                             <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                            Preparing Google Map…
+                            Preparing {providerLabel}…
                         </span>
                     ) : status === 'ready' ? (
                         <>
                             <span>
                                 {lat != null && lng != null
-                                    ? 'Pin set — drag to fine-tune · Google'
-                                    : 'Search or click the map to drop a pin · Google'}
+                                    ? `Pin set — drag to fine-tune · ${isLeaflet ? 'OSM' : 'Google'}`
+                                    : `Search or click the map to drop a pin · ${isLeaflet ? 'OSM' : 'Google'}`}
                             </span>
                             {lat != null && lng != null ? (
                                 <span className="font-semibold tabular-nums text-olive-800">
@@ -650,7 +798,7 @@ export default function PlacesLocationInput({
                         </>
                     ) : (
                         <span className="text-rose-600">
-                            {mapNote || 'Google Maps not configured'}
+                            {mapNote || `${providerLabel} not configured`}
                         </span>
                     )}
                 </div>

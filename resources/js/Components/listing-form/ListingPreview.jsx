@@ -137,7 +137,7 @@ export default function ListingPreview({
                 step: 'amenities',
                 Icon: Sparkles,
             },
-            { id: 'media', label: 'Photos', step: 'media', Icon: Camera },
+            { id: 'media', label: 'Photos & video', step: 'media', Icon: Camera },
             { id: 'contact', label: 'Contact', step: 'contact', Icon: Phone },
             { id: 'card', label: 'Card', step: null, Icon: LayoutGrid },
         ],
@@ -358,7 +358,70 @@ export default function ListingPreview({
                                         label="Ticket URL"
                                         value={formData.ticket_url}
                                     />
+                                    <Row
+                                        label="Agenda"
+                                        value={
+                                            Array.isArray(details.agenda) &&
+                                            details.agenda.length
+                                                ? `${details.agenda.length} item${
+                                                      details.agenda.length === 1
+                                                          ? ''
+                                                          : 's'
+                                                  }`
+                                                : null
+                                        }
+                                    />
+                                    <Row
+                                        label="Schedule"
+                                        value={
+                                            Array.isArray(
+                                                details.event_schedule,
+                                            ) && details.event_schedule.length
+                                                ? `${details.event_schedule.length} row${
+                                                      details.event_schedule
+                                                          .length === 1
+                                                          ? ''
+                                                          : 's'
+                                                  }`
+                                                : null
+                                        }
+                                    />
+                                    <Row
+                                        label="Sponsors"
+                                        value={
+                                            Array.isArray(details.sponsors) &&
+                                            details.sponsors.length
+                                                ? `${details.sponsors.length}`
+                                                : null
+                                        }
+                                    />
                                 </>
+                            ) : null}
+                            {categoryKey === 'eatDrink' ? (
+                                <Row
+                                    label="Menus"
+                                    value={
+                                        Array.isArray(details.menus) &&
+                                        details.menus.length
+                                            ? `${details.menus.length} page${
+                                                  details.menus.length === 1
+                                                      ? ''
+                                                      : 's'
+                                              }`
+                                            : null
+                                    }
+                                />
+                            ) : null}
+                            {categoryKey === 'shopping' ? (
+                                <Row
+                                    label="Products"
+                                    value={
+                                        Array.isArray(details.products) &&
+                                        details.products.length
+                                            ? `${details.products.length}`
+                                            : null
+                                    }
+                                />
                             ) : null}
                             {!detailFields.length && !isEvent ? (
                                 <p className="py-6 text-sm text-olive-400">
@@ -440,6 +503,15 @@ export default function ListingPreview({
                                                       ? ''
                                                       : 's'
                                               }`
+                                            : null
+                                    }
+                                />
+                                <Row
+                                    label="Video"
+                                    value={
+                                        details.video_url
+                                            ? details.video_title ||
+                                              details.video_url
                                             : null
                                     }
                                 />
