@@ -1,8 +1,12 @@
 import { Link, useForm, usePage } from '@inertiajs/react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowLeft, Eye, EyeOff, X } from 'lucide-react';
+import { ArrowLeft, Check, Eye, EyeOff, X } from 'lucide-react';
 import { useEffect, useId, useState } from 'react';
 import { createPortal } from 'react-dom';
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const USERNAME_RE = /^[a-zA-Z0-9_-]+$/;
+const MIN_PASSWORD = 8;
 
 function GoogleIcon({ className = '' }) {
     return (
@@ -27,6 +31,81 @@ function GoogleIcon({ className = '' }) {
     );
 }
 
+function fieldFeedback(
+    value,
+    validate,
+    serverError,
+    successMessage = 'Looks good',
+) {
+    if (serverError) {
+        return { error: serverError, success: null };
+    }
+    if (!String(value ?? '').length) {
+        return { error: null, success: null };
+    }
+    const result = validate(value);
+    if (result === true) {
+        return { error: null, success: successMessage };
+    }
+    return { error: result, success: null };
+}
+
+function validateLoginIdentifier(value) {
+    const trimmed = value.trim();
+    if (!trimmed) return 'Enter your email or username';
+    if (trimmed.includes('@')) {
+        return EMAIL_RE.test(trimmed) ? true : 'Enter a valid email address';
+    }
+    if (trimmed.length < 3) return 'Username must be at least 3 characters';
+    if (!USERNAME_RE.test(trimmed)) {
+        return 'Use letters, numbers, hyphens, or underscores';
+    }
+    return true;
+}
+
+function validateLoginPassword(value) {
+    if (!value) return 'Enter your password';
+    return true;
+}
+
+function validateName(value) {
+    const trimmed = value.trim();
+    if (!trimmed) return 'Enter your full name';
+    if (trimmed.length < 2) return 'Name must be at least 2 characters';
+    if (trimmed.length > 255) return 'Name is too long';
+    return true;
+}
+
+function validateUsername(value) {
+    if (!value) return 'Choose a username';
+    if (value.length < 3) return 'Username must be at least 3 characters';
+    if (value.length > 30) return 'Username must be 30 characters or fewer';
+    if (!USERNAME_RE.test(value)) {
+        return 'Use letters, numbers, hyphens, or underscores';
+    }
+    return true;
+}
+
+function validateEmail(value) {
+    const trimmed = value.trim();
+    if (!trimmed) return 'Enter your email address';
+    return EMAIL_RE.test(trimmed) ? true : 'Enter a valid email address';
+}
+
+function validatePassword(value) {
+    if (!value) return 'Create a password';
+    if (value.length < MIN_PASSWORD) {
+        return `Password must be at least ${MIN_PASSWORD} characters`;
+    }
+    return true;
+}
+
+function validatePasswordConfirm(value, password) {
+    if (!value) return 'Confirm your password';
+    if (value !== password) return 'Passwords do not match';
+    return true;
+}
+
 function Field({
     id,
     label,
@@ -34,10 +113,17 @@ function Field({
     value,
     onChange,
     error,
+    success,
     autoComplete,
     placeholder,
     trailing = null,
 }) {
+    const borderClass = error
+        ? 'border-red-400 focus:border-red-500 focus:ring-red-500/15'
+        : success
+          ? 'border-emerald-500 focus:border-emerald-600 focus:ring-emerald-600/15'
+          : 'border-olive-200/90 focus:border-olive-600 focus:ring-olive-600/15';
+
     return (
         <div>
             <label
@@ -54,13 +140,33 @@ function Field({
                     onChange={onChange}
                     autoComplete={autoComplete}
                     placeholder={placeholder}
-                    className={`w-full rounded-lg border bg-white px-3.5 py-3 text-[15px] text-earth-dusk placeholder:text-olive-400/80 shadow-sm transition focus:border-olive-600 focus:outline-none focus:ring-2 focus:ring-olive-600/15 ${
+                    aria-invalid={error ? true : undefined}
+                    aria-describedby={
+                        error || success ? `${id}-feedback` : undefined
+                    }
+                    className={`w-full rounded-lg border bg-white px-3.5 py-3 text-[15px] text-earth-dusk placeholder:text-olive-400/80 shadow-sm transition focus:outline-none focus:ring-2 ${
                         trailing ? 'pr-11' : ''
-                    } ${error ? 'border-red-400' : 'border-olive-200/90'}`}
+                    } ${borderClass}`}
                 />
                 {trailing}
             </div>
-            {error ? <p className="mt-1.5 text-xs text-red-600">{error}</p> : null}
+            {error ? (
+                <p
+                    id={`${id}-feedback`}
+                    className="mt-1.5 text-xs text-red-600"
+                    role="alert"
+                >
+                    {error}
+                </p>
+            ) : success ? (
+                <p
+                    id={`${id}-feedback`}
+                    className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-emerald-700"
+                >
+                    <Check className="h-3.5 w-3.5 shrink-0" strokeWidth={2.5} />
+                    {success}
+                </p>
+            ) : null}
         </div>
     );
 }
@@ -83,6 +189,7 @@ export default function AuthModal({ open, onClose, initialTab = 'login' }) {
     const { flash } = usePage().props;
     const [tab, setTab] = useState(initialTab);
     const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [mounted, setMounted] = useState(false);
     const [resetSent, setResetSent] = useState(false);
 
@@ -112,6 +219,7 @@ export default function AuthModal({ open, onClose, initialTab = 'login' }) {
         if (open) {
             setTab(initialTab);
             setShowPassword(false);
+            setShowConfirmPassword(false);
             setResetSent(false);
             forgotForm.clearErrors();
             forgotForm.reset();
@@ -144,6 +252,10 @@ export default function AuthModal({ open, onClose, initialTab = 'login' }) {
 
     const submitLogin = (e) => {
         e.preventDefault();
+        const loginOk =
+            validateLoginIdentifier(loginForm.data.login) === true &&
+            validateLoginPassword(loginForm.data.password) === true;
+        if (!loginOk) return;
         loginForm.post(route('login'), {
             onFinish: () => loginForm.reset('password'),
             onSuccess: () => onClose(),
@@ -152,6 +264,16 @@ export default function AuthModal({ open, onClose, initialTab = 'login' }) {
 
     const submitRegister = (e) => {
         e.preventDefault();
+        const registerOk =
+            validateName(registerForm.data.name) === true &&
+            validateUsername(registerForm.data.username) === true &&
+            validateEmail(registerForm.data.email) === true &&
+            validatePassword(registerForm.data.password) === true &&
+            validatePasswordConfirm(
+                registerForm.data.password_confirmation,
+                registerForm.data.password,
+            ) === true;
+        if (!registerOk) return;
         registerForm.post(route('register'), {
             onFinish: () =>
                 registerForm.reset('password', 'password_confirmation'),
@@ -197,6 +319,66 @@ export default function AuthModal({ open, onClose, initialTab = 'login' }) {
         : isLogin
           ? 'Sign in to save favourite spots, manage listings, and stay close to what’s happening in town.'
           : 'Join locals and visitors discovering where to eat, stay, and explore across Nanyuki.';
+
+    const loginIdFeedback = fieldFeedback(
+        loginForm.data.login,
+        validateLoginIdentifier,
+        loginForm.errors.login,
+        loginForm.data.login.includes('@')
+            ? 'Valid email'
+            : 'Username looks good',
+    );
+    const loginPasswordFeedback = fieldFeedback(
+        loginForm.data.password,
+        validateLoginPassword,
+        loginForm.errors.password,
+        'Password entered',
+    );
+
+    const nameFeedback = fieldFeedback(
+        registerForm.data.name,
+        validateName,
+        registerForm.errors.name,
+        'Name looks good',
+    );
+    const usernameFeedback = fieldFeedback(
+        registerForm.data.username,
+        validateUsername,
+        registerForm.errors.username,
+        'Username looks good',
+    );
+    const emailFeedback = fieldFeedback(
+        registerForm.data.email,
+        validateEmail,
+        registerForm.errors.email,
+        'Valid email',
+    );
+    const passwordFeedback = fieldFeedback(
+        registerForm.data.password,
+        validatePassword,
+        registerForm.errors.password,
+        'Strong enough',
+    );
+    const passwordConfirmFeedback = fieldFeedback(
+        registerForm.data.password_confirmation,
+        (value) =>
+            validatePasswordConfirm(value, registerForm.data.password),
+        registerForm.errors.password_confirmation,
+        'Passwords match',
+    );
+
+    const loginValid =
+        validateLoginIdentifier(loginForm.data.login) === true &&
+        validateLoginPassword(loginForm.data.password) === true;
+    const registerValid =
+        validateName(registerForm.data.name) === true &&
+        validateUsername(registerForm.data.username) === true &&
+        validateEmail(registerForm.data.email) === true &&
+        validatePassword(registerForm.data.password) === true &&
+        validatePasswordConfirm(
+            registerForm.data.password_confirmation,
+            registerForm.data.password,
+        ) === true;
 
     if (!mounted) return null;
 
@@ -274,11 +456,8 @@ export default function AuthModal({ open, onClose, initialTab = 'login' }) {
                                     {brandBody}
                                 </p>
                             </div>
-                            <div className="mt-8 space-y-2 border-t border-white/15 pt-6 text-sm text-white/65">
-                                <p>Trusted local listings · Eat · Stay · Do</p>
-                                <p className="text-white/45">
-                                    Your city, right now.
-                                </p>
+                            <div className="mt-8 border-t border-white/15 pt-6 text-sm text-white/45">
+                                <p>Your city, right now.</p>
                             </div>
                         </div>
 
@@ -425,13 +604,19 @@ export default function AuthModal({ open, onClose, initialTab = 'login' }) {
                                                 label="Email or username"
                                                 type="text"
                                                 value={loginForm.data.login}
-                                                onChange={(e) =>
+                                                onChange={(e) => {
+                                                    loginForm.clearErrors(
+                                                        'login',
+                                                    );
                                                     loginForm.setData(
                                                         'login',
                                                         e.target.value,
-                                                    )
+                                                    );
+                                                }}
+                                                error={loginIdFeedback.error}
+                                                success={
+                                                    loginIdFeedback.success
                                                 }
-                                                error={loginForm.errors.login}
                                                 autoComplete="username"
                                                 placeholder="you@example.com or username"
                                             />
@@ -444,14 +629,20 @@ export default function AuthModal({ open, onClose, initialTab = 'login' }) {
                                                         : 'password'
                                                 }
                                                 value={loginForm.data.password}
-                                                onChange={(e) =>
+                                                onChange={(e) => {
+                                                    loginForm.clearErrors(
+                                                        'password',
+                                                    );
                                                     loginForm.setData(
                                                         'password',
                                                         e.target.value,
-                                                    )
-                                                }
+                                                    );
+                                                }}
                                                 error={
-                                                    loginForm.errors.password
+                                                    loginPasswordFeedback.error
+                                                }
+                                                success={
+                                                    loginPasswordFeedback.success
                                                 }
                                                 autoComplete="current-password"
                                                 placeholder="Enter your password"
@@ -497,7 +688,7 @@ export default function AuthModal({ open, onClose, initialTab = 'login' }) {
 
                                             <button
                                                 type="submit"
-                                                disabled={busy}
+                                                disabled={busy || !loginValid}
                                                 className="mt-1 w-full rounded-lg bg-olive-700 px-4 py-3.5 text-[15px] font-semibold text-white transition hover:bg-olive-800 disabled:cursor-not-allowed disabled:opacity-55"
                                             >
                                                 {loginForm.processing
@@ -514,15 +705,17 @@ export default function AuthModal({ open, onClose, initialTab = 'login' }) {
                                                 id="auth-register-name"
                                                 label="Full name"
                                                 value={registerForm.data.name}
-                                                onChange={(e) =>
+                                                onChange={(e) => {
+                                                    registerForm.clearErrors(
+                                                        'name',
+                                                    );
                                                     registerForm.setData(
                                                         'name',
                                                         e.target.value,
-                                                    )
-                                                }
-                                                error={
-                                                    registerForm.errors.name
-                                                }
+                                                    );
+                                                }}
+                                                error={nameFeedback.error}
+                                                success={nameFeedback.success}
                                                 autoComplete="name"
                                                 placeholder="Your name"
                                             />
@@ -532,7 +725,10 @@ export default function AuthModal({ open, onClose, initialTab = 'login' }) {
                                                 value={
                                                     registerForm.data.username
                                                 }
-                                                onChange={(e) =>
+                                                onChange={(e) => {
+                                                    registerForm.clearErrors(
+                                                        'username',
+                                                    );
                                                     registerForm.setData(
                                                         'username',
                                                         e.target.value
@@ -541,11 +737,11 @@ export default function AuthModal({ open, onClose, initialTab = 'login' }) {
                                                                 /[^a-z0-9_-]/g,
                                                                 '',
                                                             ),
-                                                    )
-                                                }
-                                                error={
-                                                    registerForm.errors
-                                                        .username
+                                                    );
+                                                }}
+                                                error={usernameFeedback.error}
+                                                success={
+                                                    usernameFeedback.success
                                                 }
                                                 autoComplete="username"
                                                 placeholder="choose_a_username"
@@ -555,84 +751,106 @@ export default function AuthModal({ open, onClose, initialTab = 'login' }) {
                                                 label="Email address"
                                                 type="email"
                                                 value={registerForm.data.email}
-                                                onChange={(e) =>
+                                                onChange={(e) => {
+                                                    registerForm.clearErrors(
+                                                        'email',
+                                                    );
                                                     registerForm.setData(
                                                         'email',
                                                         e.target.value,
-                                                    )
-                                                }
-                                                error={
-                                                    registerForm.errors.email
-                                                }
+                                                    );
+                                                }}
+                                                error={emailFeedback.error}
+                                                success={emailFeedback.success}
                                                 autoComplete="email"
                                                 placeholder="you@example.com"
                                             />
-                                            <div className="grid gap-4 sm:grid-cols-2">
-                                                <Field
-                                                    id="auth-register-password"
-                                                    label="Password"
-                                                    type={
-                                                        showPassword
-                                                            ? 'text'
-                                                            : 'password'
-                                                    }
-                                                    value={
-                                                        registerForm.data
-                                                            .password
-                                                    }
-                                                    onChange={(e) =>
-                                                        registerForm.setData(
-                                                            'password',
-                                                            e.target.value,
-                                                        )
-                                                    }
-                                                    error={
-                                                        registerForm.errors
-                                                            .password
-                                                    }
-                                                    autoComplete="new-password"
-                                                    placeholder="Create password"
-                                                    trailing={
-                                                        <PasswordToggle
-                                                            show={showPassword}
-                                                            onToggle={() =>
-                                                                setShowPassword(
-                                                                    (v) => !v,
-                                                                )
-                                                            }
-                                                        />
-                                                    }
-                                                />
-                                                <Field
-                                                    id="auth-register-password-confirm"
-                                                    label="Confirm password"
-                                                    type={
-                                                        showPassword
-                                                            ? 'text'
-                                                            : 'password'
-                                                    }
-                                                    value={
-                                                        registerForm.data
-                                                            .password_confirmation
-                                                    }
-                                                    onChange={(e) =>
-                                                        registerForm.setData(
-                                                            'password_confirmation',
-                                                            e.target.value,
-                                                        )
-                                                    }
-                                                    error={
-                                                        registerForm.errors
-                                                            .password_confirmation
-                                                    }
-                                                    autoComplete="new-password"
-                                                    placeholder="Repeat password"
-                                                />
-                                            </div>
+                                            <Field
+                                                id="auth-register-password"
+                                                label="Password"
+                                                type={
+                                                    showPassword
+                                                        ? 'text'
+                                                        : 'password'
+                                                }
+                                                value={
+                                                    registerForm.data.password
+                                                }
+                                                onChange={(e) => {
+                                                    registerForm.clearErrors(
+                                                        'password',
+                                                        'password_confirmation',
+                                                    );
+                                                    registerForm.setData(
+                                                        'password',
+                                                        e.target.value,
+                                                    );
+                                                }}
+                                                error={passwordFeedback.error}
+                                                success={
+                                                    passwordFeedback.success
+                                                }
+                                                autoComplete="new-password"
+                                                placeholder="Create password"
+                                                trailing={
+                                                    <PasswordToggle
+                                                        show={showPassword}
+                                                        onToggle={() =>
+                                                            setShowPassword(
+                                                                (v) => !v,
+                                                            )
+                                                        }
+                                                    />
+                                                }
+                                            />
+                                            <Field
+                                                id="auth-register-password-confirm"
+                                                label="Confirm password"
+                                                type={
+                                                    showConfirmPassword
+                                                        ? 'text'
+                                                        : 'password'
+                                                }
+                                                value={
+                                                    registerForm.data
+                                                        .password_confirmation
+                                                }
+                                                onChange={(e) => {
+                                                    registerForm.clearErrors(
+                                                        'password_confirmation',
+                                                    );
+                                                    registerForm.setData(
+                                                        'password_confirmation',
+                                                        e.target.value,
+                                                    );
+                                                }}
+                                                error={
+                                                    passwordConfirmFeedback.error
+                                                }
+                                                success={
+                                                    passwordConfirmFeedback.success
+                                                }
+                                                autoComplete="new-password"
+                                                placeholder="Repeat password"
+                                                trailing={
+                                                    <PasswordToggle
+                                                        show={
+                                                            showConfirmPassword
+                                                        }
+                                                        onToggle={() =>
+                                                            setShowConfirmPassword(
+                                                                (v) => !v,
+                                                            )
+                                                        }
+                                                    />
+                                                }
+                                            />
 
                                             <button
                                                 type="submit"
-                                                disabled={busy}
+                                                disabled={
+                                                    busy || !registerValid
+                                                }
                                                 className="mt-1 w-full rounded-lg bg-olive-700 px-4 py-3.5 text-[15px] font-semibold text-white transition hover:bg-olive-800 disabled:cursor-not-allowed disabled:opacity-55"
                                             >
                                                 {registerForm.processing

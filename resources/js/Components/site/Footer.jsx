@@ -1,6 +1,7 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { Mail, MapPin, Phone } from 'lucide-react';
 import Logo from './Logo';
+import { openAuthModal } from '@/utils/authModal';
 
 function InstagramIcon({ className = '' }) {
     return (
@@ -53,6 +54,7 @@ const socialLinks = [
 
 export default function Footer() {
     const year = new Date().getFullYear();
+    const user = usePage().props.auth?.user;
 
     return (
         <footer className="relative z-10 bg-earth-dusk text-white">
@@ -116,12 +118,22 @@ export default function Footer() {
                             </Link>
                         </li>
                         <li>
-                            <Link
-                                href="/register"
-                                className="transition hover:text-mint"
-                            >
-                                Add Business
-                            </Link>
+                            {user ? (
+                                <Link
+                                    href={route('account.listings.create')}
+                                    className="transition hover:text-mint"
+                                >
+                                    Add Business
+                                </Link>
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={() => openAuthModal('register')}
+                                    className="transition hover:text-mint"
+                                >
+                                    Add Business
+                                </button>
+                            )}
                         </li>
                     </ul>
                 </div>

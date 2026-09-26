@@ -4,6 +4,7 @@ import { Compass, Plus, Search, User, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { explorePath } from '@/data/categories';
+import { openAuthModal } from '@/utils/authModal';
 import FlippingSearchHint, { FLIP_WORDS } from './FlippingSearchHint';
 import SearchSuggestions from './SearchSuggestions';
 
@@ -81,7 +82,8 @@ export default function MobileBottomNav() {
         {
             key: 'add',
             label: 'Add',
-            href: user ? route('account.listings.create') : '/register',
+            href: user ? route('account.listings.create') : null,
+            onClick: user ? null : () => openAuthModal('register'),
             icon: Plus,
             circled: true,
         },
@@ -237,31 +239,46 @@ export default function MobileBottomNav() {
                                       path.startsWith('/login')
                                     : false;
 
+                        const className = `flex w-full flex-col items-center gap-1 px-1 py-1 text-white transition ${
+                            active ? 'opacity-100' : 'opacity-90'
+                        }`;
+
+                        const content = (
+                            <>
+                                {item.circled ? (
+                                    <span className="flex h-7 w-7 items-center justify-center rounded-full border-[1.5px] border-white">
+                                        <Icon
+                                            className="h-4 w-4"
+                                            strokeWidth={2.25}
+                                        />
+                                    </span>
+                                ) : (
+                                    <Icon
+                                        className="h-6 w-6"
+                                        strokeWidth={1.75}
+                                    />
+                                )}
+                                <span className="font-display text-[11px] font-semibold leading-none tracking-wide">
+                                    {item.label}
+                                </span>
+                            </>
+                        );
+
                         return (
                             <li key={item.key}>
-                                <Link
-                                    href={item.href}
-                                    className={`flex flex-col items-center gap-1 px-1 py-1 text-white transition ${
-                                        active ? 'opacity-100' : 'opacity-90'
-                                    }`}
-                                >
-                                    {item.circled ? (
-                                        <span className="flex h-7 w-7 items-center justify-center rounded-full border-[1.5px] border-white">
-                                            <Icon
-                                                className="h-4 w-4"
-                                                strokeWidth={2.25}
-                                            />
-                                        </span>
-                                    ) : (
-                                        <Icon
-                                            className="h-6 w-6"
-                                            strokeWidth={1.75}
-                                        />
-                                    )}
-                                    <span className="font-display text-[11px] font-semibold leading-none tracking-wide">
-                                        {item.label}
-                                    </span>
-                                </Link>
+                                {item.onClick ? (
+                                    <button
+                                        type="button"
+                                        onClick={item.onClick}
+                                        className={className}
+                                    >
+                                        {content}
+                                    </button>
+                                ) : (
+                                    <Link href={item.href} className={className}>
+                                        {content}
+                                    </Link>
+                                )}
                             </li>
                         );
                     })}

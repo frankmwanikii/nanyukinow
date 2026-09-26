@@ -19,6 +19,7 @@ import {
 } from './MemberAccountMenu';
 import SearchSuggestions from './SearchSuggestions';
 import { explorePath, getCategoryByKey, mainCategories } from '@/data/categories';
+import { AUTH_MODAL_EVENT } from '@/utils/authModal';
 
 const MORE_KEYS = ['services', 'shopping', 'properties', 'events'];
 
@@ -287,6 +288,29 @@ export default function Navbar({ compact = false }) {
     };
 
     useEffect(() => {
+        const onOpenAuth = (event) => {
+            openAuth(event.detail?.tab || 'login');
+        };
+        window.addEventListener(AUTH_MODAL_EVENT, onOpenAuth);
+        return () => window.removeEventListener(AUTH_MODAL_EVENT, onOpenAuth);
+    }, []);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return undefined;
+        const params = new URLSearchParams(window.location.search);
+        const authTab = params.get('auth');
+        if (authTab !== 'login' && authTab !== 'register') return undefined;
+
+        openAuth(authTab);
+        params.delete('auth');
+        const next = `${window.location.pathname}${
+            params.toString() ? `?${params}` : ''
+        }${window.location.hash}`;
+        window.history.replaceState({}, '', next);
+        return undefined;
+    }, []);
+
+    useEffect(() => {
         if (!searchOpen) return undefined;
         const onPointerDown = (e) => {
             const inSearch = searchRef.current?.contains(e.target);
@@ -442,18 +466,25 @@ export default function Navbar({ compact = false }) {
                                         </div>
                                     </Link>
                                 ) : null}
-                                <Link
-                                    href={
-                                        user
-                                            ? route('account.listings.create')
-                                            : '/register'
-                                    }
-                                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-mustard px-4 py-3.5 text-base font-bold text-olive-950 transition hover:bg-white hover:text-mustard"
-                                    onClick={() => setOpen(false)}
-                                >
-                                    <Plus className="h-4 w-4 stroke-[2.5]" />
-                                    Add Business
-                                </Link>
+                                {user ? (
+                                    <Link
+                                        href={route('account.listings.create')}
+                                        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-mustard px-4 py-3.5 text-base font-bold text-olive-950 transition hover:bg-white hover:text-mustard"
+                                        onClick={() => setOpen(false)}
+                                    >
+                                        <Plus className="h-4 w-4 stroke-[2.5]" />
+                                        Add Business
+                                    </Link>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-mustard px-4 py-3.5 text-base font-bold text-olive-950 transition hover:bg-white hover:text-mustard"
+                                        onClick={() => openAuth('register')}
+                                    >
+                                        <Plus className="h-4 w-4 stroke-[2.5]" />
+                                        Add Business
+                                    </button>
+                                )}
                                 {user ? (
                                     <div className="mt-2 grid grid-cols-2 gap-2">
                                         <Link
@@ -777,13 +808,24 @@ export default function Navbar({ compact = false }) {
                         </button>
                     )}
 
-                    <Link
-                        href={user ? route('account.listings.create') : '/register'}
-                        className="inline-flex items-center gap-2 rounded-xl bg-mustard px-3.5 py-2.5 text-[15px] font-bold text-olive-950 shadow-[0_8px_20px_-8px_rgba(242,184,46,0.7)] transition hover:bg-white hover:text-mustard hover:shadow-md sm:px-4 sm:text-base"
-                    >
-                        <Plus className="h-4 w-4 stroke-[2.5]" />
-                        Add Business
-                    </Link>
+                    {user ? (
+                        <Link
+                            href={route('account.listings.create')}
+                            className="inline-flex items-center gap-2 rounded-xl bg-mustard px-3.5 py-2.5 text-[15px] font-bold text-olive-950 shadow-[0_8px_20px_-8px_rgba(242,184,46,0.7)] transition hover:bg-white hover:text-mustard hover:shadow-md sm:px-4 sm:text-base"
+                        >
+                            <Plus className="h-4 w-4 stroke-[2.5]" />
+                            Add Business
+                        </Link>
+                    ) : (
+                        <button
+                            type="button"
+                            onClick={() => openAuth('register')}
+                            className="inline-flex items-center gap-2 rounded-xl bg-mustard px-3.5 py-2.5 text-[15px] font-bold text-olive-950 shadow-[0_8px_20px_-8px_rgba(242,184,46,0.7)] transition hover:bg-white hover:text-mustard hover:shadow-md sm:px-4 sm:text-base"
+                        >
+                            <Plus className="h-4 w-4 stroke-[2.5]" />
+                            Add Business
+                        </button>
+                    )}
                 </div>
             </div>
 
