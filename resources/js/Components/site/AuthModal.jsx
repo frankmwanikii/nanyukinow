@@ -1,12 +1,13 @@
 import { Link, useForm, usePage } from '@inertiajs/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowLeft, Check, Eye, EyeOff, X } from 'lucide-react';
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const USERNAME_RE = /^[a-zA-Z0-9_-]+$/;
 const MIN_PASSWORD = 8;
+const MIN_PASSWORD_STRENGTH = 80;
 
 function GoogleIcon({ className = '' }) {
     return (
@@ -92,10 +93,27 @@ function validateEmail(value) {
     return EMAIL_RE.test(trimmed) ? true : 'Enter a valid email address';
 }
 
+function passwordStrengthScore(value) {
+    let score = 0;
+    if (value.length >= MIN_PASSWORD) score += 25;
+    if (value.length >= 10) score += 5;
+    if (/[A-Za-z]/.test(value)) score += 20;
+    if (/[a-z]/.test(value) && /[A-Z]/.test(value)) score += 5;
+    if (/\d/.test(value)) score += 25;
+    if (/[^A-Za-z0-9]/.test(value)) score += 25;
+    return Math.min(100, score);
+}
+
 function validatePassword(value) {
     if (!value) return 'Create a password';
     if (value.length < MIN_PASSWORD) {
         return `Password must be at least ${MIN_PASSWORD} characters`;
+    }
+    if (!/[A-Za-z]/.test(value)) return 'Add a letter';
+    if (!/\d/.test(value)) return 'Add a number';
+    if (!/[^A-Za-z0-9]/.test(value)) return 'Add a symbol (e.g. !@#$)';
+    if (passwordStrengthScore(value) < MIN_PASSWORD_STRENGTH) {
+        return 'Make it stronger — mix letters, numbers, and symbols';
     }
     return true;
 }
@@ -151,13 +169,13 @@ function Field({
                 {trailing}
             </div>
             {error ? (
-                <p
+                <div
                     id={`${id}-feedback`}
                     className="mt-1.5 text-xs text-red-600"
                     role="alert"
                 >
                     {error}
-                </p>
+                </div>
             ) : success ? (
                 <p
                     id={`${id}-feedback`}
@@ -192,6 +210,9 @@ export default function AuthModal({ open, onClose, initialTab = 'login' }) {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [mounted, setMounted] = useState(false);
     const [resetSent, setResetSent] = useState(false);
+    // idle | checking | available | taken
+    const [emailAvailability, setEmailAvailability] = useState('idle');
+    const emailCheckAbortRef = useRef(null);
 
     const loginForm = useForm({
         login: '',
@@ -221,11 +242,64 @@ export default function AuthModal({ open, onClose, initialTab = 'login' }) {
             setShowPassword(false);
             setShowConfirmPassword(false);
             setResetSent(false);
+            setEmailAvailability('idle');
             forgotForm.clearErrors();
             forgotForm.reset();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open, initialTab]);
+
+    useEffect(() => {
+        if (!open || tab !== 'register') {
+            setEmailAvailability('idle');
+            return undefined;
+        }
+
+        const email = registerForm.data.email.trim();
+        if (!email || validateEmail(email) !== true) {
+            setEmailAvailability('idle');
+            return undefined;
+        }
+
+        if (emailCheckAbortRef.current) {
+            emailCheckAbortRef.current.abort();
+        }
+
+        const controller = new AbortController();
+        emailCheckAbortRef.current = controller;
+        setEmailAvailability('checking');
+
+        const timer = window.setTimeout(async () => {
+            try {
+                const response = await fetch(
+                    route('register.check-email', { email }),
+                    {
+                        headers: { Accept: 'application/json' },
+                        credentials: 'same-origin',
+                        signal: controller.signal,
+                    },
+                );
+                if (!response.ok) {
+                    throw new Error('Email check failed');
+                }
+                const data = await response.json();
+                if (controller.signal.aborted) return;
+                setEmailAvailability(
+                    data.available === false ? 'taken' : 'available',
+                );
+            } catch (err) {
+                if (err?.name === 'AbortError') return;
+                if (!controller.signal.aborted) {
+                    setEmailAvailability('idle');
+                }
+            }
+        }, 350);
+
+        return () => {
+            window.clearTimeout(timer);
+            controller.abort();
+        };
+    }, [open, tab, registerForm.data.email]);
 
     useEffect(() => {
         if (flash?.status && tab === 'forgot') {
@@ -262,12 +336,23 @@ export default function AuthModal({ open, onClose, initialTab = 'login' }) {
         });
     };
 
+    const switchToSignInWithEmail = () => {
+        const email = registerForm.data.email.trim();
+        loginForm.clearErrors();
+        if (email) {
+            loginForm.setData('login', email);
+        }
+        setTab('login');
+    };
+
     const submitRegister = (e) => {
         e.preventDefault();
         const registerOk =
             validateName(registerForm.data.name) === true &&
             validateUsername(registerForm.data.username) === true &&
             validateEmail(registerForm.data.email) === true &&
+            emailAvailability !== 'taken' &&
+            emailAvailability !== 'checking' &&
             validatePassword(registerForm.data.password) === true &&
             validatePasswordConfirm(
                 registerForm.data.password_confirmation,
@@ -347,12 +432,38 @@ export default function AuthModal({ open, onClose, initialTab = 'login' }) {
         registerForm.errors.username,
         'Username looks good',
     );
-    const emailFeedback = fieldFeedback(
+    const serverEmailTaken =
+        typeof registerForm.errors.email === 'string' &&
+        /already registered|already been taken/i.test(registerForm.errors.email);
+    const emailIsTaken = emailAvailability === 'taken' || serverEmailTaken;
+
+    const emailFormatFeedback = fieldFeedback(
         registerForm.data.email,
         validateEmail,
-        registerForm.errors.email,
-        'Valid email',
+        emailIsTaken ? null : registerForm.errors.email,
+        emailAvailability === 'available' ? 'Email is available' : 'Valid email',
     );
+    const emailFeedback = emailIsTaken
+        ? {
+              error: (
+                  <>
+                      This email is already registered.{' '}
+                      <button
+                          type="button"
+                          onClick={switchToSignInWithEmail}
+                          className="font-semibold underline underline-offset-2 hover:text-red-800"
+                      >
+                          Sign in
+                      </button>{' '}
+                      instead.
+                  </>
+              ),
+              success: null,
+          }
+        : emailAvailability === 'checking' &&
+            validateEmail(registerForm.data.email) === true
+          ? { error: null, success: null }
+          : emailFormatFeedback;
     const passwordFeedback = fieldFeedback(
         registerForm.data.password,
         validatePassword,
@@ -374,6 +485,8 @@ export default function AuthModal({ open, onClose, initialTab = 'login' }) {
         validateName(registerForm.data.name) === true &&
         validateUsername(registerForm.data.username) === true &&
         validateEmail(registerForm.data.email) === true &&
+        !emailIsTaken &&
+        emailAvailability !== 'checking' &&
         validatePassword(registerForm.data.password) === true &&
         validatePasswordConfirm(
             registerForm.data.password_confirmation,
@@ -755,6 +868,9 @@ export default function AuthModal({ open, onClose, initialTab = 'login' }) {
                                                     registerForm.clearErrors(
                                                         'email',
                                                     );
+                                                    setEmailAvailability(
+                                                        'idle',
+                                                    );
                                                     registerForm.setData(
                                                         'email',
                                                         e.target.value,
@@ -765,6 +881,16 @@ export default function AuthModal({ open, onClose, initialTab = 'login' }) {
                                                 autoComplete="email"
                                                 placeholder="you@example.com"
                                             />
+                                            {emailAvailability === 'checking' &&
+                                            validateEmail(
+                                                registerForm.data.email,
+                                            ) === true &&
+                                            !emailIsTaken ? (
+                                                <p className="-mt-2 text-xs text-olive-500">
+                                                    Checking if this email is
+                                                    free…
+                                                </p>
+                                            ) : null}
                                             <Field
                                                 id="auth-register-password"
                                                 label="Password"

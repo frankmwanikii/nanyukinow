@@ -25,8 +25,8 @@ class MemberNotificationsTest extends TestCase
             'name' => 'Alert User',
             'username' => 'alert_user',
             'email' => 'alert@example.com',
-            'password' => 'password',
-            'password_confirmation' => 'password',
+            'password' => 'Password1!',
+            'password_confirmation' => 'Password1!',
         ])->assertRedirect(route('account.index'));
 
         $user = User::query()->where('email', 'alert@example.com')->first();

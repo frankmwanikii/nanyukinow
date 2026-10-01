@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Notifications\WelcomeMemberNotification;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,6 +23,27 @@ class RegisteredUserController extends Controller
     public function create(): RedirectResponse
     {
         return redirect('/?auth=register');
+    }
+
+    /**
+     * Check whether an email is already registered.
+     */
+    public function checkEmail(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'email' => ['required', 'string', 'email', 'max:255'],
+        ]);
+
+        $taken = User::query()
+            ->where('email', Str::lower($validated['email']))
+            ->exists();
+
+        return response()->json([
+            'available' => ! $taken,
+            'message' => $taken
+                ? 'This email is already registered. Please sign in.'
+                : null,
+        ]);
     }
 
     /**
@@ -42,7 +64,16 @@ class RegisteredUserController extends Controller
                 'unique:'.User::class,
             ],
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'password' => [
+                'required',
+                'confirmed',
+                Rules\Password::min(8)
+                    ->letters()
+                    ->numbers()
+                    ->symbols(),
+            ],
+        ], [
+            'email.unique' => 'This email is already registered. Please sign in.',
         ]);
 
         $user = User::create([
