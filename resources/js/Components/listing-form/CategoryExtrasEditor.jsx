@@ -1,8 +1,14 @@
 import MediaAddDialog from './MediaAddDialog';
 import { field, help, label } from './fieldStyles';
-import { canUseEatDrinkFeature } from '@/data/eatDrinkTierFeatures';
+import {
+    canUseEatDrinkFeature,
+    eatDrinkMenuHelp,
+    eatDrinkMenuLimit,
+} from '@/data/eatDrinkTierFeatures';
 import { ImagePlus, Plus, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+
+const UNLIMITED_MENU_SLOTS = 100;
 
 function Section({ title, blurb, children }) {
     return (
@@ -68,6 +74,54 @@ function ImagePickButton({ image, onPick, onClear }) {
     );
 }
 
+function MenuDropzone({ onPick, remaining, unlimited = false }) {
+    const limitLabel = unlimited
+        ? 'multi-select · unlimited'
+        : `multi-select · up to ${remaining} image${remaining === 1 ? '' : 's'}`;
+
+    return (
+        <button
+            type="button"
+            onClick={onPick}
+            className="flex w-full flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-olive-300 bg-white/80 px-4 py-10 text-center transition hover:border-mustard hover:bg-mustard/5 dark:border-olive-700 dark:bg-olive-950/80 dark:hover:border-mustard dark:hover:bg-mustard/10"
+        >
+            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-olive-50 ring-1 ring-olive-100 dark:bg-olive-900 dark:ring-olive-700">
+                <ImagePlus className="h-6 w-6 text-olive-700 dark:text-olive-300" />
+            </span>
+            <span>
+                <span className="block text-sm font-semibold text-olive-950 dark:text-olive-50">
+                    Drop menu images here
+                </span>
+                <span className="mt-1 block text-xs text-olive-500">
+                    Or click to {limitLabel}
+                </span>
+            </span>
+        </button>
+    );
+}
+
+async function uploadEditorImage(file) {
+    const csrf =
+        document
+            .querySelector('meta[name="csrf-token"]')
+            ?.getAttribute('content') || '';
+    const body = new FormData();
+    body.append('image', file);
+    const res = await fetch('/account/listings/editor-media', {
+        method: 'POST',
+        headers: {
+            Accept: 'application/json',
+            'X-CSRF-TOKEN': csrf,
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+        credentials: 'same-origin',
+        body,
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json?.url || null;
+}
+
 /**
  * Category-specific extras that appear on the public listing page
  * (menus, agenda, sponsors, schedule, products).
@@ -79,7 +133,10 @@ export default function CategoryExtrasEditor({
     libraryRoute = null,
     tier = 'free',
 }) {
-    const [imageTarget, setImageTarget] = useState(null); // { list, index, key }
+    const [imageTarget, setImageTarget] = useState(null); // { mode:'menus' } | { list, index, key }
+    const menuInputRef = useRef(null);
+    const singleInputRef = useRef(null);
+    const pendingSingleRef = useRef(null);
 
     const setList = (key, next) => {
         onDetailsChange({ ...details, [key]: next });
@@ -116,6 +173,59 @@ export default function CategoryExtrasEditor({
         categoryKey === 'eatDrink' && canUseEatDrinkFeature(tier, 'deals');
     const showLiveMusic =
         categoryKey === 'eatDrink' && canUseEatDrinkFeature(tier, 'live_music');
+    const menuLimit =
+        categoryKey === 'eatDrink' ? eatDrinkMenuLimit(tier) : null;
+    const menuRemaining =
+        menuLimit == null
+            ? UNLIMITED_MENU_SLOTS
+            : Math.max(0, menuLimit - menus.length);
+    const atMenuLimit = menuRemaining <= 0;
+    const menusUnlimited = menuLimit == null;
+
+    const appendMenuImages = (urls) => {
+        const cleaned = (urls || [])
+            .filter((u) => typeof u === 'string' && u.trim())
+            .map((u) => u.trim());
+        if (!cleaned.length) return;
+        const room =
+            menuLimit == null
+                ? cleaned.length
+                : Math.max(0, menuLimit - menus.length);
+        if (room <= 0) return;
+        const next = cleaned.slice(0, room).map((image, i) => ({
+            title: `Menu ${menus.length + i + 1}`,
+            image,
+            pdf: '',
+        }));
+        setList('menus', [...menus, ...next]);
+    };
+
+    const uploadMenuFiles = async (fileList) => {
+        const files = Array.from(fileList || []).filter((f) =>
+            f.type?.startsWith('image/'),
+        );
+        if (!files.length) return;
+        const room =
+            menuLimit == null
+                ? files.length
+                : Math.max(0, menuLimit - menus.length);
+        const accepted = files.slice(0, room);
+        const urls = [];
+        for (const file of accepted) {
+            try {
+                const url = await uploadEditorImage(file);
+                urls.push(url || URL.createObjectURL(file));
+            } catch {
+                urls.push(URL.createObjectURL(file));
+            }
+        }
+        appendMenuImages(urls);
+    };
+
+    const openMenusAdd = () => {
+        if (atMenuLimit) return;
+        setImageTarget({ mode: 'menus' });
+    };
 
     return (
         <div className="space-y-5">
@@ -124,26 +234,64 @@ export default function CategoryExtrasEditor({
                 {showMenus ? (
                 <Section
                     title="Menus"
-                    blurb="Upload a menu image or paste a PDF link. Visitors can browse them on the listing page."
+                    blurb={eatDrinkMenuHelp(tier)}
                 >
-                    <ul className="space-y-4">
-                        {menus.map((item, index) => (
-                            <li
-                                key={`menu-${index}`}
-                                className="space-y-3 rounded-xl border border-olive-100 bg-olive-50/40 p-3"
-                            >
-                                <div className="flex items-center justify-between gap-2">
-                                    <span className="text-xs font-semibold uppercase tracking-wide text-olive-500">
-                                        Menu {index + 1}
-                                    </span>
-                                    <RowActions
-                                        onRemove={() =>
-                                            removeItem('menus', index)
-                                        }
-                                    />
-                                </div>
-                                <div>
-                                    <label className={label}>Title</label>
+                    {menus.length ? (
+                        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                            {menus.map((item, index) => (
+                                <li
+                                    key={`menu-${index}`}
+                                    className="space-y-2 rounded-xl border border-olive-100 bg-olive-50/40 p-3"
+                                >
+                                    <div className="flex items-center justify-between gap-2">
+                                        <span className="text-xs font-semibold uppercase tracking-wide text-olive-500">
+                                            Menu {index + 1}
+                                        </span>
+                                        <RowActions
+                                            onRemove={() =>
+                                                removeItem('menus', index)
+                                            }
+                                        />
+                                    </div>
+                                    {item.image ? (
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setImageTarget({
+                                                    list: 'menus',
+                                                    index,
+                                                    key: 'image',
+                                                })
+                                            }
+                                            className="group relative block w-full overflow-hidden rounded-xl bg-olive-100"
+                                        >
+                                            <img
+                                                src={item.image}
+                                                alt=""
+                                                className="aspect-[3/4] w-full object-cover"
+                                            />
+                                            <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 to-transparent p-2 text-left text-[11px] font-semibold text-white opacity-0 transition group-hover:opacity-100">
+                                                Replace image
+                                            </span>
+                                        </button>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setImageTarget({
+                                                    list: 'menus',
+                                                    index,
+                                                    key: 'image',
+                                                })
+                                            }
+                                            className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-olive-300 bg-white/70 text-olive-600"
+                                        >
+                                            <ImagePlus className="h-5 w-5" />
+                                            <span className="text-xs font-semibold">
+                                                Add image
+                                            </span>
+                                        </button>
+                                    )}
                                     <input
                                         className={field}
                                         value={item.title || ''}
@@ -154,24 +302,6 @@ export default function CategoryExtrasEditor({
                                         }
                                         placeholder="e.g. Lunch menu"
                                     />
-                                </div>
-                                <ImagePickButton
-                                    image={item.image}
-                                    onPick={() =>
-                                        setImageTarget({
-                                            list: 'menus',
-                                            index,
-                                            key: 'image',
-                                        })
-                                    }
-                                    onClear={() =>
-                                        updateItem('menus', index, {
-                                            image: '',
-                                        })
-                                    }
-                                />
-                                <div>
-                                    <label className={label}>PDF link (optional)</label>
                                     <input
                                         className={field}
                                         type="url"
@@ -181,22 +311,41 @@ export default function CategoryExtrasEditor({
                                                 pdf: e.target.value,
                                             })
                                         }
-                                        placeholder="https://…/menu.pdf"
+                                        placeholder="PDF link (optional)"
                                     />
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
-                    <button
-                        type="button"
-                        onClick={() =>
-                            addItem('menus', { title: '', image: '', pdf: '' })
-                        }
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white"
-                    >
-                        <Plus className="h-4 w-4" />
-                        Add menu page
-                    </button>
+                                </li>
+                            ))}
+                            {!atMenuLimit ? (
+                                <li>
+                                    <button
+                                        type="button"
+                                        onClick={openMenusAdd}
+                                        className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-olive-300 bg-white/70 text-olive-600 transition hover:border-mustard hover:bg-mustard/5 hover:text-olive-900 dark:border-olive-700 dark:bg-olive-950/70 dark:text-olive-400"
+                                    >
+                                        <ImagePlus className="h-6 w-6" />
+                                        <span className="text-xs font-semibold">
+                                            Add more
+                                            {menuLimit != null
+                                                ? ` · ${menus.length}/${menuLimit}`
+                                                : ''}
+                                        </span>
+                                    </button>
+                                </li>
+                            ) : null}
+                        </ul>
+                    ) : (
+                        <MenuDropzone
+                            onPick={openMenusAdd}
+                            remaining={menuRemaining}
+                            unlimited={menusUnlimited}
+                        />
+                    )}
+                    {atMenuLimit ? (
+                        <p className={help}>
+                            Standard limit reached ({menuLimit} menu images).
+                            Upgrade to Premium for unlimited menus.
+                        </p>
+                    ) : null}
                 </Section>
                 ) : null}
 
@@ -636,57 +785,68 @@ export default function CategoryExtrasEditor({
                 open={Boolean(imageTarget)}
                 onClose={() => setImageTarget(null)}
                 libraryRoute={libraryRoute}
-                remaining={1}
-                target="gallery"
-                onUpload={async (files) => {
-                    const file = Array.isArray(files) ? files[0] : files;
-                    if (!file || !imageTarget) return;
-                    try {
-                        const csrf =
-                            document
-                                .querySelector('meta[name="csrf-token"]')
-                                ?.getAttribute('content') || '';
-                        const body = new FormData();
-                        body.append('image', file);
-                        const res = await fetch(
-                            '/account/listings/editor-media',
-                            {
-                                method: 'POST',
-                                headers: {
-                                    Accept: 'application/json',
-                                    'X-CSRF-TOKEN': csrf,
-                                    'X-Requested-With': 'XMLHttpRequest',
-                                },
-                                credentials: 'same-origin',
-                                body,
-                            },
-                        );
-                        if (res.ok) {
-                            const json = await res.json();
-                            if (json?.url) {
-                                updateItem(
-                                    imageTarget.list,
-                                    imageTarget.index,
-                                    { [imageTarget.key]: json.url },
-                                );
-                                setImageTarget(null);
-                                return;
-                            }
-                        }
-                    } catch {
-                        /* fall through */
+                remaining={
+                    imageTarget?.mode === 'menus'
+                        ? menuRemaining
+                        : 1
+                }
+                target={imageTarget?.mode === 'menus' ? 'gallery' : 'cover'}
+                onUpload={() => {
+                    if (imageTarget?.mode === 'menus') {
+                        menuInputRef.current?.click();
+                        return;
                     }
-                    updateItem(imageTarget.list, imageTarget.index, {
-                        [imageTarget.key]: URL.createObjectURL(file),
-                    });
-                    setImageTarget(null);
+                    pendingSingleRef.current = imageTarget;
+                    singleInputRef.current?.click();
                 }}
                 onPickUrls={(urls) => {
                     if (!imageTarget || !urls?.length) return;
+                    if (imageTarget.mode === 'menus') {
+                        appendMenuImages(urls);
+                        setImageTarget(null);
+                        return;
+                    }
                     updateItem(imageTarget.list, imageTarget.index, {
                         [imageTarget.key]: urls[0],
                     });
                     setImageTarget(null);
+                }}
+            />
+            <input
+                ref={menuInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={(e) => {
+                    const files = e.target.files;
+                    e.target.value = '';
+                    setImageTarget(null);
+                    void uploadMenuFiles(files);
+                }}
+            />
+            <input
+                ref={singleInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    e.target.value = '';
+                    const target = pendingSingleRef.current || imageTarget;
+                    pendingSingleRef.current = null;
+                    setImageTarget(null);
+                    if (!file || !target || target.mode === 'menus') return;
+                    try {
+                        const url = await uploadEditorImage(file);
+                        updateItem(target.list, target.index, {
+                            [target.key]: url || URL.createObjectURL(file),
+                        });
+                    } catch {
+                        updateItem(target.list, target.index, {
+                            [target.key]: URL.createObjectURL(file),
+                        });
+                    }
                 }}
             />
         </div>

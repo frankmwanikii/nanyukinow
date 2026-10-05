@@ -17,7 +17,9 @@ export const GALLERY_LIMITS = {
 };
 
 export const FREE_DESCRIPTION_WORD_LIMIT = 150;
-export const FREE_CUISINE_TAG_LIMIT = 2;
+export const FREE_CUISINE_TAG_LIMIT = 5;
+export const STANDARD_CUISINE_TAG_LIMIT = 10;
+export const STANDARD_MENU_LIMIT = 10;
 
 /** Feature → minimum tier required */
 export const EAT_DRINK_FEATURE_TIERS = {
@@ -101,11 +103,42 @@ export function eatDrinkGalleryLimit(tier) {
 }
 
 export function eatDrinkCuisineLimit(tier) {
-    return tierMeets(tier, 'featured') ? 20 : FREE_CUISINE_TAG_LIMIT;
+    const normalized = normalizeTier(tier);
+    if (normalized === 'premium') return null;
+    if (normalized === 'featured') return STANDARD_CUISINE_TAG_LIMIT;
+    return FREE_CUISINE_TAG_LIMIT;
+}
+
+/** Tier-aware help copy for the cuisine / specialty field. */
+export function eatDrinkCuisineHelp(tier) {
+    const limit = eatDrinkCuisineLimit(tier);
+    const plan = tierDisplayLabel(tier);
+
+    if (limit == null) {
+        return 'Pick popular options or type your own. Premium plans have no cuisine limit.';
+    }
+
+    return `Pick popular options or type your own. ${plan} plans can add up to ${limit}.`;
 }
 
 export function eatDrinkDescriptionWordLimit(tier) {
     return tierMeets(tier, 'featured') ? null : FREE_DESCRIPTION_WORD_LIMIT;
+}
+
+/** Max menu pages for Eat & Drink. Free has none; Premium is unlimited (null). */
+export function eatDrinkMenuLimit(tier) {
+    const normalized = normalizeTier(tier);
+    if (normalized === 'premium') return null;
+    if (normalized === 'featured') return STANDARD_MENU_LIMIT;
+    return 0;
+}
+
+export function eatDrinkMenuHelp(tier) {
+    const limit = eatDrinkMenuLimit(tier);
+    if (limit == null) {
+        return 'Multi-select menu photos or add PDF links. Premium plans can add unlimited menu images.';
+    }
+    return `Multi-select menu photos or add PDF links. Standard plans can add up to ${limit} menu images.`;
 }
 
 export function tierDisplayLabel(tier) {

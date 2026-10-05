@@ -18,6 +18,58 @@ export const PAYMENT_OPTIONS = [
     'Bank transfer',
 ];
 
+/** Popular Eat & Drink cuisine / specialty suggestions. */
+export const POPULAR_CUISINES = [
+    'Kenyan',
+    'Nyama Choma',
+    'Coastal',
+    'Chinese',
+    'Indian',
+    'Italian',
+    'Continental',
+    'Ethiopian',
+    'Thai',
+    'Japanese',
+    'Mexican',
+    'Seafood',
+    'BBQ',
+    'Grill',
+    'Pizza',
+    'Fast food',
+    'Cafe',
+    'Bakery',
+    'Vegetarian',
+    'Vegan',
+    'African',
+    'Fusion',
+];
+
+/** Popular dietary options for Eat & Drink. */
+export const POPULAR_DIETARY_OPTIONS = [
+    'Halal',
+    'Vegan',
+    'Vegetarian',
+    'Gluten-free',
+    'Dairy-free',
+    'Nut-free',
+    'Kosher',
+    'Pescatarian',
+    'Low sugar',
+    'Kid-friendly',
+];
+
+/** Popular delivery / service options for Eat & Drink. */
+export const POPULAR_DELIVERY_OPTIONS = [
+    'Dine-in',
+    'Takeaway',
+    'Delivery',
+    'Delivery (town only)',
+    'Uber Eats / Glovo',
+    'Reservations',
+    'Outdoor seating',
+    'Drive-through',
+];
+
 /**
  * @typedef {{ key: string, label: string, type: string, placeholder?: string, options?: string[], required?: boolean, help?: string }} DetailField
  */
@@ -28,31 +80,28 @@ export const CATEGORY_DETAIL_FIELDS = {
         {
             key: 'cuisine',
             label: 'Cuisine / specialty',
-            type: 'tags',
-            placeholder: 'Add a cuisine and press Enter',
+            type: 'cuisine',
+            placeholder: 'Search or type a cuisine…',
             required: true,
-            help: 'Free plans can add up to 2 tags. Standard unlocks more.',
+            help: 'Pick popular options or type your own.',
             minTier: 'free',
         },
         {
             key: 'dietary',
             label: 'Dietary options',
-            type: 'tags',
-            placeholder: 'e.g. Halal, Vegan, Gluten-free',
+            type: 'suggest',
+            optionsKey: 'dietary',
+            placeholder: 'Search dietary options or type your own…',
             help: 'Help diners filter for Halal, vegan, and other needs.',
             minTier: 'featured',
         },
         {
             key: 'delivery_options',
             label: 'Delivery & takeaway',
-            type: 'multi',
-            options: [
-                'Dine-in',
-                'Takeaway',
-                'Delivery',
-                'Delivery (town only)',
-                'Uber Eats / Glovo',
-            ],
+            type: 'suggest',
+            optionsKey: 'delivery',
+            placeholder: 'Search service options or type your own…',
+            help: 'How guests can order or enjoy your food.',
             minTier: 'featured',
         },
         {
@@ -366,7 +415,14 @@ export function emptyDetailsFor(categoryKey) {
 
     fields.forEach((f) => {
         details[f.key] =
-            f.type === 'tags' || f.type === 'multi' ? [] : f.type === 'richtext' ? '' : '';
+            f.type === 'tags' ||
+            f.type === 'multi' ||
+            f.type === 'cuisine' ||
+            f.type === 'suggest'
+                ? []
+                : f.type === 'richtext'
+                  ? ''
+                  : '';
     });
 
     if (categoryKey === 'stay') {

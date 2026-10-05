@@ -962,7 +962,7 @@ export default function Form({
                                             libraryRoute={
                                                 isAdmin
                                                     ? route('admin.gallery.browse')
-                                                    : route('account.media.browse')
+                                                    : null
                                             }
                                             tier={listingTier}
                                         />
@@ -1015,7 +1015,7 @@ export default function Form({
                                         libraryRoute={
                                             isAdmin
                                                 ? route('admin.gallery.browse')
-                                                : route('account.media.browse')
+                                                : null
                                         }
                                         errors={form.errors}
                                         onCoverChange={({ file, preview, url }) => {
@@ -1685,8 +1685,8 @@ function BasicsStep({
                 placeholder="Share the story, vibe, and what visitors should know…"
                 help={
                     descriptionWordLimit != null
-                        ? `Free plan: ${wordCount} / ${descriptionWordLimit} words. Standard unlocks unlimited description.`
-                        : 'Shown as the About section on your public listing page.'
+                        ? `${wordCount} / ${descriptionWordLimit} words · Free plan limit. Standard unlocks unlimited description.`
+                        : `${wordCount} ${wordCount === 1 ? 'word' : 'words'} · Shown as the About section on your public listing page.`
                 }
             />
         </>

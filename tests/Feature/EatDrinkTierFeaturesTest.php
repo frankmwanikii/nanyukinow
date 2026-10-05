@@ -35,6 +35,14 @@ class EatDrinkTierFeaturesTest extends TestCase
         $this->assertSame(2, Membership::listingPriority(Membership::STANDARD));
         $this->assertSame(3, Membership::listingPriority(Membership::PREMIUM));
         $this->assertSame('Standard', Membership::badgeLabel(Membership::STANDARD));
+
+        $this->assertSame(5, EatDrinkTierFeatures::cuisineTagLimit(Membership::FREE));
+        $this->assertSame(10, EatDrinkTierFeatures::cuisineTagLimit(Membership::STANDARD));
+        $this->assertNull(EatDrinkTierFeatures::cuisineTagLimit(Membership::PREMIUM));
+
+        $this->assertSame(0, EatDrinkTierFeatures::menuLimit(Membership::FREE));
+        $this->assertSame(10, EatDrinkTierFeatures::menuLimit(Membership::STANDARD));
+        $this->assertNull(EatDrinkTierFeatures::menuLimit(Membership::PREMIUM));
     }
 
     public function test_free_tier_strips_standard_and_premium_eat_drink_fields(): void
@@ -55,7 +63,7 @@ class EatDrinkTierFeaturesTest extends TestCase
             ],
             'gallery' => array_fill(0, 8, '/storage/a.jpg'),
             'details' => [
-                'cuisine' => ['Kenyan', 'Italian', 'BBQ'],
+                'cuisine' => ['Kenyan', 'Italian', 'BBQ', 'Chinese', 'Indian', 'Coastal'],
                 'payments' => ['M-Pesa', 'Cash'],
                 'dietary' => ['Halal'],
                 'menus' => [['title' => 'Lunch', 'image' => '/m.jpg']],
@@ -74,7 +82,10 @@ class EatDrinkTierFeaturesTest extends TestCase
         $this->assertNull($payload['whatsapp']);
         $this->assertNull($payload['website']);
         $this->assertCount(3, $payload['gallery']);
-        $this->assertSame(['Kenyan', 'Italian'], $payload['details']['cuisine']);
+        $this->assertSame(
+            ['Kenyan', 'Italian', 'BBQ', 'Chinese', 'Indian'],
+            $payload['details']['cuisine'],
+        );
         $this->assertArrayNotHasKey('payments', $payload['details']);
         $this->assertArrayNotHasKey('menus', $payload['details']);
         $this->assertArrayNotHasKey('video_url', $payload['details']);
@@ -107,7 +118,7 @@ class EatDrinkTierFeaturesTest extends TestCase
             'tier' => 'free',
             'amenities' => json_encode(['wifi']),
             'details' => json_encode([
-                'cuisine' => ['Kenyan', 'BBQ', 'Extra'],
+                'cuisine' => ['Kenyan', 'BBQ', 'Extra', 'Chinese', 'Indian', 'Coastal'],
                 'payments' => ['M-Pesa'],
                 'video_url' => 'https://youtube.com/watch?v=abc',
                 'booking_url' => 'https://wa.me/254700000000',
@@ -134,7 +145,10 @@ class EatDrinkTierFeaturesTest extends TestCase
         $this->assertNull($listing->email);
         $this->assertNull($listing->latitude);
         $this->assertCount(3, $listing->gallery ?? []);
-        $this->assertSame(['Kenyan', 'BBQ'], $listing->details['cuisine'] ?? null);
+        $this->assertSame(
+            ['Kenyan', 'BBQ', 'Extra', 'Chinese', 'Indian'],
+            $listing->details['cuisine'] ?? null,
+        );
         $this->assertArrayNotHasKey('video_url', $listing->details ?? []);
         $this->assertArrayNotHasKey('booking_url', $listing->details ?? []);
         $this->assertArrayNotHasKey('avg_meal', $listing->details ?? []);

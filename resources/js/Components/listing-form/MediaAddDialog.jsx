@@ -224,11 +224,11 @@ export default function MediaAddDialog({
                         </span>
                     </button>
 
+                    {libraryRoute ? (
                     <button
                         type="button"
                         className={optionBtn}
                         onClick={() => setPanel('library')}
-                        disabled={!libraryRoute}
                     >
                         <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-mustard/30 text-olive-900 transition group-hover:scale-105">
                             <ImagePlus className="h-5 w-5" />
@@ -238,12 +238,11 @@ export default function MediaAddDialog({
                                 Grab from gallery
                             </span>
                             <span className="mt-0.5 block text-sm text-olive-500 dark:text-olive-400">
-                                {libraryRoute
-                                    ? copy.libraryHint
-                                    : 'Library unavailable'}
+                                {copy.libraryHint}
                             </span>
                         </span>
                     </button>
+                    ) : null}
 
                     <button
                         type="button"

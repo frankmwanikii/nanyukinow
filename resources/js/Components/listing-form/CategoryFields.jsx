@@ -1,19 +1,29 @@
 import {
     CATEGORY_DETAIL_FIELDS,
     PAYMENT_OPTIONS,
+    POPULAR_DELIVERY_OPTIONS,
+    POPULAR_DIETARY_OPTIONS,
     PRICE_LEVELS,
     categoryStepTitle,
 } from './categoryFieldConfig';
+import CuisinePicker from './CuisinePicker';
+import SuggestTagsPicker from './SuggestTagsPicker';
 import { field, help, label } from './fieldStyles';
 import RichTextEditor from './RichTextEditor';
 import {
     canUseEatDrinkFeature,
+    eatDrinkCuisineHelp,
     eatDrinkCuisineLimit,
     normalizeTier,
     tierMeets,
 } from '@/data/eatDrinkTierFeatures';
 import { Plus, X } from 'lucide-react';
 import { useState } from 'react';
+
+const SUGGEST_OPTIONS = {
+    dietary: POPULAR_DIETARY_OPTIONS,
+    delivery: POPULAR_DELIVERY_OPTIONS,
+};
 
 /** Migrate legacy tag arrays into HTML the rich editor can open. */
 function richTextValue(value) {
@@ -117,35 +127,67 @@ function TagsInput({ value = [], onChange, placeholder, maxTags = null, disabled
     );
 }
 
-function MultiChipPicker({ options = [], value = [], onChange, disabled = false }) {
+function DropdownMultiSelect({
+    id,
+    options = [],
+    value = [],
+    onChange,
+    disabled = false,
+    placeholder = 'Select…',
+}) {
     const selected = asTagList(value);
+    const available = options.filter((opt) => !selected.includes(opt));
 
     return (
-        <div className="mt-2 flex flex-wrap gap-2">
-            {options.map((opt) => {
-                const active = selected.includes(opt);
-                return (
-                    <button
-                        key={opt}
-                        type="button"
-                        disabled={disabled}
-                        onClick={() => {
-                            if (disabled) return;
-                            const next = active
-                                ? selected.filter((p) => p !== opt)
-                                : [...selected, opt];
-                            onChange(next);
-                        }}
-                        className={`rounded-full px-3 py-1.5 text-xs font-semibold transition disabled:opacity-50 ${
-                            active
-                                ? 'bg-olive-900 text-white'
-                                : 'bg-olive-100 text-olive-800 hover:bg-olive-200'
-                        }`}
-                    >
+        <div>
+            <select
+                id={id}
+                className={field}
+                value=""
+                disabled={disabled || available.length === 0}
+                onChange={(e) => {
+                    const next = e.target.value;
+                    if (!next || selected.includes(next)) return;
+                    onChange([...selected, next]);
+                    e.target.value = '';
+                }}
+            >
+                <option value="">
+                    {available.length
+                        ? placeholder
+                        : 'All options selected'}
+                </option>
+                {available.map((opt) => (
+                    <option key={opt} value={opt}>
                         {opt}
-                    </button>
-                );
-            })}
+                    </option>
+                ))}
+            </select>
+            {selected.length ? (
+                <div className="mt-2 flex flex-wrap gap-2">
+                    {selected.map((item) => (
+                        <span
+                            key={item}
+                            className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-olive-100 py-1.5 pl-3 pr-1.5 text-xs font-semibold text-olive-900 dark:bg-olive-800 dark:text-olive-100"
+                        >
+                            <span className="truncate">{item}</span>
+                            <button
+                                type="button"
+                                disabled={disabled}
+                                onClick={() =>
+                                    onChange(
+                                        selected.filter((v) => v !== item),
+                                    )
+                                }
+                                className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-olive-700 transition hover:bg-olive-200 hover:text-olive-950 disabled:opacity-50 dark:text-olive-200 dark:hover:bg-olive-700 dark:hover:text-white"
+                                aria-label={`Remove ${item}`}
+                            >
+                                <X className="h-3.5 w-3.5" strokeWidth={2.5} />
+                            </button>
+                        </span>
+                    ))}
+                </div>
+            ) : null}
         </div>
     );
 }
@@ -306,10 +348,13 @@ export default function CategoryFields({
                             : null;
                     const spanWide =
                         f.type === 'tags' ||
+                        f.type === 'cuisine' ||
+                        f.type === 'suggest' ||
                         f.type === 'multi' ||
                         f.type === 'richtext' ||
                         f.key.includes('highlight') ||
                         f.key === 'booking_url' ||
+                        f.key === 'reservations' ||
                         f.key === 'avg_meal';
 
                     return (
@@ -326,6 +371,46 @@ export default function CategoryFields({
                                     placeholder={f.placeholder}
                                     help={f.help}
                                     allowImages={false}
+                                />
+                            ) : f.type === 'cuisine' ? (
+                                <CuisinePicker
+                                    id={`detail_${f.key}`}
+                                    value={details[f.key] || []}
+                                    onChange={(v) => {
+                                        const next = Array.isArray(v) ? v : [];
+                                        setDetail(
+                                            f.key,
+                                            cuisineMax != null
+                                                ? next.slice(0, cuisineMax)
+                                                : next,
+                                        );
+                                    }}
+                                    maxTags={cuisineMax}
+                                    required={f.required}
+                                    fieldHelp={
+                                        isEatDrink
+                                            ? eatDrinkCuisineHelp(listingTier)
+                                            : f.help
+                                    }
+                                />
+                            ) : f.type === 'suggest' ? (
+                                <SuggestTagsPicker
+                                    id={`detail_${f.key}`}
+                                    value={details[f.key] || []}
+                                    onChange={(v) => setDetail(f.key, v)}
+                                    options={
+                                        SUGGEST_OPTIONS[f.optionsKey] ||
+                                        f.options ||
+                                        []
+                                    }
+                                    labelText={f.label}
+                                    placeholder={
+                                        f.placeholder ||
+                                        'Search or type your own…'
+                                    }
+                                    suggestionsLabel="Popular options"
+                                    required={f.required}
+                                    fieldHelp={f.help}
                                 />
                             ) : (
                                 <>
@@ -368,12 +453,14 @@ export default function CategoryFields({
                                             maxTags={cuisineMax}
                                         />
                                     ) : f.type === 'multi' ? (
-                                        <MultiChipPicker
+                                        <DropdownMultiSelect
+                                            id={`detail_${f.key}`}
                                             options={f.options || []}
                                             value={details[f.key] || []}
                                             onChange={(v) =>
                                                 setDetail(f.key, v)
                                             }
+                                            placeholder={`Select ${f.label.toLowerCase()}…`}
                                         />
                                     ) : (
                                         <input
@@ -429,15 +516,25 @@ export default function CategoryFields({
 
             {showPayments ? (
                 <div>
-                    <p className={label}>Payment methods</p>
-                    <MultiChipPicker
+                    <label className={label} htmlFor="payments">
+                        Payment methods
+                    </label>
+                    <DropdownMultiSelect
+                        id="payments"
                         options={
                             isEatDrink
-                                ? ['M-Pesa', 'Card', 'Cash', 'Paybill', 'Bank transfer']
+                                ? [
+                                      'M-Pesa',
+                                      'Card',
+                                      'Cash',
+                                      'Paybill',
+                                      'Bank transfer',
+                                  ]
                                 : PAYMENT_OPTIONS
                         }
                         value={payments}
                         onChange={(next) => setDetail('payments', next)}
+                        placeholder="Select a payment method…"
                     />
                 </div>
             ) : null}

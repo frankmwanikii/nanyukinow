@@ -6,7 +6,11 @@ class EatDrinkTierFeatures
 {
     public const FREE_DESCRIPTION_WORD_LIMIT = 150;
 
-    public const FREE_CUISINE_TAG_LIMIT = 2;
+    public const FREE_CUISINE_TAG_LIMIT = 5;
+
+    public const STANDARD_CUISINE_TAG_LIMIT = 10;
+
+    public const STANDARD_MENU_LIMIT = 10;
 
     /** @var array<string, int> */
     public const GALLERY_LIMITS = [
@@ -65,11 +69,34 @@ class EatDrinkTierFeatures
             : self::FREE_DESCRIPTION_WORD_LIMIT;
     }
 
-    public static function cuisineTagLimit(?string $tier): int
+    public static function cuisineTagLimit(?string $tier): ?int
     {
-        return self::tierMeets($tier, Membership::STANDARD)
-            ? 20
-            : self::FREE_CUISINE_TAG_LIMIT;
+        $tier = Membership::normalize($tier);
+
+        if ($tier === Membership::PREMIUM) {
+            return null;
+        }
+
+        if ($tier === Membership::STANDARD) {
+            return self::STANDARD_CUISINE_TAG_LIMIT;
+        }
+
+        return self::FREE_CUISINE_TAG_LIMIT;
+    }
+
+    public static function menuLimit(?string $tier): ?int
+    {
+        $tier = Membership::normalize($tier);
+
+        if ($tier === Membership::PREMIUM) {
+            return null;
+        }
+
+        if ($tier === Membership::STANDARD) {
+            return self::STANDARD_MENU_LIMIT;
+        }
+
+        return 0;
     }
 
     public static function wordCount(?string $html): int
@@ -112,6 +139,15 @@ class EatDrinkTierFeatures
 
         if (array_key_exists('cuisine', $details)) {
             $details['cuisine'] = self::normalizeCuisine($details['cuisine'], $tier);
+        }
+
+        if (array_key_exists('menus', $details) && is_array($details['menus'])) {
+            $menuLimit = self::menuLimit($tier);
+            if ($menuLimit === 0) {
+                unset($details['menus']);
+            } elseif ($menuLimit !== null) {
+                $details['menus'] = array_values(array_slice($details['menus'], 0, $menuLimit));
+            }
         }
 
         if (! self::tierMeets($tier, Membership::STANDARD)) {
@@ -169,7 +205,12 @@ class EatDrinkTierFeatures
             )));
         }
 
-        $tags = array_slice($tags, 0, self::cuisineTagLimit($tier));
+        $tags = array_values(array_unique($tags));
+
+        $limit = self::cuisineTagLimit($tier);
+        if ($limit !== null) {
+            $tags = array_slice($tags, 0, $limit);
+        }
 
         return $tags;
     }
