@@ -2216,7 +2216,13 @@ export function getListingDetail(listing) {
               : (defaults.brands ?? []),
         docs: [],
         menus: Array.isArray(listing.details?.menus)
-            ? listing.details.menus.filter((m) => m?.image || m?.title || m?.pdf)
+            ? listing.details.menus.filter(
+                  (m) =>
+                      m?.title ||
+                      m?.pdf ||
+                      m?.image ||
+                      (Array.isArray(m?.images) && m.images.length),
+              )
             : null,
         deals: Array.isArray(listing.details?.deals)
             ? listing.details.deals.filter((d) => d?.title || d?.description)

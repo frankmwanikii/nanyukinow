@@ -19,7 +19,10 @@ export const GALLERY_LIMITS = {
 export const FREE_DESCRIPTION_WORD_LIMIT = 150;
 export const FREE_CUISINE_TAG_LIMIT = 5;
 export const STANDARD_CUISINE_TAG_LIMIT = 10;
-export const STANDARD_MENU_LIMIT = 10;
+export const STANDARD_MENU_LIMIT = 5;
+export const PREMIUM_MENU_LIMIT = 15;
+export const STANDARD_MENU_IMAGES_PER_PAGE = 5;
+export const PREMIUM_MENU_IMAGES_PER_PAGE = 15;
 
 /** Feature → minimum tier required */
 export const EAT_DRINK_FEATURE_TIERS = {
@@ -125,20 +128,44 @@ export function eatDrinkDescriptionWordLimit(tier) {
     return tierMeets(tier, 'featured') ? null : FREE_DESCRIPTION_WORD_LIMIT;
 }
 
-/** Max menu pages for Eat & Drink. Free has none; Premium is unlimited (null). */
+/** Max menu pages for Eat & Drink. Free has none. */
 export function eatDrinkMenuLimit(tier) {
     const normalized = normalizeTier(tier);
-    if (normalized === 'premium') return null;
+    if (normalized === 'premium') return PREMIUM_MENU_LIMIT;
     if (normalized === 'featured') return STANDARD_MENU_LIMIT;
     return 0;
 }
 
+/** Max images allowed on each menu page. */
+export function eatDrinkMenuImagesPerPage(tier) {
+    const normalized = normalizeTier(tier);
+    if (normalized === 'premium') return PREMIUM_MENU_IMAGES_PER_PAGE;
+    if (normalized === 'featured') return STANDARD_MENU_IMAGES_PER_PAGE;
+    return 0;
+}
+
 export function eatDrinkMenuHelp(tier) {
-    const limit = eatDrinkMenuLimit(tier);
-    if (limit == null) {
-        return 'Multi-select menu photos or add PDF links. Premium plans can add unlimited menu images.';
+    const pages = eatDrinkMenuLimit(tier);
+    const perPage = eatDrinkMenuImagesPerPage(tier);
+    const plan = tierDisplayLabel(tier);
+    if (!pages) {
+        return 'Add menu pages with photos or a PDF link.';
     }
-    return `Multi-select menu photos or add PDF links. Standard plans can add up to ${limit} menu images.`;
+    return `${plan}: up to ${pages} menu pages, ${perPage} images each. Add a PDF link per page if you like.`;
+}
+
+/** Normalize a menu item's image list (supports legacy single `image`). */
+export function menuItemImages(item) {
+    if (!item || typeof item !== 'object') return [];
+    if (Array.isArray(item.images)) {
+        return item.images
+            .map((u) => (typeof u === 'string' ? u.trim() : ''))
+            .filter(Boolean);
+    }
+    if (typeof item.image === 'string' && item.image.trim()) {
+        return [item.image.trim()];
+    }
+    return [];
 }
 
 export function tierDisplayLabel(tier) {

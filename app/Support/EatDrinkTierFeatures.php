@@ -10,7 +10,13 @@ class EatDrinkTierFeatures
 
     public const STANDARD_CUISINE_TAG_LIMIT = 10;
 
-    public const STANDARD_MENU_LIMIT = 10;
+    public const STANDARD_MENU_LIMIT = 5;
+
+    public const PREMIUM_MENU_LIMIT = 15;
+
+    public const STANDARD_MENU_IMAGES_PER_PAGE = 5;
+
+    public const PREMIUM_MENU_IMAGES_PER_PAGE = 15;
 
     /** @var array<string, int> */
     public const GALLERY_LIMITS = [
@@ -84,16 +90,31 @@ class EatDrinkTierFeatures
         return self::FREE_CUISINE_TAG_LIMIT;
     }
 
-    public static function menuLimit(?string $tier): ?int
+    public static function menuLimit(?string $tier): int
     {
         $tier = Membership::normalize($tier);
 
         if ($tier === Membership::PREMIUM) {
-            return null;
+            return self::PREMIUM_MENU_LIMIT;
         }
 
         if ($tier === Membership::STANDARD) {
             return self::STANDARD_MENU_LIMIT;
+        }
+
+        return 0;
+    }
+
+    public static function menuImagesPerPage(?string $tier): int
+    {
+        $tier = Membership::normalize($tier);
+
+        if ($tier === Membership::PREMIUM) {
+            return self::PREMIUM_MENU_IMAGES_PER_PAGE;
+        }
+
+        if ($tier === Membership::STANDARD) {
+            return self::STANDARD_MENU_IMAGES_PER_PAGE;
         }
 
         return 0;
@@ -142,11 +163,9 @@ class EatDrinkTierFeatures
         }
 
         if (array_key_exists('menus', $details) && is_array($details['menus'])) {
-            $menuLimit = self::menuLimit($tier);
-            if ($menuLimit === 0) {
+            $details['menus'] = self::normalizeMenus($details['menus'], $tier);
+            if ($details['menus'] === []) {
                 unset($details['menus']);
-            } elseif ($menuLimit !== null) {
-                $details['menus'] = array_values(array_slice($details['menus'], 0, $menuLimit));
             }
         }
 
@@ -184,6 +203,55 @@ class EatDrinkTierFeatures
         $payload['details'] = $details === [] ? null : $details;
 
         return $payload;
+    }
+
+    /**
+     * @param  list<mixed>  $menus
+     * @return list<array{title: string, images: list<string>, pdf: string}>
+     */
+    public static function normalizeMenus(array $menus, ?string $tier): array
+    {
+        $pageLimit = self::menuLimit($tier);
+        $imageLimit = self::menuImagesPerPage($tier);
+
+        if ($pageLimit === 0) {
+            return [];
+        }
+
+        $normalized = [];
+
+        foreach (array_slice(array_values($menus), 0, $pageLimit) as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+
+            $images = [];
+            if (isset($item['images']) && is_array($item['images'])) {
+                foreach ($item['images'] as $url) {
+                    if (is_string($url) && trim($url) !== '') {
+                        $images[] = trim($url);
+                    }
+                }
+            } elseif (isset($item['image']) && is_string($item['image']) && trim($item['image']) !== '') {
+                $images[] = trim($item['image']);
+            }
+
+            $images = array_values(array_unique(array_slice($images, 0, $imageLimit)));
+            $title = isset($item['title']) && is_string($item['title']) ? trim($item['title']) : '';
+            $pdf = isset($item['pdf']) && is_string($item['pdf']) ? trim($item['pdf']) : '';
+
+            if ($images === [] && $title === '' && $pdf === '') {
+                continue;
+            }
+
+            $normalized[] = [
+                'title' => $title,
+                'images' => $images,
+                'pdf' => $pdf,
+            ];
+        }
+
+        return $normalized;
     }
 
     /**

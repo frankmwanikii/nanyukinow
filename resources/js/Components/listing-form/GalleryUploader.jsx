@@ -1,7 +1,7 @@
 import ListingImageCropModal from './ListingImageCropModal';
 import MediaAddDialog from './MediaAddDialog';
 import MediaLightbox from './MediaLightbox';
-import { help, label } from './fieldStyles';
+import { field, help, label } from './fieldStyles';
 import { srcToDataUrl } from '@/utils/cropImage';
 import {
     Expand,
@@ -347,7 +347,9 @@ export default function GalleryUploader({
     const [localError, setLocalError] = useState(null);
     const [lightboxIndex, setLightboxIndex] = useState(null);
     const [addOpen, setAddOpen] = useState(false);
-    const [addTarget, setAddTarget] = useState('gallery'); // gallery | cover | logo | poster
+    const [addTarget, setAddTarget] = useState('gallery'); // cover | logo | poster
+    const [galleryUrl, setGalleryUrl] = useState('');
+    const [galleryUrlError, setGalleryUrlError] = useState(null);
 
     const lightboxItems = useMemo(() => {
         const items = [];
@@ -485,13 +487,43 @@ export default function GalleryUploader({
         onGalleryChange?.(next);
     };
 
-    const openAddMenu = (target = 'gallery') => {
-        if (target === 'gallery' && galleryItems.length >= MAX_GALLERY) {
-            setLocalError(`You can upload up to ${MAX_GALLERY} gallery photos.`);
+    const openAddMenu = (target = 'cover') => {
+        if (target === 'gallery') {
+            openGalleryPicker();
             return;
         }
         setAddTarget(target);
         setAddOpen(true);
+    };
+
+    const openGalleryPicker = () => {
+        if (galleryItems.length >= MAX_GALLERY) {
+            setLocalError(`You can upload up to ${MAX_GALLERY} gallery photos.`);
+            return;
+        }
+        setLocalError(null);
+        galleryInput.current?.click();
+    };
+
+    const submitGalleryUrl = () => {
+        const raw = galleryUrl.trim();
+        if (!raw) {
+            setGalleryUrlError('Paste an image URL.');
+            return;
+        }
+        try {
+            const parsed = new URL(raw);
+            if (!['http:', 'https:'].includes(parsed.protocol)) {
+                setGalleryUrlError('URL must start with http:// or https://');
+                return;
+            }
+        } catch {
+            setGalleryUrlError('That does not look like a valid URL.');
+            return;
+        }
+        setGalleryUrlError(null);
+        addGalleryUrls([raw]);
+        setGalleryUrl('');
     };
 
     const handleAddUpload = () => {
@@ -658,34 +690,23 @@ export default function GalleryUploader({
             ) : null}
 
             <div className="rounded-2xl bg-olive-50/70 p-4 ring-1 ring-olive-100 dark:bg-olive-950/50 dark:ring-olive-800 sm:p-5">
-                <div className="flex flex-wrap items-end justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                            <p className={label}>Gallery</p>
-                            <span className="rounded-full bg-white px-2.5 py-0.5 text-[11px] font-semibold text-olive-700 ring-1 ring-olive-200 dark:bg-olive-900 dark:text-olive-200 dark:ring-olive-700">
-                                {galleryCount} / {MAX_GALLERY}
-                            </span>
-                        </div>
-                        <p className={help}>
-                            Multi-select photos, crop each one, then click any
-                            image to view full size.
-                        </p>
-                        <div className="mt-3 h-1.5 max-w-xs overflow-hidden rounded-full bg-olive-200/80">
-                            <div
-                                className="h-full rounded-full bg-mustard transition-all duration-300"
-                                style={{ width: `${galleryPct}%` }}
-                            />
-                        </div>
+                <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <p className={label}>Gallery</p>
+                        <span className="rounded-full bg-white px-2.5 py-0.5 text-[11px] font-semibold text-olive-700 ring-1 ring-olive-200 dark:bg-olive-900 dark:text-olive-200 dark:ring-olive-700">
+                            {galleryCount} / {MAX_GALLERY}
+                        </span>
                     </div>
-                    <button
-                        type="button"
-                        onClick={() => openAddMenu('gallery')}
-                        disabled={galleryCount >= MAX_GALLERY}
-                        className="inline-flex items-center gap-2 rounded-xl bg-olive-900 px-3.5 py-2.5 text-sm font-semibold text-white transition hover:bg-olive-800 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                        <ImagePlus className="h-4 w-4" />
-                        Add photos
-                    </button>
+                    <p className={help}>
+                        Multi-select photos, crop each one, then click any
+                        image to view full size.
+                    </p>
+                    <div className="mt-3 h-1.5 max-w-xs overflow-hidden rounded-full bg-olive-200/80">
+                        <div
+                            className="h-full rounded-full bg-mustard transition-all duration-300"
+                            style={{ width: `${galleryPct}%` }}
+                        />
+                    </div>
                 </div>
 
                 {queueTotal > 0 && cropState?.kind === 'gallery' ? (
@@ -792,7 +813,7 @@ export default function GalleryUploader({
                                 <li>
                                     <button
                                         type="button"
-                                        onClick={() => openAddMenu('gallery')}
+                                        onClick={openGalleryPicker}
                                         className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-olive-300 bg-white/70 text-olive-600 transition hover:border-mustard hover:bg-mustard/5 hover:text-olive-900 dark:border-olive-700 dark:bg-olive-950/70 dark:text-olive-400 dark:hover:border-mustard dark:hover:bg-mustard/10 dark:hover:text-olive-100"
                                     >
                                         <ImagePlus className="h-6 w-6" />
@@ -806,7 +827,7 @@ export default function GalleryUploader({
                     ) : (
                         <button
                             type="button"
-                            onClick={() => openAddMenu('gallery')}
+                            onClick={openGalleryPicker}
                             className="flex w-full flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-olive-300 bg-white/80 px-4 py-12 text-center transition hover:border-mustard hover:bg-mustard/5 dark:border-olive-700 dark:bg-olive-950/80 dark:hover:border-mustard dark:hover:bg-mustard/10"
                         >
                             <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-olive-50 ring-1 ring-olive-100 dark:bg-olive-900 dark:ring-olive-700">
@@ -824,6 +845,52 @@ export default function GalleryUploader({
                         </button>
                     )}
                 </DropZone>
+
+                {galleryCount < MAX_GALLERY ? (
+                    <div className="mt-4">
+                        <label className={label} htmlFor="gallery_image_url">
+                            Image URL (optional)
+                        </label>
+                        <div className="flex flex-col gap-2 sm:flex-row">
+                            <input
+                                id="gallery_image_url"
+                                type="url"
+                                className={field}
+                                value={galleryUrl}
+                                onChange={(e) => {
+                                    setGalleryUrl(e.target.value);
+                                    setGalleryUrlError(null);
+                                }}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        submitGalleryUrl();
+                                    }
+                                }}
+                                placeholder="https://…/photo.jpg"
+                                disabled={galleryCount >= MAX_GALLERY}
+                            />
+                            <button
+                                type="button"
+                                onClick={submitGalleryUrl}
+                                disabled={galleryCount >= MAX_GALLERY}
+                                className="inline-flex shrink-0 items-center justify-center rounded-xl bg-olive-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-olive-800 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                Add URL
+                            </button>
+                        </div>
+                        {galleryUrlError ? (
+                            <p className="mt-1.5 text-sm text-rose-600">
+                                {galleryUrlError}
+                            </p>
+                        ) : (
+                            <p className={help}>
+                                Paste a direct image link if you already host
+                                the photo online.
+                            </p>
+                        )}
+                    </div>
+                ) : null}
             </div>
 
             {localError ? (

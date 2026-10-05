@@ -3,12 +3,15 @@ import { field, help, label } from './fieldStyles';
 import {
     canUseEatDrinkFeature,
     eatDrinkMenuHelp,
+    eatDrinkMenuImagesPerPage,
     eatDrinkMenuLimit,
+    menuItemImages,
+    normalizeTier,
+    tierDisplayLabel,
 } from '@/data/eatDrinkTierFeatures';
-import { ImagePlus, Plus, Trash2 } from 'lucide-react';
+import { Link } from '@inertiajs/react';
+import { ImagePlus, Plus, Trash2, X } from 'lucide-react';
 import { useRef, useState } from 'react';
-
-const UNLIMITED_MENU_SLOTS = 100;
 
 function Section({ title, blurb, children }) {
     return (
@@ -74,17 +77,81 @@ function ImagePickButton({ image, onPick, onClear }) {
     );
 }
 
-function MenuDropzone({ onPick, remaining, unlimited = false }) {
-    const limitLabel = unlimited
-        ? 'multi-select · unlimited'
-        : `multi-select · up to ${remaining} image${remaining === 1 ? '' : 's'}`;
+function ImageDropzonePick({
+    image,
+    onClear,
+    onFiles,
+    remainingLabel = 'multi-select supported',
+    inputId,
+    multiple = true,
+}) {
+    const onDropFiles = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const files = e.dataTransfer?.files;
+        if (files?.length) {
+            onFiles?.(files);
+        }
+    };
+
+    const fileInput = (
+        <input
+            id={inputId}
+            type="file"
+            accept="image/*"
+            multiple={multiple}
+            className="sr-only"
+            onChange={(e) => {
+                const files = e.target.files;
+                e.target.value = '';
+                if (files?.length) {
+                    onFiles?.(files);
+                }
+            }}
+        />
+    );
+
+    if (image) {
+        return (
+            <div className="overflow-hidden rounded-2xl border border-olive-200 bg-white dark:border-olive-700 dark:bg-olive-950/80">
+                {fileInput}
+                <div className="relative aspect-[4/3] w-full bg-olive-50 dark:bg-olive-900">
+                    <img
+                        src={image}
+                        alt=""
+                        className="h-full w-full object-cover"
+                    />
+                    <div className="absolute inset-x-0 bottom-0 flex flex-wrap gap-2 bg-gradient-to-t from-black/55 to-transparent p-3 pt-8">
+                        <label
+                            htmlFor={inputId}
+                            className="cursor-pointer rounded-xl border border-white/30 bg-white/95 px-3 py-1.5 text-xs font-semibold text-olive-900 shadow-sm hover:bg-white"
+                        >
+                            Replace image
+                        </label>
+                        <button
+                            type="button"
+                            onClick={onClear}
+                            className="rounded-xl bg-white/90 px-3 py-1.5 text-xs font-semibold text-rose-700 shadow-sm hover:bg-white"
+                        >
+                            Clear
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <button
-            type="button"
-            onClick={onPick}
-            className="flex w-full flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-olive-300 bg-white/80 px-4 py-10 text-center transition hover:border-mustard hover:bg-mustard/5 dark:border-olive-700 dark:bg-olive-950/80 dark:hover:border-mustard dark:hover:bg-mustard/10"
+        <label
+            htmlFor={inputId}
+            onDragOver={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            }}
+            onDrop={onDropFiles}
+            className="flex w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-olive-300 bg-white/80 px-4 py-10 text-center transition hover:border-mustard hover:bg-mustard/5 dark:border-olive-700 dark:bg-olive-950/80 dark:hover:border-mustard dark:hover:bg-mustard/10"
         >
+            {fileInput}
             <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-olive-50 ring-1 ring-olive-100 dark:bg-olive-900 dark:ring-olive-700">
                 <ImagePlus className="h-6 w-6 text-olive-700 dark:text-olive-300" />
             </span>
@@ -93,10 +160,119 @@ function MenuDropzone({ onPick, remaining, unlimited = false }) {
                     Drop menu images here
                 </span>
                 <span className="mt-1 block text-xs text-olive-500">
-                    Or click to {limitLabel}
+                    Or click to upload · {remainingLabel}
                 </span>
             </span>
-        </button>
+        </label>
+    );
+}
+
+function MenuImagesEditor({
+    images = [],
+    inputId,
+    maxImages,
+    onChange,
+}) {
+    const remaining = Math.max(0, maxImages - images.length);
+    const atLimit = remaining <= 0;
+
+    const addFiles = async (fileList) => {
+        const files = Array.from(fileList || []).filter((f) =>
+            f.type?.startsWith('image/'),
+        );
+        if (!files.length || atLimit) return;
+        const chosen = files.slice(0, remaining);
+        const urls = [];
+        for (const file of chosen) {
+            try {
+                const url = await uploadEditorImage(file);
+                urls.push(url || URL.createObjectURL(file));
+            } catch {
+                urls.push(URL.createObjectURL(file));
+            }
+        }
+        onChange([...images, ...urls].slice(0, maxImages));
+    };
+
+    const removeAt = (index) => {
+        onChange(images.filter((_, i) => i !== index));
+    };
+
+    return (
+        <div className="space-y-3">
+            {images.length ? (
+                <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                    {images.map((src, index) => (
+                        <li
+                            key={`${src}-${index}`}
+                            className="group relative overflow-hidden rounded-xl bg-olive-100"
+                        >
+                            <img
+                                src={src}
+                                alt=""
+                                className="aspect-[3/4] w-full object-cover"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => removeAt(index)}
+                                className="absolute right-1.5 top-1.5 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/95 text-rose-700 shadow-sm"
+                                aria-label={`Remove image ${index + 1}`}
+                            >
+                                <X className="h-3.5 w-3.5" strokeWidth={2.5} />
+                            </button>
+                            <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/50 to-transparent px-2 py-1.5 text-[10px] font-semibold text-white">
+                                {index + 1} / {images.length}
+                            </span>
+                        </li>
+                    ))}
+                    {!atLimit ? (
+                        <li>
+                            <label
+                                htmlFor={inputId}
+                                className="flex aspect-[3/4] w-full cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-olive-300 bg-white/70 text-olive-600 transition hover:border-mustard hover:bg-mustard/5"
+                            >
+                                <ImagePlus className="h-5 w-5" />
+                                <span className="text-[11px] font-semibold">
+                                    Add more
+                                </span>
+                                <span className="text-[10px] text-olive-500">
+                                    {images.length}/{maxImages}
+                                </span>
+                            </label>
+                        </li>
+                    ) : null}
+                </ul>
+            ) : (
+                <ImageDropzonePick
+                    inputId={inputId}
+                    image=""
+                    remainingLabel={`up to ${maxImages} images`}
+                    onFiles={(files) => void addFiles(files)}
+                    onClear={() => {}}
+                />
+            )}
+            {images.length ? (
+                <input
+                    id={inputId}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="sr-only"
+                    onChange={(e) => {
+                        const files = e.target.files;
+                        e.target.value = '';
+                        if (files?.length) {
+                            void addFiles(files);
+                        }
+                    }}
+                />
+            ) : null}
+            {atLimit ? (
+                <p className={help}>
+                    This menu page is at the {maxImages}-image limit.
+                </p>
+            ) : null}
+        </div>
     );
 }
 
@@ -133,8 +309,7 @@ export default function CategoryExtrasEditor({
     libraryRoute = null,
     tier = 'free',
 }) {
-    const [imageTarget, setImageTarget] = useState(null); // { mode:'menus' } | { list, index, key }
-    const menuInputRef = useRef(null);
+    const [imageTarget, setImageTarget] = useState(null); // { list, index, key } — sponsors/products only
     const singleInputRef = useRef(null);
     const pendingSingleRef = useRef(null);
 
@@ -175,57 +350,11 @@ export default function CategoryExtrasEditor({
         categoryKey === 'eatDrink' && canUseEatDrinkFeature(tier, 'live_music');
     const menuLimit =
         categoryKey === 'eatDrink' ? eatDrinkMenuLimit(tier) : null;
+    const imagesPerMenu =
+        categoryKey === 'eatDrink' ? eatDrinkMenuImagesPerPage(tier) : 5;
     const menuRemaining =
-        menuLimit == null
-            ? UNLIMITED_MENU_SLOTS
-            : Math.max(0, menuLimit - menus.length);
-    const atMenuLimit = menuRemaining <= 0;
-    const menusUnlimited = menuLimit == null;
-
-    const appendMenuImages = (urls) => {
-        const cleaned = (urls || [])
-            .filter((u) => typeof u === 'string' && u.trim())
-            .map((u) => u.trim());
-        if (!cleaned.length) return;
-        const room =
-            menuLimit == null
-                ? cleaned.length
-                : Math.max(0, menuLimit - menus.length);
-        if (room <= 0) return;
-        const next = cleaned.slice(0, room).map((image, i) => ({
-            title: `Menu ${menus.length + i + 1}`,
-            image,
-            pdf: '',
-        }));
-        setList('menus', [...menus, ...next]);
-    };
-
-    const uploadMenuFiles = async (fileList) => {
-        const files = Array.from(fileList || []).filter((f) =>
-            f.type?.startsWith('image/'),
-        );
-        if (!files.length) return;
-        const room =
-            menuLimit == null
-                ? files.length
-                : Math.max(0, menuLimit - menus.length);
-        const accepted = files.slice(0, room);
-        const urls = [];
-        for (const file of accepted) {
-            try {
-                const url = await uploadEditorImage(file);
-                urls.push(url || URL.createObjectURL(file));
-            } catch {
-                urls.push(URL.createObjectURL(file));
-            }
-        }
-        appendMenuImages(urls);
-    };
-
-    const openMenusAdd = () => {
-        if (atMenuLimit) return;
-        setImageTarget({ mode: 'menus' });
-    };
+        menuLimit == null ? 0 : Math.max(0, menuLimit - menus.length);
+    const atMenuLimit = menuLimit != null && menuRemaining <= 0;
 
     return (
         <div className="space-y-5">
@@ -236,62 +365,24 @@ export default function CategoryExtrasEditor({
                     title="Menus"
                     blurb={eatDrinkMenuHelp(tier)}
                 >
-                    {menus.length ? (
-                        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                            {menus.map((item, index) => (
-                                <li
-                                    key={`menu-${index}`}
-                                    className="space-y-2 rounded-xl border border-olive-100 bg-olive-50/40 p-3"
-                                >
-                                    <div className="flex items-center justify-between gap-2">
-                                        <span className="text-xs font-semibold uppercase tracking-wide text-olive-500">
-                                            Menu {index + 1}
-                                        </span>
-                                        <RowActions
-                                            onRemove={() =>
-                                                removeItem('menus', index)
-                                            }
-                                        />
-                                    </div>
-                                    {item.image ? (
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                setImageTarget({
-                                                    list: 'menus',
-                                                    index,
-                                                    key: 'image',
-                                                })
-                                            }
-                                            className="group relative block w-full overflow-hidden rounded-xl bg-olive-100"
-                                        >
-                                            <img
-                                                src={item.image}
-                                                alt=""
-                                                className="aspect-[3/4] w-full object-cover"
-                                            />
-                                            <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 to-transparent p-2 text-left text-[11px] font-semibold text-white opacity-0 transition group-hover:opacity-100">
-                                                Replace image
-                                            </span>
-                                        </button>
-                                    ) : (
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                setImageTarget({
-                                                    list: 'menus',
-                                                    index,
-                                                    key: 'image',
-                                                })
-                                            }
-                                            className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-olive-300 bg-white/70 text-olive-600"
-                                        >
-                                            <ImagePlus className="h-5 w-5" />
-                                            <span className="text-xs font-semibold">
-                                                Add image
-                                            </span>
-                                        </button>
-                                    )}
+                    <ul className="space-y-4">
+                        {menus.map((item, index) => (
+                            <li
+                                key={`menu-${index}`}
+                                className="space-y-3 rounded-xl border border-olive-100 bg-olive-50/40 p-3"
+                            >
+                                <div className="flex items-center justify-between gap-2">
+                                    <span className="text-xs font-semibold uppercase tracking-wide text-olive-500">
+                                        Menu {index + 1}
+                                    </span>
+                                    <RowActions
+                                        onRemove={() =>
+                                            removeItem('menus', index)
+                                        }
+                                    />
+                                </div>
+                                <div>
+                                    <label className={label}>Title</label>
                                     <input
                                         className={field}
                                         value={item.title || ''}
@@ -302,6 +393,25 @@ export default function CategoryExtrasEditor({
                                         }
                                         placeholder="e.g. Lunch menu"
                                     />
+                                </div>
+                                <div>
+                                    <p className={label}>Menu images</p>
+                                    <MenuImagesEditor
+                                        inputId={`menu-images-${index}`}
+                                        images={menuItemImages(item)}
+                                        maxImages={imagesPerMenu}
+                                        onChange={(nextImages) =>
+                                            updateItem('menus', index, {
+                                                images: nextImages,
+                                                image: '',
+                                            })
+                                        }
+                                    />
+                                </div>
+                                <div>
+                                    <label className={label}>
+                                        PDF link (optional)
+                                    </label>
                                     <input
                                         className={field}
                                         type="url"
@@ -311,41 +421,54 @@ export default function CategoryExtrasEditor({
                                                 pdf: e.target.value,
                                             })
                                         }
-                                        placeholder="PDF link (optional)"
+                                        placeholder="https://…/menu.pdf"
                                     />
-                                </li>
-                            ))}
-                            {!atMenuLimit ? (
-                                <li>
-                                    <button
-                                        type="button"
-                                        onClick={openMenusAdd}
-                                        className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-olive-300 bg-white/70 text-olive-600 transition hover:border-mustard hover:bg-mustard/5 hover:text-olive-900 dark:border-olive-700 dark:bg-olive-950/70 dark:text-olive-400"
-                                    >
-                                        <ImagePlus className="h-6 w-6" />
-                                        <span className="text-xs font-semibold">
-                                            Add more
-                                            {menuLimit != null
-                                                ? ` · ${menus.length}/${menuLimit}`
-                                                : ''}
-                                        </span>
-                                    </button>
-                                </li>
-                            ) : null}
-                        </ul>
-                    ) : (
-                        <MenuDropzone
-                            onPick={openMenusAdd}
-                            remaining={menuRemaining}
-                            unlimited={menusUnlimited}
-                        />
-                    )}
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
                     {atMenuLimit ? (
                         <p className={help}>
-                            Standard limit reached ({menuLimit} menu images).
-                            Upgrade to Premium for unlimited menus.
+                            {normalizeTier(tier) === 'premium' ? (
+                                <>
+                                    You’ve reached the Premium limit of{' '}
+                                    {menuLimit} menu pages.
+                                </>
+                            ) : (
+                                <>
+                                    You’ve reached the{' '}
+                                    {tierDisplayLabel(tier)} limit of{' '}
+                                    {menuLimit} menu pages.{' '}
+                                    <Link
+                                        href={route('account.upgrade')}
+                                        className="font-semibold text-olive-900 underline decoration-mustard/70 underline-offset-2 hover:text-olive-700 dark:text-mustard dark:hover:text-mustard/80"
+                                    >
+                                        Upgrade to Premium
+                                    </Link>{' '}
+                                    for up to{' '}
+                                    {eatDrinkMenuLimit('premium')} menu pages.
+                                </>
+                            )}
                         </p>
-                    ) : null}
+                    ) : (
+                        <button
+                            type="button"
+                            onClick={() =>
+                                addItem('menus', {
+                                    title: '',
+                                    images: [],
+                                    pdf: '',
+                                })
+                            }
+                            className="inline-flex items-center gap-1.5 rounded-xl bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white"
+                        >
+                            <Plus className="h-4 w-4" />
+                            Add menu page
+                            {menuLimit != null
+                                ? ` (${menus.length}/${menuLimit})`
+                                : ''}
+                        </button>
+                    )}
                 </Section>
                 ) : null}
 
@@ -785,44 +908,18 @@ export default function CategoryExtrasEditor({
                 open={Boolean(imageTarget)}
                 onClose={() => setImageTarget(null)}
                 libraryRoute={libraryRoute}
-                remaining={
-                    imageTarget?.mode === 'menus'
-                        ? menuRemaining
-                        : 1
-                }
-                target={imageTarget?.mode === 'menus' ? 'gallery' : 'cover'}
+                remaining={1}
+                target="cover"
                 onUpload={() => {
-                    if (imageTarget?.mode === 'menus') {
-                        menuInputRef.current?.click();
-                        return;
-                    }
                     pendingSingleRef.current = imageTarget;
                     singleInputRef.current?.click();
                 }}
                 onPickUrls={(urls) => {
                     if (!imageTarget || !urls?.length) return;
-                    if (imageTarget.mode === 'menus') {
-                        appendMenuImages(urls);
-                        setImageTarget(null);
-                        return;
-                    }
                     updateItem(imageTarget.list, imageTarget.index, {
                         [imageTarget.key]: urls[0],
                     });
                     setImageTarget(null);
-                }}
-            />
-            <input
-                ref={menuInputRef}
-                type="file"
-                accept="image/*"
-                multiple
-                className="hidden"
-                onChange={(e) => {
-                    const files = e.target.files;
-                    e.target.value = '';
-                    setImageTarget(null);
-                    void uploadMenuFiles(files);
                 }}
             />
             <input
@@ -836,7 +933,7 @@ export default function CategoryExtrasEditor({
                     const target = pendingSingleRef.current || imageTarget;
                     pendingSingleRef.current = null;
                     setImageTarget(null);
-                    if (!file || !target || target.mode === 'menus') return;
+                    if (!file || !target) return;
                     try {
                         const url = await uploadEditorImage(file);
                         updateItem(target.list, target.index, {

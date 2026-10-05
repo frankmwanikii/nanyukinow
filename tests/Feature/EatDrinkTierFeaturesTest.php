@@ -41,8 +41,10 @@ class EatDrinkTierFeaturesTest extends TestCase
         $this->assertNull(EatDrinkTierFeatures::cuisineTagLimit(Membership::PREMIUM));
 
         $this->assertSame(0, EatDrinkTierFeatures::menuLimit(Membership::FREE));
-        $this->assertSame(10, EatDrinkTierFeatures::menuLimit(Membership::STANDARD));
-        $this->assertNull(EatDrinkTierFeatures::menuLimit(Membership::PREMIUM));
+        $this->assertSame(5, EatDrinkTierFeatures::menuLimit(Membership::STANDARD));
+        $this->assertSame(15, EatDrinkTierFeatures::menuLimit(Membership::PREMIUM));
+        $this->assertSame(5, EatDrinkTierFeatures::menuImagesPerPage(Membership::STANDARD));
+        $this->assertSame(15, EatDrinkTierFeatures::menuImagesPerPage(Membership::PREMIUM));
     }
 
     public function test_free_tier_strips_standard_and_premium_eat_drink_fields(): void

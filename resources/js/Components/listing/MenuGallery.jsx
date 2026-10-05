@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 import DetailSection from './DetailSection';
 
 /**
- * Normalize menu / docs payloads into { id, title, image }.
- * Returns [] when nothing usable is present (section collapses).
+ * Normalize menu / docs payloads into flat { id, title, image } slides.
+ * Supports legacy single `image` and newer `images[]` per menu page.
  */
 export function normalizeMenus(menus, docs) {
     const source = Array.isArray(menus) && menus.length
@@ -14,28 +14,55 @@ export function normalizeMenus(menus, docs) {
           ? docs
           : [];
 
-    return source
-        .map((item, index) => {
-            if (!item) return null;
-            if (typeof item === 'string') {
-                return {
-                    id: `menu-${index}`,
-                    title: `Menu ${index + 1}`,
-                    image: item,
+    const items = [];
+
+    source.forEach((item, index) => {
+        if (!item) return;
+
+        if (typeof item === 'string') {
+            items.push({
+                id: `menu-${index}`,
+                title: `Menu ${index + 1}`,
+                image: item,
+                pdf: null,
+            });
+            return;
+        }
+
+        const title = item.title || item.label || `Menu ${index + 1}`;
+        const pdf = item.pdf || null;
+        const images = Array.isArray(item.images)
+            ? item.images.filter((u) => typeof u === 'string' && u.trim())
+            : item.image || item.src || item.url
+              ? [item.image || item.src || item.url]
+              : [];
+
+        if (images.length) {
+            images.forEach((image, imageIndex) => {
+                items.push({
+                    id: `${item.id || `menu-${index}`}-${imageIndex}`,
+                    title:
+                        images.length > 1
+                            ? `${title} · ${imageIndex + 1}`
+                            : title,
+                    image,
                     pdf: null,
-                };
-            }
-            const image = item.image || item.src || item.url || null;
-            const pdf = item.pdf || null;
-            if (!image && !pdf) return null;
-            return {
+                });
+            });
+            return;
+        }
+
+        if (pdf) {
+            items.push({
                 id: item.id || `menu-${index}`,
-                title: item.title || item.label || `Menu ${index + 1}`,
-                image,
+                title,
+                image: null,
                 pdf,
-            };
-        })
-        .filter(Boolean);
+            });
+        }
+    });
+
+    return items;
 }
 
 export default function MenuGallery({
