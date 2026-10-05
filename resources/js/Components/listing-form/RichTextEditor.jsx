@@ -170,13 +170,198 @@ function Divider() {
     );
 }
 
+const PASTE_ALLOWED = new Set([
+    'P',
+    'BR',
+    'STRONG',
+    'B',
+    'EM',
+    'I',
+    'U',
+    'UL',
+    'OL',
+    'LI',
+    'A',
+    'H1',
+    'H2',
+    'H3',
+    'H4',
+    'SPAN',
+    'DIV',
+]);
+
+function escapeHtml(text) {
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+/** Turn plain pasted text into readable paragraphs / lists. */
+function plainTextToStyledHtml(text) {
+    const lines = String(text)
+        .replace(/\r\n/g, '\n')
+        .replace(/\r/g, '\n')
+        .split('\n');
+
+    const blocks = [];
+    let listType = null;
+    let listItems = [];
+
+    const flushList = () => {
+        if (!listType || !listItems.length) {
+            listType = null;
+            listItems = [];
+            return;
+        }
+        const tag = listType;
+        blocks.push(
+            `<${tag}>${listItems.map((item) => `<li>${item}</li>`).join('')}</${tag}>`,
+        );
+        listType = null;
+        listItems = [];
+    };
+
+    for (const raw of lines) {
+        const line = raw.replace(/\u00a0/g, ' ').trimEnd();
+        const trimmed = line.trim();
+
+        if (!trimmed) {
+            flushList();
+            continue;
+        }
+
+        const numbered = trimmed.match(/^\d+[.)]\s+(.+)$/);
+        const bulleted = trimmed.match(/^[-*•]\s+(.+)$/);
+
+        if (numbered) {
+            if (listType && listType !== 'ol') flushList();
+            listType = 'ol';
+            listItems.push(escapeHtml(numbered[1]));
+            continue;
+        }
+
+        if (bulleted) {
+            if (listType && listType !== 'ul') flushList();
+            listType = 'ul';
+            listItems.push(escapeHtml(bulleted[1]));
+            continue;
+        }
+
+        flushList();
+
+        const looksHeading =
+            trimmed.length <= 80 &&
+            !trimmed.endsWith('.') &&
+            (/^[A-Z0-9][A-Z0-9\s,&/'-]{2,}$/.test(trimmed) ||
+                /^how\b.+/i.test(trimmed) ||
+                /^\d+\.\s+[A-Z]/.test(raw.trim()));
+
+        if (looksHeading && trimmed === trimmed.toUpperCase() && trimmed.length > 3) {
+            blocks.push(`<h3>${escapeHtml(trimmed)}</h3>`);
+        } else {
+            blocks.push(`<p>${escapeHtml(trimmed)}</p>`);
+        }
+    }
+
+    flushList();
+
+    return blocks.join('') || `<p>${escapeHtml(text)}</p>`;
+}
+
+/** Keep useful structure from Word/Docs/etc., drop junk chrome. */
+function sanitizePastedHtml(html) {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    doc.querySelectorAll('script, style, meta, link, xml, img, iframe, object, embed').forEach(
+        (node) => node.remove(),
+    );
+
+    const clean = (node) => {
+        const children = Array.from(node.childNodes);
+        for (const child of children) {
+            if (child.nodeType === Node.COMMENT_NODE) {
+                child.remove();
+                continue;
+            }
+            if (child.nodeType !== Node.ELEMENT_NODE) continue;
+
+            const tag = child.tagName;
+            if (['H1', 'H2', 'H4', 'H5', 'H6'].includes(tag)) {
+                const h3 = doc.createElement('h3');
+                while (child.firstChild) h3.appendChild(child.firstChild);
+                child.replaceWith(h3);
+                clean(h3);
+                continue;
+            }
+
+            if (tag === 'DIV') {
+                const p = doc.createElement('p');
+                while (child.firstChild) p.appendChild(child.firstChild);
+                child.replaceWith(p);
+                clean(p);
+                continue;
+            }
+
+            if (!PASTE_ALLOWED.has(tag)) {
+                const parent = child.parentNode;
+                while (child.firstChild) parent.insertBefore(child.firstChild, child);
+                child.remove();
+                clean(parent);
+                continue;
+            }
+
+            [...child.attributes].forEach((attr) => {
+                const name = attr.name.toLowerCase();
+                if (tag === 'A' && name === 'href') {
+                    const href = attr.value.trim();
+                    if (!/^(https?:\/\/|mailto:)/i.test(href)) {
+                        child.removeAttribute(attr.name);
+                    }
+                    return;
+                }
+                if (tag === 'SPAN' && name === 'style') {
+                    const size = attr.value.match(/font-size\s*:\s*([0-9.]+px)/i);
+                    if (size) {
+                        child.setAttribute('style', `font-size: ${size[1]}`);
+                    } else {
+                        child.removeAttribute(attr.name);
+                    }
+                    return;
+                }
+                child.removeAttribute(attr.name);
+            });
+
+            if (tag === 'A') {
+                child.setAttribute('target', '_blank');
+                child.setAttribute('rel', 'noopener noreferrer');
+            }
+
+            clean(child);
+        }
+    };
+
+    clean(doc.body);
+
+    // Collapse empty paragraphs Word often leaves behind
+    doc.body.querySelectorAll('p').forEach((p) => {
+        if (!p.textContent?.trim() && !p.querySelector('br')) {
+            p.remove();
+        }
+    });
+
+    return doc.body.innerHTML.trim();
+}
+
 export default function RichTextEditor({
     id = 'description',
     label: labelText = 'Description',
     value = '',
     onChange,
+    onBlur: onBlurProp,
     placeholder = 'Tell the story…',
     error,
+    ok = false,
     help: helpText,
     compact = false,
     allowImages = true,
@@ -281,15 +466,42 @@ export default function RichTextEditor({
         }
     };
 
+    const showImages = allowImages && !compact;
+
     const onPaste = (e) => {
         const items = e.clipboardData?.items;
-        if (!items) return;
-        for (const item of items) {
-            if (item.type.startsWith('image/')) {
-                e.preventDefault();
-                const file = item.getAsFile();
-                if (file) insertImage(file);
-                return;
+        if (showImages && items) {
+            for (const item of items) {
+                if (item.type.startsWith('image/')) {
+                    e.preventDefault();
+                    const file = item.getAsFile();
+                    if (file) insertImage(file);
+                    return;
+                }
+            }
+        }
+
+        const html = e.clipboardData?.getData('text/html')?.trim();
+        const text = e.clipboardData?.getData('text/plain') ?? '';
+
+        // Always intercept so pasted content lands as structured, styled HTML.
+        if (html || text) {
+            e.preventDefault();
+            focusEditor(editorRef.current);
+            restoreSelection(savedRange.current);
+            document.execCommand('styleWithCSS', false, true);
+
+            let styled = '';
+            if (html) {
+                styled = sanitizePastedHtml(html);
+            }
+            if (!styled && text) {
+                styled = plainTextToStyledHtml(text);
+            }
+            if (styled) {
+                document.execCommand('insertHTML', false, styled);
+                emit();
+                refreshActive();
             }
         }
     };
@@ -302,11 +514,10 @@ export default function RichTextEditor({
         }
     };
 
-    const showImages = allowImages && !compact;
-    const editorMinH = compact ? 'min-h-[120px]' : 'min-h-[200px]';
+    const editorMinH = compact ? 'min-h-[120px]' : 'min-h-[160px]';
     const defaultHelp = compact
         ? 'Bold, lists, and links for a short About blurb.'
-        : 'Font size, bullets, headings, links, and images — paste or drop a photo into the editor.';
+        : 'Use the toolbar — paste keeps bold, lists, and headings automatically.';
 
     return (
         <div>
@@ -460,13 +671,16 @@ export default function RichTextEditor({
                         emit();
                         refreshActive();
                     }}
-                    onBlur={emit}
+                    onBlur={() => {
+                        emit();
+                        onBlurProp?.();
+                    }}
                     onKeyUp={refreshActive}
                     onMouseUp={() => {
                         rememberSelection();
                         refreshActive();
                     }}
-                    onPaste={showImages ? onPaste : undefined}
+                    onPaste={onPaste}
                     onDrop={showImages ? onDrop : undefined}
                     onDragOver={
                         showImages
@@ -487,6 +701,22 @@ export default function RichTextEditor({
             {error ? (
                 <p className="mt-1.5 text-sm text-rose-600 dark:text-rose-400">
                     {error}
+                </p>
+            ) : ok ? (
+                <p className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-olive-700 dark:text-olive-300">
+                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-olive-700 text-white">
+                        <svg
+                            viewBox="0 0 24 24"
+                            className="h-2.5 w-2.5"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="3"
+                            aria-hidden
+                        >
+                            <path d="M5 13l4 4L19 7" />
+                        </svg>
+                    </span>
+                    Looks good
                 </p>
             ) : (
                 <p className="mt-1.5 text-xs text-olive-500 dark:text-olive-400">

@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import DetailSection from './DetailSection';
 import RecaptchaField from './RecaptchaField';
+import RichTextEditor from '@/Components/listing-form/RichTextEditor';
 import { showSuccessToast } from '@/Components/site/SuccessToast';
 
 const MAX_FILES = 5;
@@ -107,6 +108,18 @@ const labelClass =
 const EMAIL_RE =
     /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z]{2,})+$/;
 
+function plainTextFromHtml(html) {
+    if (typeof document === 'undefined') {
+        return String(html || '')
+            .replace(/<[^>]+>/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+    const div = document.createElement('div');
+    div.innerHTML = String(html || '');
+    return (div.textContent || '').replace(/\u200b/g, '').replace(/\s+/g, ' ').trim();
+}
+
 function validateContactField(name, value) {
     const raw = String(value ?? '');
     const trimmed = raw.trim();
@@ -144,11 +157,13 @@ function validateContactField(name, value) {
                 return 'Enter a valid phone number.';
             }
             return '';
-        case 'message':
-            if (!trimmed) return 'Please write a message.';
-            if (trimmed.length < 10) return 'Message is too short (min 10 characters).';
-            if (trimmed.length > 5000) return 'Message is too long.';
+        case 'message': {
+            const text = plainTextFromHtml(raw);
+            if (!text) return 'Please write a message.';
+            if (text.length < 10) return 'Message is too short (min 10 characters).';
+            if (text.length > 5000) return 'Message is too long.';
             return '';
+        }
         default:
             return '';
     }
@@ -553,24 +568,19 @@ function ContactMessageForm({ listing }) {
                     </div>
                 </div>
                 <div className="min-w-0">
-                    <label htmlFor="contact-message" className={labelClass}>
-                        Message
-                    </label>
-                    <textarea
+                    <RichTextEditor
                         id="contact-message"
+                        label="Message"
                         value={message}
-                        onChange={(e) =>
-                            updateField('message', e.target.value, setMessage)
+                        onChange={(html) =>
+                            updateField('message', html, setMessage)
                         }
                         onBlur={() => markTouched('message')}
                         placeholder="How can they help you?"
-                        rows={5}
-                        aria-invalid={Boolean(showError('message'))}
-                        className={`${inputClass('message')} min-h-[120px] resize-y`}
-                    />
-                    <FieldStatus
                         error={showError('message')}
                         ok={showOk('message')}
+                        allowImages={false}
+                        help="Paste from docs or notes — formatting and lists are applied automatically."
                     />
                 </div>
 

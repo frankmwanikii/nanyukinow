@@ -3,9 +3,12 @@
 namespace App\Mail;
 
 use App\Models\Listing;
+use App\Models\SiteSetting;
+use App\Support\ListingSearch;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Address;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -37,19 +40,94 @@ class ListingInquiryConfirmationMail extends Mailable
 
     public function content(): Content
     {
+        $appUrl = rtrim((string) config('app.url'), '/');
+        $appName = (string) SiteSetting::getValue('site_name', config('app.name', 'Nanyuki Now'));
+        $contactEmail = (string) SiteSetting::getValue(
+            'contact_email',
+            config('mail.from.address', 'hello@nanyukinow.co.ke'),
+        );
+        $contactPhone = trim((string) SiteSetting::getValue('contact_phone', ''));
+
         return new Content(
             html: 'mail.listing-inquiry-confirmation',
             text: 'mail.listing-inquiry-confirmation-text',
             with: [
                 'listingUrl' => route('listings.show', $this->listing->slug),
-                'appName' => config('app.name', 'Nanyuki Now'),
-                'appUrl' => config('app.url'),
+                'appName' => $appName,
+                'appUrl' => $appUrl,
+                'logoUrl' => $appUrl.'/images/logo.png',
+                'contactEmail' => $contactEmail,
+                'contactPhone' => $contactPhone !== '' ? $contactPhone : null,
+                'exploreUrl' => route('explore'),
+                'recommended' => $this->recommendedListings(),
             ],
         );
     }
 
     /**
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
+     * @return list<array{title: string, location: string|null, url: string, image: string|null}>
+     */
+    private function recommendedListings(): array
+    {
+        $base = ListingSearch::publishedQuery()
+            ->where('id', '!=', $this->listing->id)
+            ->whereNotNull('image_url')
+            ->where('image_url', '!=', '');
+
+        $sameCategory = (clone $base)
+            ->when(
+                $this->listing->category_id,
+                fn ($query) => $query->where('category_id', $this->listing->category_id),
+            )
+            ->orderByDesc('is_featured')
+            ->orderByDesc('priority')
+            ->orderByDesc('rating')
+            ->limit(3)
+            ->get();
+
+        $recommended = $sameCategory;
+
+        if ($recommended->count() < 3) {
+            $extra = (clone $base)
+                ->whereNotIn('id', $recommended->pluck('id')->all())
+                ->orderByDesc('is_featured')
+                ->orderByDesc('is_trending')
+                ->orderByDesc('priority')
+                ->orderByDesc('rating')
+                ->limit(3 - $recommended->count())
+                ->get();
+
+            $recommended = $recommended->concat($extra);
+        }
+
+        return $recommended
+            ->take(3)
+            ->map(fn (Listing $item) => [
+                'title' => (string) $item->title,
+                'location' => $item->location ?: $item->city,
+                'url' => route('listings.show', $item->slug),
+                'image' => $this->absoluteUrl($item->image_url),
+            ])
+            ->values()
+            ->all();
+    }
+
+    private function absoluteUrl(?string $url): ?string
+    {
+        if (! filled($url)) {
+            return null;
+        }
+
+        $url = trim((string) $url);
+        if (str_starts_with($url, 'http://') || str_starts_with($url, 'https://')) {
+            return $url;
+        }
+
+        return rtrim((string) config('app.url'), '/').'/'.ltrim($url, '/');
+    }
+
+    /**
+     * @return array<int, Attachment>
      */
     public function attachments(): array
     {

@@ -7,6 +7,7 @@ use App\Mail\ListingInquiryMail;
 use App\Models\Conversation;
 use App\Models\Listing;
 use App\Models\Message;
+use App\Support\SafeHtml;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,7 +24,20 @@ class ListingContactController extends Controller
             'last_name' => ['required', 'string', 'max:80'],
             'email' => ['required', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:40'],
-            'message' => ['required', 'string', 'max:5000'],
+            'message' => [
+                'required',
+                'string',
+                'max:20000',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    $length = SafeHtml::plainTextLength(is_string($value) ? $value : '');
+                    if ($length < 10) {
+                        $fail('Please write a message of at least 10 characters.');
+                    }
+                    if ($length > 5000) {
+                        $fail('Message is too long.');
+                    }
+                },
+            ],
             'g-recaptcha-response' => ['nullable', 'string'],
             'attachments' => ['nullable', 'array', 'max:5'],
             'attachments.*' => [
@@ -53,7 +67,11 @@ class ListingContactController extends Controller
 
         $guestName = trim($data['first_name'].' '.$data['last_name']);
         $senderEmail = strtolower(trim($data['email']));
-        $body = trim($data['message']);
+        $body = SafeHtml::sanitizeMessage($data['message']);
+
+        if (SafeHtml::plainTextLength($body) < 10) {
+            return $this->fail($request, 'Please write a message of at least 10 characters.');
+        }
 
         $conversation = null;
 
@@ -198,6 +216,7 @@ class ListingContactController extends Controller
                 @rename($fallback, $target);
                 if (! @copy($upload->getRealPath(), $target)) {
                     @unlink($target);
+
                     continue;
                 }
 
@@ -221,6 +240,7 @@ class ListingContactController extends Controller
         foreach ($storedFiles as $file) {
             if (! empty($file['disk_path'])) {
                 Storage::disk('local')->delete($file['disk_path']);
+
                 continue;
             }
 

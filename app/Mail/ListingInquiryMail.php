@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Models\Listing;
+use App\Models\SiteSetting;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Address;
@@ -39,9 +40,24 @@ class ListingInquiryMail extends Mailable
 
     public function content(): Content
     {
+        $appUrl = rtrim((string) config('app.url'), '/');
+        $appName = (string) SiteSetting::getValue('site_name', config('app.name', 'Nanyuki Now'));
+        $contactEmail = (string) SiteSetting::getValue(
+            'contact_email',
+            config('mail.from.address', 'hello@nanyukinow.co.ke'),
+        );
+        $contactPhone = trim((string) SiteSetting::getValue('contact_phone', ''));
+
         return new Content(
-            markdown: 'mail.listing-inquiry',
+            html: 'mail.listing-inquiry',
+            text: 'mail.listing-inquiry-text',
             with: [
+                'listingUrl' => route('listings.show', $this->listing->slug),
+                'appName' => $appName,
+                'appUrl' => $appUrl,
+                'logoUrl' => $appUrl.'/images/logo.png',
+                'contactEmail' => $contactEmail,
+                'contactPhone' => $contactPhone !== '' ? $contactPhone : null,
                 'attachmentCount' => count($this->files),
             ],
         );

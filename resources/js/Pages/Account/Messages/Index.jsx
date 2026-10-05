@@ -134,7 +134,18 @@ function ChatPane({ conversation, onDelete }) {
                                     {message.sender_name}
                                 </p>
                             )}
-                            <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.body}</p>
+                            {/<[a-z][\s\S]*>/i.test(message.body || '') ? (
+                                <div
+                                    className={`nn-editor text-sm leading-relaxed ${
+                                        message.mine ? 'text-white [&_a]:text-mustard' : ''
+                                    }`}
+                                    dangerouslySetInnerHTML={{ __html: message.body }}
+                                />
+                            ) : (
+                                <p className="whitespace-pre-wrap text-sm leading-relaxed">
+                                    {message.body}
+                                </p>
+                            )}
                             <p
                                 className={`mt-1 text-[10px] ${
                                     message.mine ? 'text-white/55' : 'text-olive-400 dark:text-olive-500'

@@ -11,6 +11,7 @@ use App\Models\Message;
 use App\Models\User;
 use App\Notifications\WelcomeMemberNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
@@ -70,6 +71,8 @@ class MemberMessagesTest extends TestCase
             $mail->assertHasReplyTo('jane@example.com', 'Jane Wanjiru');
             $mail->assertTo('lodge@example.com');
             $mail->assertSeeInText('Is this available next weekend?');
+            $mail->assertSeeInHtml('New inquiry');
+            $mail->assertSeeInHtml('Is this available next weekend?');
 
             return $mail->listing->is($listing)
                 && $mail->senderEmail === 'jane@example.com';
@@ -91,7 +94,7 @@ class MemberMessagesTest extends TestCase
 
         $owner = User::factory()->create(['email' => 'owner@example.com']);
         $listing = $this->makeListing($owner);
-        $file = \Illuminate\Http\UploadedFile::fake()->create('floor-plan.pdf', 200, 'application/pdf');
+        $file = UploadedFile::fake()->create('floor-plan.pdf', 200, 'application/pdf');
 
         $this->from(route('listings.show', $listing->slug))
             ->post(route('listings.contact', $listing->slug), [
