@@ -138,11 +138,19 @@ function CoverLogoStage({
     onViewLogo,
     onClearCover,
     onClearLogo,
+    coverUrl,
+    logoUrl,
+    onCoverUrlChange,
+    onLogoUrlChange,
+    onSubmitCoverUrl,
+    onSubmitLogoUrl,
+    coverUrlError,
+    logoUrlError,
 }) {
     return (
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)] lg:items-start">
-            <div>
-                <div className="mb-2.5 flex items-center gap-2">
+        <div className="space-y-5">
+            <div className="rounded-2xl bg-olive-50/70 p-4 ring-1 ring-olive-100 dark:bg-olive-950/50 dark:ring-olive-800 sm:p-5">
+                <div className="mb-2 flex flex-wrap items-center gap-2">
                     <p className={label}>Cover image</p>
                     {coverPreview ? (
                         <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-800 ring-1 ring-emerald-100">
@@ -159,9 +167,9 @@ function CoverLogoStage({
                 </p>
                 <DropZone
                     onFiles={onFileCover}
-                    className="overflow-hidden rounded-2xl bg-olive-100 shadow-soft ring-1 ring-olive-200/80"
+                    className="overflow-hidden rounded-xl bg-olive-100 ring-1 ring-olive-200/80 dark:bg-olive-950 dark:ring-olive-700"
                 >
-                    <div className="group relative aspect-[4/3] bg-gradient-to-br from-olive-50 via-white to-olive-100/80">
+                    <div className="group relative h-36 w-full overflow-hidden bg-gradient-to-br from-olive-50 via-white to-olive-100/80 sm:h-40">
                         {coverPreview ? (
                             <>
                                 <button
@@ -188,78 +196,145 @@ function CoverLogoStage({
                             <button
                                 type="button"
                                 onClick={onBrowseCover}
-                                className="absolute inset-0 flex flex-col items-center justify-center gap-2.5 px-6 text-center transition hover:bg-mustard/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-mustard"
+                                className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-4 text-center transition hover:bg-mustard/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-mustard"
                             >
-                                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-olive-100 dark:bg-olive-900 dark:ring-olive-700">
-                                    <Upload className="h-5 w-5 text-olive-700 dark:text-olive-300" />
+                                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-olive-100 dark:bg-olive-900 dark:ring-olive-700">
+                                    <Upload className="h-4 w-4 text-olive-700 dark:text-olive-300" />
                                 </span>
                                 <span className="text-sm font-semibold text-olive-900 dark:text-olive-100">
-                                    Add cover photo
+                                    Drop cover photo here
                                 </span>
-                                <span className="max-w-xs text-xs text-olive-500 dark:text-olive-400">
-                                    Drag & drop or click · JPG, PNG, WebP
+                                <span className="text-xs text-olive-500 dark:text-olive-400">
+                                    Or click to upload · JPG, PNG, WebP
                                 </span>
                             </button>
                         )}
                     </div>
                 </DropZone>
+                <div className="mt-3">
+                    <label className={label} htmlFor="cover_image_url">
+                        Cover image URL (optional)
+                    </label>
+                    <div className="flex flex-col gap-2 sm:flex-row">
+                        <input
+                            id="cover_image_url"
+                            type="url"
+                            className={field}
+                            value={coverUrl}
+                            onChange={(e) => onCoverUrlChange?.(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    onSubmitCoverUrl?.();
+                                }
+                            }}
+                            placeholder="https://…/cover.jpg"
+                        />
+                        <button
+                            type="button"
+                            onClick={onSubmitCoverUrl}
+                            className="inline-flex shrink-0 items-center justify-center rounded-xl bg-olive-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-olive-800"
+                        >
+                            Use URL
+                        </button>
+                    </div>
+                    {coverUrlError ? (
+                        <p className="mt-1.5 text-sm text-rose-600">
+                            {coverUrlError}
+                        </p>
+                    ) : null}
+                </div>
             </div>
 
-            <div>
-                <div className="mb-2.5 flex items-center gap-2">
+            <div className="rounded-2xl bg-olive-50/70 p-4 ring-1 ring-olive-100 dark:bg-olive-950/50 dark:ring-olive-800 sm:p-5">
+                <div className="mb-2 flex flex-wrap items-center gap-2">
                     <p className={label}>Logo</p>
                     <span className="rounded-full bg-olive-100 px-2 py-0.5 text-[10px] font-semibold text-olive-700">
                         Optional
                     </span>
                 </div>
                 <p className={`${help} mb-3`}>
-                    Round badge on listing cards. Shown large here so you can
-                    check the crop.
+                    Round badge on listing cards. Square crop recommended.
                 </p>
-                <DropZone
-                    onFiles={onFileLogo}
-                    className="mx-auto w-full max-w-[16rem] lg:mx-0 lg:max-w-none"
-                >
-                    <div className="group relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl bg-olive-50/80 p-5 ring-1 ring-olive-200/80 dark:bg-olive-950/80 dark:ring-olive-700 sm:p-6">
-                        {logoPreview ? (
-                            <>
+                <div className="flex flex-wrap items-start gap-4">
+                    <DropZone onFiles={onFileLogo} className="shrink-0">
+                        <div className="group relative">
+                            {logoPreview ? (
+                                <div className="relative h-24 w-24 overflow-hidden rounded-full bg-white shadow-soft ring-2 ring-olive-200 dark:bg-olive-900 dark:ring-olive-700 sm:h-28 sm:w-28">
+                                    <button
+                                        type="button"
+                                        onClick={onViewLogo}
+                                        className="absolute inset-0 cursor-zoom-in focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard"
+                                        aria-label="View logo full size"
+                                    >
+                                        <img
+                                            src={logoPreview}
+                                            alt="Logo preview"
+                                            className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+                                        />
+                                    </button>
+                                    <HoverActions>
+                                        <MediaToolbar
+                                            onView={onViewLogo}
+                                            onReplace={onBrowseLogo}
+                                            onRemove={onClearLogo}
+                                        />
+                                    </HoverActions>
+                                </div>
+                            ) : (
                                 <button
                                     type="button"
-                                    onClick={onViewLogo}
-                                    className="relative h-full w-full max-h-[14rem] max-w-[14rem] cursor-zoom-in overflow-hidden rounded-full bg-white shadow-lift ring-4 ring-white focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard focus-visible:ring-offset-2 dark:bg-olive-900 dark:ring-olive-800 dark:focus-visible:ring-offset-olive-950"
-                                    aria-label="View logo full size"
+                                    onClick={onBrowseLogo}
+                                    className="flex h-24 w-24 flex-col items-center justify-center gap-1 rounded-full border-2 border-dashed border-olive-300 bg-white text-olive-600 transition hover:border-mustard hover:bg-mustard/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard dark:border-olive-700 dark:bg-olive-950 dark:text-olive-400 dark:hover:border-mustard dark:hover:bg-mustard/10 sm:h-28 sm:w-28"
                                 >
-                                    <img
-                                        src={logoPreview}
-                                        alt="Logo preview"
-                                        className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
-                                    />
+                                    <ImagePlus className="h-5 w-5" />
+                                    <span className="text-[11px] font-semibold text-olive-900 dark:text-olive-100">
+                                        Add logo
+                                    </span>
                                 </button>
-                                <HoverActions>
-                                    <MediaToolbar
-                                        onView={onViewLogo}
-                                        onReplace={onBrowseLogo}
-                                        onRemove={onClearLogo}
-                                    />
-                                </HoverActions>
-                            </>
-                        ) : (
+                            )}
+                        </div>
+                    </DropZone>
+                    <div className="min-w-0 flex-1 basis-[14rem]">
+                        <label className={label} htmlFor="logo_image_url">
+                            Logo image URL (optional)
+                        </label>
+                        <div className="flex flex-col gap-2 sm:flex-row">
+                            <input
+                                id="logo_image_url"
+                                type="url"
+                                className={field}
+                                value={logoUrl}
+                                onChange={(e) =>
+                                    onLogoUrlChange?.(e.target.value)
+                                }
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        onSubmitLogoUrl?.();
+                                    }
+                                }}
+                                placeholder="https://…/logo.png"
+                            />
                             <button
                                 type="button"
-                                onClick={onBrowseLogo}
-                                className="flex h-full w-full max-h-[14rem] max-w-[14rem] flex-col items-center justify-center gap-2 rounded-full border-2 border-dashed border-olive-300 bg-white text-olive-600 transition hover:border-mustard hover:bg-mustard/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard dark:border-olive-700 dark:bg-olive-950 dark:text-olive-400 dark:hover:border-mustard dark:hover:bg-mustard/10"
+                                onClick={onSubmitLogoUrl}
+                                className="inline-flex shrink-0 items-center justify-center rounded-xl bg-olive-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-olive-800"
                             >
-                                <ImagePlus className="h-6 w-6" />
-                                <span className="text-sm font-semibold text-olive-900 dark:text-olive-100">
-                                    Add logo
-                                </span>
-                                <span className="px-4 text-center text-[11px] text-olive-500 dark:text-olive-400">
-                                    Square crop · round on the card
-                                </span>
+                                Use URL
                             </button>
+                        </div>
+                        {logoUrlError ? (
+                            <p className="mt-1.5 text-sm text-rose-600">
+                                {logoUrlError}
+                            </p>
+                        ) : (
+                            <p className={help}>
+                                Or paste a direct link to a square logo image.
+                            </p>
                         )}
                     </div>
-                </DropZone>
+                </div>
             </div>
         </div>
     );
@@ -350,6 +425,10 @@ export default function GalleryUploader({
     const [addTarget, setAddTarget] = useState('gallery'); // cover | logo | poster
     const [galleryUrl, setGalleryUrl] = useState('');
     const [galleryUrlError, setGalleryUrlError] = useState(null);
+    const [coverUrlDraft, setCoverUrlDraft] = useState('');
+    const [logoUrlDraft, setLogoUrlDraft] = useState('');
+    const [coverUrlError, setCoverUrlError] = useState(null);
+    const [logoUrlError, setLogoUrlError] = useState(null);
 
     const lightboxItems = useMemo(() => {
         const items = [];
@@ -487,9 +566,17 @@ export default function GalleryUploader({
         onGalleryChange?.(next);
     };
 
-    const openAddMenu = (target = 'cover') => {
+    const openAddMenu = (target = 'poster') => {
         if (target === 'gallery') {
             openGalleryPicker();
+            return;
+        }
+        if (target === 'cover') {
+            coverInput.current?.click();
+            return;
+        }
+        if (target === 'logo') {
+            logoInput.current?.click();
             return;
         }
         setAddTarget(target);
@@ -505,25 +592,45 @@ export default function GalleryUploader({
         galleryInput.current?.click();
     };
 
-    const submitGalleryUrl = () => {
-        const raw = galleryUrl.trim();
-        if (!raw) {
-            setGalleryUrlError('Paste an image URL.');
-            return;
+    const parseImageUrl = (raw, setError) => {
+        const value = (raw || '').trim();
+        if (!value) {
+            setError('Paste an image URL.');
+            return null;
         }
         try {
-            const parsed = new URL(raw);
+            const parsed = new URL(value);
             if (!['http:', 'https:'].includes(parsed.protocol)) {
-                setGalleryUrlError('URL must start with http:// or https://');
-                return;
+                setError('URL must start with http:// or https://');
+                return null;
             }
         } catch {
-            setGalleryUrlError('That does not look like a valid URL.');
-            return;
+            setError('That does not look like a valid URL.');
+            return null;
         }
-        setGalleryUrlError(null);
+        setError(null);
+        return value;
+    };
+
+    const submitGalleryUrl = () => {
+        const raw = parseImageUrl(galleryUrl, setGalleryUrlError);
+        if (!raw) return;
         addGalleryUrls([raw]);
         setGalleryUrl('');
+    };
+
+    const submitCoverUrl = () => {
+        const raw = parseImageUrl(coverUrlDraft, setCoverUrlError);
+        if (!raw) return;
+        applySlotUrl('cover', raw);
+        setCoverUrlDraft('');
+    };
+
+    const submitLogoUrl = () => {
+        const raw = parseImageUrl(logoUrlDraft, setLogoUrlError);
+        if (!raw) return;
+        applySlotUrl('logo', raw);
+        setLogoUrlDraft('');
     };
 
     const handleAddUpload = () => {
@@ -637,8 +744,8 @@ export default function GalleryUploader({
             <CoverLogoStage
                 coverPreview={coverPreview}
                 logoPreview={logoPreview}
-                onBrowseCover={() => openAddMenu('cover')}
-                onBrowseLogo={() => openAddMenu('logo')}
+                onBrowseCover={() => coverInput.current?.click()}
+                onBrowseLogo={() => logoInput.current?.click()}
                 onFileCover={(file) => handleSingle(file, 'cover')}
                 onFileLogo={(file) => handleSingle(file, 'logo')}
                 onViewCover={
@@ -661,6 +768,20 @@ export default function GalleryUploader({
                 onClearLogo={() =>
                     onLogoChange?.({ file: null, preview: null, url: null })
                 }
+                coverUrl={coverUrlDraft}
+                logoUrl={logoUrlDraft}
+                onCoverUrlChange={(value) => {
+                    setCoverUrlDraft(value);
+                    setCoverUrlError(null);
+                }}
+                onLogoUrlChange={(value) => {
+                    setLogoUrlDraft(value);
+                    setLogoUrlError(null);
+                }}
+                onSubmitCoverUrl={submitCoverUrl}
+                onSubmitLogoUrl={submitLogoUrl}
+                coverUrlError={coverUrlError}
+                logoUrlError={logoUrlError}
             />
 
             {showPoster ? (
