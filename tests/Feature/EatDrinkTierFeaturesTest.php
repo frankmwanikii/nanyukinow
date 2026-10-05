@@ -184,9 +184,9 @@ class EatDrinkTierFeaturesTest extends TestCase
                 'video_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
                 'booking_url' => 'https://wa.me/254711111111',
                 'deals' => [['title' => 'Happy hour', 'description' => '5–7pm']],
-                'avg_meal' => 'KES 1,500',
-                'capacity' => '120',
-                'dress_code' => 'Smart casual',
+                'avg_meal' => 1500,
+                'capacity' => ['indoors' => 80, 'outdoor' => 40],
+                'dress_code' => ['Smart casual'],
                 'event_schedule' => [['label' => 'Fri 8pm', 'value' => 'Live jazz']],
             ]),
             'cover' => UploadedFile::fake()->image('cover.jpg'),
@@ -205,7 +205,9 @@ class EatDrinkTierFeaturesTest extends TestCase
         $this->assertNotNull($listing->latitude);
         $this->assertSame('https://www.youtube.com/watch?v=dQw4w9WgXcQ', $listing->details['video_url'] ?? null);
         $this->assertSame('https://wa.me/254711111111', $listing->details['booking_url'] ?? null);
-        $this->assertSame('KES 1,500', $listing->details['avg_meal'] ?? null);
+        $this->assertSame(1500, $listing->details['avg_meal'] ?? null);
+        $this->assertSame(['indoors' => 80, 'outdoor' => 40], $listing->details['capacity'] ?? null);
+        $this->assertSame(['Smart casual'], $listing->details['dress_code'] ?? null);
         $this->assertNotEmpty($listing->details['deals'] ?? null);
         $this->assertGreaterThan(
             EatDrinkTierFeatures::FREE_DESCRIPTION_WORD_LIMIT,

@@ -59,6 +59,7 @@ export default function MediaAddDialog({
     libraryRoute = null,
     remaining = 12,
     target = 'gallery',
+    initialPanel = 'menu',
 }) {
     const titleId = useId();
     const copy = TARGET_COPY[target] || TARGET_COPY.gallery;
@@ -77,7 +78,9 @@ export default function MediaAddDialog({
 
     useEffect(() => {
         if (!open) return undefined;
-        setPanel('menu');
+        const start =
+            libraryRoute && initialPanel === 'library' ? 'library' : 'menu';
+        setPanel(start);
         setQ('');
         setItems([]);
         setSelected([]);
@@ -85,7 +88,7 @@ export default function MediaAddDialog({
         setUrlError(null);
         setLoadError(null);
         return undefined;
-    }, [open, target]);
+    }, [open, target, initialPanel, libraryRoute]);
 
     useEffect(() => {
         if (!open || panel !== 'library' || !libraryRoute) return undefined;

@@ -9,6 +9,11 @@ import {
     getListingBySlug,
 } from '@/data/listings';
 import {
+    formatAvgMealLabel,
+    formatCapacityLabel,
+    formatGigWhenLabel,
+} from '@/utils/eatDrinkDetails';
+import {
     listingSubcategories,
     subcategoryLabel,
 } from '@/utils/listingSubcategories';
@@ -2002,10 +2007,15 @@ function buildFactsFromDetails(listing) {
             ? d.delivery_options.filter(Boolean).join(', ')
             : d.delivery_options;
         if (delivery) pairs.push({ label: 'Service', value: String(delivery) });
-        if (d.capacity) pairs.push({ label: 'Capacity', value: String(d.capacity) });
-        if (d.avg_meal) pairs.push({ label: 'Avg meal', value: String(d.avg_meal) });
+        const capacityLabel = formatCapacityLabel(d.capacity);
+        if (capacityLabel) pairs.push({ label: 'Capacity', value: capacityLabel });
+        const avgMealLabel = formatAvgMealLabel(d.avg_meal);
+        if (avgMealLabel) pairs.push({ label: 'Avg meal', value: avgMealLabel });
         if (d.reservations) pairs.push({ label: 'Reservations', value: String(d.reservations) });
-        if (d.dress_code) pairs.push({ label: 'Dress code', value: String(d.dress_code) });
+        const dressCode = Array.isArray(d.dress_code)
+            ? d.dress_code.filter(Boolean).join(', ')
+            : d.dress_code;
+        if (dressCode) pairs.push({ label: 'Dress code', value: String(dressCode) });
         if (d.booking_url) pairs.push({ label: 'Booking', value: 'Available' });
     } else if (key === 'shopping') {
         if (d.specialty) pairs.push({ label: 'Specialty', value: String(d.specialty) });
@@ -2258,7 +2268,14 @@ export function getListingDetail(listing) {
                 : null,
         hoursStatus: listing.isOpen === false ? 'closed' : 'open',
         eventSchedule: Array.isArray(listing.details?.event_schedule)
-            ? listing.details.event_schedule.filter((r) => r?.label)
+            ? listing.details.event_schedule
+                  .map((row) => {
+                      if (!row || typeof row !== 'object') return null;
+                      const label = formatGigWhenLabel(row) || row.label || '';
+                      if (!label && !row.value) return null;
+                      return { ...row, label };
+                  })
+                  .filter(Boolean)
             : null,
         agenda: Array.isArray(listing.details?.agenda)
             ? listing.details.agenda.filter((a) => a?.title || a?.time)

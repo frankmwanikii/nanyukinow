@@ -48,6 +48,90 @@ class AdminListingTest extends TestCase
         $this->assertNotNull($listing->expires_at);
     }
 
+    public function test_admin_priority_and_plan_stay_in_sync(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $category = Category::query()->create([
+            'name' => 'Eat & Drink',
+            'slug' => 'eatDrink',
+            'sort_order' => 1,
+        ]);
+
+        $listing = Listing::query()->create([
+            'title' => 'Frayo',
+            'slug' => 'frayo',
+            'category_id' => $category->id,
+            'status' => 'published',
+            'tier' => 'featured',
+            'claim_status' => 'claimed',
+            'is_published' => true,
+            'is_featured' => true,
+            'priority' => 2,
+        ]);
+
+        // Priority 4 = Promoted keeps the current plan.
+        $this->actingAs($admin)
+            ->put(route('admin.listings.update', $listing), [
+                'title' => 'Frayo',
+                'slug' => 'frayo',
+                'category_id' => $category->id,
+                'status' => 'published',
+                'tier' => 'featured',
+                'claim_status' => 'claimed',
+                'is_published' => true,
+                'is_featured' => true,
+                'is_trending' => false,
+                'priority' => 4,
+            ])
+            ->assertRedirect();
+
+        $listing->refresh();
+        $this->assertSame(4, $listing->priority);
+        $this->assertSame('featured', $listing->tier);
+
+        // Priority 3 upgrades plan to Premium.
+        $this->actingAs($admin)
+            ->put(route('admin.listings.update', $listing), [
+                'title' => 'Frayo',
+                'slug' => 'frayo',
+                'category_id' => $category->id,
+                'status' => 'published',
+                'tier' => 'featured',
+                'claim_status' => 'claimed',
+                'is_published' => true,
+                'is_featured' => true,
+                'is_trending' => false,
+                'priority' => 3,
+            ])
+            ->assertRedirect();
+
+        $listing->refresh();
+        $this->assertSame(3, $listing->priority);
+        $this->assertSame('premium', $listing->tier);
+        $this->assertTrue($listing->is_featured);
+
+        // Priority 1 downgrades plan to Free.
+        $this->actingAs($admin)
+            ->put(route('admin.listings.update', $listing), [
+                'title' => 'Frayo',
+                'slug' => 'frayo',
+                'category_id' => $category->id,
+                'status' => 'published',
+                'tier' => 'premium',
+                'claim_status' => 'claimed',
+                'is_published' => true,
+                'is_featured' => true,
+                'is_trending' => false,
+                'priority' => 1,
+            ])
+            ->assertRedirect();
+
+        $listing->refresh();
+        $this->assertSame(1, $listing->priority);
+        $this->assertSame('free', $listing->tier);
+        $this->assertFalse($listing->is_featured);
+    }
+
     public function test_admin_listings_index_filters_expired(): void
     {
         $admin = User::factory()->admin()->create();

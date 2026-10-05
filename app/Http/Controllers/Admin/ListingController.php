@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ListingRequest;
+use App\Http\Requests\Admin\SaveListingDraftRequest;
 use App\Models\Amenity;
 use App\Models\Category;
 use App\Models\Listing;
@@ -15,6 +16,7 @@ use App\Support\ListingMedia;
 use App\Support\ListingPayload;
 use App\Support\ListingSlug;
 use App\Support\Membership;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -137,6 +139,61 @@ class ListingController extends Controller
         return redirect()
             ->route('admin.listings.edit', $listing->slug)
             ->with('success', $this->flashMessageFor($listing));
+    }
+
+    public function saveDraft(SaveListingDraftRequest $request, ?Listing $listing = null): JsonResponse
+    {
+        if ($listing) {
+            abort_unless($listing->status === 'draft', 422, 'Only drafts can be auto-saved this way.');
+        }
+
+        $data = $request->validated();
+        $title = trim((string) ($data['title'] ?? '')) ?: 'Untitled draft';
+        $tier = Membership::normalize($data['tier'] ?? Membership::FREE);
+
+        if (! $listing) {
+            $listing = Listing::query()->create([
+                'user_id' => $data['user_id'] ?? null,
+                'title' => $title,
+                'slug' => ListingSlug::make($title),
+                'category_id' => $data['category_id'] ?? null,
+                'location' => $data['location'] ?? 'Nanyuki',
+                'tier' => $tier,
+                'status' => 'draft',
+                'claim_status' => $data['claim_status'] ?? 'unclaimed',
+                'is_published' => false,
+                'is_featured' => false,
+                'is_trending' => false,
+                'priority' => isset($data['priority'])
+                    ? (int) $data['priority']
+                    : Membership::listingPriority($tier),
+            ]);
+        }
+
+        $prepared = $this->prepareData([
+            ...$data,
+            'title' => $title,
+            'slug' => $listing->slug,
+            'category_id' => $data['category_id'] ?? $listing->category_id,
+            'tier' => $data['tier'] ?? $listing->tier,
+            'status' => 'draft',
+            'claim_status' => $data['claim_status'] ?? $listing->claim_status ?? 'unclaimed',
+            'priority' => $data['priority'] ?? $listing->priority ?? Membership::listingPriority($tier),
+            'is_published' => false,
+            'is_featured' => (bool) ($listing->is_featured),
+            'is_trending' => (bool) ($listing->is_trending),
+            'user_id' => array_key_exists('user_id', $data) ? $data['user_id'] : $listing->user_id,
+        ], $request, $listing);
+
+        $prepared['status'] = 'draft';
+        $prepared['is_published'] = false;
+
+        $listing->update($prepared);
+
+        return response()->json([
+            'listing' => $this->listingFormPayload($listing->fresh()),
+            'saved_at' => now()->toIso8601String(),
+        ]);
     }
 
     public function edit(Listing $listing): Response
@@ -339,19 +396,25 @@ class ListingController extends Controller
         $data['is_published'] = (bool) ($data['is_published'] ?? false);
 
         $tier = Membership::normalize($data['tier'] ?? Membership::FREE);
-        $data['tier'] = $tier;
+        $requestedPriority = isset($data['priority']) ? (int) $data['priority'] : null;
+
+        // Plan and priority 1–3 are the same scale. Priority 4 = Promoted (keeps plan).
+        if ($requestedPriority === Membership::PROMOTED_PRIORITY) {
+            $data['tier'] = $tier;
+            $data['priority'] = Membership::PROMOTED_PRIORITY;
+        } elseif (($tierFromPriority = Membership::tierFromPriority($requestedPriority)) !== null) {
+            $data['tier'] = $tierFromPriority;
+            $data['priority'] = $requestedPriority;
+            $tier = $tierFromPriority;
+        } else {
+            $data['tier'] = $tier;
+            $data['priority'] = Membership::listingPriority($tier);
+        }
 
         if (in_array($tier, [Membership::STANDARD, Membership::PREMIUM], true)) {
             $data['is_featured'] = true;
-        }
-
-        // Priority: Free=1, Standard=2, Premium=3, Promoted=4 (below hero).
-        // Admin may pin promoted (4); otherwise sync from plan tier.
-        $requestedPriority = isset($data['priority']) ? (int) $data['priority'] : null;
-        if ($requestedPriority === Membership::PROMOTED_PRIORITY) {
-            $data['priority'] = Membership::PROMOTED_PRIORITY;
-        } else {
-            $data['priority'] = Membership::listingPriority($tier);
+        } elseif ($data['tier'] === Membership::FREE) {
+            $data['is_featured'] = false;
         }
 
         if ($data['is_published'] && empty($data['published_at'])) {
@@ -501,5 +564,55 @@ class ListingController extends Controller
         }
 
         return 'Listing updated successfully.';
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function listingFormPayload(Listing $listing): array
+    {
+        return [
+            'id' => $listing->id,
+            'user_id' => $listing->user_id,
+            'title' => $listing->title,
+            'slug' => $listing->slug,
+            'category_id' => $listing->category_id,
+            'subcategory' => $listing->subcategory ?: [],
+            'property_type' => $listing->property_type,
+            'location' => $listing->location,
+            'city' => $listing->city,
+            'tagline' => $listing->tagline,
+            'description' => $listing->description,
+            'phone' => $listing->phone,
+            'whatsapp' => $listing->whatsapp,
+            'email' => $listing->email,
+            'website' => $listing->website,
+            'address' => $listing->address,
+            'venue' => $listing->venue,
+            'latitude' => $listing->latitude,
+            'longitude' => $listing->longitude,
+            'price_range' => $listing->price_range,
+            'image_url' => $listing->image_url,
+            'logo_url' => $listing->logo_url,
+            'event_poster_url' => $listing->event_poster_url,
+            'gallery' => $listing->gallery ?? [],
+            'amenities' => $listing->amenities ?? [],
+            'hours' => $listing->hours ?? [],
+            'social_links' => $listing->social_links ?? [],
+            'details' => $listing->details ?? [],
+            'start_at' => $listing->start_at?->format('Y-m-d\TH:i'),
+            'end_at' => $listing->end_at?->format('Y-m-d\TH:i'),
+            'ticket_price' => $listing->ticket_price,
+            'early_bird_price' => $listing->early_bird_price,
+            'gate_price' => $listing->gate_price,
+            'ticket_url' => $listing->ticket_url,
+            'tier' => $listing->tier,
+            'status' => $listing->status,
+            'claim_status' => $listing->claim_status,
+            'priority' => $listing->priority,
+            'is_published' => $listing->is_published,
+            'is_featured' => $listing->is_featured,
+            'is_trending' => $listing->is_trending,
+        ];
     }
 }

@@ -170,9 +170,20 @@ export function renderListingSection(key, listing) {
                                     </p>
                                 ) : null}
                                 {deal.description ? (
-                                    <p className="mt-1 text-sm text-olive-700 dark:text-olive-300">
-                                        {deal.description}
-                                    </p>
+                                    /<[a-z][\s\S]*>/i.test(
+                                        String(deal.description),
+                                    ) ? (
+                                        <div
+                                            className="nn-editor mt-1 text-sm text-olive-700 dark:text-olive-300"
+                                            dangerouslySetInnerHTML={{
+                                                __html: deal.description,
+                                            }}
+                                        />
+                                    ) : (
+                                        <p className="mt-1 text-sm text-olive-700 dark:text-olive-300">
+                                            {deal.description}
+                                        </p>
+                                    )
                                 ) : null}
                             </li>
                         ))}

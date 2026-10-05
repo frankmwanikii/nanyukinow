@@ -6,6 +6,7 @@ import { srcToDataUrl } from '@/utils/cropImage';
 import {
     Expand,
     ImagePlus,
+    Images,
     Loader2,
     RefreshCw,
     Star,
@@ -132,6 +133,8 @@ function CoverLogoStage({
     logoPreview,
     onBrowseCover,
     onBrowseLogo,
+    onOpenLibraryCover = null,
+    onOpenLibraryLogo = null,
     onFileCover,
     onFileLogo,
     onViewCover,
@@ -150,17 +153,29 @@ function CoverLogoStage({
     return (
         <div className="space-y-5">
             <div className="rounded-2xl bg-olive-50/70 p-4 ring-1 ring-olive-100 dark:bg-olive-950/50 dark:ring-olive-800 sm:p-5">
-                <div className="mb-2 flex flex-wrap items-center gap-2">
-                    <p className={label}>Cover image</p>
-                    {coverPreview ? (
-                        <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-800 ring-1 ring-emerald-100">
-                            Set
-                        </span>
-                    ) : (
-                        <span className="rounded-full bg-olive-100 px-2 py-0.5 text-[10px] font-semibold text-olive-700">
-                            Required
-                        </span>
-                    )}
+                <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <p className={label}>Cover image</p>
+                        {coverPreview ? (
+                            <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-800 ring-1 ring-emerald-100">
+                                Set
+                            </span>
+                        ) : (
+                            <span className="rounded-full bg-olive-100 px-2 py-0.5 text-[10px] font-semibold text-olive-700">
+                                Required
+                            </span>
+                        )}
+                    </div>
+                    {onOpenLibraryCover ? (
+                        <button
+                            type="button"
+                            onClick={onOpenLibraryCover}
+                            className="inline-flex items-center gap-1.5 rounded-full bg-olive-900 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-olive-800 sm:text-sm"
+                        >
+                            <Images className="h-4 w-4" />
+                            Open gallery
+                        </button>
+                    ) : null}
                 </div>
                 <p className={`${help} mb-3`}>
                     Full-bleed photo on listing cards. Crop & zoom before save.
@@ -247,11 +262,23 @@ function CoverLogoStage({
             </div>
 
             <div className="rounded-2xl bg-olive-50/70 p-4 ring-1 ring-olive-100 dark:bg-olive-950/50 dark:ring-olive-800 sm:p-5">
-                <div className="mb-2 flex flex-wrap items-center gap-2">
-                    <p className={label}>Logo</p>
-                    <span className="rounded-full bg-olive-100 px-2 py-0.5 text-[10px] font-semibold text-olive-700">
-                        Optional
-                    </span>
+                <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <p className={label}>Logo</p>
+                        <span className="rounded-full bg-olive-100 px-2 py-0.5 text-[10px] font-semibold text-olive-700">
+                            Optional
+                        </span>
+                    </div>
+                    {onOpenLibraryLogo ? (
+                        <button
+                            type="button"
+                            onClick={onOpenLibraryLogo}
+                            className="inline-flex items-center gap-1.5 rounded-full bg-olive-900 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-olive-800 sm:text-sm"
+                        >
+                            <Images className="h-4 w-4" />
+                            Open gallery
+                        </button>
+                    ) : null}
                 </div>
                 <p className={`${help} mb-3`}>
                     Round badge on listing cards. Square crop recommended.
@@ -343,14 +370,25 @@ function CoverLogoStage({
 function PosterSlot({
     preview,
     onBrowse,
+    onOpenLibrary = null,
     onFile,
     onClear,
     onView,
 }) {
     return (
         <div className="max-w-[14rem]">
-            <div className="mb-2 flex items-center gap-2">
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                 <p className={label}>Event poster</p>
+                {onOpenLibrary ? (
+                    <button
+                        type="button"
+                        onClick={onOpenLibrary}
+                        className="inline-flex items-center gap-1.5 rounded-full bg-olive-900 px-3 py-1.5 text-[11px] font-semibold text-white transition hover:bg-olive-800"
+                    >
+                        <Images className="h-3.5 w-3.5" />
+                        Open gallery
+                    </button>
+                ) : null}
             </div>
             <p className={`${help} mb-2.5`}>Portrait poster on event cards.</p>
             <DropZone onFiles={onFile} className="overflow-hidden rounded-2xl">
@@ -423,6 +461,7 @@ export default function GalleryUploader({
     const [lightboxIndex, setLightboxIndex] = useState(null);
     const [addOpen, setAddOpen] = useState(false);
     const [addTarget, setAddTarget] = useState('gallery'); // cover | logo | poster
+    const [addInitialPanel, setAddInitialPanel] = useState('menu');
     const [galleryUrl, setGalleryUrl] = useState('');
     const [galleryUrlError, setGalleryUrlError] = useState(null);
     const [coverUrlDraft, setCoverUrlDraft] = useState('');
@@ -566,20 +605,37 @@ export default function GalleryUploader({
         onGalleryChange?.(next);
     };
 
-    const openAddMenu = (target = 'poster') => {
-        if (target === 'gallery') {
-            openGalleryPicker();
+    const openAddMenu = (target = 'poster', { panel = 'menu' } = {}) => {
+        // Members: go straight to device upload.
+        if (!libraryRoute) {
+            if (target === 'gallery') {
+                openGalleryPicker();
+                return;
+            }
+            if (target === 'cover') {
+                coverInput.current?.click();
+                return;
+            }
+            if (target === 'logo') {
+                logoInput.current?.click();
+                return;
+            }
+            if (target === 'poster') {
+                posterInput.current?.click();
+                return;
+            }
+        }
+
+        // Admin: Upload / Grab from gallery / Paste URL.
+        if (target === 'gallery' && galleryItems.length >= MAX_GALLERY) {
+            setLocalError(`You can upload up to ${MAX_GALLERY} gallery photos.`);
             return;
         }
-        if (target === 'cover') {
-            coverInput.current?.click();
-            return;
-        }
-        if (target === 'logo') {
-            logoInput.current?.click();
-            return;
-        }
+        setLocalError(null);
         setAddTarget(target);
+        setAddInitialPanel(
+            libraryRoute && panel === 'library' ? 'library' : 'menu',
+        );
         setAddOpen(true);
     };
 
@@ -590,6 +646,11 @@ export default function GalleryUploader({
         }
         setLocalError(null);
         galleryInput.current?.click();
+    };
+
+    /** Admin-only: jump straight into the media library picker. */
+    const openAdminGallery = (target = 'gallery') => {
+        openAddMenu(target, { panel: 'library' });
     };
 
     const parseImageUrl = (raw, setError) => {
@@ -733,9 +794,17 @@ export default function GalleryUploader({
                 <MediaAddDialog
                     open
                     target={addTarget}
-                    onClose={() => setAddOpen(false)}
+                    onClose={() => {
+                        setAddOpen(false);
+                        setAddInitialPanel('menu');
+                    }}
                     libraryRoute={libraryRoute}
-                    remaining={MAX_GALLERY - galleryCount}
+                    initialPanel={addInitialPanel}
+                    remaining={
+                        addTarget === 'gallery'
+                            ? MAX_GALLERY - galleryCount
+                            : 1
+                    }
                     onUpload={handleAddUpload}
                     onPickUrls={handlePickUrls}
                 />
@@ -744,8 +813,14 @@ export default function GalleryUploader({
             <CoverLogoStage
                 coverPreview={coverPreview}
                 logoPreview={logoPreview}
-                onBrowseCover={() => coverInput.current?.click()}
-                onBrowseLogo={() => logoInput.current?.click()}
+                onBrowseCover={() => openAddMenu('cover')}
+                onBrowseLogo={() => openAddMenu('logo')}
+                onOpenLibraryCover={
+                    libraryRoute ? () => openAdminGallery('cover') : null
+                }
+                onOpenLibraryLogo={
+                    libraryRoute ? () => openAdminGallery('logo') : null
+                }
                 onFileCover={(file) => handleSingle(file, 'cover')}
                 onFileLogo={(file) => handleSingle(file, 'logo')}
                 onViewCover={
@@ -796,6 +871,9 @@ export default function GalleryUploader({
                 <PosterSlot
                     preview={posterPreview}
                     onBrowse={() => openAddMenu('poster')}
+                    onOpenLibrary={
+                        libraryRoute ? () => openAdminGallery('poster') : null
+                    }
                     onFile={(file) => handleSingle(file, 'poster')}
                     onView={
                         posterPreview
@@ -820,15 +898,31 @@ export default function GalleryUploader({
 
             <div className="rounded-2xl bg-olive-50/70 p-4 ring-1 ring-olive-100 dark:bg-olive-950/50 dark:ring-olive-800 sm:p-5">
                 <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                        <p className={label}>Gallery</p>
-                        <span className="rounded-full bg-white px-2.5 py-0.5 text-[11px] font-semibold text-olive-700 ring-1 ring-olive-200 dark:bg-olive-900 dark:text-olive-200 dark:ring-olive-700">
-                            {galleryCount} / {MAX_GALLERY}
-                        </span>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                            <p className={label}>Gallery</p>
+                            <span className="rounded-full bg-white px-2.5 py-0.5 text-[11px] font-semibold text-olive-700 ring-1 ring-olive-200 dark:bg-olive-900 dark:text-olive-200 dark:ring-olive-700">
+                                {galleryCount} / {MAX_GALLERY}
+                            </span>
+                        </div>
+                        {libraryRoute ? (
+                            <button
+                                type="button"
+                                onClick={() => openAdminGallery('gallery')}
+                                disabled={galleryCount >= MAX_GALLERY}
+                                className="inline-flex items-center gap-1.5 rounded-full bg-olive-900 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-olive-800 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm"
+                            >
+                                <Images className="h-4 w-4" />
+                                Open gallery
+                            </button>
+                        ) : null}
                     </div>
                     <p className={help}>
                         Multi-select photos, crop each one, then click any
                         image to view full size.
+                        {libraryRoute
+                            ? ' Admins can also pick from the media library.'
+                            : ''}
                     </p>
                     <div className="mt-3 h-1.5 max-w-xs overflow-hidden rounded-full bg-olive-200/80">
                         <div
@@ -942,7 +1036,11 @@ export default function GalleryUploader({
                                 <li>
                                     <button
                                         type="button"
-                                        onClick={openGalleryPicker}
+                                        onClick={() =>
+                                            libraryRoute
+                                                ? openAddMenu('gallery')
+                                                : openGalleryPicker()
+                                        }
                                         className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-olive-300 bg-white/70 text-olive-600 transition hover:border-mustard hover:bg-mustard/5 hover:text-olive-900 dark:border-olive-700 dark:bg-olive-950/70 dark:text-olive-400 dark:hover:border-mustard dark:hover:bg-mustard/10 dark:hover:text-olive-100"
                                     >
                                         <ImagePlus className="h-6 w-6" />
@@ -956,7 +1054,11 @@ export default function GalleryUploader({
                     ) : (
                         <button
                             type="button"
-                            onClick={openGalleryPicker}
+                            onClick={() =>
+                                libraryRoute
+                                    ? openAddMenu('gallery')
+                                    : openGalleryPicker()
+                            }
                             className="flex w-full flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-olive-300 bg-white/80 px-4 py-12 text-center transition hover:border-mustard hover:bg-mustard/5 dark:border-olive-700 dark:bg-olive-950/80 dark:hover:border-mustard dark:hover:bg-mustard/10"
                         >
                             <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-olive-50 ring-1 ring-olive-100 dark:bg-olive-900 dark:ring-olive-700">

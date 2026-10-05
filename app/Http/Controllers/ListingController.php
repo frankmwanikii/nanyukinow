@@ -26,6 +26,7 @@ class ListingController extends Controller
 
         $payload = ListingPayload::collection($published);
 
+        // Below-hero strip: priority 4 (Promoted) only — empty when none exist.
         $featured = ListingPayload::collection(
             $published
                 ->filter(fn ($listing) => Membership::isPromotedPriority($listing->priority))
@@ -39,19 +40,6 @@ class ListingController extends Controller
 
         if ($trending === []) {
             $trending = array_slice($payload, 0, 8);
-        }
-
-        // Below-hero strip: promoted only — fall back to premium then standard.
-        if ($featured === []) {
-            $featured = ListingPayload::collection(
-                $published
-                    ->filter(fn ($listing) => (int) $listing->priority >= 3)
-                    ->take(12)
-                    ->values()
-            );
-        }
-        if ($featured === []) {
-            $featured = array_slice($payload, 0, 6);
         }
 
         return Inertia::render('Home', [

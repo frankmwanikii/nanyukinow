@@ -52,6 +52,20 @@ class Membership
         };
     }
 
+    /**
+     * Plan tier that matches a listing priority of 1–3.
+     * Priority 4 (Promoted) has no plan change — returns null.
+     */
+    public static function tierFromPriority(?int $priority): ?string
+    {
+        return match ((int) $priority) {
+            3 => self::PREMIUM,
+            2 => self::STANDARD,
+            1 => self::FREE,
+            default => null,
+        };
+    }
+
     public static function isPromotedPriority(?int $priority): bool
     {
         return (int) $priority >= self::PROMOTED_PRIORITY;

@@ -1,4 +1,5 @@
 import MediaAddDialog from './MediaAddDialog';
+import RichTextEditor from './RichTextEditor';
 import { field, help, label } from './fieldStyles';
 import {
     canUseEatDrinkFeature,
@@ -9,8 +10,12 @@ import {
     normalizeTier,
     tierDisplayLabel,
 } from '@/data/eatDrinkTierFeatures';
+import {
+    formatGigWhenLabel,
+    WEEKDAYS,
+} from '@/utils/eatDrinkDetails';
 import { Link } from '@inertiajs/react';
-import { ImagePlus, Plus, Trash2, X } from 'lucide-react';
+import { ImagePlus, Images, Plus, Trash2, X } from 'lucide-react';
 import { useRef, useState } from 'react';
 
 function Section({ title, blurb, children }) {
@@ -172,9 +177,12 @@ function MenuImagesEditor({
     inputId,
     maxImages,
     onChange,
+    libraryRoute = null,
 }) {
     const remaining = Math.max(0, maxImages - images.length);
     const atLimit = remaining <= 0;
+    const [libraryOpen, setLibraryOpen] = useState(false);
+    const fileInputRef = useRef(null);
 
     const addFiles = async (fileList) => {
         const files = Array.from(fileList || []).filter((f) =>
@@ -194,12 +202,39 @@ function MenuImagesEditor({
         onChange([...images, ...urls].slice(0, maxImages));
     };
 
+    const addUrls = (urls) => {
+        if (!urls?.length || atLimit) return;
+        onChange([...images, ...urls].slice(0, maxImages));
+    };
+
     const removeAt = (index) => {
         onChange(images.filter((_, i) => i !== index));
     };
 
+    const openAdd = () => {
+        if (atLimit) return;
+        if (libraryRoute) {
+            setLibraryOpen(true);
+            return;
+        }
+        fileInputRef.current?.click();
+    };
+
     return (
         <div className="space-y-3">
+            {libraryRoute && !atLimit ? (
+                <div className="flex flex-wrap justify-end gap-2">
+                    <button
+                        type="button"
+                        onClick={() => setLibraryOpen(true)}
+                        className="inline-flex items-center gap-1.5 rounded-full bg-olive-900 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-olive-800"
+                    >
+                        <Images className="h-3.5 w-3.5" />
+                        Open gallery
+                    </button>
+                </div>
+            ) : null}
+
             {images.length ? (
                 <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                     {images.map((src, index) => (
@@ -227,9 +262,10 @@ function MenuImagesEditor({
                     ))}
                     {!atLimit ? (
                         <li>
-                            <label
-                                htmlFor={inputId}
-                                className="flex aspect-[3/4] w-full cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-olive-300 bg-white/70 text-olive-600 transition hover:border-mustard hover:bg-mustard/5"
+                            <button
+                                type="button"
+                                onClick={openAdd}
+                                className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-olive-300 bg-white/70 text-olive-600 transition hover:border-mustard hover:bg-mustard/5"
                             >
                                 <ImagePlus className="h-5 w-5" />
                                 <span className="text-[11px] font-semibold">
@@ -238,39 +274,71 @@ function MenuImagesEditor({
                                 <span className="text-[10px] text-olive-500">
                                     {images.length}/{maxImages}
                                 </span>
-                            </label>
+                            </button>
                         </li>
                     ) : null}
                 </ul>
             ) : (
-                <ImageDropzonePick
-                    inputId={inputId}
-                    image=""
-                    remainingLabel={`up to ${maxImages} images`}
-                    onFiles={(files) => void addFiles(files)}
-                    onClear={() => {}}
-                />
+                <div className="space-y-2">
+                    <ImageDropzonePick
+                        inputId={inputId}
+                        image=""
+                        remainingLabel={`up to ${maxImages} images`}
+                        onFiles={(files) => void addFiles(files)}
+                        onClear={() => {}}
+                    />
+                    {libraryRoute ? (
+                        <button
+                            type="button"
+                            onClick={() => setLibraryOpen(true)}
+                            className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-olive-200 bg-white px-3 py-2 text-xs font-semibold text-olive-800 transition hover:border-mustard dark:border-olive-700 dark:bg-olive-900 dark:text-olive-100"
+                        >
+                            <Images className="h-3.5 w-3.5" />
+                            Or grab from gallery
+                        </button>
+                    ) : null}
+                </div>
             )}
-            {images.length ? (
-                <input
-                    id={inputId}
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    className="sr-only"
-                    onChange={(e) => {
-                        const files = e.target.files;
-                        e.target.value = '';
-                        if (files?.length) {
-                            void addFiles(files);
-                        }
-                    }}
-                />
-            ) : null}
+
+            <input
+                ref={fileInputRef}
+                id={images.length ? inputId : undefined}
+                type="file"
+                accept="image/*"
+                multiple
+                className="sr-only"
+                onChange={(e) => {
+                    const files = e.target.files;
+                    e.target.value = '';
+                    if (files?.length) {
+                        void addFiles(files);
+                    }
+                }}
+            />
+
             {atLimit ? (
                 <p className={help}>
                     This menu page is at the {maxImages}-image limit.
                 </p>
+            ) : null}
+
+            {libraryRoute ? (
+                <MediaAddDialog
+                    open={libraryOpen}
+                    onClose={() => setLibraryOpen(false)}
+                    libraryRoute={libraryRoute}
+                    initialPanel="library"
+                    remaining={remaining}
+                    target="gallery"
+                    onUpload={() => {
+                        setLibraryOpen(false);
+                        fileInputRef.current?.click();
+                    }}
+                    onPickUrls={(urls) => {
+                        addUrls(urls);
+                        setLibraryOpen(false);
+                    }}
+                />
             ) : null}
         </div>
     );
@@ -321,6 +389,16 @@ export default function CategoryExtrasEditor({
         const list = Array.isArray(details[key]) ? [...details[key]] : [];
         list[index] = { ...list[index], ...patch };
         setList(key, list);
+    };
+
+    const updateGig = (index, patch) => {
+        const list = Array.isArray(details.event_schedule)
+            ? [...details.event_schedule]
+            : [];
+        const next = { ...list[index], ...patch };
+        next.label = formatGigWhenLabel(next);
+        list[index] = next;
+        setList('event_schedule', list);
     };
 
     const removeItem = (key, index) => {
@@ -400,6 +478,7 @@ export default function CategoryExtrasEditor({
                                         inputId={`menu-images-${index}`}
                                         images={menuItemImages(item)}
                                         maxImages={imagesPerMenu}
+                                        libraryRoute={libraryRoute}
                                         onChange={(nextImages) =>
                                             updateItem('menus', index, {
                                                 images: nextImages,
@@ -507,16 +586,18 @@ export default function CategoryExtrasEditor({
                                     />
                                 </div>
                                 <div>
-                                    <label className={label}>Details</label>
-                                    <input
-                                        className={field}
+                                    <RichTextEditor
+                                        id={`deal-details-${index}`}
+                                        label="Details"
                                         value={item.description || ''}
-                                        onChange={(e) =>
+                                        onChange={(html) =>
                                             updateItem('deals', index, {
-                                                description: e.target.value,
+                                                description: html,
                                             })
                                         }
                                         placeholder="2-for-1 cocktails · Weekdays 5–7pm"
+                                        allowImages={false}
+                                        compact
                                     />
                                 </div>
                             </li>
@@ -541,51 +622,206 @@ export default function CategoryExtrasEditor({
                     blurb="Upcoming gigs and live music nights shown as a schedule on your page."
                 >
                     <ul className="space-y-3">
-                        {schedule.map((item, index) => (
-                            <li
-                                key={`live-${index}`}
-                                className="grid gap-2 rounded-xl border border-olive-100 bg-olive-50/40 p-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-end"
-                            >
-                                <div>
-                                    <label className={label}>When</label>
-                                    <input
-                                        className={field}
-                                        value={item.label || ''}
-                                        onChange={(e) =>
-                                            updateItem('event_schedule', index, {
-                                                label: e.target.value,
-                                            })
-                                        }
-                                        placeholder="Fri 9 May · 8pm"
-                                    />
-                                </div>
-                                <div>
-                                    <label className={label}>What’s on</label>
-                                    <input
-                                        className={field}
-                                        value={item.value || ''}
-                                        onChange={(e) =>
-                                            updateItem('event_schedule', index, {
-                                                value: e.target.value,
-                                            })
-                                        }
-                                        placeholder="Acoustic night with local artists"
-                                    />
-                                </div>
-                                <RowActions
-                                    onRemove={() =>
-                                        removeItem('event_schedule', index)
-                                    }
-                                />
-                            </li>
-                        ))}
+                        {schedule.map((item, index) => {
+                            const scheduleType =
+                                item.type === 'recurring' ||
+                                (!item.date && item.weekday)
+                                    ? 'recurring'
+                                    : 'once';
+
+                            return (
+                                <li
+                                    key={`live-${index}`}
+                                    className="space-y-2 rounded-xl border border-olive-100 bg-olive-50/40 p-3"
+                                >
+                                    <div className="flex items-center justify-between gap-2">
+                                        <span className="text-xs font-semibold uppercase tracking-wide text-olive-500">
+                                            Gig {index + 1}
+                                        </span>
+                                        <RowActions
+                                            onRemove={() =>
+                                                removeItem(
+                                                    'event_schedule',
+                                                    index,
+                                                )
+                                            }
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <p className={label}>Schedule</p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {[
+                                                {
+                                                    key: 'once',
+                                                    text: 'One-time date',
+                                                },
+                                                {
+                                                    key: 'recurring',
+                                                    text: 'Every week',
+                                                },
+                                            ].map((opt) => (
+                                                <button
+                                                    key={opt.key}
+                                                    type="button"
+                                                    onClick={() =>
+                                                        updateGig(index, {
+                                                            type: opt.key,
+                                                            ...(opt.key ===
+                                                            'once'
+                                                                ? {
+                                                                      weekday:
+                                                                          '',
+                                                                  }
+                                                                : {
+                                                                      date: '',
+                                                                  }),
+                                                        })
+                                                    }
+                                                    className={`rounded-full px-3.5 py-2 text-sm font-semibold transition ${
+                                                        scheduleType ===
+                                                        opt.key
+                                                            ? 'bg-olive-900 text-white'
+                                                            : 'bg-white text-olive-700 ring-1 ring-olive-200 hover:bg-olive-50'
+                                                    }`}
+                                                >
+                                                    {opt.text}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {scheduleType === 'once' ? (
+                                        <div>
+                                            <label
+                                                className={label}
+                                                htmlFor={`gig-date-${index}`}
+                                            >
+                                                Date
+                                            </label>
+                                            <input
+                                                id={`gig-date-${index}`}
+                                                type="date"
+                                                className={field}
+                                                value={item.date || ''}
+                                                onChange={(e) =>
+                                                    updateGig(index, {
+                                                        type: 'once',
+                                                        date: e.target.value,
+                                                    })
+                                                }
+                                            />
+                                            {!item.date && item.label ? (
+                                                <p className={help}>
+                                                    Currently shown as “
+                                                    {item.label}”. Pick a date
+                                                    to update it.
+                                                </p>
+                                            ) : null}
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            <label
+                                                className={label}
+                                                htmlFor={`gig-weekday-${index}`}
+                                            >
+                                                Day of the week
+                                            </label>
+                                            <select
+                                                id={`gig-weekday-${index}`}
+                                                className={field}
+                                                value={item.weekday || ''}
+                                                onChange={(e) =>
+                                                    updateGig(index, {
+                                                        type: 'recurring',
+                                                        weekday: e.target.value,
+                                                    })
+                                                }
+                                            >
+                                                <option value="">
+                                                    Select day…
+                                                </option>
+                                                {WEEKDAYS.map((day) => (
+                                                    <option
+                                                        key={day.key}
+                                                        value={day.key}
+                                                    >
+                                                        Every {day.label}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <p className={help}>
+                                                e.g. Karaoke night every
+                                                Wednesday
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    <div>
+                                        <label
+                                            className={label}
+                                            htmlFor={`gig-time-${index}`}
+                                        >
+                                            Time{' '}
+                                            <span className="font-normal text-olive-400">
+                                                (optional)
+                                            </span>
+                                        </label>
+                                        <input
+                                            id={`gig-time-${index}`}
+                                            type="time"
+                                            className={field}
+                                            value={item.time || ''}
+                                            onChange={(e) =>
+                                                updateGig(index, {
+                                                    time: e.target.value,
+                                                })
+                                            }
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label
+                                            className={label}
+                                            htmlFor={`gig-what-${index}`}
+                                        >
+                                            What’s on
+                                        </label>
+                                        <input
+                                            id={`gig-what-${index}`}
+                                            className={field}
+                                            value={item.value || ''}
+                                            onChange={(e) =>
+                                                updateGig(index, {
+                                                    value: e.target.value,
+                                                })
+                                            }
+                                            placeholder="Acoustic night with local artists"
+                                        />
+                                    </div>
+
+                                    {formatGigWhenLabel(item) ? (
+                                        <p className="text-xs font-medium text-olive-600">
+                                            Shows as:{' '}
+                                            <span className="text-olive-900">
+                                                {formatGigWhenLabel(item)}
+                                            </span>
+                                        </p>
+                                    ) : null}
+                                </li>
+                            );
+                        })}
                     </ul>
                     <button
                         type="button"
                         onClick={() =>
                             addItem('event_schedule', {
-                                label: '',
+                                type: 'once',
+                                date: '',
+                                time: '',
+                                weekday: '',
                                 value: '',
+                                label: '',
                             })
                         }
                         className="inline-flex items-center gap-1.5 rounded-xl bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white"
@@ -908,6 +1144,7 @@ export default function CategoryExtrasEditor({
                 open={Boolean(imageTarget)}
                 onClose={() => setImageTarget(null)}
                 libraryRoute={libraryRoute}
+                initialPanel={libraryRoute ? 'library' : 'menu'}
                 remaining={1}
                 target="cover"
                 onUpload={() => {

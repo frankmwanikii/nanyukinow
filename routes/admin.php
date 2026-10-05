@@ -30,6 +30,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::get('listings', [ListingController::class, 'index'])->name('listings.index');
         Route::get('listings/create', [ListingController::class, 'create'])->name('listings.create');
+        Route::post('listings/draft', [ListingController::class, 'saveDraft'])->name('listings.draft');
+        Route::post('listings/{listing:slug}/draft', [ListingController::class, 'saveDraft'])->name('listings.draft.update');
         Route::post('listings', [ListingController::class, 'store'])->name('listings.store');
         Route::get('listings/{listing:slug}/edit', [ListingController::class, 'edit'])->name('listings.edit');
         Route::put('listings/{listing:slug}', [ListingController::class, 'update'])->name('listings.update');

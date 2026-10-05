@@ -3,9 +3,11 @@ import {
     PAYMENT_OPTIONS,
     POPULAR_DELIVERY_OPTIONS,
     POPULAR_DIETARY_OPTIONS,
+    POPULAR_DRESS_CODES,
     PRICE_LEVELS,
     categoryStepTitle,
 } from './categoryFieldConfig';
+import CapacityAreasInput from './CapacityAreasInput';
 import CuisinePicker from './CuisinePicker';
 import SuggestTagsPicker from './SuggestTagsPicker';
 import { field, help, label } from './fieldStyles';
@@ -23,6 +25,7 @@ import { useState } from 'react';
 const SUGGEST_OPTIONS = {
     dietary: POPULAR_DIETARY_OPTIONS,
     delivery: POPULAR_DELIVERY_OPTIONS,
+    dress_code: POPULAR_DRESS_CODES,
 };
 
 /** Migrate legacy tag arrays into HTML the rich editor can open. */
@@ -352,6 +355,7 @@ export default function CategoryFields({
                         f.type === 'suggest' ||
                         f.type === 'multi' ||
                         f.type === 'richtext' ||
+                        f.type === 'capacity' ||
                         f.key.includes('highlight') ||
                         f.key === 'booking_url' ||
                         f.key === 'reservations' ||
@@ -412,6 +416,13 @@ export default function CategoryFields({
                                     required={f.required}
                                     fieldHelp={f.help}
                                 />
+                            ) : f.type === 'capacity' ? (
+                                <CapacityAreasInput
+                                    id={`detail_${f.key}`}
+                                    value={details[f.key]}
+                                    onChange={(v) => setDetail(f.key, v)}
+                                    fieldHelp={f.help}
+                                />
                             ) : (
                                 <>
                                     <label
@@ -462,6 +473,44 @@ export default function CategoryFields({
                                             }
                                             placeholder={`Select ${f.label.toLowerCase()}…`}
                                         />
+                                    ) : f.type === 'number' ? (
+                                        <div className="relative">
+                                            {f.prefix ? (
+                                                <span className="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-sm font-semibold text-olive-500">
+                                                    {f.prefix}
+                                                </span>
+                                            ) : null}
+                                            <input
+                                                id={`detail_${f.key}`}
+                                                type="number"
+                                                inputMode="numeric"
+                                                min={f.min ?? 0}
+                                                step={f.step ?? 1}
+                                                className={`${field}${f.prefix ? ' pl-14' : ''}`}
+                                                value={
+                                                    details[f.key] === null ||
+                                                    details[f.key] === undefined
+                                                        ? ''
+                                                        : details[f.key]
+                                                }
+                                                onChange={(e) => {
+                                                    const raw = e.target.value;
+                                                    if (raw === '') {
+                                                        setDetail(f.key, null);
+                                                        return;
+                                                    }
+                                                    const n = Number(raw);
+                                                    setDetail(
+                                                        f.key,
+                                                        Number.isFinite(n)
+                                                            ? n
+                                                            : null,
+                                                    );
+                                                }}
+                                                placeholder={f.placeholder}
+                                                required={f.required}
+                                            />
+                                        </div>
                                     ) : (
                                         <input
                                             id={`detail_${f.key}`}

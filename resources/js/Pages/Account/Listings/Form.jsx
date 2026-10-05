@@ -353,6 +353,12 @@ export default function Form({
         append('gate_price', data.gate_price || '');
         append('ticket_url', data.ticket_url || '');
 
+        if (isAdmin) {
+            append('user_id', data.user_id || '');
+            append('claim_status', data.claim_status || 'unclaimed');
+            append('priority', data.priority ?? 0);
+        }
+
         if (data.cover) append('cover', data.cover);
         if (data.logo) append('logo', data.logo);
         if (data.event_poster) append('event_poster', data.event_poster);
@@ -364,7 +370,7 @@ export default function Form({
     };
 
     const persistDraft = async ({ silent = true, overrides = {} } = {}) => {
-        if (isEdit || isAdmin) return;
+        if (isEdit) return;
         const latest = { ...(formDataRef.current || form.data), ...overrides };
         const categoryId = latest.category_id;
         if (!categoryId && !draftKey) return;
@@ -385,8 +391,17 @@ export default function Form({
                     .querySelector('meta[name="csrf-token"]')
                     ?.getAttribute('content') || '';
             const url = draftKey
-                ? route('account.listings.draft.update', draftKey)
-                : route('account.listings.draft');
+                ? route(
+                      isAdmin
+                          ? 'admin.listings.draft.update'
+                          : 'account.listings.draft.update',
+                      draftKey,
+                  )
+                : route(
+                      isAdmin
+                          ? 'admin.listings.draft'
+                          : 'account.listings.draft',
+                  );
 
             const res = await fetch(url, {
                 method: 'POST',
@@ -407,6 +422,23 @@ export default function Form({
             const json = await res.json();
             if (json?.listing?.slug || json?.listing?.id) {
                 setDraftKey(json.listing.slug || json.listing.id);
+                if (isAdmin && json.listing.slug) {
+                    try {
+                        const editPath = new URL(
+                            route('admin.listings.edit', json.listing.slug),
+                            window.location.origin,
+                        ).pathname;
+                        if (window.location.pathname !== editPath) {
+                            window.history.replaceState(
+                                window.history.state,
+                                '',
+                                editPath,
+                            );
+                        }
+                    } catch {
+                        // Ignore history failures; draftKey still keeps saves working.
+                    }
+                }
                 if (json.listing.image_url) {
                     form.setData('image_url', json.listing.image_url);
                     form.setData('cover', null);
@@ -442,7 +474,7 @@ export default function Form({
     };
 
     const scheduleAutosave = () => {
-        if (isEdit || isAdmin) return;
+        if (isEdit) return;
         clearTimeout(autosaveTimer.current);
         autosaveTimer.current = setTimeout(() => {
             persistDraft({ silent: true });
@@ -650,7 +682,7 @@ export default function Form({
         };
 
         if (isAdmin) {
-            const targetKey = listing?.slug || listing?.id;
+            const targetKey = listing?.slug || listing?.id || draftKey;
             if (targetKey) {
                 form.post(route('admin.listings.update', targetKey), options);
             } else {
@@ -701,7 +733,7 @@ export default function Form({
                 </div>
             ) : null}
 
-            {phase === 'category' && !isEdit && !(isAdmin ? listing?.id : draftKey) ? (
+            {phase === 'category' && !isEdit && !(listing?.id || draftKey) ? (
                 <CategoryPicker
                     categories={orderedCategories}
                     selectedId={form.data.category_id}
@@ -781,7 +813,7 @@ export default function Form({
                         ) : null}
                     </div>
 
-                    {!isEdit && !isAdmin ? (
+                    {!isEdit ? (
                         <div className="flex items-center gap-2 text-xs font-semibold text-olive-600">
                             {saveState === 'saving' ? (
                                 <>
@@ -1378,7 +1410,23 @@ function AdminControls({ form, owners, statuses, claimStatuses, allowedTiers, li
                         id="tier"
                         className={field}
                         value={data.tier}
-                        onChange={(e) => setData('tier', e.target.value)}
+                        onChange={(e) => {
+                            const nextTier = e.target.value;
+                            const nextPriority =
+                                nextTier === 'premium'
+                                    ? 3
+                                    : nextTier === 'featured'
+                                      ? 2
+                                      : 1;
+                            setData((current) => ({
+                                ...current,
+                                tier: nextTier,
+                                priority: nextPriority,
+                                is_featured:
+                                    nextTier === 'featured' ||
+                                    nextTier === 'premium',
+                            }));
+                        }}
                     >
                         {(allowedTiers?.length
                             ? allowedTiers
@@ -1410,7 +1458,27 @@ function AdminControls({ form, owners, statuses, claimStatuses, allowedTiers, li
                                     ? 2
                                     : 1,
                         )}
-                        onChange={(e) => setData('priority', e.target.value)}
+                        onChange={(e) => {
+                            const nextPriority = Number(e.target.value);
+                            if (nextPriority === 4) {
+                                setData('priority', 4);
+                                return;
+                            }
+                            const nextTier =
+                                nextPriority === 3
+                                    ? 'premium'
+                                    : nextPriority === 2
+                                      ? 'featured'
+                                      : 'free';
+                            setData((current) => ({
+                                ...current,
+                                priority: nextPriority,
+                                tier: nextTier,
+                                is_featured:
+                                    nextTier === 'featured' ||
+                                    nextTier === 'premium',
+                            }));
+                        }}
                     >
                         <option value="1">1 · Free (lowest)</option>
                         <option value="2">2 · Standard</option>
@@ -1418,9 +1486,9 @@ function AdminControls({ form, owners, statuses, claimStatuses, allowedTiers, li
                         <option value="4">4 · Promoted (below hero)</option>
                     </select>
                     <p className="mt-1.5 text-xs text-olive-500">
-                        Promoted listings appear in the strip under the homepage
-                        hero. Plan tier still syncs Free/Standard/Premium unless
-                        Promoted is selected.
+                        Free / Standard / Premium match Plan (1–3). Promoted (4)
+                        keeps the current plan and places the listing under the
+                        homepage hero.
                     </p>
                     {errors.priority ? (
                         <p className="mt-1.5 text-sm text-rose-600">{errors.priority}</p>

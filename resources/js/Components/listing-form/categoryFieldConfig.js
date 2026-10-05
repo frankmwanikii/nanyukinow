@@ -3,6 +3,8 @@
  * Keys match CategoryKey / mainCategories keys.
  */
 
+export { CAPACITY_AREAS } from '@/utils/eatDrinkDetails';
+
 export const PRICE_LEVELS = [
     { value: '$', label: 'Budget ($)' },
     { value: '$$', label: 'Moderate ($$)' },
@@ -70,6 +72,17 @@ export const POPULAR_DELIVERY_OPTIONS = [
     'Drive-through',
 ];
 
+/** Popular dress codes for Eat & Drink. */
+export const POPULAR_DRESS_CODES = [
+    'Casual',
+    'Smart casual',
+    'Business casual',
+    'Formal',
+    'Black tie',
+    'Resort wear',
+    'No dress code',
+];
+
 /**
  * @typedef {{ key: string, label: string, type: string, placeholder?: string, options?: string[], required?: boolean, help?: string }} DetailField
  */
@@ -122,23 +135,28 @@ export const CATEGORY_DETAIL_FIELDS = {
         {
             key: 'avg_meal',
             label: 'Average meal cost',
-            type: 'text',
-            placeholder: 'e.g. Starters KES 600 · Mains KES 1,200',
-            help: 'Detailed pricing breakdown shown on your page.',
+            type: 'number',
+            prefix: 'KES',
+            min: 0,
+            step: 50,
+            placeholder: '1200',
+            help: 'Typical cost per person in Kenyan shillings.',
             minTier: 'premium',
         },
         {
             key: 'capacity',
             label: 'Seating capacity',
-            type: 'text',
-            placeholder: 'e.g. 80 indoors, 40 terrace',
+            type: 'capacity',
+            help: 'Enter seat counts only — areas are labelled for you.',
             minTier: 'premium',
         },
         {
             key: 'dress_code',
             label: 'Dress code',
-            type: 'text',
-            placeholder: 'Casual, smart casual…',
+            type: 'suggest',
+            optionsKey: 'dress_code',
+            placeholder: 'Search dress codes or type your own…',
+            help: 'Pick one or more, or add a custom code.',
             minTier: 'premium',
         },
     ],

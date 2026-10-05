@@ -163,16 +163,22 @@ function HomeContent({
     wildlifeSafaris = [],
     pageContent = {},
 }) {
+    const hasPromoted = featured.length > 0;
+
     return (
         <>
             <HeroSlider />
 
             <FeaturedMarquee items={featured} />
 
-            {/* About */}
+            {/* About — expand into the hero when the promoted strip is absent */}
             <section
                 id="about"
-                className="relative z-10 bg-earth-sand py-16 sm:py-20 md:py-24"
+                className={
+                    hasPromoted
+                        ? 'relative z-10 bg-earth-sand py-16 sm:py-20 md:py-24'
+                        : 'relative z-10 -mt-10 bg-earth-sand pb-16 pt-24 sm:-mt-14 sm:pb-20 sm:pt-28 md:pb-24 md:pt-32'
+                }
             >
                 <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
                     <Reveal>

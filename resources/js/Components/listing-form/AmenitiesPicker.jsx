@@ -1,10 +1,10 @@
 import { field, help, label } from './fieldStyles';
-import { Check, Plus, Search, X } from 'lucide-react';
+import { Plus, Search, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 /**
- * Multi-select amenities with typeahead search + create-custom (persisted via API).
- * Suggestions stay hidden until the user starts typing.
+ * Multi-select amenities with typeahead dropdown + create-custom (persisted via API).
+ * Opens on focus like Cuisine / SuggestTagsPicker.
  */
 export default function AmenitiesPicker({
     amenities = [],
@@ -19,31 +19,39 @@ export default function AmenitiesPicker({
     const [error, setError] = useState(null);
     const wrapRef = useRef(null);
 
-    const matches = useMemo(() => {
-        const q = query.trim().toLowerCase();
-        if (!q) return [];
-
+    const categoryAmenities = useMemo(() => {
         return amenities
             .filter((a) => {
-                const catOk =
+                return (
                     !a.category_key ||
                     !categoryKey ||
-                    a.category_key === categoryKey;
-                if (!catOk) return false;
-                return (
-                    a.name.toLowerCase().includes(q) ||
-                    a.slug.toLowerCase().includes(q)
+                    a.category_key === categoryKey
                 );
             })
-            .sort((a, b) => a.name.localeCompare(b.name))
-            .slice(0, 12);
-    }, [amenities, categoryKey, query]);
+            .sort((a, b) => a.name.localeCompare(b.name));
+    }, [amenities, categoryKey]);
 
-    const exactMatch = matches.some(
+    const matches = useMemo(() => {
+        const available = categoryAmenities.filter(
+            (a) => !selected.includes(a.slug),
+        );
+        const q = query.trim().toLowerCase();
+        if (!q) return available.slice(0, 14);
+
+        return available
+            .filter(
+                (a) =>
+                    a.name.toLowerCase().includes(q) ||
+                    a.slug.toLowerCase().includes(q),
+            )
+            .slice(0, 12);
+    }, [categoryAmenities, query, selected]);
+
+    const exactMatch = categoryAmenities.some(
         (a) => a.name.toLowerCase() === query.trim().toLowerCase(),
     );
 
-    const showDropdown = open && query.trim().length > 0;
+    const showDropdown = open;
 
     useEffect(() => {
         const onPointerDown = (e) => {
@@ -110,15 +118,13 @@ export default function AmenitiesPicker({
                     <Search className="pointer-events-none absolute left-3.5 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-olive-500" />
                     <input
                         id="amenity_search"
-                        className={`${field} pl-10 pr-24`}
+                        className={`${field} pl-10 ${query.trim() && !exactMatch ? 'pr-24' : 'pr-3'}`}
                         value={query}
                         onChange={(e) => {
                             setQuery(e.target.value);
                             setOpen(true);
                         }}
-                        onFocus={() => {
-                            if (query.trim()) setOpen(true);
-                        }}
+                        onFocus={() => setOpen(true)}
                         placeholder="Search or type a new amenity…"
                         autoComplete="off"
                         aria-expanded={showDropdown}
@@ -166,44 +172,26 @@ export default function AmenitiesPicker({
                         >
                             {matches.length ? (
                                 <ul>
-                                    {matches.map((amenity) => {
-                                        const active = selected.includes(
-                                            amenity.slug,
-                                        );
-                                        return (
-                                            <li key={amenity.id || amenity.slug}>
-                                                <button
-                                                    type="button"
-                                                    role="option"
-                                                    aria-selected={active}
-                                                    onClick={() =>
-                                                        pick(amenity.slug)
-                                                    }
-                                                    className={`flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-sm transition ${
-                                                        active
-                                                            ? 'bg-mustard/25 font-semibold text-olive-950 dark:bg-mustard/15 dark:text-mustard'
-                                                            : 'text-olive-800 hover:bg-olive-50 dark:text-olive-100 dark:hover:bg-olive-800'
-                                                    }`}
-                                                >
-                                                    <span
-                                                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border ${
-                                                            active
-                                                                ? 'border-mustard bg-mustard text-earth-dusk'
-                                                                : 'border-olive-300 bg-white dark:border-olive-600 dark:bg-olive-950'
-                                                        }`}
-                                                    >
-                                                        {active ? (
-                                                            <Check
-                                                                className="h-3.5 w-3.5"
-                                                                strokeWidth={2.5}
-                                                            />
-                                                        ) : null}
-                                                    </span>
-                                                    {amenity.name}
-                                                </button>
-                                            </li>
-                                        );
-                                    })}
+                                    {!query.trim() ? (
+                                        <li className="px-3.5 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wide text-olive-400">
+                                            Popular amenities
+                                        </li>
+                                    ) : null}
+                                    {matches.map((amenity) => (
+                                        <li key={amenity.id || amenity.slug}>
+                                            <button
+                                                type="button"
+                                                role="option"
+                                                aria-selected={false}
+                                                onClick={() =>
+                                                    pick(amenity.slug)
+                                                }
+                                                className="w-full px-3.5 py-2.5 text-left text-sm text-olive-800 transition hover:bg-olive-50 dark:text-olive-100 dark:hover:bg-olive-800"
+                                            >
+                                                {amenity.name}
+                                            </button>
+                                        </li>
+                                    ))}
                                 </ul>
                             ) : (
                                 <p className="px-3.5 py-3 text-sm text-olive-600 dark:text-olive-400">
@@ -224,7 +212,8 @@ export default function AmenitiesPicker({
                     ) : null}
                 </div>
                 <p className={help}>
-                    Start typing to search saved amenities, or add your own.
+                    Click to browse popular amenities, or type to search / add
+                    your own.
                 </p>
             </div>
 

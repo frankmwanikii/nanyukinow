@@ -8,7 +8,7 @@ import {
 } from '@/utils/leafletMaps';
 import { useMapProvider } from '@/utils/mapProvider';
 import { LOOK_LOCATIONS } from '@/data/listings';
-import { Check, ChevronDown, Loader2, MapPin, Search, X } from 'lucide-react';
+import { ChevronDown, Loader2, MapPin, Search, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 const DEFAULT_ZOOM = 14;
@@ -736,26 +736,12 @@ export default function PlacesLocationInput({
                                         role="option"
                                         aria-selected={active}
                                         onClick={() => toggleArea(area)}
-                                        className={`flex w-full items-center gap-3 px-3.5 py-2.5 text-left text-sm transition ${
+                                        className={`w-full px-3.5 py-2.5 text-left text-sm transition ${
                                             active
                                                 ? 'bg-mustard/20 font-semibold text-earth-dusk dark:bg-mustard/15 dark:text-mustard'
                                                 : 'text-olive-800 hover:bg-olive-50 dark:text-olive-100 dark:hover:bg-olive-800'
                                         }`}
                                     >
-                                        <span
-                                            className={`inline-flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
-                                                active
-                                                    ? 'border-olive-900 bg-olive-900 text-white dark:border-mustard dark:bg-mustard dark:text-earth-dusk'
-                                                    : 'border-olive-300 bg-white dark:border-olive-600 dark:bg-olive-950'
-                                            }`}
-                                        >
-                                            {active ? (
-                                                <Check
-                                                    className="h-3 w-3"
-                                                    strokeWidth={2.5}
-                                                />
-                                            ) : null}
-                                        </span>
                                         {area}
                                     </button>
                                 );
