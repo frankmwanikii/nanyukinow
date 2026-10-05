@@ -9,9 +9,7 @@ class ListingMedia
 {
     public static function store(UploadedFile $file, string $folder = 'listings'): string
     {
-        $path = $file->store($folder, 'public');
-
-        return '/storage/'.$path;
+        return WebpConverter::storeAsWebp($file, $folder);
     }
 
     public static function delete(?string $url): void

@@ -42,9 +42,7 @@ class UserAvatar
 
     public static function store(UploadedFile $file): string
     {
-        $path = $file->store('avatars', 'public');
-
-        return '/storage/'.$path;
+        return WebpConverter::storeAsWebp($file, 'avatars');
     }
 
     /**
@@ -96,6 +94,8 @@ class UserAvatar
         $path = 'avatars/'.Str::uuid().'.'.$ext;
         Storage::disk('public')->put($path, $body);
 
-        return '/storage/'.$path;
+        $converted = WebpConverter::convertStored($path);
+
+        return '/storage/'.($converted ?? $path);
     }
 }

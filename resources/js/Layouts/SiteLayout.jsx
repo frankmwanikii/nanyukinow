@@ -11,12 +11,13 @@ export default function SiteLayout({
     compactNav = false,
     /** Explore-style map shell: fixed viewport, no page scroll */
     lockViewport = false,
+    shellClassName = 'bg-earth-sand text-earth-dusk',
 }) {
     return (
         <>
             <Head title={title} />
             <div
-                className={`overflow-x-clip bg-earth-sand font-sans text-earth-dusk antialiased ${
+                className={`overflow-x-clip font-sans antialiased ${shellClassName} ${
                     lockViewport
                         ? 'h-svh overflow-hidden'
                         : hideFooter

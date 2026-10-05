@@ -6,8 +6,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 const SLIDES = [
     {
         id: 1,
-        image: '/images/hero/slide_1.jpeg',
-        imageMobile: '/images/hero/slide_1_mobile.jpg',
+        image: '/images/hero/slide_1.webp',
+        imageMobile: '/images/hero/slide_1_mobile.webp',
         alt: 'Nanyuki Now — Mount Kenya, wildlife, and town life',
         layout: 'brand',
         overlay: 'from-earth-dusk/15 via-transparent to-earth-dusk/40',
@@ -15,7 +15,7 @@ const SLIDES = [
     {
         id: 2,
         image: '/images/hero/slide-2.webp',
-        imageMobile: '/images/hero/slide_2_mobile.jpg',
+        imageMobile: '/images/hero/slide_2_mobile.webp',
         alt: 'Black rhinos on the Laikipia plains near Nanyuki',
         layout: 'safari',
         overlay: 'from-black/65 via-black/45 to-black/55',

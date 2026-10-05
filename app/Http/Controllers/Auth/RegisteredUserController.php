@@ -14,15 +14,17 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class RegisteredUserController extends Controller
 {
     /**
      * Display the registration view.
      */
-    public function create(): RedirectResponse
+    public function create(): Response
     {
-        return redirect('/?auth=register');
+        return Inertia::render('Auth/Register');
     }
 
     /**

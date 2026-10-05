@@ -1019,27 +1019,29 @@ export default function Form({
                                         }
                                         errors={form.errors}
                                         onCoverChange={({ file, preview, url }) => {
-                                            setCoverPreview(preview || null);
+                                            const nextPreview = preview || null;
+                                            setCoverPreview(nextPreview);
                                             patch({
                                                 cover: file || null,
-                                                image_url:
-                                                    url ||
-                                                    (preview
-                                                        ? form.data.image_url
-                                                        : ''),
+                                                image_url: nextPreview
+                                                    ? url ||
+                                                      preview ||
+                                                      form.data.image_url ||
+                                                      ''
+                                                    : '',
                                             });
                                         }}
                                         onLogoChange={({ file, preview, url }) => {
-                                            setLogoPreview(preview || null);
+                                            const nextPreview = preview || null;
+                                            setLogoPreview(nextPreview);
                                             patch({
                                                 logo: file || null,
-                                                logo_url:
-                                                    url ||
-                                                    (file
-                                                        ? ''
-                                                        : preview
-                                                          ? form.data.logo_url
-                                                          : ''),
+                                                logo_url: nextPreview
+                                                    ? url ||
+                                                      preview ||
+                                                      form.data.logo_url ||
+                                                      ''
+                                                    : '',
                                             });
                                         }}
                                         onPosterChange={({

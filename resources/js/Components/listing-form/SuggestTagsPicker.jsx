@@ -1,5 +1,5 @@
 import { field, help, label } from './fieldStyles';
-import { Check, Plus, Search, X } from 'lucide-react';
+import { Plus, Search, X } from 'lucide-react';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 
 function asTagList(value) {
@@ -186,14 +186,8 @@ export default function SuggestTagsPicker({
                                             role="option"
                                             aria-selected={false}
                                             onClick={() => pick(name)}
-                                            className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-sm text-olive-800 transition hover:bg-olive-50 dark:text-olive-100 dark:hover:bg-olive-800"
+                                            className="w-full px-3.5 py-2.5 text-left text-sm text-olive-800 transition hover:bg-olive-50 dark:text-olive-100 dark:hover:bg-olive-800"
                                         >
-                                            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-olive-300 bg-white dark:border-olive-600 dark:bg-olive-950">
-                                                <Check
-                                                    className="h-3.5 w-3.5 opacity-0"
-                                                    strokeWidth={2.5}
-                                                />
-                                            </span>
                                             {name}
                                         </button>
                                     </li>

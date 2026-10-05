@@ -10,11 +10,11 @@ class RegistrationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_registration_screen_redirects_to_home_auth_modal(): void
+    public function test_registration_screen_can_be_rendered(): void
     {
         $response = $this->get('/register');
 
-        $response->assertRedirect('/?auth=register');
+        $response->assertOk();
     }
 
     public function test_new_users_can_register(): void
@@ -37,7 +37,7 @@ class RegistrationTest extends TestCase
 
     public function test_registration_rejects_weak_passwords(): void
     {
-        $response = $this->from('/?auth=register')->post('/register', [
+        $response = $this->from('/register')->post('/register', [
             'name' => 'Test User',
             'username' => 'test_user',
             'email' => 'test@example.com',
@@ -76,7 +76,7 @@ class RegistrationTest extends TestCase
     {
         User::factory()->create(['email' => 'taken@example.com']);
 
-        $response = $this->from('/?auth=register')->post('/register', [
+        $response = $this->from('/register')->post('/register', [
             'name' => 'Test User',
             'username' => 'fresh_user',
             'email' => 'taken@example.com',

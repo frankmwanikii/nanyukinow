@@ -4,7 +4,6 @@ import { Compass, Plus, Search, User, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { explorePath } from '@/data/categories';
-import { openAuthModal } from '@/utils/authModal';
 import FlippingSearchHint, { FLIP_WORDS } from './FlippingSearchHint';
 import SearchSuggestions from './SearchSuggestions';
 
@@ -82,8 +81,8 @@ export default function MobileBottomNav() {
         {
             key: 'add',
             label: 'Add',
-            href: user ? route('account.listings.create') : null,
-            onClick: user ? null : () => openAuthModal('register'),
+            href: user ? route('account.listings.create') : route('register'),
+            onClick: null,
             icon: Plus,
             circled: true,
         },

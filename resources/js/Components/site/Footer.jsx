@@ -1,7 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import { Mail, MapPin, Phone } from 'lucide-react';
 import Logo from './Logo';
-import { openAuthModal } from '@/utils/authModal';
 
 function InstagramIcon({ className = '' }) {
     return (
@@ -126,13 +125,12 @@ export default function Footer() {
                                     Add Business
                                 </Link>
                             ) : (
-                                <button
-                                    type="button"
-                                    onClick={() => openAuthModal('register')}
+                                <Link
+                                    href={route('register')}
                                     className="transition hover:text-mint"
                                 >
                                     Add Business
-                                </button>
+                                </Link>
                             )}
                         </li>
                     </ul>

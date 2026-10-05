@@ -118,8 +118,8 @@ function MediaToolbar({ onView, onReplace, onRemove }) {
 
 function HoverActions({ children }) {
     return (
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex justify-center bg-gradient-to-t from-olive-950/70 via-olive-950/25 to-transparent px-3 pb-3.5 pt-12 opacity-100 transition duration-200 ease-out sm:translate-y-1 sm:opacity-0 sm:group-hover:pointer-events-auto sm:group-hover:translate-y-0 sm:group-hover:opacity-100 sm:group-focus-within:pointer-events-auto sm:group-focus-within:translate-y-0 sm:group-focus-within:opacity-100 max-sm:pointer-events-auto">
-            {children}
+        <div className="absolute inset-x-0 bottom-0 z-20 flex justify-center bg-gradient-to-t from-olive-950/70 via-olive-950/25 to-transparent px-3 pb-3.5 pt-12 opacity-100 transition duration-200 ease-out sm:translate-y-1 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100 sm:group-focus-within:translate-y-0 sm:group-focus-within:opacity-100">
+            <div className="pointer-events-auto">{children}</div>
         </div>
     );
 }
@@ -169,7 +169,7 @@ function CoverLogoStage({
                     onFiles={onFileCover}
                     className="overflow-hidden rounded-xl bg-olive-100 ring-1 ring-olive-200/80 dark:bg-olive-950 dark:ring-olive-700"
                 >
-                    <div className="group relative h-44 w-full overflow-hidden bg-gradient-to-br from-olive-50 via-white to-olive-100/80 sm:h-52">
+                    <div className="group relative h-56 w-full overflow-hidden bg-gradient-to-br from-olive-50 via-white to-olive-100/80 sm:h-72">
                         {coverPreview ? (
                             <>
                                 <button
@@ -758,16 +758,24 @@ export default function GalleryUploader({
                         ? () => openLightboxAt(logoPreview)
                         : undefined
                 }
-                onClearCover={() =>
+                onClearCover={() => {
+                    setCoverUrlDraft('');
+                    setCoverUrlError(null);
                     onCoverChange?.({
                         file: null,
                         preview: null,
-                        url: null,
-                    })
-                }
-                onClearLogo={() =>
-                    onLogoChange?.({ file: null, preview: null, url: null })
-                }
+                        url: '',
+                    });
+                }}
+                onClearLogo={() => {
+                    setLogoUrlDraft('');
+                    setLogoUrlError(null);
+                    onLogoChange?.({
+                        file: null,
+                        preview: null,
+                        url: '',
+                    });
+                }}
                 coverUrl={coverUrlDraft}
                 logoUrl={logoUrlDraft}
                 onCoverUrlChange={(value) => {

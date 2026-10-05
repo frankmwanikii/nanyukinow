@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Throwable;
 
 class PasswordResetLinkController extends Controller
 {
@@ -33,15 +35,34 @@ class PasswordResetLinkController extends Controller
             'email' => 'required|email',
         ]);
 
-        // We will send the password reset link to this user. Once we have attempted
-        // to send the link, we will examine the response then see the message we
-        // need to show to the user. Finally, we'll send out a proper response.
-        $status = Password::sendResetLink(
-            $request->only('email')
-        );
+        try {
+            $status = Password::sendResetLink(
+                $request->only('email')
+            );
+        } catch (Throwable $e) {
+            Log::error('Password reset link failed to send.', [
+                'email' => $request->string('email')->toString(),
+                'message' => $e->getMessage(),
+            ]);
 
-        if ($status == Password::RESET_LINK_SENT) {
-            return back()->with('status', __($status));
+            throw ValidationException::withMessages([
+                'email' => 'We could not send the reset link right now. Please try again in a moment.',
+            ]);
+        }
+
+        if ($status === Password::RESET_LINK_SENT) {
+            return back()->with(
+                'status',
+                'If that email is registered, a password reset link is on its way. Check your inbox and spam folder.',
+            );
+        }
+
+        // Keep account existence private for unknown emails.
+        if ($status === Password::INVALID_USER) {
+            return back()->with(
+                'status',
+                'If that email is registered, a password reset link is on its way. Check your inbox and spam folder.',
+            );
         }
 
         throw ValidationException::withMessages([

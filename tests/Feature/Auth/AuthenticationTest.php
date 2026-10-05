@@ -10,11 +10,11 @@ class AuthenticationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_login_screen_redirects_to_home_auth_modal(): void
+    public function test_login_screen_can_be_rendered(): void
     {
         $response = $this->get('/login');
 
-        $response->assertRedirect('/?auth=login');
+        $response->assertOk();
     }
 
     public function test_users_can_authenticate_using_the_login_screen(): void
@@ -40,6 +40,20 @@ class AuthenticationTest extends TestCase
         ]);
 
         $this->assertGuest();
+    }
+
+    public function test_unknown_account_suggests_registration(): void
+    {
+        $response = $this->from('/login')->post('/login', [
+            'login' => 'nobody@example.com',
+            'password' => 'Password1!',
+        ]);
+
+        $this->assertGuest();
+        $response->assertSessionHasErrors([
+            'login' => 'No account found with those details.',
+            'suggest_register' => 'Join now to create your Nanyuki Now account.',
+        ]);
     }
 
     public function test_users_can_logout(): void

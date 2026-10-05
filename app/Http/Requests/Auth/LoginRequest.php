@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Models\User;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -44,9 +45,23 @@ class LoginRequest extends FormRequest
 
         $login = (string) $this->string('login');
         $field = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+        $normalized = Str::lower($login);
+
+        $accountExists = User::query()
+            ->where($field, $normalized)
+            ->exists();
+
+        if (! $accountExists) {
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'login' => 'No account found with those details.',
+                'suggest_register' => 'Join now to create your Nanyuki Now account.',
+            ]);
+        }
 
         if (! Auth::attempt([
-            $field => $login,
+            $field => $normalized,
             'password' => $this->string('password'),
         ], $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());

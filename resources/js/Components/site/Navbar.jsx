@@ -9,7 +9,6 @@ import {
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import AuthModal from './AuthModal';
 import FlippingSearchHint from './FlippingSearchHint';
 import Logo from './Logo';
 import {
@@ -19,7 +18,6 @@ import {
 } from './MemberAccountMenu';
 import SearchSuggestions from './SearchSuggestions';
 import { explorePath, getCategoryByKey, mainCategories } from '@/data/categories';
-import { AUTH_MODAL_EVENT } from '@/utils/authModal';
 
 const MORE_KEYS = ['services', 'shopping', 'properties', 'events'];
 
@@ -275,41 +273,9 @@ export default function Navbar({ compact = false }) {
     const [mobileMoreAccordion, setMobileMoreAccordion] = useState(null);
     const [query, setQuery] = useState('');
     const [searchOpen, setSearchOpen] = useState(false);
-    const [authOpen, setAuthOpen] = useState(false);
-    const [authTab, setAuthTab] = useState('login');
     const searchRef = useRef(null);
     const headerRef = useRef(null);
     const suggestionsRef = useRef(null);
-
-    const openAuth = (tab = 'login') => {
-        setAuthTab(tab);
-        setAuthOpen(true);
-        setOpen(false);
-    };
-
-    useEffect(() => {
-        const onOpenAuth = (event) => {
-            openAuth(event.detail?.tab || 'login');
-        };
-        window.addEventListener(AUTH_MODAL_EVENT, onOpenAuth);
-        return () => window.removeEventListener(AUTH_MODAL_EVENT, onOpenAuth);
-    }, []);
-
-    useEffect(() => {
-        if (typeof window === 'undefined') return undefined;
-        const params = new URLSearchParams(window.location.search);
-        const authTab = params.get('auth');
-        if (authTab !== 'login' && authTab !== 'register') return undefined;
-
-        openAuth(authTab);
-        params.delete('auth');
-        const next = `${window.location.pathname}${
-            params.toString() ? `?${params}` : ''
-        }${window.location.hash}`;
-        window.history.replaceState({}, '', next);
-        return undefined;
-    }, []);
-
     useEffect(() => {
         if (!searchOpen) return undefined;
         const onPointerDown = (e) => {
@@ -476,14 +442,14 @@ export default function Navbar({ compact = false }) {
                                         Add Business
                                     </Link>
                                 ) : (
-                                    <button
-                                        type="button"
+                                    <Link
+                                        href={route('register')}
                                         className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-mustard px-4 py-3.5 text-base font-bold text-olive-950 transition hover:bg-white hover:text-mustard"
-                                        onClick={() => openAuth('register')}
+                                        onClick={() => setOpen(false)}
                                     >
                                         <Plus className="h-4 w-4 stroke-[2.5]" />
                                         Add Business
-                                    </button>
+                                    </Link>
                                 )}
                                 {user ? (
                                     <div className="mt-2 grid grid-cols-2 gap-2">
@@ -544,14 +510,13 @@ export default function Navbar({ compact = false }) {
                                 <MemberUserMenu user={user} compact />
                             </>
                         ) : (
-                            <button
-                                type="button"
-                                onClick={() => openAuth('login')}
+                            <Link
+                                href={route('login')}
                                 className="inline-flex rounded-lg p-2 text-white transition hover:bg-white/10"
                                 aria-label="Sign in or register"
                             >
                                 <User className="h-5 w-5" strokeWidth={1.85} />
-                            </button>
+                            </Link>
                         )}
                     </div>
                 </div>
@@ -796,16 +761,15 @@ export default function Navbar({ compact = false }) {
                             <MemberUserMenu user={user} />
                         </>
                     ) : (
-                        <button
-                            type="button"
-                            onClick={() => openAuth('login')}
+                        <Link
+                            href={route('login')}
                             className="inline-flex items-center gap-2 rounded-lg px-2.5 py-2 text-base font-semibold text-white/95 transition hover:bg-white/10 hover:text-white sm:text-[17px]"
                         >
                             <User className="h-4 w-4" strokeWidth={1.85} />
                             <span className="max-w-[10rem] truncate">
                                 Sign in or register
                             </span>
-                        </button>
+                        </Link>
                     )}
 
                     {user ? (
@@ -817,23 +781,16 @@ export default function Navbar({ compact = false }) {
                             Add Business
                         </Link>
                     ) : (
-                        <button
-                            type="button"
-                            onClick={() => openAuth('register')}
+                        <Link
+                            href={route('register')}
                             className="inline-flex items-center gap-2 rounded-xl bg-mustard px-3.5 py-2.5 text-[15px] font-bold text-olive-950 shadow-[0_8px_20px_-8px_rgba(242,184,46,0.7)] transition hover:bg-white hover:text-mustard hover:shadow-md sm:px-4 sm:text-base"
                         >
                             <Plus className="h-4 w-4 stroke-[2.5]" />
                             Add Business
-                        </button>
+                        </Link>
                     )}
                 </div>
             </div>
-
-            <AuthModal
-                open={authOpen}
-                initialTab={authTab}
-                onClose={() => setAuthOpen(false)}
-            />
         </header>
         {mobileMenu ? createPortal(mobileMenu, document.body) : null}
         </>
