@@ -718,11 +718,11 @@ export default function RichTextEditor({
                     </span>
                     Looks good
                 </p>
-            ) : (
+            ) : (helpText ?? defaultHelp) ? (
                 <p className="mt-1.5 text-xs text-olive-500 dark:text-olive-400">
                     {helpText ?? defaultHelp}
                 </p>
-            )}
+            ) : null}
         </div>
     );
 }

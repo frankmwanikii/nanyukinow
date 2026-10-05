@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\NewsletterSubscriptionConfirmationMail;
 use App\Models\NewsletterSubscriber;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class NewsletterController extends Controller
 {
@@ -21,6 +23,12 @@ class NewsletterController extends Controller
             ['email' => $email],
             ['subscribed_at' => now()],
         );
+
+        try {
+            Mail::to($email)->send(new NewsletterSubscriptionConfirmationMail($email));
+        } catch (\Throwable $e) {
+            report($e);
+        }
 
         $message = 'You’re subscribed — welcome to Nanyuki Insider.';
 

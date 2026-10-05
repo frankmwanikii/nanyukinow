@@ -25,9 +25,7 @@ Explore more: {{ $exploreUrl }}
 Contact {{ $appName }}:
 Website: {{ $appUrl }}
 Email: {{ $contactEmail }}
-@if ($contactPhone)
 Phone: {{ $contactPhone }}
-@endif
 
 Disclaimer: This email confirms a message you submitted through {{ $appName }}. We pass your inquiry to the listing contact, but we do not guarantee a reply, response time, or the accuracy of listing information. If you did not send this message, you can ignore this email.
 

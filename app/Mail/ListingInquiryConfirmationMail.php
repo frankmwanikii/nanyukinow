@@ -46,7 +46,10 @@ class ListingInquiryConfirmationMail extends Mailable
             'contact_email',
             config('mail.from.address', 'hello@nanyukinow.co.ke'),
         );
-        $contactPhone = trim((string) SiteSetting::getValue('contact_phone', ''));
+        $contactPhone = trim((string) SiteSetting::getValue('contact_phone', '+254 700 000 000'));
+        if ($contactPhone === '') {
+            $contactPhone = '+254 700 000 000';
+        }
 
         return new Content(
             html: 'mail.listing-inquiry-confirmation',
@@ -57,7 +60,7 @@ class ListingInquiryConfirmationMail extends Mailable
                 'appUrl' => $appUrl,
                 'logoUrl' => $appUrl.'/images/logo.png',
                 'contactEmail' => $contactEmail,
-                'contactPhone' => $contactPhone !== '' ? $contactPhone : null,
+                'contactPhone' => $contactPhone,
                 'exploreUrl' => route('explore'),
                 'recommended' => $this->recommendedListings(),
             ],

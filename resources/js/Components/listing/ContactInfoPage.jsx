@@ -580,7 +580,7 @@ function ContactMessageForm({ listing }) {
                         error={showError('message')}
                         ok={showOk('message')}
                         allowImages={false}
-                        help="Paste from docs or notes — formatting and lists are applied automatically."
+                        help=""
                     />
                 </div>
 

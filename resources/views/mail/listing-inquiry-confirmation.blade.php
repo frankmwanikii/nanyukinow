@@ -137,9 +137,6 @@
                                 <h1 class="headline" style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:32px;line-height:1.2;font-weight:700;color:#ffffff;">
                                     Message on its way
                                 </h1>
-                                <p style="margin:12px 0 0 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;color:#c9d0bb;">
-                                    Hi {{ $senderName }}, we passed your note to <strong style="color:#ffffff;">{{ $listing->title }}</strong>.
-                                </p>
                             </td>
                         </tr>
                     </table>
@@ -148,6 +145,10 @@
                     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;background-color:#ebe4d6;">
                         <tr>
                             <td class="pad-x pad-y" style="padding:36px 32px;">
+
+                                <p style="margin:0 0 24px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;color:#1c1712;">
+                                    Hi {{ $senderName }}, we passed your note to <strong>{{ $listing->title }}</strong>.
+                                </p>
 
                                 <p style="margin:0 0 8px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#6b7758;font-weight:700;">
                                     Your message
@@ -281,12 +282,9 @@
                                     Website:
                                     <a href="{{ $appUrl }}" style="color:#ffffff;text-decoration:underline;">{{ parse_url($appUrl, PHP_URL_HOST) ?: $appUrl }}</a><br>
                                     Email:
-                                    <a href="mailto:{{ $contactEmail }}" style="color:#ffffff;text-decoration:underline;">{{ $contactEmail }}</a>
-                                    @if ($contactPhone)
-                                        <br>
-                                        Phone:
-                                        <a href="tel:{{ preg_replace('/\s+/', '', $contactPhone) }}" style="color:#ffffff;text-decoration:underline;">{{ $contactPhone }}</a>
-                                    @endif
+                                    <a href="mailto:{{ $contactEmail }}" style="color:#ffffff;text-decoration:underline;">{{ $contactEmail }}</a><br>
+                                    Phone:
+                                    <a href="tel:{{ preg_replace('/\s+/', '', $contactPhone) }}" style="color:#ffffff;text-decoration:underline;">{{ $contactPhone }}</a>
                                 </p>
                             </td>
                         </tr>

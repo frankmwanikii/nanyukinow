@@ -100,6 +100,12 @@
                 text-align: center !important;
                 box-sizing: border-box !important;
             }
+            .cta-cell {
+                display: block !important;
+                width: 100% !important;
+                padding-right: 0 !important;
+                padding-bottom: 10px !important;
+            }
         }
     </style>
 </head>
@@ -137,9 +143,6 @@
                                 <h1 class="headline" style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:32px;line-height:1.2;font-weight:700;color:#ffffff;">
                                     New inquiry
                                 </h1>
-                                <p style="margin:12px 0 0 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;color:#c9d0bb;">
-                                    Someone reached out about <strong style="color:#ffffff;">{{ $listing->title }}</strong>.
-                                </p>
                             </td>
                         </tr>
                     </table>
@@ -149,17 +152,14 @@
                         <tr>
                             <td class="pad-x pad-y" style="padding:36px 32px;">
 
+                                <p style="margin:0 0 24px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;color:#1c1712;">
+                                    <strong>{{ $senderName }}</strong> reached out about <strong>{{ $listing->title }}</strong>.
+                                </p>
+
                                 <p style="margin:0 0 8px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#6b7758;font-weight:700;">
-                                    From
+                                    Message
                                 </p>
-                                <p style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;color:#1c1712;">
-                                    <strong>{{ $senderName }}</strong><br>
-                                    <a href="mailto:{{ $senderEmail }}" style="color:#3d4430;text-decoration:underline;">{{ $senderEmail }}</a>
-                                    @if ($senderPhone)
-                                        <br>
-                                        <a href="tel:{{ preg_replace('/\s+/', '', $senderPhone) }}" style="color:#3d4430;text-decoration:underline;">{{ $senderPhone }}</a>
-                                    @endif
-                                </p>
+                                <div class="message-copy" style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.65;color:#1c1712;">{!! $messageBody !!}</div>
 
                                 @if ($attachmentCount)
                                     <p style="margin:16px 0 0 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:#4b533a;">
@@ -175,24 +175,26 @@
                                 </table>
 
                                 <p style="margin:24px 0 8px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#6b7758;font-weight:700;">
-                                    Message
+                                    From
                                 </p>
-                                <div class="message-copy" style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.65;color:#1c1712;">{!! $messageBody !!}</div>
+                                <p style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;color:#1c1712;">
+                                    <strong>{{ $senderName }}</strong><br>
+                                    <a href="mailto:{{ $senderEmail }}" style="color:#3d4430;text-decoration:underline;">{{ $senderEmail }}</a>
+                                    @if ($senderPhone)
+                                        <br>
+                                        <a href="tel:{{ preg_replace('/\s+/', '', $senderPhone) }}" style="color:#3d4430;text-decoration:underline;">{{ $senderPhone }}</a>
+                                    @endif
+                                </p>
 
-                                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;margin-top:28px;">
+                                <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-top:28px;">
                                     <tr>
-                                        <td style="padding:0;">
-                                            <a class="cta" href="mailto:{{ $senderEmail }}?subject={{ rawurlencode('Re: Inquiry about '.$listing->title) }}" style="display:inline-block;padding:14px 28px;background-color:#3d4430;color:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;font-weight:700;line-height:1.2;border-radius:999px;">
+                                        <td class="cta-cell" valign="middle" style="padding:0 10px 0 0;">
+                                            <a class="cta" href="mailto:{{ $senderEmail }}?subject={{ rawurlencode('Re: Inquiry about '.$listing->title) }}" style="display:inline-block;padding:14px 28px;background-color:#3d4430;color:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;font-weight:700;line-height:1.2;border-radius:999px;white-space:nowrap;">
                                                 Reply to {{ $senderName }}
                                             </a>
                                         </td>
-                                    </tr>
-                                </table>
-
-                                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;margin-top:14px;">
-                                    <tr>
-                                        <td style="padding:0;">
-                                            <a class="cta" href="{{ $listingUrl }}" style="display:inline-block;padding:12px 24px;background-color:#f2b82e;color:#1c1712;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;font-weight:700;line-height:1.2;border-radius:999px;">
+                                        <td class="cta-cell" valign="middle" style="padding:0;">
+                                            <a class="cta" href="{{ $listingUrl }}" style="display:inline-block;padding:14px 28px;background-color:#f2b82e;color:#1c1712;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;font-weight:700;line-height:1.2;border-radius:999px;white-space:nowrap;">
                                                 View listing
                                             </a>
                                         </td>
@@ -227,12 +229,9 @@
                                     Website:
                                     <a href="{{ $appUrl }}" style="color:#ffffff;text-decoration:underline;">{{ parse_url($appUrl, PHP_URL_HOST) ?: $appUrl }}</a><br>
                                     Email:
-                                    <a href="mailto:{{ $contactEmail }}" style="color:#ffffff;text-decoration:underline;">{{ $contactEmail }}</a>
-                                    @if ($contactPhone)
-                                        <br>
-                                        Phone:
-                                        <a href="tel:{{ preg_replace('/\s+/', '', $contactPhone) }}" style="color:#ffffff;text-decoration:underline;">{{ $contactPhone }}</a>
-                                    @endif
+                                    <a href="mailto:{{ $contactEmail }}" style="color:#ffffff;text-decoration:underline;">{{ $contactEmail }}</a><br>
+                                    Phone:
+                                    <a href="tel:{{ preg_replace('/\s+/', '', $contactPhone) }}" style="color:#ffffff;text-decoration:underline;">{{ $contactPhone }}</a>
                                 </p>
                             </td>
                         </tr>
