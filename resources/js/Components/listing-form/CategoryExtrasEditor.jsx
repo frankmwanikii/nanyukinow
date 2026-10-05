@@ -1,5 +1,4 @@
 import MediaAddDialog from './MediaAddDialog';
-import TierLockedField from './TierLockedField';
 import { field, help, label } from './fieldStyles';
 import { canUseEatDrinkFeature } from '@/data/eatDrinkTierFeatures';
 import { ImagePlus, Plus, Trash2 } from 'lucide-react';
@@ -79,7 +78,6 @@ export default function CategoryExtrasEditor({
     onDetailsChange,
     libraryRoute = null,
     tier = 'free',
-    isAdmin = false,
 }) {
     const [imageTarget, setImageTarget] = useState(null); // { list, index, key }
 
@@ -112,23 +110,18 @@ export default function CategoryExtrasEditor({
         ? details.event_schedule
         : [];
     const products = Array.isArray(details.products) ? details.products : [];
-    const menusLocked =
-        categoryKey === 'eatDrink' && !canUseEatDrinkFeature(tier, 'menus');
-    const dealsLocked =
-        categoryKey === 'eatDrink' && !canUseEatDrinkFeature(tier, 'deals');
-    const liveMusicLocked =
-        categoryKey === 'eatDrink' && !canUseEatDrinkFeature(tier, 'live_music');
+    const showMenus =
+        categoryKey !== 'eatDrink' || canUseEatDrinkFeature(tier, 'menus');
+    const showDeals =
+        categoryKey === 'eatDrink' && canUseEatDrinkFeature(tier, 'deals');
+    const showLiveMusic =
+        categoryKey === 'eatDrink' && canUseEatDrinkFeature(tier, 'live_music');
 
     return (
         <div className="space-y-5">
             {categoryKey === 'eatDrink' ? (
                 <>
-                <TierLockedField
-                    locked={menusLocked}
-                    feature="menus"
-                    requiredTier="Standard"
-                    isAdmin={isAdmin}
-                >
+                {showMenus ? (
                 <Section
                     title="Menus"
                     blurb="Upload a menu image or paste a PDF link. Visitors can browse them on the listing page."
@@ -160,7 +153,6 @@ export default function CategoryExtrasEditor({
                                             })
                                         }
                                         placeholder="e.g. Lunch menu"
-                                        disabled={menusLocked}
                                     />
                                 </div>
                                 <ImagePickButton
@@ -190,7 +182,6 @@ export default function CategoryExtrasEditor({
                                             })
                                         }
                                         placeholder="https://…/menu.pdf"
-                                        disabled={menusLocked}
                                     />
                                 </div>
                             </li>
@@ -201,21 +192,15 @@ export default function CategoryExtrasEditor({
                         onClick={() =>
                             addItem('menus', { title: '', image: '', pdf: '' })
                         }
-                        disabled={menusLocked}
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white"
                     >
                         <Plus className="h-4 w-4" />
                         Add menu page
                     </button>
                 </Section>
-                </TierLockedField>
+                ) : null}
 
-                <TierLockedField
-                    locked={dealsLocked}
-                    feature="deals"
-                    requiredTier="Premium"
-                    isAdmin={isAdmin}
-                >
+                {showDeals ? (
                 <Section
                     title="Deals / offers / happy hour"
                     blurb="Highlighted specials shown in a featured block on your listing page."
@@ -247,7 +232,6 @@ export default function CategoryExtrasEditor({
                                             })
                                         }
                                         placeholder="e.g. Sunset happy hour"
-                                        disabled={dealsLocked}
                                     />
                                 </div>
                                 <div>
@@ -261,7 +245,6 @@ export default function CategoryExtrasEditor({
                                             })
                                         }
                                         placeholder="2-for-1 cocktails · Weekdays 5–7pm"
-                                        disabled={dealsLocked}
                                     />
                                 </div>
                             </li>
@@ -272,21 +255,15 @@ export default function CategoryExtrasEditor({
                         onClick={() =>
                             addItem('deals', { title: '', description: '' })
                         }
-                        disabled={dealsLocked}
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white"
                     >
                         <Plus className="h-4 w-4" />
                         Add offer
                     </button>
                 </Section>
-                </TierLockedField>
+                ) : null}
 
-                <TierLockedField
-                    locked={liveMusicLocked}
-                    feature="live_music"
-                    requiredTier="Premium"
-                    isAdmin={isAdmin}
-                >
+                {showLiveMusic ? (
                 <Section
                     title="Events & live music"
                     blurb="Upcoming gigs and live music nights shown as a schedule on your page."
@@ -308,7 +285,6 @@ export default function CategoryExtrasEditor({
                                             })
                                         }
                                         placeholder="Fri 9 May · 8pm"
-                                        disabled={liveMusicLocked}
                                     />
                                 </div>
                                 <div>
@@ -322,7 +298,6 @@ export default function CategoryExtrasEditor({
                                             })
                                         }
                                         placeholder="Acoustic night with local artists"
-                                        disabled={liveMusicLocked}
                                     />
                                 </div>
                                 <RowActions
@@ -341,14 +316,13 @@ export default function CategoryExtrasEditor({
                                 value: '',
                             })
                         }
-                        disabled={liveMusicLocked}
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white"
                     >
                         <Plus className="h-4 w-4" />
                         Add gig
                     </button>
                 </Section>
-                </TierLockedField>
+                ) : null}
                 </>
             ) : null}
 

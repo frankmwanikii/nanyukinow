@@ -1,5 +1,4 @@
 import { field, help, label } from './fieldStyles';
-import TierLockedField from './TierLockedField';
 import { getMapsApiKey, loadGoogleMaps } from '@/utils/googleMaps';
 import {
     L,
@@ -87,7 +86,6 @@ export default function PlacesLocationInput({
     errors = {},
     areas = AREA_OPTIONS,
     mapLocked = false,
-    isAdmin = false,
 }) {
     const provider = useMapProvider();
     const isLeaflet = provider === 'leaflet';
@@ -793,12 +791,7 @@ export default function PlacesLocationInput({
                 ) : null}
             </div>
 
-            <TierLockedField
-                locked={mapLocked}
-                feature="map_location"
-                requiredTier="Standard"
-                isAdmin={isAdmin}
-            >
+            {!mapLocked ? (
             <div className="space-y-4">
             <div>
                 <label className={label} htmlFor="places_search">
@@ -824,7 +817,7 @@ export default function PlacesLocationInput({
                         aria-expanded={open}
                         aria-controls="places_suggestions"
                         aria-autocomplete="list"
-                        disabled={searchDisabled || mapLocked}
+                        disabled={searchDisabled}
                     />
                     {searching || status === 'loading' ? (
                         <Loader2 className="absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-olive-400" />
@@ -952,7 +945,7 @@ export default function PlacesLocationInput({
                 </div>
             </div>
             </div>
-            </TierLockedField>
+            ) : null}
         </div>
     );
 }

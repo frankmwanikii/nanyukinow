@@ -4,7 +4,6 @@ import {
     PRICE_LEVELS,
     categoryStepTitle,
 } from './categoryFieldConfig';
-import TierLockedField from './TierLockedField';
 import { field, help, label } from './fieldStyles';
 import RichTextEditor from './RichTextEditor';
 import {
@@ -160,7 +159,6 @@ export default function CategoryFields({
     eventFields = null,
     onEventChange,
     tier = 'free',
-    isAdmin = false,
 }) {
     const fields = CATEGORY_DETAIL_FIELDS[categoryKey] || [];
     const isEatDrink = categoryKey === 'eatDrink';
@@ -171,7 +169,12 @@ export default function CategoryFields({
     };
 
     const payments = details.payments || [];
-    const paymentsLocked = isEatDrink && !canUseEatDrinkFeature(listingTier, 'payments');
+    const showPayments =
+        !isEatDrink || canUseEatDrinkFeature(listingTier, 'payments');
+    const visibleFields = fields.filter((f) => {
+        if (!isEatDrink) return true;
+        return tierMeets(listingTier, f.minTier || 'free');
+    });
     const priceLevels =
         isEatDrink && !tierMeets(listingTier, 'featured')
             ? PRICE_LEVELS.filter((p) => p.value !== '$$$$')
@@ -296,38 +299,23 @@ export default function CategoryFields({
             ) : null}
 
             <div className="grid gap-4 sm:grid-cols-2">
-                {fields.map((f) => {
-                    const minTier = f.minTier || 'free';
-                    const locked =
-                        isEatDrink && !tierMeets(listingTier, minTier);
+                {visibleFields.map((f) => {
                     const cuisineMax =
                         f.key === 'cuisine' && isEatDrink
                             ? eatDrinkCuisineLimit(listingTier)
                             : null;
+                    const spanWide =
+                        f.type === 'tags' ||
+                        f.type === 'multi' ||
+                        f.type === 'richtext' ||
+                        f.key.includes('highlight') ||
+                        f.key === 'booking_url' ||
+                        f.key === 'avg_meal';
 
                     return (
-                        <TierLockedField
+                        <div
                             key={f.key}
-                            locked={locked}
-                            feature={f.key}
-                            requiredTier={
-                                minTier === 'featured'
-                                    ? 'Standard'
-                                    : minTier === 'premium'
-                                      ? 'Premium'
-                                      : 'Free'
-                            }
-                            isAdmin={isAdmin}
-                            className={
-                                f.type === 'tags' ||
-                                f.type === 'multi' ||
-                                f.type === 'richtext' ||
-                                f.key.includes('highlight') ||
-                                f.key === 'booking_url' ||
-                                f.key === 'avg_meal'
-                                    ? 'sm:col-span-2'
-                                    : ''
-                            }
+                            className={spanWide ? 'sm:col-span-2' : ''}
                         >
                             {f.type === 'richtext' ? (
                                 <RichTextEditor
@@ -361,8 +349,7 @@ export default function CategoryFields({
                                             onChange={(e) =>
                                                 setDetail(f.key, e.target.value)
                                             }
-                                            required={f.required && !locked}
-                                            disabled={locked}
+                                            required={f.required}
                                         >
                                             <option value="">Select…</option>
                                             {(f.options || []).map((opt) => (
@@ -379,7 +366,6 @@ export default function CategoryFields({
                                             }
                                             placeholder={f.placeholder}
                                             maxTags={cuisineMax}
-                                            disabled={locked}
                                         />
                                     ) : f.type === 'multi' ? (
                                         <MultiChipPicker
@@ -388,7 +374,6 @@ export default function CategoryFields({
                                             onChange={(v) =>
                                                 setDetail(f.key, v)
                                             }
-                                            disabled={locked}
                                         />
                                     ) : (
                                         <input
@@ -406,8 +391,7 @@ export default function CategoryFields({
                                                 setDetail(f.key, e.target.value)
                                             }
                                             placeholder={f.placeholder}
-                                            required={f.required && !locked}
-                                            disabled={locked}
+                                            required={f.required}
                                         />
                                     )}
                                     {f.help ? (
@@ -415,7 +399,7 @@ export default function CategoryFields({
                                     ) : null}
                                 </>
                             )}
-                        </TierLockedField>
+                        </div>
                     );
                 })}
             </div>
@@ -443,12 +427,7 @@ export default function CategoryFields({
                 </div>
             )}
 
-            <TierLockedField
-                locked={paymentsLocked}
-                feature="payments"
-                requiredTier="Standard"
-                isAdmin={isAdmin}
-            >
+            {showPayments ? (
                 <div>
                     <p className={label}>Payment methods</p>
                     <MultiChipPicker
@@ -459,15 +438,9 @@ export default function CategoryFields({
                         }
                         value={payments}
                         onChange={(next) => setDetail('payments', next)}
-                        disabled={paymentsLocked}
                     />
-                    {isEatDrink ? (
-                        <p className={help}>
-                            Standard plan unlocks M-Pesa, cards, and cash options.
-                        </p>
-                    ) : null}
                 </div>
-            </TierLockedField>
+            ) : null}
         </div>
     );
 }

@@ -1,7 +1,7 @@
 /**
  * Eat & Drink plan gates for the listing wizard.
  * Tiers: free → featured (Standard) → premium
- * Locked fields stay visible; callers wrap them with TierLockedField.
+ * Locked fields are hidden; show EatDrinkTierUpsell once instead.
  */
 
 export const TIER_RANK = {
