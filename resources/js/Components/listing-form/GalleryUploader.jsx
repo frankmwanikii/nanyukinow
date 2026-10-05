@@ -169,7 +169,7 @@ function CoverLogoStage({
                     onFiles={onFileCover}
                     className="overflow-hidden rounded-xl bg-olive-100 ring-1 ring-olive-200/80 dark:bg-olive-950 dark:ring-olive-700"
                 >
-                    <div className="group relative h-36 w-full overflow-hidden bg-gradient-to-br from-olive-50 via-white to-olive-100/80 sm:h-40">
+                    <div className="group relative h-44 w-full overflow-hidden bg-gradient-to-br from-olive-50 via-white to-olive-100/80 sm:h-52">
                         {coverPreview ? (
                             <>
                                 <button
