@@ -22,14 +22,17 @@ export function normalizeMenus(menus, docs) {
                     id: `menu-${index}`,
                     title: `Menu ${index + 1}`,
                     image: item,
+                    pdf: null,
                 };
             }
-            const image = item.image || item.src || item.url;
-            if (!image) return null;
+            const image = item.image || item.src || item.url || null;
+            const pdf = item.pdf || null;
+            if (!image && !pdf) return null;
             return {
                 id: item.id || `menu-${index}`,
                 title: item.title || item.label || `Menu ${index + 1}`,
                 image,
+                pdf,
             };
         })
         .filter(Boolean);
@@ -88,32 +91,48 @@ export default function MenuGallery({
                 >
                     {items.map((item, index) => (
                         <li key={item.id}>
-                            <button
-                                type="button"
-                                onClick={() => setLightbox(index)}
-                                className="group relative block w-full overflow-hidden rounded-xl border border-olive-200/70 bg-olive-50 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard"
-                            >
-                                <img
-                                    src={item.image}
-                                    alt={item.title}
-                                    className="aspect-[3/4] w-full object-cover transition duration-500 group-hover:scale-[1.03]"
-                                    loading="lazy"
-                                />
-                                <span className="absolute inset-0 bg-gradient-to-t from-earth-dusk/70 via-transparent to-transparent opacity-90" />
-                                <span className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 p-3">
-                                    <span className="min-w-0">
-                                        <span className="block truncate text-sm font-semibold text-white">
-                                            {item.title}
+                            {item.image ? (
+                                <button
+                                    type="button"
+                                    onClick={() => setLightbox(index)}
+                                    className="group relative block w-full overflow-hidden rounded-xl border border-olive-200/70 bg-olive-50 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard"
+                                >
+                                    <img
+                                        src={item.image}
+                                        alt={item.title}
+                                        className="aspect-[3/4] w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                                        loading="lazy"
+                                    />
+                                    <span className="absolute inset-0 bg-gradient-to-t from-earth-dusk/70 via-transparent to-transparent opacity-90" />
+                                    <span className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 p-3">
+                                        <span className="min-w-0">
+                                            <span className="block truncate text-sm font-semibold text-white">
+                                                {item.title}
+                                            </span>
+                                            <span className="mt-0.5 block text-[11px] font-medium text-white/70">
+                                                Page {index + 1} of {items.length}
+                                            </span>
                                         </span>
-                                        <span className="mt-0.5 block text-[11px] font-medium text-white/70">
-                                            Page {index + 1} of {items.length}
+                                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/95 text-olive-900 shadow-soft transition group-hover:bg-mustard">
+                                            <Expand className="h-3.5 w-3.5" />
                                         </span>
                                     </span>
-                                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/95 text-olive-900 shadow-soft transition group-hover:bg-mustard">
-                                        <Expand className="h-3.5 w-3.5" />
+                                </button>
+                            ) : (
+                                <a
+                                    href={item.pdf}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="flex min-h-28 flex-col justify-between rounded-xl border border-olive-200/70 bg-olive-50 p-4 transition hover:border-mustard dark:border-olive-700 dark:bg-olive-900"
+                                >
+                                    <span className="text-sm font-semibold text-olive-950 dark:text-olive-50">
+                                        {item.title}
                                     </span>
-                                </span>
-                            </button>
+                                    <span className="mt-3 text-xs font-semibold text-olive-700 underline dark:text-olive-300">
+                                        Open PDF menu
+                                    </span>
+                                </a>
+                            )}
                         </li>
                     ))}
                 </ul>

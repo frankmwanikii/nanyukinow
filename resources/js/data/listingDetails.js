@@ -1990,11 +1990,23 @@ function buildFactsFromDetails(listing) {
         if (d.parking_spaces) pairs.push({ label: 'Parking', value: String(d.parking_spaces) });
         if (d.year_built) pairs.push({ label: 'Year built', value: String(d.year_built) });
     } else if (key === 'eatDrink') {
-        if (d.cuisine) pairs.push({ label: 'Cuisine', value: String(d.cuisine) });
+        const cuisine = Array.isArray(d.cuisine)
+            ? d.cuisine.filter(Boolean).join(', ')
+            : d.cuisine;
+        if (cuisine) pairs.push({ label: 'Cuisine', value: String(cuisine) });
+        const dietary = Array.isArray(d.dietary)
+            ? d.dietary.filter(Boolean).join(', ')
+            : d.dietary;
+        if (dietary) pairs.push({ label: 'Dietary', value: String(dietary) });
+        const delivery = Array.isArray(d.delivery_options)
+            ? d.delivery_options.filter(Boolean).join(', ')
+            : d.delivery_options;
+        if (delivery) pairs.push({ label: 'Service', value: String(delivery) });
         if (d.capacity) pairs.push({ label: 'Capacity', value: String(d.capacity) });
         if (d.avg_meal) pairs.push({ label: 'Avg meal', value: String(d.avg_meal) });
         if (d.reservations) pairs.push({ label: 'Reservations', value: String(d.reservations) });
         if (d.dress_code) pairs.push({ label: 'Dress code', value: String(d.dress_code) });
+        if (d.booking_url) pairs.push({ label: 'Booking', value: 'Available' });
     } else if (key === 'shopping') {
         if (d.specialty) pairs.push({ label: 'Specialty', value: String(d.specialty) });
         if (d.delivery) pairs.push({ label: 'Delivery', value: String(d.delivery) });
@@ -2204,7 +2216,10 @@ export function getListingDetail(listing) {
               : (defaults.brands ?? []),
         docs: [],
         menus: Array.isArray(listing.details?.menus)
-            ? listing.details.menus.filter((m) => m?.image || m?.title)
+            ? listing.details.menus.filter((m) => m?.image || m?.title || m?.pdf)
+            : null,
+        deals: Array.isArray(listing.details?.deals)
+            ? listing.details.deals.filter((d) => d?.title || d?.description)
             : null,
         products: Array.isArray(listing.details?.products)
             ? listing.details.products.filter((p) => p?.name)
@@ -2356,6 +2371,12 @@ export function getListingDetail(listing) {
                 : live
                   ? []
                   : (explicit?.menus ?? []),
+        deals:
+            base.deals !== null && base.deals !== undefined
+                ? base.deals
+                : live
+                  ? []
+                  : (explicit?.deals ?? []),
         products:
             base.products !== null
                 ? base.products

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Support\ListingSubcategories;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -49,7 +50,7 @@ class ListingRequest extends FormRequest
      */
     private function decodeSubcategoryField(): ?array
     {
-        $normalized = \App\Support\ListingSubcategories::normalize($this->input('subcategory'));
+        $normalized = ListingSubcategories::normalize($this->input('subcategory'));
 
         return $normalized === [] ? null : $normalized;
     }
@@ -112,9 +113,9 @@ class ListingRequest extends FormRequest
             'cover' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:15360'],
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:15360'],
             'event_poster' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:15360'],
-            'gallery_files' => ['nullable', 'array', 'max:20'],
+            'gallery_files' => ['nullable', 'array', 'max:30'],
             'gallery_files.*' => ['image', 'mimes:jpg,jpeg,png,webp,gif', 'max:15360'],
-            'gallery_urls' => ['nullable', 'array', 'max:20'],
+            'gallery_urls' => ['nullable', 'array', 'max:30'],
             'gallery_urls.*' => ['nullable', 'string', 'max:500'],
             'amenities' => ['nullable', 'array', 'max:40'],
             'amenities.*' => ['string', 'max:80'],
@@ -141,7 +142,7 @@ class ListingRequest extends FormRequest
             'rating' => ['nullable', 'numeric', 'between:0,5'],
             'status' => ['required', Rule::in(['draft', 'pending', 'published', 'expired', 'archived'])],
             'tier' => ['required', Rule::in(['free', 'featured', 'premium'])],
-            'priority' => ['nullable', 'integer', Rule::in([0, 1, 3, 4])],
+            'priority' => ['nullable', 'integer', Rule::in([0, 1, 2, 3, 4])],
             'views_count' => ['nullable', 'integer', 'min:0'],
             'expires_at' => ['nullable', 'date'],
             'published_at' => ['nullable', 'date'],

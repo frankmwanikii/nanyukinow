@@ -10,10 +10,12 @@ use App\Models\Amenity;
 use App\Models\Category;
 use App\Models\Listing;
 use App\Support\CategoryKey;
+use App\Support\EatDrinkTierFeatures;
 use App\Support\ListingMedia;
 use App\Support\ListingSlug;
 use App\Support\ListingSubcategories;
 use App\Support\Membership;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -48,7 +50,7 @@ class ListingController extends Controller
         ]);
     }
 
-    public function saveDraft(SaveListingDraftRequest $request, ?Listing $listing = null): \Illuminate\Http\JsonResponse
+    public function saveDraft(SaveListingDraftRequest $request, ?Listing $listing = null): JsonResponse
     {
         $user = $request->user();
 
@@ -281,9 +283,16 @@ class ListingController extends Controller
             array_map(fn ($a) => is_string($a) ? trim($a) : '', $data['amenities'] ?? []),
         )));
 
-        return [
+        $categoryId = $data['category_id'] ?? $existing?->category_id;
+        $categorySlug = $categoryId
+            ? Category::query()->whereKey($categoryId)->value('slug')
+            : null;
+        $categoryKey = CategoryKey::fromSlug($categorySlug);
+        $tier = Membership::normalize($data['tier'] ?? $existing?->tier);
+
+        $payload = [
             'title' => $data['title'] ?? $existing?->title ?? 'Untitled draft',
-            'category_id' => $data['category_id'] ?? $existing?->category_id,
+            'category_id' => $categoryId,
             'subcategory' => ListingSubcategories::normalize($data['subcategory'] ?? null) ?: null,
             'property_type' => $data['property_type'] ?? null,
             'location' => $data['location'] ?? null,
@@ -298,8 +307,12 @@ class ListingController extends Controller
             'website' => $data['website'] ?? null,
             'address' => $data['address'] ?? null,
             'venue' => $data['venue'] ?? null,
-            'latitude' => isset($data['latitude']) ? (float) $data['latitude'] : null,
-            'longitude' => isset($data['longitude']) ? (float) $data['longitude'] : null,
+            'latitude' => isset($data['latitude']) && $data['latitude'] !== ''
+                ? (float) $data['latitude']
+                : null,
+            'longitude' => isset($data['longitude']) && $data['longitude'] !== ''
+                ? (float) $data['longitude']
+                : null,
             'price_range' => $data['price_range'] ?? null,
             'image_url' => $imageUrl,
             'logo_url' => $logoUrl,
@@ -316,6 +329,8 @@ class ListingController extends Controller
             'gate_price' => $data['gate_price'] ?? null,
             'ticket_url' => $data['ticket_url'] ?? null,
         ];
+
+        return EatDrinkTierFeatures::applyToPayload($payload, $tier, $categoryKey);
     }
 
     /**

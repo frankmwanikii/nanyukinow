@@ -34,20 +34,21 @@ class Membership
     /** @var array<string, string> */
     public const BADGE_LABELS = [
         self::FREE => 'Free',
-        self::STANDARD => 'Featured',
+        self::STANDARD => 'Standard',
         self::PREMIUM => 'Premium',
     ];
 
     /**
-     * Sort priority from membership tier.
-     * Free = 0, Standard = 1, Premium = 3. Promoted (4) is set separately by admins.
+     * Sort priority from membership tier (higher sorts first via orderByDesc).
+     * Free = 1 (no badge), Standard = 2 (green bolt), Premium = 3 (yellow bolt).
+     * Promoted (4) is set separately by admins for below-hero placement.
      */
     public static function listingPriority(?string $tier): int
     {
         return match (self::normalize($tier)) {
             self::PREMIUM => 3,
-            self::STANDARD => 1,
-            default => 0,
+            self::STANDARD => 2,
+            default => 1,
         };
     }
 

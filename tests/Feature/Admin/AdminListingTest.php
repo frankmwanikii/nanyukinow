@@ -32,7 +32,7 @@ class AdminListingTest extends TestCase
                 'is_published' => true,
                 'is_featured' => true,
                 'is_trending' => false,
-                'priority' => 1,
+                'priority' => 2,
                 'expires_at' => now()->addMonth()->format('Y-m-d H:i:s'),
                 'gallery' => ['https://example.com/a.jpg'],
                 'amenities' => ['WiFi', 'Parking'],
@@ -44,7 +44,7 @@ class AdminListingTest extends TestCase
         $this->assertNotNull($listing);
         $this->assertTrue($listing->is_featured);
         $this->assertEquals('featured', $listing->tier);
-        $this->assertSame(1, $listing->priority);
+        $this->assertSame(2, $listing->priority);
         $this->assertNotNull($listing->expires_at);
     }
 

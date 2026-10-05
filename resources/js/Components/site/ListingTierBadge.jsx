@@ -7,14 +7,14 @@ const TIER_META = {
         title: 'Premium listing',
     },
     featured: {
-        label: 'Featured',
+        label: 'Standard',
         frame: 'border-mint text-mint',
-        title: 'Featured listing',
+        title: 'Standard listing',
     },
 };
 
 /**
- * Bolt icon always visible. "Premium" / "Featured" wording appears on card hover.
+ * Bolt icon always visible. "Premium" / "Standard" wording appears on card hover.
  */
 export default function ListingTierBadge({
     tier,

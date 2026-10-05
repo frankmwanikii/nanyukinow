@@ -15,7 +15,7 @@ import {
 import { useMemo, useRef, useState } from 'react';
 
 const MAX_BYTES = 15 * 1024 * 1024;
-const MAX_GALLERY = 12;
+const DEFAULT_MAX_GALLERY = 12;
 
 function revoke(url) {
     if (url?.startsWith('blob:')) URL.revokeObjectURL(url);
@@ -333,7 +333,9 @@ export default function GalleryUploader({
     onPosterChange,
     onGalleryChange,
     errors = {},
+    maxGallery = DEFAULT_MAX_GALLERY,
 }) {
+    const MAX_GALLERY = Math.max(1, Number(maxGallery) || DEFAULT_MAX_GALLERY);
     const coverInput = useRef(null);
     const logoInput = useRef(null);
     const posterInput = useRef(null);

@@ -28,33 +28,69 @@ export const CATEGORY_DETAIL_FIELDS = {
         {
             key: 'cuisine',
             label: 'Cuisine / specialty',
-            type: 'text',
-            placeholder: 'e.g. Kenyan, Italian, BBQ',
+            type: 'tags',
+            placeholder: 'Add a cuisine and press Enter',
             required: true,
+            help: 'Free plans can add up to 2 tags. Standard unlocks more.',
+            minTier: 'free',
         },
         {
-            key: 'dress_code',
-            label: 'Dress code',
-            type: 'text',
-            placeholder: 'Casual, smart casual…',
+            key: 'dietary',
+            label: 'Dietary options',
+            type: 'tags',
+            placeholder: 'e.g. Halal, Vegan, Gluten-free',
+            help: 'Help diners filter for Halal, vegan, and other needs.',
+            minTier: 'featured',
         },
         {
-            key: 'capacity',
-            label: 'Seating capacity',
-            type: 'text',
-            placeholder: 'e.g. 80 indoors, 40 terrace',
+            key: 'delivery_options',
+            label: 'Delivery & takeaway',
+            type: 'multi',
+            options: [
+                'Dine-in',
+                'Takeaway',
+                'Delivery',
+                'Delivery (town only)',
+                'Uber Eats / Glovo',
+            ],
+            minTier: 'featured',
         },
         {
             key: 'reservations',
             label: 'Reservations',
             type: 'select',
             options: ['Recommended', 'Required', 'Walk-ins welcome', 'Not needed'],
+            minTier: 'featured',
+        },
+        {
+            key: 'booking_url',
+            label: 'Reservation / booking link',
+            type: 'text',
+            placeholder: 'WhatsApp link or booking page URL',
+            help: 'Direct WhatsApp chat or booking widget for table requests.',
+            minTier: 'premium',
         },
         {
             key: 'avg_meal',
             label: 'Average meal cost',
             type: 'text',
-            placeholder: 'e.g. KES 1,200',
+            placeholder: 'e.g. Starters KES 600 · Mains KES 1,200',
+            help: 'Detailed pricing breakdown shown on your page.',
+            minTier: 'premium',
+        },
+        {
+            key: 'capacity',
+            label: 'Seating capacity',
+            type: 'text',
+            placeholder: 'e.g. 80 indoors, 40 terrace',
+            minTier: 'premium',
+        },
+        {
+            key: 'dress_code',
+            label: 'Dress code',
+            type: 'text',
+            placeholder: 'Casual, smart casual…',
+            minTier: 'premium',
         },
     ],
     stay: [
@@ -317,7 +353,7 @@ export const CATEGORY_DETAIL_FIELDS = {
 export function emptyDetailsFor(categoryKey) {
     const fields = CATEGORY_DETAIL_FIELDS[categoryKey] || [];
     const details = {
-        payments: ['Cash', 'M-Pesa'],
+        payments: categoryKey === 'eatDrink' ? [] : ['Cash', 'M-Pesa'],
         video_url: '',
         video_title: '',
         menus: [],
@@ -325,11 +361,12 @@ export function emptyDetailsFor(categoryKey) {
         sponsors: [],
         event_schedule: [],
         products: [],
+        deals: [],
     };
 
     fields.forEach((f) => {
         details[f.key] =
-            f.type === 'tags' ? [] : f.type === 'richtext' ? '' : '';
+            f.type === 'tags' || f.type === 'multi' ? [] : f.type === 'richtext' ? '' : '';
     });
 
     if (categoryKey === 'stay') {

@@ -1,11 +1,14 @@
 import DetailSection from './DetailSection';
 
-export default function EventSchedule({ items = [] }) {
+export default function EventSchedule({
+    items = [],
+    title = 'Event schedule',
+}) {
     const rows = Array.isArray(items) ? items.filter((i) => i?.label) : [];
     if (!rows.length) return null;
 
     return (
-        <DetailSection title="Event schedule">
+        <DetailSection title={title}>
             <ul className="divide-y divide-olive-100">
                 {rows.map((row) => (
                     <li

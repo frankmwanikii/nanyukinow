@@ -1,5 +1,7 @@
 import MediaAddDialog from './MediaAddDialog';
+import TierLockedField from './TierLockedField';
 import { field, help, label } from './fieldStyles';
+import { canUseEatDrinkFeature } from '@/data/eatDrinkTierFeatures';
 import { ImagePlus, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -76,6 +78,8 @@ export default function CategoryExtrasEditor({
     details = {},
     onDetailsChange,
     libraryRoute = null,
+    tier = 'free',
+    isAdmin = false,
 }) {
     const [imageTarget, setImageTarget] = useState(null); // { list, index, key }
 
@@ -101,19 +105,33 @@ export default function CategoryExtrasEditor({
     };
 
     const menus = Array.isArray(details.menus) ? details.menus : [];
+    const deals = Array.isArray(details.deals) ? details.deals : [];
     const agenda = Array.isArray(details.agenda) ? details.agenda : [];
     const sponsors = Array.isArray(details.sponsors) ? details.sponsors : [];
     const schedule = Array.isArray(details.event_schedule)
         ? details.event_schedule
         : [];
     const products = Array.isArray(details.products) ? details.products : [];
+    const menusLocked =
+        categoryKey === 'eatDrink' && !canUseEatDrinkFeature(tier, 'menus');
+    const dealsLocked =
+        categoryKey === 'eatDrink' && !canUseEatDrinkFeature(tier, 'deals');
+    const liveMusicLocked =
+        categoryKey === 'eatDrink' && !canUseEatDrinkFeature(tier, 'live_music');
 
     return (
         <div className="space-y-5">
             {categoryKey === 'eatDrink' ? (
+                <>
+                <TierLockedField
+                    locked={menusLocked}
+                    feature="menus"
+                    requiredTier="Standard"
+                    isAdmin={isAdmin}
+                >
                 <Section
                     title="Menus"
-                    blurb="Upload menu photos (food, drinks, dessert). Visitors can browse them on the listing page."
+                    blurb="Upload a menu image or paste a PDF link. Visitors can browse them on the listing page."
                 >
                     <ul className="space-y-4">
                         {menus.map((item, index) => (
@@ -142,6 +160,7 @@ export default function CategoryExtrasEditor({
                                             })
                                         }
                                         placeholder="e.g. Lunch menu"
+                                        disabled={menusLocked}
                                     />
                                 </div>
                                 <ImagePickButton
@@ -159,20 +178,178 @@ export default function CategoryExtrasEditor({
                                         })
                                     }
                                 />
+                                <div>
+                                    <label className={label}>PDF link (optional)</label>
+                                    <input
+                                        className={field}
+                                        type="url"
+                                        value={item.pdf || ''}
+                                        onChange={(e) =>
+                                            updateItem('menus', index, {
+                                                pdf: e.target.value,
+                                            })
+                                        }
+                                        placeholder="https://…/menu.pdf"
+                                        disabled={menusLocked}
+                                    />
+                                </div>
                             </li>
                         ))}
                     </ul>
                     <button
                         type="button"
                         onClick={() =>
-                            addItem('menus', { title: '', image: '' })
+                            addItem('menus', { title: '', image: '', pdf: '' })
                         }
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white"
+                        disabled={menusLocked}
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white disabled:opacity-50"
                     >
                         <Plus className="h-4 w-4" />
                         Add menu page
                     </button>
                 </Section>
+                </TierLockedField>
+
+                <TierLockedField
+                    locked={dealsLocked}
+                    feature="deals"
+                    requiredTier="Premium"
+                    isAdmin={isAdmin}
+                >
+                <Section
+                    title="Deals / offers / happy hour"
+                    blurb="Highlighted specials shown in a featured block on your listing page."
+                >
+                    <ul className="space-y-3">
+                        {deals.map((item, index) => (
+                            <li
+                                key={`deal-${index}`}
+                                className="space-y-2 rounded-xl border border-olive-100 bg-olive-50/40 p-3"
+                            >
+                                <div className="flex items-center justify-between gap-2">
+                                    <span className="text-xs font-semibold uppercase tracking-wide text-olive-500">
+                                        Offer {index + 1}
+                                    </span>
+                                    <RowActions
+                                        onRemove={() =>
+                                            removeItem('deals', index)
+                                        }
+                                    />
+                                </div>
+                                <div>
+                                    <label className={label}>Title</label>
+                                    <input
+                                        className={field}
+                                        value={item.title || ''}
+                                        onChange={(e) =>
+                                            updateItem('deals', index, {
+                                                title: e.target.value,
+                                            })
+                                        }
+                                        placeholder="e.g. Sunset happy hour"
+                                        disabled={dealsLocked}
+                                    />
+                                </div>
+                                <div>
+                                    <label className={label}>Details</label>
+                                    <input
+                                        className={field}
+                                        value={item.description || ''}
+                                        onChange={(e) =>
+                                            updateItem('deals', index, {
+                                                description: e.target.value,
+                                            })
+                                        }
+                                        placeholder="2-for-1 cocktails · Weekdays 5–7pm"
+                                        disabled={dealsLocked}
+                                    />
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                    <button
+                        type="button"
+                        onClick={() =>
+                            addItem('deals', { title: '', description: '' })
+                        }
+                        disabled={dealsLocked}
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                    >
+                        <Plus className="h-4 w-4" />
+                        Add offer
+                    </button>
+                </Section>
+                </TierLockedField>
+
+                <TierLockedField
+                    locked={liveMusicLocked}
+                    feature="live_music"
+                    requiredTier="Premium"
+                    isAdmin={isAdmin}
+                >
+                <Section
+                    title="Events & live music"
+                    blurb="Upcoming gigs and live music nights shown as a schedule on your page."
+                >
+                    <ul className="space-y-3">
+                        {schedule.map((item, index) => (
+                            <li
+                                key={`live-${index}`}
+                                className="grid gap-2 rounded-xl border border-olive-100 bg-olive-50/40 p-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-end"
+                            >
+                                <div>
+                                    <label className={label}>When</label>
+                                    <input
+                                        className={field}
+                                        value={item.label || ''}
+                                        onChange={(e) =>
+                                            updateItem('event_schedule', index, {
+                                                label: e.target.value,
+                                            })
+                                        }
+                                        placeholder="Fri 9 May · 8pm"
+                                        disabled={liveMusicLocked}
+                                    />
+                                </div>
+                                <div>
+                                    <label className={label}>What’s on</label>
+                                    <input
+                                        className={field}
+                                        value={item.value || ''}
+                                        onChange={(e) =>
+                                            updateItem('event_schedule', index, {
+                                                value: e.target.value,
+                                            })
+                                        }
+                                        placeholder="Acoustic night with local artists"
+                                        disabled={liveMusicLocked}
+                                    />
+                                </div>
+                                <RowActions
+                                    onRemove={() =>
+                                        removeItem('event_schedule', index)
+                                    }
+                                />
+                            </li>
+                        ))}
+                    </ul>
+                    <button
+                        type="button"
+                        onClick={() =>
+                            addItem('event_schedule', {
+                                label: '',
+                                value: '',
+                            })
+                        }
+                        disabled={liveMusicLocked}
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                    >
+                        <Plus className="h-4 w-4" />
+                        Add gig
+                    </button>
+                </Section>
+                </TierLockedField>
+                </>
             ) : null}
 
             {categoryKey === 'events' ? (

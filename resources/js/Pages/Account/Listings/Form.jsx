@@ -7,6 +7,7 @@ import HoursEditor from '@/Components/listing-form/HoursEditor';
 import ListingPreview from '@/Components/listing-form/ListingPreview';
 import PlacesLocationInput from '@/Components/listing-form/PlacesLocationInput';
 import RichTextEditor from '@/Components/listing-form/RichTextEditor';
+import TierLockedField from '@/Components/listing-form/TierLockedField';
 import {
     emptyDetailsFor,
 } from '@/Components/listing-form/categoryFieldConfig';
@@ -19,6 +20,14 @@ import {
 import AccountLayout from '@/Layouts/AccountLayout';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { PROPERTY_TYPES, mainCategories } from '@/data/categories';
+import {
+    canUseEatDrinkFeature,
+    countWords,
+    eatDrinkDescriptionWordLimit,
+    eatDrinkGalleryLimit,
+    normalizeTier,
+    tierDisplayLabel,
+} from '@/data/eatDrinkTierFeatures';
 import { listingSubcategories, subcategoryLabel } from '@/utils/listingSubcategories';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -41,6 +50,7 @@ import {
     Settings,
     ShoppingCart,
     Trash2,
+    Zap,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -277,6 +287,20 @@ export default function Form({
 
     const categoryKey = resolveCategoryKey(selectedCategory);
     const subs = subcategoriesFor(categoryKey);
+    const listingTier = normalizeTier(form.data.tier);
+    const isEatDrink = categoryKey === 'eatDrink';
+    const galleryMax = isEatDrink
+        ? eatDrinkGalleryLimit(listingTier)
+        : 12;
+    const descriptionWordLimit = isEatDrink
+        ? eatDrinkDescriptionWordLimit(listingTier)
+        : null;
+    const mapLocked =
+        isEatDrink && !canUseEatDrinkFeature(listingTier, 'map_location');
+    const videoLocked =
+        isEatDrink && !canUseEatDrinkFeature(listingTier, 'video');
+    const socialLocked =
+        isEatDrink && !canUseEatDrinkFeature(listingTier, 'social_contact');
 
     const buildDraftBody = (data = formDataRef.current || form.data) => {
         const galleryUrls = galleryItems
@@ -859,6 +883,9 @@ export default function Form({
                                         isEdit={isEdit}
                                         categories={categories}
                                         patch={patch}
+                                        isAdmin={isAdmin}
+                                        listingTier={listingTier}
+                                        descriptionWordLimit={descriptionWordLimit}
                                     />
                                 ) : null}
 
@@ -868,8 +895,11 @@ export default function Form({
                                         location={form.data.location}
                                         latitude={form.data.latitude}
                                         longitude={form.data.longitude}
+                                        address={form.data.address}
                                         errors={form.errors}
                                         onChange={(partial) => patch(partial)}
+                                        mapLocked={mapLocked}
+                                        isAdmin={isAdmin}
                                     />
                                 ) : null}
 
@@ -910,6 +940,8 @@ export default function Form({
                                             onEventChange={(partial) =>
                                                 patch(partial)
                                             }
+                                            tier={listingTier}
+                                            isAdmin={isAdmin}
                                         />
                                         <CategoryExtrasEditor
                                             categoryKey={categoryKey}
@@ -922,6 +954,8 @@ export default function Form({
                                                     ? route('admin.gallery.browse')
                                                     : route('account.media.browse')
                                             }
+                                            tier={listingTier}
+                                            isAdmin={isAdmin}
                                         />
                                         {categoryKey !== 'properties' &&
                                         categoryKey !== 'events' ? (
@@ -968,6 +1002,7 @@ export default function Form({
                                         posterPreview={posterPreview}
                                         galleryItems={galleryItems}
                                         showPoster={categoryKey === 'events'}
+                                        maxGallery={galleryMax}
                                         libraryRoute={
                                             isAdmin
                                                 ? route('admin.gallery.browse')
@@ -1018,31 +1053,58 @@ export default function Form({
                                         }}
                                         onGalleryChange={setGalleryItems}
                                     />
+                                    {isEatDrink ? (
+                                        <p className="mt-2 text-xs text-olive-500 dark:text-olive-400">
+                                            Gallery limit for{' '}
+                                            {tierDisplayLabel(listingTier)}:{' '}
+                                            {galleryMax} images
+                                            {listingTier === 'free'
+                                                ? ' · Standard unlocks 10 · Premium unlocks 30'
+                                                : listingTier === 'featured'
+                                                  ? ' · Premium unlocks 30'
+                                                  : ''}
+                                            .
+                                        </p>
+                                    ) : null}
                                     <div className="mt-6">
-                                        <VideoFields
-                                            videoUrl={
-                                                form.data.details?.video_url ||
-                                                ''
-                                            }
-                                            videoTitle={
-                                                form.data.details
-                                                    ?.video_title || ''
-                                            }
-                                            onChange={(partial) =>
-                                                patch({
-                                                    details: {
-                                                        ...form.data.details,
-                                                        ...partial,
-                                                    },
-                                                })
-                                            }
-                                        />
+                                        <TierLockedField
+                                            locked={videoLocked}
+                                            feature="video"
+                                            requiredTier="Premium"
+                                            isAdmin={isAdmin}
+                                        >
+                                            <VideoFields
+                                                videoUrl={
+                                                    form.data.details?.video_url ||
+                                                    ''
+                                                }
+                                                videoTitle={
+                                                    form.data.details
+                                                        ?.video_title || ''
+                                                }
+                                                disabled={videoLocked}
+                                                onChange={(partial) =>
+                                                    patch({
+                                                        details: {
+                                                            ...form.data.details,
+                                                            ...partial,
+                                                        },
+                                                    })
+                                                }
+                                            />
+                                        </TierLockedField>
                                     </div>
                                     </>
                                 ) : null}
 
                                 {step.id === 'contact' ? (
-                                    <ContactStep form={form} patch={patch} />
+                                    <ContactStep
+                                        form={form}
+                                        patch={patch}
+                                        isEatDrink={isEatDrink}
+                                        socialLocked={socialLocked}
+                                        isAdmin={isAdmin}
+                                    />
                                 ) : null}
 
                                 {step.id === 'preview' ? (
@@ -1326,14 +1388,18 @@ function AdminControls({ form, owners, statuses, claimStatuses, allowedTiers, li
                         id="priority"
                         className={field}
                         value={String(
-                            [0, 1, 3, 4].includes(Number(data.priority))
+                            [1, 2, 3, 4].includes(Number(data.priority))
                                 ? Number(data.priority)
-                                : 0,
+                                : data.tier === 'premium'
+                                  ? 3
+                                  : data.tier === 'featured'
+                                    ? 2
+                                    : 1,
                         )}
                         onChange={(e) => setData('priority', e.target.value)}
                     >
-                        <option value="0">0 · Free</option>
-                        <option value="1">1 · Standard</option>
+                        <option value="1">1 · Free (lowest)</option>
+                        <option value="2">2 · Standard</option>
                         <option value="3">3 · Premium</option>
                         <option value="4">4 · Promoted (below hero)</option>
                     </select>
@@ -1413,6 +1479,48 @@ function AdminControls({ form, owners, statuses, claimStatuses, allowedTiers, li
     );
 }
 
+function SearchPriorityNote({ listingTier }) {
+    const tier = normalizeTier(listingTier);
+    const meta =
+        tier === 'premium'
+            ? {
+                  title: 'Premium search priority',
+                  body: 'Yellow bolt badge · pinned near the top of Eat & Drink searches (priority 1).',
+                  bolt: 'border-mustard text-mustard',
+              }
+            : tier === 'featured'
+              ? {
+                    title: 'Standard search priority',
+                    body: 'Green bolt badge · ranks below Premium (priority 2).',
+                    bolt: 'border-mint text-mint',
+                }
+              : {
+                    title: 'Free search priority',
+                    body: 'No badge · appears below Standard listings (priority 3). Upgrade for higher placement.',
+                    bolt: 'border-olive-300 text-olive-400',
+                };
+
+    return (
+        <div className="rounded-2xl border border-olive-200 bg-olive-50/50 p-4 dark:border-olive-800 dark:bg-olive-950/50">
+            <div className="flex items-start gap-3">
+                <span
+                    className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[0.65rem] border-2 bg-white dark:bg-olive-900 ${meta.bolt}`}
+                >
+                    <Zap className="h-4 w-4" strokeWidth={2.35} />
+                </span>
+                <div className="min-w-0">
+                    <p className="text-sm font-semibold text-olive-950 dark:text-olive-50">
+                        {meta.title}
+                    </p>
+                    <p className="mt-0.5 text-xs leading-relaxed text-olive-600 dark:text-olive-300">
+                        {meta.body}
+                    </p>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 function BasicsStep({
     form,
     categoryKey,
@@ -1420,7 +1528,13 @@ function BasicsStep({
     isEdit,
     categories,
     patch,
+    listingTier = 'free',
+    descriptionWordLimit = null,
 }) {
+    const wordCount = countWords(form.data.description);
+    const overLimit =
+        descriptionWordLimit != null && wordCount > descriptionWordLimit;
+
     return (
         <>
             <div>
@@ -1440,6 +1554,10 @@ function BasicsStep({
                     </p>
                 ) : null}
             </div>
+
+            {categoryKey === 'eatDrink' ? (
+                <SearchPriorityNote listingTier={listingTier} />
+            ) : null}
 
             <div className="grid gap-4">
                 {isEdit ? (
@@ -1576,15 +1694,30 @@ function BasicsStep({
             <RichTextEditor
                 value={form.data.description}
                 onChange={(description) => patch({ description })}
-                error={form.errors.description}
+                error={
+                    form.errors.description ||
+                    (overLimit
+                        ? `Free plans allow up to ${descriptionWordLimit} words (${wordCount} used). Upgrade to Standard for unlimited length.`
+                        : null)
+                }
                 placeholder="Share the story, vibe, and what visitors should know…"
-                help="Shown as the About section on your public listing page."
+                help={
+                    descriptionWordLimit != null
+                        ? `Free plan: ${wordCount} / ${descriptionWordLimit} words. Standard unlocks unlimited description.`
+                        : 'Shown as the About section on your public listing page.'
+                }
             />
         </>
     );
 }
 
-function ContactStep({ form, patch }) {
+function ContactStep({
+    form,
+    patch,
+    isEatDrink = false,
+    socialLocked = false,
+    isAdmin = false,
+}) {
     const websiteLinks = Array.isArray(form.data.social_links?.links)
         ? form.data.social_links.links
         : [];
@@ -1613,6 +1746,20 @@ function ContactStep({ form, patch }) {
         setWebsiteLinks(websiteLinks.filter((_, i) => i !== index));
     };
 
+    const contactFields = isEatDrink
+        ? [
+              ['phone', 'Contact number', 'text', false],
+              ['whatsapp', 'WhatsApp', 'text', true],
+              ['email', 'Email', 'email', true],
+              ['website', 'Primary website', 'text', true],
+          ]
+        : [
+              ['phone', 'Phone', 'text', false],
+              ['whatsapp', 'WhatsApp', 'text', false],
+              ['email', 'Email', 'email', false],
+              ['website', 'Primary website', 'text', false],
+          ];
+
     return (
         <div className="space-y-5">
             <div>
@@ -1620,32 +1767,57 @@ function ContactStep({ form, patch }) {
                     Contact & social
                 </h3>
                 <p className="mt-1 text-sm text-olive-600 dark:text-olive-400">
-                    How should people reach you?
+                    {isEatDrink
+                        ? 'Free includes one phone number. Standard unlocks email and social links.'
+                        : 'How should people reach you?'}
                 </p>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
-                {[
-                    ['phone', 'Phone'],
-                    ['whatsapp', 'WhatsApp'],
-                    ['email', 'Email', 'email'],
-                    ['website', 'Primary website'],
-                ].map(([key, text, type]) => (
-                    <div key={key}>
-                        <label className={label} htmlFor={key}>
-                            {text}
-                        </label>
-                        <input
-                            id={key}
-                            type={type || 'text'}
-                            className={field}
-                            value={form.data[key] || ''}
-                            onChange={(e) => patch({ [key]: e.target.value })}
-                            placeholder={key === 'website' ? 'https://' : ''}
-                        />
-                    </div>
-                ))}
+                {contactFields.map(([key, text, type, gated]) => {
+                    const locked = isEatDrink && gated && socialLocked;
+                    const input = (
+                        <div>
+                            <label className={label} htmlFor={key}>
+                                {text}
+                            </label>
+                            <input
+                                id={key}
+                                type={type || 'text'}
+                                className={field}
+                                value={form.data[key] || ''}
+                                onChange={(e) =>
+                                    patch({ [key]: e.target.value })
+                                }
+                                placeholder={key === 'website' ? 'https://' : ''}
+                                disabled={locked}
+                            />
+                        </div>
+                    );
+
+                    if (!gated || !isEatDrink) {
+                        return <div key={key}>{input}</div>;
+                    }
+
+                    return (
+                        <TierLockedField
+                            key={key}
+                            locked={locked}
+                            feature="social_contact"
+                            requiredTier="Standard"
+                            isAdmin={isAdmin}
+                        >
+                            {input}
+                        </TierLockedField>
+                    );
+                })}
             </div>
 
+            <TierLockedField
+                locked={isEatDrink && socialLocked}
+                feature="social_contact"
+                requiredTier="Standard"
+                isAdmin={isAdmin}
+            >
             <div className="space-y-3 rounded-2xl border border-olive-200 bg-olive-50/40 p-4 sm:p-5 dark:border-olive-800 dark:bg-olive-950/50">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
@@ -1660,7 +1832,8 @@ function ContactStep({ form, patch }) {
                     <button
                         type="button"
                         onClick={addLink}
-                        className="inline-flex items-center gap-1.5 rounded-xl border border-olive-200 bg-white px-3 py-1.5 text-xs font-semibold text-olive-800 transition hover:border-mustard dark:border-olive-700 dark:bg-olive-900 dark:text-olive-100 dark:hover:border-mustard"
+                        disabled={isEatDrink && socialLocked}
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-olive-200 bg-white px-3 py-1.5 text-xs font-semibold text-olive-800 transition hover:border-mustard disabled:opacity-50 dark:border-olive-700 dark:bg-olive-900 dark:text-olive-100 dark:hover:border-mustard"
                     >
                         <Plus className="h-3.5 w-3.5" />
                         Add link
@@ -1726,8 +1899,11 @@ function ContactStep({ form, patch }) {
                 )}
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-                {['instagram', 'facebook', 'tiktok', 'youtube'].map((net) => (
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                {(isEatDrink
+                    ? ['facebook', 'instagram']
+                    : ['instagram', 'facebook', 'tiktok', 'youtube']
+                ).map((net) => (
                     <div key={net}>
                         <label className={label} htmlFor={`social_${net}`}>
                             {net.charAt(0).toUpperCase() + net.slice(1)}
@@ -1745,10 +1921,12 @@ function ContactStep({ form, patch }) {
                                 })
                             }
                             placeholder="https://"
+                            disabled={isEatDrink && socialLocked}
                         />
                     </div>
                 ))}
             </div>
+            </TierLockedField>
         </div>
     );
 }

@@ -1,4 +1,5 @@
 import { field, help, label } from './fieldStyles';
+import TierLockedField from './TierLockedField';
 import { getMapsApiKey, loadGoogleMaps } from '@/utils/googleMaps';
 import {
     L,
@@ -81,9 +82,12 @@ export default function PlacesLocationInput({
     location,
     latitude,
     longitude,
+    address = '',
     onChange,
     errors = {},
     areas = AREA_OPTIONS,
+    mapLocked = false,
+    isAdmin = false,
 }) {
     const provider = useMapProvider();
     const isLeaflet = provider === 'leaflet';
@@ -688,8 +692,117 @@ export default function PlacesLocationInput({
     return (
         <div className="space-y-4">
             <div>
+                <span className={label} id="location-areas-label">
+                    Area / location
+                </span>
+                <div className="relative mt-1.5">
+                    <button
+                        ref={areasTriggerRef}
+                        type="button"
+                        id="location-areas"
+                        aria-labelledby="location-areas-label"
+                        aria-haspopup="listbox"
+                        aria-expanded={areasOpen}
+                        onClick={() => setAreasOpen((value) => !value)}
+                        className={`${field} flex items-center justify-between gap-3 text-left ${
+                            selectedAreas.length
+                                ? ''
+                                : 'text-olive-400 dark:text-olive-500'
+                        }`}
+                    >
+                        <span className="min-w-0 flex-1 truncate">
+                            {areasSummary}
+                        </span>
+                        <ChevronDown
+                            className={`h-4 w-4 shrink-0 text-olive-500 transition dark:text-olive-400 ${
+                                areasOpen ? 'rotate-180' : ''
+                            }`}
+                            strokeWidth={2}
+                        />
+                    </button>
+
+                    {areasOpen ? (
+                        <div
+                            ref={areasMenuRef}
+                            role="listbox"
+                            aria-multiselectable="true"
+                            aria-labelledby="location-areas-label"
+                            className="absolute left-0 right-0 z-30 mt-1.5 overflow-hidden rounded-xl border border-olive-200 bg-white py-1 shadow-lift dark:border-olive-700 dark:bg-olive-900"
+                        >
+                            {areaChoices.map((area) => {
+                                const active = selectedAreas.includes(area);
+                                return (
+                                    <button
+                                        key={area}
+                                        type="button"
+                                        role="option"
+                                        aria-selected={active}
+                                        onClick={() => toggleArea(area)}
+                                        className={`flex w-full items-center gap-3 px-3.5 py-2.5 text-left text-sm transition ${
+                                            active
+                                                ? 'bg-mustard/20 font-semibold text-earth-dusk dark:bg-mustard/15 dark:text-mustard'
+                                                : 'text-olive-800 hover:bg-olive-50 dark:text-olive-100 dark:hover:bg-olive-800'
+                                        }`}
+                                    >
+                                        <span
+                                            className={`inline-flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
+                                                active
+                                                    ? 'border-olive-900 bg-olive-900 text-white dark:border-mustard dark:bg-mustard dark:text-earth-dusk'
+                                                    : 'border-olive-300 bg-white dark:border-olive-600 dark:bg-olive-950'
+                                            }`}
+                                        >
+                                            {active ? (
+                                                <Check
+                                                    className="h-3 w-3"
+                                                    strokeWidth={2.5}
+                                                />
+                                            ) : null}
+                                        </span>
+                                        {area}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    ) : null}
+                </div>
+                <p className={help}>
+                    Select one or more: Nanyuki, Naromoru, or Timau.
+                </p>
+                {errors.location ? (
+                    <p className="mt-1.5 text-sm text-rose-600">
+                        {errors.location}
+                    </p>
+                ) : null}
+            </div>
+
+            <div>
+                <label className={label} htmlFor="physical_address">
+                    Physical address / building name
+                </label>
+                <input
+                    id="physical_address"
+                    className={field}
+                    value={address || ''}
+                    onChange={(e) => onChange({ address: e.target.value })}
+                    placeholder="e.g. Cedars Mall, Kenyatta Highway"
+                />
+                {errors.address ? (
+                    <p className="mt-1.5 text-sm text-rose-600">
+                        {errors.address}
+                    </p>
+                ) : null}
+            </div>
+
+            <TierLockedField
+                locked={mapLocked}
+                feature="map_location"
+                requiredTier="Standard"
+                isAdmin={isAdmin}
+            >
+            <div className="space-y-4">
+            <div>
                 <label className={label} htmlFor="places_search">
-                    Find on {providerLabel}
+                    Map location ({providerLabel})
                 </label>
                 <div className="relative z-20">
                     <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-olive-500" />
@@ -711,7 +824,7 @@ export default function PlacesLocationInput({
                         aria-expanded={open}
                         aria-controls="places_suggestions"
                         aria-autocomplete="list"
-                        disabled={searchDisabled}
+                        disabled={searchDisabled || mapLocked}
                     />
                     {searching || status === 'loading' ? (
                         <Loader2 className="absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-olive-400" />
@@ -838,90 +951,8 @@ export default function PlacesLocationInput({
                     )}
                 </div>
             </div>
-
-            <div>
-                <span className={label} id="location-areas-label">
-                    Area / location
-                </span>
-                <div className="relative mt-1.5">
-                    <button
-                        ref={areasTriggerRef}
-                        type="button"
-                        id="location-areas"
-                        aria-labelledby="location-areas-label"
-                        aria-haspopup="listbox"
-                        aria-expanded={areasOpen}
-                        onClick={() => setAreasOpen((value) => !value)}
-                        className={`${field} flex items-center justify-between gap-3 text-left ${
-                            selectedAreas.length
-                                ? ''
-                                : 'text-olive-400 dark:text-olive-500'
-                        }`}
-                    >
-                        <span className="min-w-0 flex-1 truncate">
-                            {areasSummary}
-                        </span>
-                        <ChevronDown
-                            className={`h-4 w-4 shrink-0 text-olive-500 transition dark:text-olive-400 ${
-                                areasOpen ? 'rotate-180' : ''
-                            }`}
-                            strokeWidth={2}
-                        />
-                    </button>
-
-                    {areasOpen ? (
-                        <div
-                            ref={areasMenuRef}
-                            role="listbox"
-                            aria-multiselectable="true"
-                            aria-labelledby="location-areas-label"
-                            className="absolute left-0 right-0 z-30 mt-1.5 overflow-hidden rounded-xl border border-olive-200 bg-white py-1 shadow-lift dark:border-olive-700 dark:bg-olive-900"
-                        >
-                            {areaChoices.map((area) => {
-                                const active = selectedAreas.includes(area);
-                                return (
-                                    <button
-                                        key={area}
-                                        type="button"
-                                        role="option"
-                                        aria-selected={active}
-                                        onClick={() => toggleArea(area)}
-                                        className={`flex w-full items-center gap-3 px-3.5 py-2.5 text-left text-sm transition ${
-                                            active
-                                                ? 'bg-mustard/20 font-semibold text-earth-dusk dark:bg-mustard/15 dark:text-mustard'
-                                                : 'text-olive-800 hover:bg-olive-50 dark:text-olive-100 dark:hover:bg-olive-800'
-                                        }`}
-                                    >
-                                        <span
-                                            className={`inline-flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
-                                                active
-                                                    ? 'border-olive-900 bg-olive-900 text-white dark:border-mustard dark:bg-mustard dark:text-earth-dusk'
-                                                    : 'border-olive-300 bg-white dark:border-olive-600 dark:bg-olive-950'
-                                            }`}
-                                        >
-                                            {active ? (
-                                                <Check
-                                                    className="h-3 w-3"
-                                                    strokeWidth={2.5}
-                                                />
-                                            ) : null}
-                                        </span>
-                                        {area}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    ) : null}
-                </div>
-                <p className={help}>
-                    Select one or more: Nanyuki, Naromoru, or Timau.
-                </p>
-                {errors.location ? (
-                    <p className="mt-1.5 text-sm text-rose-600">
-                        {errors.location}
-                    </p>
-                ) : null}
             </div>
+            </TierLockedField>
         </div>
     );
 }

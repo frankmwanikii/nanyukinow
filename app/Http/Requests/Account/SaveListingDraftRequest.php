@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Account;
 
+use App\Support\ListingSubcategories;
 use App\Support\Membership;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -45,9 +46,9 @@ class SaveListingDraftRequest extends FormRequest
             'cover' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:15360'],
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:15360'],
             'event_poster' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:15360'],
-            'gallery_files' => ['nullable', 'array', 'max:20'],
+            'gallery_files' => ['nullable', 'array', 'max:30'],
             'gallery_files.*' => ['image', 'mimes:jpg,jpeg,png,webp,gif', 'max:15360'],
-            'gallery_urls' => ['nullable', 'array', 'max:20'],
+            'gallery_urls' => ['nullable', 'array', 'max:30'],
             'gallery_urls.*' => ['nullable', 'string', 'max:500'],
             'amenities' => ['nullable', 'array', 'max:40'],
             'amenities.*' => ['string', 'max:80'],
@@ -81,7 +82,7 @@ class SaveListingDraftRequest extends FormRequest
      */
     private function decodeSubcategoryField(): ?array
     {
-        $normalized = \App\Support\ListingSubcategories::normalize($this->input('subcategory'));
+        $normalized = ListingSubcategories::normalize($this->input('subcategory'));
 
         return $normalized === [] ? null : $normalized;
     }

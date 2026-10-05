@@ -4,8 +4,15 @@ import {
     PRICE_LEVELS,
     categoryStepTitle,
 } from './categoryFieldConfig';
+import TierLockedField from './TierLockedField';
 import { field, help, label } from './fieldStyles';
 import RichTextEditor from './RichTextEditor';
+import {
+    canUseEatDrinkFeature,
+    eatDrinkCuisineLimit,
+    normalizeTier,
+    tierMeets,
+} from '@/data/eatDrinkTierFeatures';
 import { Plus, X } from 'lucide-react';
 import { useState } from 'react';
 
@@ -27,17 +34,35 @@ function richTextValue(value) {
     return '';
 }
 
-function TagsInput({ value = [], onChange, placeholder }) {
+function asTagList(value) {
+    if (Array.isArray(value)) {
+        return value
+            .map((item) => (typeof item === 'string' ? item.trim() : ''))
+            .filter(Boolean);
+    }
+    if (typeof value === 'string' && value.trim()) {
+        return value
+            .split(/[,|]+/)
+            .map((part) => part.trim())
+            .filter(Boolean);
+    }
+    return [];
+}
+
+function TagsInput({ value = [], onChange, placeholder, maxTags = null, disabled = false }) {
     const [draft, setDraft] = useState('');
+    const list = asTagList(value);
+    const atLimit = maxTags != null && list.length >= maxTags;
 
     const add = () => {
+        if (disabled || atLimit) return;
         const next = draft.trim();
         if (!next) return;
-        if (value.includes(next)) {
+        if (list.includes(next)) {
             setDraft('');
             return;
         }
-        onChange([...value, next]);
+        onChange([...list, next]);
         setDraft('');
     };
 
@@ -48,7 +73,8 @@ function TagsInput({ value = [], onChange, placeholder }) {
                     className={field}
                     value={draft}
                     onChange={(e) => setDraft(e.target.value)}
-                    placeholder={placeholder}
+                    placeholder={atLimit ? `Limit of ${maxTags} reached` : placeholder}
+                    disabled={disabled || atLimit}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                             e.preventDefault();
@@ -59,15 +85,16 @@ function TagsInput({ value = [], onChange, placeholder }) {
                 <button
                     type="button"
                     onClick={add}
-                    className="inline-flex shrink-0 items-center gap-1 rounded-xl bg-olive-900 px-3 text-sm font-semibold text-white"
+                    disabled={disabled || atLimit}
+                    className="inline-flex shrink-0 items-center gap-1 rounded-xl bg-olive-900 px-3 text-sm font-semibold text-white disabled:opacity-50"
                 >
                     <Plus className="h-4 w-4" />
                     Add
                 </button>
             </div>
-            {value.length ? (
+            {list.length ? (
                 <div className="mt-2 flex flex-wrap gap-2">
-                    {value.map((item) => (
+                    {list.map((item) => (
                         <span
                             key={item}
                             className="inline-flex items-center gap-1 rounded-full bg-olive-100 px-3 py-1 text-xs font-semibold text-olive-900 dark:bg-olive-800 dark:text-olive-100"
@@ -75,8 +102,9 @@ function TagsInput({ value = [], onChange, placeholder }) {
                             {item}
                             <button
                                 type="button"
+                                disabled={disabled}
                                 onClick={() =>
-                                    onChange(value.filter((v) => v !== item))
+                                    onChange(list.filter((v) => v !== item))
                                 }
                                 aria-label={`Remove ${item}`}
                             >
@@ -90,6 +118,39 @@ function TagsInput({ value = [], onChange, placeholder }) {
     );
 }
 
+function MultiChipPicker({ options = [], value = [], onChange, disabled = false }) {
+    const selected = asTagList(value);
+
+    return (
+        <div className="mt-2 flex flex-wrap gap-2">
+            {options.map((opt) => {
+                const active = selected.includes(opt);
+                return (
+                    <button
+                        key={opt}
+                        type="button"
+                        disabled={disabled}
+                        onClick={() => {
+                            if (disabled) return;
+                            const next = active
+                                ? selected.filter((p) => p !== opt)
+                                : [...selected, opt];
+                            onChange(next);
+                        }}
+                        className={`rounded-full px-3 py-1.5 text-xs font-semibold transition disabled:opacity-50 ${
+                            active
+                                ? 'bg-olive-900 text-white'
+                                : 'bg-olive-100 text-olive-800 hover:bg-olive-200'
+                        }`}
+                    >
+                        {opt}
+                    </button>
+                );
+            })}
+        </div>
+    );
+}
+
 export default function CategoryFields({
     categoryKey,
     details = {},
@@ -98,14 +159,23 @@ export default function CategoryFields({
     onPriceRangeChange,
     eventFields = null,
     onEventChange,
+    tier = 'free',
+    isAdmin = false,
 }) {
     const fields = CATEGORY_DETAIL_FIELDS[categoryKey] || [];
+    const isEatDrink = categoryKey === 'eatDrink';
+    const listingTier = normalizeTier(tier);
 
     const setDetail = (key, value) => {
         onDetailsChange({ ...details, [key]: value });
     };
 
     const payments = details.payments || [];
+    const paymentsLocked = isEatDrink && !canUseEatDrinkFeature(listingTier, 'payments');
+    const priceLevels =
+        isEatDrink && !tierMeets(listingTier, 'featured')
+            ? PRICE_LEVELS.filter((p) => p.value !== '$$$$')
+            : PRICE_LEVELS;
 
     return (
         <div className="space-y-5">
@@ -226,76 +296,128 @@ export default function CategoryFields({
             ) : null}
 
             <div className="grid gap-4 sm:grid-cols-2">
-                {fields.map((f) => (
-                    <div
-                        key={f.key}
-                        className={
-                            f.type === 'tags' ||
-                            f.type === 'richtext' ||
-                            f.key.includes('highlight')
-                                ? 'sm:col-span-2'
-                                : ''
-                        }
-                    >
-                        {f.type === 'richtext' ? (
-                            <RichTextEditor
-                                id={`detail_${f.key}`}
-                                label={f.label}
-                                value={richTextValue(details[f.key])}
-                                onChange={(html) => setDetail(f.key, html)}
-                                placeholder={f.placeholder}
-                                help={f.help}
-                                allowImages={false}
-                            />
-                        ) : (
-                            <>
-                        <label className={label} htmlFor={`detail_${f.key}`}>
-                            {f.label}
-                            {f.required ? (
-                                <span className="text-rose-500"> *</span>
-                            ) : null}
-                        </label>
-                        {f.type === 'select' ? (
-                            <select
-                                id={`detail_${f.key}`}
-                                className={field}
-                                value={details[f.key] || ''}
-                                onChange={(e) =>
-                                    setDetail(f.key, e.target.value)
-                                }
-                                required={f.required}
-                            >
-                                <option value="">Select…</option>
-                                {(f.options || []).map((opt) => (
-                                    <option key={opt} value={opt}>
-                                        {opt}
-                                    </option>
-                                ))}
-                            </select>
-                        ) : f.type === 'tags' ? (
-                            <TagsInput
-                                value={details[f.key] || []}
-                                onChange={(v) => setDetail(f.key, v)}
-                                placeholder={f.placeholder}
-                            />
-                        ) : (
-                            <input
-                                id={`detail_${f.key}`}
-                                type={f.type === 'email' ? 'email' : f.type === 'time' ? 'time' : 'text'}
-                                className={field}
-                                value={details[f.key] || ''}
-                                onChange={(e) =>
-                                    setDetail(f.key, e.target.value)
-                                }
-                                placeholder={f.placeholder}
-                                required={f.required}
-                            />
-                        )}
-                        {f.help ? <p className={help}>{f.help}</p> : null}
-                            </>
-                        )}
-                    </div>
-                ))}
+                {fields.map((f) => {
+                    const minTier = f.minTier || 'free';
+                    const locked =
+                        isEatDrink && !tierMeets(listingTier, minTier);
+                    const cuisineMax =
+                        f.key === 'cuisine' && isEatDrink
+                            ? eatDrinkCuisineLimit(listingTier)
+                            : null;
+
+                    return (
+                        <TierLockedField
+                            key={f.key}
+                            locked={locked}
+                            feature={f.key}
+                            requiredTier={
+                                minTier === 'featured'
+                                    ? 'Standard'
+                                    : minTier === 'premium'
+                                      ? 'Premium'
+                                      : 'Free'
+                            }
+                            isAdmin={isAdmin}
+                            className={
+                                f.type === 'tags' ||
+                                f.type === 'multi' ||
+                                f.type === 'richtext' ||
+                                f.key.includes('highlight') ||
+                                f.key === 'booking_url' ||
+                                f.key === 'avg_meal'
+                                    ? 'sm:col-span-2'
+                                    : ''
+                            }
+                        >
+                            {f.type === 'richtext' ? (
+                                <RichTextEditor
+                                    id={`detail_${f.key}`}
+                                    label={f.label}
+                                    value={richTextValue(details[f.key])}
+                                    onChange={(html) => setDetail(f.key, html)}
+                                    placeholder={f.placeholder}
+                                    help={f.help}
+                                    allowImages={false}
+                                />
+                            ) : (
+                                <>
+                                    <label
+                                        className={label}
+                                        htmlFor={`detail_${f.key}`}
+                                    >
+                                        {f.label}
+                                        {f.required ? (
+                                            <span className="text-rose-500">
+                                                {' '}
+                                                *
+                                            </span>
+                                        ) : null}
+                                    </label>
+                                    {f.type === 'select' ? (
+                                        <select
+                                            id={`detail_${f.key}`}
+                                            className={field}
+                                            value={details[f.key] || ''}
+                                            onChange={(e) =>
+                                                setDetail(f.key, e.target.value)
+                                            }
+                                            required={f.required && !locked}
+                                            disabled={locked}
+                                        >
+                                            <option value="">Select…</option>
+                                            {(f.options || []).map((opt) => (
+                                                <option key={opt} value={opt}>
+                                                    {opt}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    ) : f.type === 'tags' ? (
+                                        <TagsInput
+                                            value={details[f.key] || []}
+                                            onChange={(v) =>
+                                                setDetail(f.key, v)
+                                            }
+                                            placeholder={f.placeholder}
+                                            maxTags={cuisineMax}
+                                            disabled={locked}
+                                        />
+                                    ) : f.type === 'multi' ? (
+                                        <MultiChipPicker
+                                            options={f.options || []}
+                                            value={details[f.key] || []}
+                                            onChange={(v) =>
+                                                setDetail(f.key, v)
+                                            }
+                                            disabled={locked}
+                                        />
+                                    ) : (
+                                        <input
+                                            id={`detail_${f.key}`}
+                                            type={
+                                                f.type === 'email'
+                                                    ? 'email'
+                                                    : f.type === 'time'
+                                                      ? 'time'
+                                                      : 'text'
+                                            }
+                                            className={field}
+                                            value={details[f.key] || ''}
+                                            onChange={(e) =>
+                                                setDetail(f.key, e.target.value)
+                                            }
+                                            placeholder={f.placeholder}
+                                            required={f.required && !locked}
+                                            disabled={locked}
+                                        />
+                                    )}
+                                    {f.help ? (
+                                        <p className={help}>{f.help}</p>
+                                    ) : null}
+                                </>
+                            )}
+                        </TierLockedField>
+                    );
+                })}
             </div>
 
             {(categoryKey === 'eatDrink' ||
@@ -312,7 +434,7 @@ export default function CategoryFields({
                         onChange={(e) => onPriceRangeChange?.(e.target.value)}
                     >
                         <option value="">Select…</option>
-                        {PRICE_LEVELS.map((p) => (
+                        {priceLevels.map((p) => (
                             <option key={p.value} value={p.value}>
                                 {p.label}
                             </option>
@@ -321,33 +443,31 @@ export default function CategoryFields({
                 </div>
             )}
 
-            <div>
-                <p className={label}>Payment methods</p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                    {PAYMENT_OPTIONS.map((opt) => {
-                        const active = payments.includes(opt);
-                        return (
-                            <button
-                                key={opt}
-                                type="button"
-                                onClick={() => {
-                                    const next = active
-                                        ? payments.filter((p) => p !== opt)
-                                        : [...payments, opt];
-                                    setDetail('payments', next);
-                                }}
-                                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                                    active
-                                        ? 'bg-olive-900 text-white'
-                                        : 'bg-olive-100 text-olive-800 hover:bg-olive-200'
-                                }`}
-                            >
-                                {opt}
-                            </button>
-                        );
-                    })}
+            <TierLockedField
+                locked={paymentsLocked}
+                feature="payments"
+                requiredTier="Standard"
+                isAdmin={isAdmin}
+            >
+                <div>
+                    <p className={label}>Payment methods</p>
+                    <MultiChipPicker
+                        options={
+                            isEatDrink
+                                ? ['M-Pesa', 'Card', 'Cash', 'Paybill', 'Bank transfer']
+                                : PAYMENT_OPTIONS
+                        }
+                        value={payments}
+                        onChange={(next) => setDetail('payments', next)}
+                        disabled={paymentsLocked}
+                    />
+                    {isEatDrink ? (
+                        <p className={help}>
+                            Standard plan unlocks M-Pesa, cards, and cash options.
+                        </p>
+                    ) : null}
                 </div>
-            </div>
+            </TierLockedField>
         </div>
     );
 }

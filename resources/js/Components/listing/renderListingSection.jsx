@@ -3,6 +3,7 @@ import AgentCard from './AgentCard';
 import AmenitiesGrid from './AmenitiesGrid';
 import BulletList from './BulletList';
 import ChipRow from './ChipRow';
+import DetailSection from './DetailSection';
 import DirectionsMap from './DirectionsMap';
 import EventLineup from './EventLineup';
 import EventSchedule from './EventSchedule';
@@ -152,6 +153,33 @@ export function renderListingSection(key, listing) {
         case 'priceRange':
             // Merged into the chips Details card to avoid duplicate cards.
             return null;
+        case 'deals': {
+            const deals = Array.isArray(listing.deals) ? listing.deals : [];
+            if (!deals.length) return null;
+            return (
+                <DetailSection key={key} title="Deals & happy hour">
+                    <ul className="space-y-3">
+                        {deals.map((deal, index) => (
+                            <li
+                                key={`deal-${index}`}
+                                className="rounded-2xl border border-mustard/40 bg-mustard/10 px-4 py-3"
+                            >
+                                {deal.title ? (
+                                    <p className="font-display text-base font-semibold text-olive-950 dark:text-olive-50">
+                                        {deal.title}
+                                    </p>
+                                ) : null}
+                                {deal.description ? (
+                                    <p className="mt-1 text-sm text-olive-700 dark:text-olive-300">
+                                        {deal.description}
+                                    </p>
+                                ) : null}
+                            </li>
+                        ))}
+                    </ul>
+                </DetailSection>
+            );
+        }
         case 'menus':
             return (
                 <MenuGallery
@@ -222,7 +250,15 @@ export function renderListingSection(key, listing) {
             return <AgentCard key={key} agent={listing.agent} />;
         case 'eventSchedule':
             return (
-                <EventSchedule key={key} items={listing.eventSchedule} />
+                <EventSchedule
+                    key={key}
+                    items={listing.eventSchedule}
+                    title={
+                        listing.categoryKey === 'eatDrink'
+                            ? 'Events & live music'
+                            : 'Event schedule'
+                    }
+                />
             );
         default:
             return null;

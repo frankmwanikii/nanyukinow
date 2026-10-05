@@ -7,10 +7,10 @@ use App\Http\Requests\Admin\ListingRequest;
 use App\Models\Amenity;
 use App\Models\Category;
 use App\Models\Listing;
-use App\Models\Location;
 use App\Models\User;
 use App\Notifications\ListingReviewedNotification;
 use App\Support\CategoryKey;
+use App\Support\EatDrinkTierFeatures;
 use App\Support\ListingMedia;
 use App\Support\ListingPayload;
 use App\Support\ListingSlug;
@@ -345,7 +345,7 @@ class ListingController extends Controller
             $data['is_featured'] = true;
         }
 
-        // Priority: Free=0, Standard=1, Premium=3, Promoted=4 (below hero).
+        // Priority: Free=1, Standard=2, Premium=3, Promoted=4 (below hero).
         // Admin may pin promoted (4); otherwise sync from plan tier.
         $requestedPriority = isset($data['priority']) ? (int) $data['priority'] : null;
         if ($requestedPriority === Membership::PROMOTED_PRIORITY) {
@@ -395,7 +395,12 @@ class ListingController extends Controller
         $data['logo_url'] = $logoUrl;
         $data['event_poster_url'] = $posterUrl;
 
-        return $data;
+        $categorySlug = isset($data['category_id'])
+            ? Category::query()->whereKey($data['category_id'])->value('slug')
+            : $listing?->category?->slug;
+        $categoryKey = CategoryKey::fromSlug($categorySlug);
+
+        return EatDrinkTierFeatures::applyToPayload($data, $tier, $categoryKey);
     }
 
     /**

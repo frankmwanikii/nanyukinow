@@ -14,6 +14,7 @@ export default function VideoFields({
     videoUrl = '',
     videoTitle = '',
     onChange,
+    disabled = false,
 }) {
     const url = videoUrl || '';
     const title = videoTitle || '';
@@ -57,6 +58,7 @@ export default function VideoFields({
                         }
                         placeholder="https://www.youtube.com/watch?v=… or .mp4 link"
                         autoComplete="off"
+                        disabled={disabled}
                     />
                 </div>
                 {!valid ? (
@@ -78,6 +80,7 @@ export default function VideoFields({
                         onChange?.({ video_title: e.target.value })
                     }
                     placeholder="e.g. Preview · Frayo"
+                    disabled={disabled}
                     disabled={!url.trim()}
                 />
                 <p className={help}>
