@@ -47,6 +47,9 @@ Route::post('/listings/{listing:slug}/bookmark', [ListingController::class, 'boo
 Route::post('/listings/{listing:slug}/contact', [\App\Http\Controllers\ListingContactController::class, 'store'])
     ->middleware('throttle:10,1')
     ->name('listings.contact');
+Route::post('/newsletter', [\App\Http\Controllers\NewsletterController::class, 'store'])
+    ->middleware('throttle:10,1')
+    ->name('newsletter.subscribe');
 Route::post('/listings/{listing:slug}/claim', [\App\Http\Controllers\ListingClaimController::class, 'store'])
     ->middleware('throttle:8,1')
     ->name('listings.claim');

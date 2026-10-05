@@ -8,6 +8,9 @@ You received a message via {{ config('app.name') }}.
 @if ($senderPhone)
 **Phone:** {{ $senderPhone }}
 @endif
+@if ($attachmentCount)
+**Attachments:** {{ $attachmentCount }} {{ $attachmentCount === 1 ? 'file' : 'files' }} (see email attachments)
+@endif
 
 ---
 
@@ -15,7 +18,7 @@ You received a message via {{ config('app.name') }}.
 
 ---
 
-Reply to this email to respond to {{ $senderName }} — they are CC’d on this message.
+Reply to this email to respond directly to {{ $senderName }}.
 
 Thanks,<br>
 {{ config('app.name') }}

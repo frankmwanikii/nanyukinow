@@ -2,6 +2,7 @@ import { Head } from '@inertiajs/react';
 import Navbar from '@/Components/site/Navbar';
 import Footer from '@/Components/site/Footer';
 import MobileBottomNav from '@/Components/site/MobileBottomNav';
+import SuccessToastHost from '@/Components/site/SuccessToast';
 
 export default function SiteLayout({
     title,
@@ -28,6 +29,7 @@ export default function SiteLayout({
                 {hideFooter ? null : <Footer />}
             </div>
             <MobileBottomNav />
+            <SuccessToastHost />
         </>
     );
 }

@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Mail\ListingInquiryConfirmationMail;
+use App\Mail\ListingInquiryMail;
 use App\Models\Category;
 use App\Models\Conversation;
 use App\Models\Listing;
@@ -9,13 +11,14 @@ use App\Models\Message;
 use App\Models\User;
 use App\Notifications\WelcomeMemberNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class MemberMessagesTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function makeListing(User $owner): Listing
+    private function makeListing(User $owner, array $overrides = []): Listing
     {
         $category = Category::query()->create([
             'name' => 'Stays',
@@ -23,7 +26,7 @@ class MemberMessagesTest extends TestCase
             'sort_order' => 1,
         ]);
 
-        return Listing::query()->create([
+        return Listing::query()->create(array_merge([
             'user_id' => $owner->id,
             'category_id' => $category->id,
             'title' => 'Highland Lodge',
@@ -33,12 +36,15 @@ class MemberMessagesTest extends TestCase
             'claim_status' => 'claimed',
             'is_published' => true,
             'location' => 'Nanyuki',
-        ]);
+            'email' => 'lodge@example.com',
+        ], $overrides));
     }
 
     public function test_guest_can_contact_listing_owner(): void
     {
-        $owner = User::factory()->create();
+        Mail::fake();
+
+        $owner = User::factory()->create(['email' => 'owner@example.com']);
         $listing = $this->makeListing($owner);
 
         $this->from(route('listings.show', $listing->slug))
@@ -59,6 +65,87 @@ class MemberMessagesTest extends TestCase
             'guest_name' => 'Jane Wanjiru',
             'body' => 'Is this available next weekend?',
         ]);
+
+        Mail::assertSent(ListingInquiryMail::class, function (ListingInquiryMail $mail) use ($listing) {
+            $mail->assertHasReplyTo('jane@example.com', 'Jane Wanjiru');
+            $mail->assertTo('lodge@example.com');
+            $mail->assertSeeInText('Is this available next weekend?');
+
+            return $mail->listing->is($listing)
+                && $mail->senderEmail === 'jane@example.com';
+        });
+
+        Mail::assertSent(ListingInquiryConfirmationMail::class, function (ListingInquiryConfirmationMail $mail) use ($listing) {
+            $mail->assertTo('jane@example.com');
+            $mail->assertSeeInHtml('Message on its way');
+            $mail->assertSeeInHtml('Is this available next weekend?');
+
+            return $mail->listing->is($listing)
+                && $mail->senderEmail === 'jane@example.com';
+        });
+    }
+
+    public function test_contact_inquiry_email_includes_uploaded_attachments(): void
+    {
+        Mail::fake();
+
+        $owner = User::factory()->create(['email' => 'owner@example.com']);
+        $listing = $this->makeListing($owner);
+        $file = \Illuminate\Http\UploadedFile::fake()->create('floor-plan.pdf', 200, 'application/pdf');
+
+        $this->from(route('listings.show', $listing->slug))
+            ->post(route('listings.contact', $listing->slug), [
+                'first_name' => 'Jane',
+                'last_name' => 'Wanjiru',
+                'email' => 'jane@example.com',
+                'message' => 'Here is the floor plan.',
+                'attachments' => [$file],
+            ])
+            ->assertRedirect();
+
+        Mail::assertSent(ListingInquiryMail::class, function (ListingInquiryMail $mail) {
+            $mail->assertTo('lodge@example.com');
+
+            return count($mail->files) === 1
+                && ($mail->files[0]['name'] ?? null) === 'floor-plan.pdf';
+        });
+    }
+
+    public function test_contact_email_falls_back_to_owner_and_requires_sender_email(): void
+    {
+        Mail::fake();
+
+        $owner = User::factory()->create(['email' => 'owner@example.com']);
+        $listing = $this->makeListing($owner, ['email' => null]);
+
+        $this->from(route('listings.show', $listing->slug))
+            ->post(route('listings.contact', $listing->slug), [
+                'first_name' => 'Jane',
+                'last_name' => 'Wanjiru',
+                'message' => 'Hello',
+            ])
+            ->assertSessionHasErrors('email');
+
+        $this->from(route('listings.show', $listing->slug))
+            ->post(route('listings.contact', $listing->slug), [
+                'first_name' => 'Jane',
+                'last_name' => 'Wanjiru',
+                'email' => 'jane@example.com',
+                'message' => 'Hello again',
+            ])
+            ->assertRedirect();
+
+        Mail::assertSent(ListingInquiryMail::class, function (ListingInquiryMail $mail) {
+            $mail->assertTo('owner@example.com');
+
+            return true;
+        });
+
+        Mail::assertSent(ListingInquiryConfirmationMail::class, function (ListingInquiryConfirmationMail $mail) {
+            $mail->assertTo('jane@example.com');
+
+            return true;
+        });
     }
 
     public function test_inbox_shows_chats_and_alerts(): void

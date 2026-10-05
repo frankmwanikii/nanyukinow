@@ -1,13 +1,15 @@
-import { CloudUpload, FileText, Mail, Phone, Send, X } from 'lucide-react';
-import { router, usePage } from '@inertiajs/react';
-import { useEffect, useRef, useState } from 'react';
+import { Check, CloudUpload, FileText, Mail, Phone, Send, X } from 'lucide-react';
+import { usePage } from '@inertiajs/react';
+import axios from 'axios';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import DetailSection from './DetailSection';
 import RecaptchaField from './RecaptchaField';
+import { showSuccessToast } from '@/Components/site/SuccessToast';
 
 const MAX_FILES = 5;
 const MAX_BYTES = 8 * 1024 * 1024;
 const ACCEPT =
-    '.jpg,.jpeg,.png,.webp,.gif,.pdf,.doc,.docx,image/jpeg,image/png,image/webp,image/gif,application/pdf';
+    '.jpg,.jpeg,.png,.webp,.gif,.pdf,.doc,.docx,image/jpeg,image/png,image/webp,image/gif,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
 function isImage(file) {
     return String(file.type || '').startsWith('image/');
@@ -91,44 +93,89 @@ function YouTubeIcon({ className = '' }) {
     );
 }
 
-const fieldClass =
-    'w-full rounded-xl border-0 bg-olive-50 px-4 py-3.5 text-sm text-earth-dusk ring-1 ring-olive-200/80 placeholder:text-olive-400 transition focus:bg-white focus:ring-2 focus:ring-mustard';
+const fieldBaseClass =
+    'w-full rounded-xl border-0 px-4 py-3.5 text-sm text-earth-dusk placeholder:text-olive-400 transition focus:bg-white focus:ring-2';
 
-const fieldErrorClass =
-    'w-full rounded-xl border-0 bg-red-50/60 px-4 py-3.5 text-sm text-earth-dusk ring-1 ring-red-400 placeholder:text-olive-400 transition focus:bg-white focus:ring-2 focus:ring-red-500';
+const fieldIdleClass = `${fieldBaseClass} bg-olive-50 ring-1 ring-olive-200/80 focus:ring-mustard`;
+const fieldErrorClass = `${fieldBaseClass} bg-red-50/80 ring-1 ring-red-400 focus:ring-red-500`;
+const fieldOkClass = `${fieldBaseClass} bg-white ring-1 ring-olive-300 focus:ring-mustard`;
 
 const labelClass =
     'mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.08em] text-olive-500';
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+/** Requires local-part@domain.tld with a real TLD (2+ letters). */
+const EMAIL_RE =
+    /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z]{2,})+$/;
 
 function validateContactField(name, value) {
-    const trimmed = String(value ?? '').trim();
+    const raw = String(value ?? '');
+    const trimmed = raw.trim();
 
     switch (name) {
         case 'firstName':
             if (!trimmed) return 'First name is required.';
+            if (trimmed.length < 2) return 'Enter at least 2 characters.';
             if (trimmed.length > 80) return 'First name is too long.';
             return '';
         case 'lastName':
             if (!trimmed) return 'Last name is required.';
+            if (trimmed.length < 2) return 'Enter at least 2 characters.';
             if (trimmed.length > 80) return 'Last name is too long.';
             return '';
         case 'email':
             if (!trimmed) return 'Email is required so they can reply.';
             if (trimmed.length > 255) return 'Email is too long.';
-            if (!EMAIL_RE.test(trimmed)) return 'Enter a valid email address.';
+            if (/\s/.test(raw)) return 'Email can’t contain spaces.';
+            if (!trimmed.includes('@')) return 'Include an @ in the email address.';
+            if (trimmed.endsWith('@') || trimmed.startsWith('@')) {
+                return 'Enter a complete email like name@example.com.';
+            }
+            if (!trimmed.includes('.')) {
+                return 'Email needs a domain ending (e.g. .com, .co.ke).';
+            }
+            if (!EMAIL_RE.test(trimmed)) {
+                return 'Enter a valid email address (e.g. name@example.com).';
+            }
             return '';
         case 'phone':
+            if (!trimmed) return '';
             if (trimmed.length > 40) return 'Phone number is too long.';
+            if (!/^[+\d][\d\s()-]{5,}$/.test(trimmed)) {
+                return 'Enter a valid phone number.';
+            }
             return '';
         case 'message':
             if (!trimmed) return 'Please write a message.';
+            if (trimmed.length < 10) return 'Message is too short (min 10 characters).';
             if (trimmed.length > 5000) return 'Message is too long.';
             return '';
         default:
             return '';
     }
+}
+
+function FieldStatus({ error, ok }) {
+    if (error) {
+        return (
+            <p
+                className="mt-1.5 text-xs font-medium leading-snug text-red-600"
+                role="alert"
+            >
+                {error}
+            </p>
+        );
+    }
+    if (ok) {
+        return (
+            <p className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-olive-700">
+                <span className="flex h-4 w-4 items-center justify-center rounded-full bg-olive-700 text-white">
+                    <Check className="h-2.5 w-2.5" strokeWidth={3} />
+                </span>
+                Looks good
+            </p>
+        );
+    }
+    return null;
 }
 
 function ContactMethod({ href, icon: Icon, label, value, external = false }) {
@@ -157,7 +204,7 @@ function ContactMethod({ href, icon: Icon, label, value, external = false }) {
 
 function ContactMessageForm({ listing }) {
     const fileInputRef = useRef(null);
-    const { auth, flash } = usePage().props;
+    const { auth } = usePage().props;
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState(auth?.user?.email || '');
@@ -170,15 +217,8 @@ function ContactMessageForm({ listing }) {
     const [formError, setFormError] = useState('');
     const [sending, setSending] = useState(false);
     const [sent, setSent] = useState(false);
-    const [errors, setErrors] = useState({});
     const [touched, setTouched] = useState({});
-
-    useEffect(() => {
-        if (flash?.success) {
-            setSent(true);
-            window.setTimeout(() => setSent(false), 3200);
-        }
-    }, [flash?.success]);
+    const [submitted, setSubmitted] = useState(false);
 
     useEffect(() => {
         return () => {
@@ -189,21 +229,46 @@ function ContactMessageForm({ listing }) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const setFieldError = (name, value) => {
-        const next = validateContactField(name, value);
-        setErrors((prev) => {
-            if ((prev[name] || '') === next) return prev;
-            return { ...prev, [name]: next };
-        });
-        return next;
-    };
+    const fieldErrors = useMemo(
+        () => ({
+            firstName: validateContactField('firstName', firstName),
+            lastName: validateContactField('lastName', lastName),
+            email: validateContactField('email', email),
+            phone: validateContactField('phone', phone),
+            message: validateContactField('message', message),
+        }),
+        [firstName, lastName, email, phone, message],
+    );
 
     const updateField = (name, value, setter) => {
         setter(value);
         setTouched((prev) => ({ ...prev, [name]: true }));
-        setFieldError(name, value);
         if (formError) setFormError('');
+        if (sent) setSent(false);
     };
+
+    const markTouched = (name) => {
+        setTouched((prev) => ({ ...prev, [name]: true }));
+    };
+
+    const showError = (name) =>
+        touched[name] || submitted ? fieldErrors[name] : '';
+
+    const showOk = (name) => {
+        if (!(touched[name] || submitted)) return false;
+        if (fieldErrors[name]) return false;
+        // Phone is optional — only show ok when something valid was entered.
+        if (name === 'phone' && !String(phone).trim()) return false;
+        return true;
+    };
+
+    const inputClass = (name) => {
+        if (showError(name)) return fieldErrorClass;
+        if (showOk(name)) return fieldOkClass;
+        return fieldIdleClass;
+    };
+
+    const formIsValid = !Object.values(fieldErrors).some(Boolean);
 
     const clearDocs = () => {
         setDocs((prev) => {
@@ -271,15 +336,11 @@ function ContactMessageForm({ listing }) {
 
     const uploading = docs.some((doc) => doc.status === 'uploading');
 
-    const validateAll = () => {
-        const next = {
-            firstName: validateContactField('firstName', firstName),
-            lastName: validateContactField('lastName', lastName),
-            email: validateContactField('email', email),
-            phone: validateContactField('phone', phone),
-            message: validateContactField('message', message),
-        };
-        setErrors(next);
+    const submit = async (e) => {
+        e.preventDefault();
+        setCaptchaError('');
+        setFormError('');
+        setSubmitted(true);
         setTouched({
             firstName: true,
             lastName: true,
@@ -287,16 +348,8 @@ function ContactMessageForm({ listing }) {
             phone: true,
             message: true,
         });
-        return !Object.values(next).some(Boolean);
-    };
 
-    const submit = (e) => {
-        e.preventDefault();
-        setCaptchaError('');
-        setFormError('');
-
-        const fieldsOk = validateAll();
-        if (!fieldsOk) {
+        if (!formIsValid) {
             setFormError('Please fix the highlighted fields.');
             return;
         }
@@ -311,63 +364,81 @@ function ContactMessageForm({ listing }) {
         }
 
         setSending(true);
-        router.post(
-            route('listings.contact', listing.slug),
-            {
-                first_name: firstName.trim(),
-                last_name: lastName.trim(),
-                email: email.trim(),
-                phone: phone.trim() || null,
-                message: message.trim(),
-                'g-recaptcha-response': captchaToken,
-            },
-            {
-                preserveScroll: true,
-                onSuccess: () => {
-                    setFirstName('');
-                    setLastName('');
-                    setEmail(auth?.user?.email || '');
-                    setPhone('');
-                    setMessage('');
-                    clearDocs();
-                    setCaptchaToken('');
-                    setErrors({});
-                    setTouched({});
-                    setSent(true);
-                    window.setTimeout(() => setSent(false), 3200);
-                },
-                onError: (serverErrors) => {
-                    const mapped = {};
-                    if (serverErrors.first_name) mapped.firstName = serverErrors.first_name;
-                    if (serverErrors.last_name) mapped.lastName = serverErrors.last_name;
-                    if (serverErrors.email) mapped.email = serverErrors.email;
-                    if (serverErrors.phone) mapped.phone = serverErrors.phone;
-                    if (serverErrors.message) mapped.message = serverErrors.message;
-                    if (Object.keys(mapped).length) {
-                        setErrors((prev) => ({ ...prev, ...mapped }));
-                        setTouched((prev) => ({
-                            ...prev,
-                            firstName: true,
-                            lastName: true,
-                            email: true,
-                            phone: true,
-                            message: true,
-                        }));
-                    }
-                    setFormError(
-                        serverErrors.message ||
-                            serverErrors.email ||
-                            serverErrors.first_name ||
-                            'Could not send your message. Please try again.',
-                    );
-                },
-                onFinish: () => setSending(false),
-            },
-        );
-    };
+        try {
+            const formData = new FormData();
+            formData.append('first_name', firstName.trim());
+            formData.append('last_name', lastName.trim());
+            formData.append('email', email.trim());
+            if (phone.trim()) {
+                formData.append('phone', phone.trim());
+            }
+            formData.append('message', message.trim());
+            formData.append('g-recaptcha-response', captchaToken);
 
-    const showError = (name) => (touched[name] ? errors[name] : '');
-    const inputClass = (name) => (showError(name) ? fieldErrorClass : fieldClass);
+            docs.forEach((doc) => {
+                if (doc?.file) {
+                    formData.append('attachments[]', doc.file, doc.file.name);
+                }
+            });
+
+            const { data } = await axios.post(
+                route('listings.contact', listing.slug),
+                formData,
+                {
+                    headers: {
+                        Accept: 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                },
+            );
+
+            setFirstName('');
+            setLastName('');
+            setEmail(auth?.user?.email || '');
+            setPhone('');
+            setMessage('');
+            clearDocs();
+            setCaptchaToken('');
+            setTouched({});
+            setSubmitted(false);
+            setSent(true);
+            showSuccessToast(
+                data?.message || 'Message sent successfully.',
+            );
+            window.setTimeout(() => setSent(false), 8000);
+        } catch (err) {
+            const serverErrors = err?.response?.data?.errors || {};
+            const message =
+                err?.response?.data?.message ||
+                serverErrors.message?.[0] ||
+                serverErrors.email?.[0] ||
+                serverErrors.first_name?.[0] ||
+                serverErrors['attachments.0']?.[0] ||
+                serverErrors.attachments?.[0] ||
+                'Could not send your message. Please try again.';
+
+            setSubmitted(true);
+            setTouched({
+                firstName: true,
+                lastName: true,
+                email: true,
+                phone: true,
+                message: true,
+            });
+            setFormError(message);
+            if (
+                serverErrors['attachments.0']?.[0] ||
+                serverErrors.attachments?.[0]
+            ) {
+                setFileError(
+                    serverErrors['attachments.0']?.[0] ||
+                        serverErrors.attachments?.[0],
+                );
+            }
+        } finally {
+            setSending(false);
+        }
+    };
 
     return (
         <DetailSection title="Send a message">
@@ -387,28 +458,22 @@ function ContactMessageForm({ listing }) {
                             type="text"
                             value={firstName}
                             onChange={(e) =>
-                                updateField('firstName', e.target.value, setFirstName)
+                                updateField(
+                                    'firstName',
+                                    e.target.value,
+                                    setFirstName,
+                                )
                             }
-                            onBlur={() => {
-                                setTouched((prev) => ({ ...prev, firstName: true }));
-                                setFieldError('firstName', firstName);
-                            }}
+                            onBlur={() => markTouched('firstName')}
                             placeholder="Jane"
                             autoComplete="given-name"
                             aria-invalid={Boolean(showError('firstName'))}
-                            aria-describedby={
-                                showError('firstName') ? 'contact-fname-error' : undefined
-                            }
                             className={inputClass('firstName')}
                         />
-                        {showError('firstName') ? (
-                            <p
-                                id="contact-fname-error"
-                                className="mt-1.5 text-xs font-medium text-red-600"
-                            >
-                                {showError('firstName')}
-                            </p>
-                        ) : null}
+                        <FieldStatus
+                            error={showError('firstName')}
+                            ok={showOk('firstName')}
+                        />
                     </div>
                     <div className="min-w-0">
                         <label htmlFor="contact-lname" className={labelClass}>
@@ -419,28 +484,22 @@ function ContactMessageForm({ listing }) {
                             type="text"
                             value={lastName}
                             onChange={(e) =>
-                                updateField('lastName', e.target.value, setLastName)
+                                updateField(
+                                    'lastName',
+                                    e.target.value,
+                                    setLastName,
+                                )
                             }
-                            onBlur={() => {
-                                setTouched((prev) => ({ ...prev, lastName: true }));
-                                setFieldError('lastName', lastName);
-                            }}
+                            onBlur={() => markTouched('lastName')}
                             placeholder="Wanjiru"
                             autoComplete="family-name"
                             aria-invalid={Boolean(showError('lastName'))}
-                            aria-describedby={
-                                showError('lastName') ? 'contact-lname-error' : undefined
-                            }
                             className={inputClass('lastName')}
                         />
-                        {showError('lastName') ? (
-                            <p
-                                id="contact-lname-error"
-                                className="mt-1.5 text-xs font-medium text-red-600"
-                            >
-                                {showError('lastName')}
-                            </p>
-                        ) : null}
+                        <FieldStatus
+                            error={showError('lastName')}
+                            ok={showOk('lastName')}
+                        />
                     </div>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -450,31 +509,25 @@ function ContactMessageForm({ listing }) {
                         </label>
                         <input
                             id="contact-email"
-                            type="email"
+                            type="text"
+                            inputMode="email"
+                            autoCapitalize="none"
+                            autoCorrect="off"
+                            spellCheck={false}
                             value={email}
                             onChange={(e) =>
                                 updateField('email', e.target.value, setEmail)
                             }
-                            onBlur={() => {
-                                setTouched((prev) => ({ ...prev, email: true }));
-                                setFieldError('email', email);
-                            }}
+                            onBlur={() => markTouched('email')}
                             placeholder="you@email.com"
                             autoComplete="email"
                             aria-invalid={Boolean(showError('email'))}
-                            aria-describedby={
-                                showError('email') ? 'contact-email-error' : undefined
-                            }
                             className={inputClass('email')}
                         />
-                        {showError('email') ? (
-                            <p
-                                id="contact-email-error"
-                                className="mt-1.5 text-xs font-medium text-red-600"
-                            >
-                                {showError('email')}
-                            </p>
-                        ) : null}
+                        <FieldStatus
+                            error={showError('email')}
+                            ok={showOk('email')}
+                        />
                     </div>
                     <div className="min-w-0">
                         <label htmlFor="contact-phone" className={labelClass}>
@@ -487,26 +540,16 @@ function ContactMessageForm({ listing }) {
                             onChange={(e) =>
                                 updateField('phone', e.target.value, setPhone)
                             }
-                            onBlur={() => {
-                                setTouched((prev) => ({ ...prev, phone: true }));
-                                setFieldError('phone', phone);
-                            }}
+                            onBlur={() => markTouched('phone')}
                             placeholder="+254 …"
                             autoComplete="tel"
                             aria-invalid={Boolean(showError('phone'))}
-                            aria-describedby={
-                                showError('phone') ? 'contact-phone-error' : undefined
-                            }
                             className={inputClass('phone')}
                         />
-                        {showError('phone') ? (
-                            <p
-                                id="contact-phone-error"
-                                className="mt-1.5 text-xs font-medium text-red-600"
-                            >
-                                {showError('phone')}
-                            </p>
-                        ) : null}
+                        <FieldStatus
+                            error={showError('phone')}
+                            ok={showOk('phone')}
+                        />
                     </div>
                 </div>
                 <div className="min-w-0">
@@ -519,26 +562,16 @@ function ContactMessageForm({ listing }) {
                         onChange={(e) =>
                             updateField('message', e.target.value, setMessage)
                         }
-                        onBlur={() => {
-                            setTouched((prev) => ({ ...prev, message: true }));
-                            setFieldError('message', message);
-                        }}
+                        onBlur={() => markTouched('message')}
                         placeholder="How can they help you?"
                         rows={5}
                         aria-invalid={Boolean(showError('message'))}
-                        aria-describedby={
-                            showError('message') ? 'contact-message-error' : undefined
-                        }
                         className={`${inputClass('message')} min-h-[120px] resize-y`}
                     />
-                    {showError('message') ? (
-                        <p
-                            id="contact-message-error"
-                            className="mt-1.5 text-xs font-medium text-red-600"
-                        >
-                            {showError('message')}
-                        </p>
-                    ) : null}
+                    <FieldStatus
+                        error={showError('message')}
+                        ok={showOk('message')}
+                    />
                 </div>
 
                 <div>
@@ -659,7 +692,7 @@ function ContactMessageForm({ listing }) {
                 <div className="flex flex-wrap items-center gap-3 border-t border-olive-100 pt-5">
                     <button
                         type="submit"
-                        disabled={uploading || sending}
+                        disabled={uploading || sending || (submitted && !formIsValid)}
                         className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-olive-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-mustard hover:text-olive-950 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
                     >
                         <Send className="h-4 w-4" />
@@ -669,16 +702,31 @@ function ContactMessageForm({ listing }) {
                               ? 'Sending…'
                               : 'Send message'}
                     </button>
-                    {sent ? (
-                        <span className="text-sm font-semibold text-olive-700">
-                            Message sent — thanks!
-                        </span>
-                    ) : null}
                 </div>
                 {formError ? (
                     <p className="text-sm font-medium text-red-600">{formError}</p>
                 ) : null}
             </form>
+
+            {sent ? (
+                <div
+                    role="status"
+                    aria-live="polite"
+                    className="mt-5 flex items-start gap-3 rounded-2xl bg-olive-50 px-4 py-3.5 ring-1 ring-olive-200/80"
+                >
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-olive-700 text-white">
+                        <Check className="h-5 w-5" strokeWidth={2.5} />
+                    </span>
+                    <div className="min-w-0 pt-0.5">
+                        <p className="text-sm font-semibold text-earth-dusk">
+                            Message sent successfully
+                        </p>
+                        <p className="mt-0.5 text-sm text-olive-600">
+                            Thanks — they’ll get your note and can reply by email.
+                        </p>
+                    </div>
+                </div>
+            ) : null}
         </DetailSection>
     );
 }

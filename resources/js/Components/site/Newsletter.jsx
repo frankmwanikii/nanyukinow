@@ -1,14 +1,71 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
+import axios from 'axios';
 import Reveal from './Reveal';
+import { showSuccessToast } from './SuccessToast';
+
+const EMAIL_RE =
+    /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z]{2,})+$/;
+
+function validateEmail(value) {
+    const raw = String(value ?? '');
+    const trimmed = raw.trim();
+    if (!trimmed) return 'Email is required.';
+    if (/\s/.test(raw)) return 'Email can’t contain spaces.';
+    if (!trimmed.includes('@')) return 'Include an @ in the email address.';
+    if (!EMAIL_RE.test(trimmed)) {
+        return 'Enter a valid email address (e.g. you@email.com).';
+    }
+    return '';
+}
 
 export default function Newsletter() {
-    const [sent, setSent] = useState(false);
     const [email, setEmail] = useState('');
+    const [touched, setTouched] = useState(false);
+    const [sending, setSending] = useState(false);
+    const [formError, setFormError] = useState('');
 
-    const onSubmit = (e) => {
+    const emailError = useMemo(() => validateEmail(email), [email]);
+    const showError = touched ? emailError : '';
+
+    const onSubmit = async (e) => {
         e.preventDefault();
-        setSent(true);
+        setTouched(true);
+        setFormError('');
+
+        if (emailError) {
+            setFormError(emailError);
+            return;
+        }
+        if (sending) return;
+
+        setSending(true);
+        try {
+            const { data } = await axios.post(
+                route('newsletter.subscribe'),
+                { email: email.trim() },
+                {
+                    headers: {
+                        Accept: 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                },
+            );
+
+            setEmail('');
+            setTouched(false);
+            showSuccessToast(
+                data?.message || 'You’re subscribed — welcome to Nanyuki Insider.',
+            );
+        } catch (err) {
+            const message =
+                err?.response?.data?.errors?.email?.[0] ||
+                err?.response?.data?.message ||
+                'Could not subscribe. Please try again.';
+            setFormError(message);
+        } finally {
+            setSending(false);
+        }
     };
 
     return (
@@ -63,48 +120,64 @@ export default function Newsletter() {
                             </p>
                             <div className="mt-4 h-px bg-olive-100" />
 
-                            {sent ? (
-                                <motion.p
-                                    initial={{ opacity: 0, y: 8 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className="mt-6 font-display text-lg text-olive-700"
-                                >
-                                    Thanks — you’re on the Insider list.
-                                </motion.p>
-                            ) : (
-                                <form
-                                    onSubmit={onSubmit}
-                                    className="mt-6 space-y-5"
-                                >
-                                    <label className="block">
-                                        <span className="mb-1.5 block text-sm font-semibold text-earth-dusk">
-                                            Email address{' '}
-                                            <span className="text-mustard">
-                                                *
-                                            </span>
+                            <form
+                                onSubmit={onSubmit}
+                                className="mt-6 space-y-5"
+                                noValidate
+                            >
+                                <label className="block">
+                                    <span className="mb-1.5 block text-sm font-semibold text-earth-dusk">
+                                        Email address{' '}
+                                        <span className="text-mustard">*</span>
+                                    </span>
+                                    <input
+                                        type="text"
+                                        inputMode="email"
+                                        autoCapitalize="none"
+                                        autoCorrect="off"
+                                        spellCheck={false}
+                                        value={email}
+                                        onChange={(e) => {
+                                            setEmail(e.target.value);
+                                            setTouched(true);
+                                            if (formError) setFormError('');
+                                        }}
+                                        onBlur={() => setTouched(true)}
+                                        placeholder="you@email.com"
+                                        aria-invalid={Boolean(showError)}
+                                        className={`w-full rounded-xl border-0 px-4 py-3.5 text-sm text-earth-dusk ring-1 placeholder:text-olive-400 focus:ring-2 ${
+                                            showError
+                                                ? 'bg-red-50/80 ring-red-400 focus:ring-red-500'
+                                                : 'bg-olive-50 ring-olive-200 focus:ring-mustard'
+                                        }`}
+                                    />
+                                    {showError ? (
+                                        <span
+                                            className="mt-1.5 block text-xs font-medium text-red-600"
+                                            role="alert"
+                                        >
+                                            {showError}
                                         </span>
-                                        <input
-                                            required
-                                            type="email"
-                                            value={email}
-                                            onChange={(e) =>
-                                                setEmail(e.target.value)
-                                            }
-                                            placeholder="you@email.com"
-                                            className="w-full rounded-xl border-0 bg-olive-50 px-4 py-3.5 text-sm text-earth-dusk ring-1 ring-olive-200 placeholder:text-olive-400 focus:ring-2 focus:ring-mustard"
-                                        />
+                                    ) : (
                                         <span className="mt-1.5 block text-xs text-olive-500">
                                             Example: you@email.com
                                         </span>
-                                    </label>
-                                    <button
-                                        type="submit"
-                                        className="inline-flex w-full items-center justify-center rounded-full bg-olive-700 px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-mustard hover:text-olive-950 sm:w-auto"
-                                    >
-                                        Subscribe
-                                    </button>
-                                </form>
-                            )}
+                                    )}
+                                </label>
+                                {formError && formError !== showError ? (
+                                    <p className="text-sm font-medium text-red-600">
+                                        {formError}
+                                    </p>
+                                ) : null}
+                                <motion.button
+                                    type="submit"
+                                    disabled={sending}
+                                    whileTap={{ scale: 0.98 }}
+                                    className="inline-flex w-full items-center justify-center rounded-full bg-olive-700 px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-mustard hover:text-olive-950 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+                                >
+                                    {sending ? 'Subscribing…' : 'Subscribe'}
+                                </motion.button>
+                            </form>
                         </div>
                     </div>
                 </Reveal>
