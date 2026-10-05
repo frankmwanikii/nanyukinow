@@ -1,14 +1,8 @@
-import { CloudUpload, FileText, Globe, Mail, MapPin, Phone, Send, X } from 'lucide-react';
+import { CloudUpload, FileText, Mail, Phone, Send, X } from 'lucide-react';
 import { router, usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import DetailSection from './DetailSection';
-import DirectionsMap from './DirectionsMap';
-import HoursList from './HoursList';
-import EventSchedule from './EventSchedule';
-import AgentCard from './AgentCard';
-import WaysToPay from './WaysToPay';
 import RecaptchaField from './RecaptchaField';
-import { listingVisitUrl } from '@/utils/listingVisit';
 
 const MAX_FILES = 5;
 const MAX_BYTES = 8 * 1024 * 1024;
@@ -98,7 +92,68 @@ function YouTubeIcon({ className = '' }) {
 }
 
 const fieldClass =
-    'w-full rounded-xl border-0 bg-olive-50 px-4 py-3 text-sm text-earth-dusk ring-1 ring-olive-200 placeholder:text-olive-400 focus:ring-2 focus:ring-mustard';
+    'w-full rounded-xl border-0 bg-olive-50 px-4 py-3.5 text-sm text-earth-dusk ring-1 ring-olive-200/80 placeholder:text-olive-400 transition focus:bg-white focus:ring-2 focus:ring-mustard';
+
+const fieldErrorClass =
+    'w-full rounded-xl border-0 bg-red-50/60 px-4 py-3.5 text-sm text-earth-dusk ring-1 ring-red-400 placeholder:text-olive-400 transition focus:bg-white focus:ring-2 focus:ring-red-500';
+
+const labelClass =
+    'mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.08em] text-olive-500';
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function validateContactField(name, value) {
+    const trimmed = String(value ?? '').trim();
+
+    switch (name) {
+        case 'firstName':
+            if (!trimmed) return 'First name is required.';
+            if (trimmed.length > 80) return 'First name is too long.';
+            return '';
+        case 'lastName':
+            if (!trimmed) return 'Last name is required.';
+            if (trimmed.length > 80) return 'Last name is too long.';
+            return '';
+        case 'email':
+            if (!trimmed) return 'Email is required so they can reply.';
+            if (trimmed.length > 255) return 'Email is too long.';
+            if (!EMAIL_RE.test(trimmed)) return 'Enter a valid email address.';
+            return '';
+        case 'phone':
+            if (trimmed.length > 40) return 'Phone number is too long.';
+            return '';
+        case 'message':
+            if (!trimmed) return 'Please write a message.';
+            if (trimmed.length > 5000) return 'Message is too long.';
+            return '';
+        default:
+            return '';
+    }
+}
+
+function ContactMethod({ href, icon: Icon, label, value, external = false }) {
+    return (
+        <a
+            href={href}
+            {...(external
+                ? { target: '_blank', rel: 'noreferrer' }
+                : {})}
+            className="group flex min-h-14 min-w-0 items-center gap-3.5 rounded-2xl bg-olive-50/80 px-3.5 py-3 ring-1 ring-olive-200/60 transition hover:bg-mustard/15 hover:ring-mustard/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard"
+        >
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-mustard shadow-soft ring-1 ring-olive-100 transition group-hover:bg-mustard group-hover:text-olive-950 group-hover:ring-mustard">
+                <Icon className="h-[18px] w-[18px]" />
+            </span>
+            <span className="min-w-0 flex-1">
+                <span className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-olive-500">
+                    {label}
+                </span>
+                <span className="mt-0.5 block truncate text-sm font-semibold text-earth-dusk">
+                    {value}
+                </span>
+            </span>
+        </a>
+    );
+}
 
 function ContactMessageForm({ listing }) {
     const fileInputRef = useRef(null);
@@ -115,6 +170,8 @@ function ContactMessageForm({ listing }) {
     const [formError, setFormError] = useState('');
     const [sending, setSending] = useState(false);
     const [sent, setSent] = useState(false);
+    const [errors, setErrors] = useState({});
+    const [touched, setTouched] = useState({});
 
     useEffect(() => {
         if (flash?.success) {
@@ -131,6 +188,22 @@ function ContactMessageForm({ listing }) {
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    const setFieldError = (name, value) => {
+        const next = validateContactField(name, value);
+        setErrors((prev) => {
+            if ((prev[name] || '') === next) return prev;
+            return { ...prev, [name]: next };
+        });
+        return next;
+    };
+
+    const updateField = (name, value, setter) => {
+        setter(value);
+        setTouched((prev) => ({ ...prev, [name]: true }));
+        setFieldError(name, value);
+        if (formError) setFormError('');
+    };
 
     const clearDocs = () => {
         setDocs((prev) => {
@@ -198,13 +271,33 @@ function ContactMessageForm({ listing }) {
 
     const uploading = docs.some((doc) => doc.status === 'uploading');
 
+    const validateAll = () => {
+        const next = {
+            firstName: validateContactField('firstName', firstName),
+            lastName: validateContactField('lastName', lastName),
+            email: validateContactField('email', email),
+            phone: validateContactField('phone', phone),
+            message: validateContactField('message', message),
+        };
+        setErrors(next);
+        setTouched({
+            firstName: true,
+            lastName: true,
+            email: true,
+            phone: true,
+            message: true,
+        });
+        return !Object.values(next).some(Boolean);
+    };
+
     const submit = (e) => {
         e.preventDefault();
         setCaptchaError('');
         setFormError('');
-        if (!firstName.trim() || !lastName.trim() || !message.trim()) return;
-        if (!email.trim() && !auth?.user) {
-            setFormError('Please add your email so they can reply.');
+
+        const fieldsOk = validateAll();
+        if (!fieldsOk) {
+            setFormError('Please fix the highlighted fields.');
             return;
         }
         if (!captchaToken) {
@@ -223,7 +316,7 @@ function ContactMessageForm({ listing }) {
             {
                 first_name: firstName.trim(),
                 last_name: lastName.trim(),
-                email: email.trim() || null,
+                email: email.trim(),
                 phone: phone.trim() || null,
                 message: message.trim(),
                 'g-recaptcha-response': captchaToken,
@@ -238,14 +331,33 @@ function ContactMessageForm({ listing }) {
                     setMessage('');
                     clearDocs();
                     setCaptchaToken('');
+                    setErrors({});
+                    setTouched({});
                     setSent(true);
                     window.setTimeout(() => setSent(false), 3200);
                 },
-                onError: (errors) => {
+                onError: (serverErrors) => {
+                    const mapped = {};
+                    if (serverErrors.first_name) mapped.firstName = serverErrors.first_name;
+                    if (serverErrors.last_name) mapped.lastName = serverErrors.last_name;
+                    if (serverErrors.email) mapped.email = serverErrors.email;
+                    if (serverErrors.phone) mapped.phone = serverErrors.phone;
+                    if (serverErrors.message) mapped.message = serverErrors.message;
+                    if (Object.keys(mapped).length) {
+                        setErrors((prev) => ({ ...prev, ...mapped }));
+                        setTouched((prev) => ({
+                            ...prev,
+                            firstName: true,
+                            lastName: true,
+                            email: true,
+                            phone: true,
+                            message: true,
+                        }));
+                    }
                     setFormError(
-                        errors.message ||
-                            errors.email ||
-                            errors.first_name ||
+                        serverErrors.message ||
+                            serverErrors.email ||
+                            serverErrors.first_name ||
                             'Could not send your message. Please try again.',
                     );
                 },
@@ -254,104 +366,183 @@ function ContactMessageForm({ listing }) {
         );
     };
 
+    const showError = (name) => (touched[name] ? errors[name] : '');
+    const inputClass = (name) => (showError(name) ? fieldErrorClass : fieldClass);
+
     return (
         <DetailSection title="Send a message">
-            <p className="mb-4 text-sm text-olive-600">
-                Reach {listing.title} directly — we’ll pass your note along.
-            </p>
-            <form onSubmit={submit} className="space-y-4" encType="multipart/form-data">
+            <form
+                onSubmit={submit}
+                className="space-y-5"
+                encType="multipart/form-data"
+                noValidate
+            >
                 <div className="grid gap-4 sm:grid-cols-2">
-                    <div>
-                        <label
-                            htmlFor="contact-fname"
-                            className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-olive-500"
-                        >
+                    <div className="min-w-0">
+                        <label htmlFor="contact-fname" className={labelClass}>
                             First name
                         </label>
                         <input
                             id="contact-fname"
                             type="text"
                             value={firstName}
-                            onChange={(e) => setFirstName(e.target.value)}
+                            onChange={(e) =>
+                                updateField('firstName', e.target.value, setFirstName)
+                            }
+                            onBlur={() => {
+                                setTouched((prev) => ({ ...prev, firstName: true }));
+                                setFieldError('firstName', firstName);
+                            }}
                             placeholder="Jane"
-                            required
-                            className={fieldClass}
+                            autoComplete="given-name"
+                            aria-invalid={Boolean(showError('firstName'))}
+                            aria-describedby={
+                                showError('firstName') ? 'contact-fname-error' : undefined
+                            }
+                            className={inputClass('firstName')}
                         />
+                        {showError('firstName') ? (
+                            <p
+                                id="contact-fname-error"
+                                className="mt-1.5 text-xs font-medium text-red-600"
+                            >
+                                {showError('firstName')}
+                            </p>
+                        ) : null}
                     </div>
-                    <div>
-                        <label
-                            htmlFor="contact-lname"
-                            className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-olive-500"
-                        >
+                    <div className="min-w-0">
+                        <label htmlFor="contact-lname" className={labelClass}>
                             Last name
                         </label>
                         <input
                             id="contact-lname"
                             type="text"
                             value={lastName}
-                            onChange={(e) => setLastName(e.target.value)}
+                            onChange={(e) =>
+                                updateField('lastName', e.target.value, setLastName)
+                            }
+                            onBlur={() => {
+                                setTouched((prev) => ({ ...prev, lastName: true }));
+                                setFieldError('lastName', lastName);
+                            }}
                             placeholder="Wanjiru"
-                            required
-                            className={fieldClass}
+                            autoComplete="family-name"
+                            aria-invalid={Boolean(showError('lastName'))}
+                            aria-describedby={
+                                showError('lastName') ? 'contact-lname-error' : undefined
+                            }
+                            className={inputClass('lastName')}
                         />
+                        {showError('lastName') ? (
+                            <p
+                                id="contact-lname-error"
+                                className="mt-1.5 text-xs font-medium text-red-600"
+                            >
+                                {showError('lastName')}
+                            </p>
+                        ) : null}
                     </div>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
-                    <div>
-                        <label
-                            htmlFor="contact-email"
-                            className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-olive-500"
-                        >
+                    <div className="min-w-0">
+                        <label htmlFor="contact-email" className={labelClass}>
                             Your email
                         </label>
                         <input
                             id="contact-email"
                             type="email"
                             value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            onChange={(e) =>
+                                updateField('email', e.target.value, setEmail)
+                            }
+                            onBlur={() => {
+                                setTouched((prev) => ({ ...prev, email: true }));
+                                setFieldError('email', email);
+                            }}
                             placeholder="you@email.com"
-                            className={fieldClass}
+                            autoComplete="email"
+                            aria-invalid={Boolean(showError('email'))}
+                            aria-describedby={
+                                showError('email') ? 'contact-email-error' : undefined
+                            }
+                            className={inputClass('email')}
                         />
+                        {showError('email') ? (
+                            <p
+                                id="contact-email-error"
+                                className="mt-1.5 text-xs font-medium text-red-600"
+                            >
+                                {showError('email')}
+                            </p>
+                        ) : null}
                     </div>
-                    <div>
-                        <label
-                            htmlFor="contact-phone"
-                            className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-olive-500"
-                        >
+                    <div className="min-w-0">
+                        <label htmlFor="contact-phone" className={labelClass}>
                             Phone
                         </label>
                         <input
                             id="contact-phone"
                             type="tel"
                             value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
+                            onChange={(e) =>
+                                updateField('phone', e.target.value, setPhone)
+                            }
+                            onBlur={() => {
+                                setTouched((prev) => ({ ...prev, phone: true }));
+                                setFieldError('phone', phone);
+                            }}
                             placeholder="+254 …"
-                            className={fieldClass}
+                            autoComplete="tel"
+                            aria-invalid={Boolean(showError('phone'))}
+                            aria-describedby={
+                                showError('phone') ? 'contact-phone-error' : undefined
+                            }
+                            className={inputClass('phone')}
                         />
+                        {showError('phone') ? (
+                            <p
+                                id="contact-phone-error"
+                                className="mt-1.5 text-xs font-medium text-red-600"
+                            >
+                                {showError('phone')}
+                            </p>
+                        ) : null}
                     </div>
                 </div>
-                <div>
-                    <label
-                        htmlFor="contact-message"
-                        className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-olive-500"
-                    >
+                <div className="min-w-0">
+                    <label htmlFor="contact-message" className={labelClass}>
                         Message
                     </label>
                     <textarea
                         id="contact-message"
                         value={message}
-                        onChange={(e) => setMessage(e.target.value)}
+                        onChange={(e) =>
+                            updateField('message', e.target.value, setMessage)
+                        }
+                        onBlur={() => {
+                            setTouched((prev) => ({ ...prev, message: true }));
+                            setFieldError('message', message);
+                        }}
                         placeholder="How can they help you?"
-                        required
-                        rows={4}
-                        className={`${fieldClass} resize-y`}
+                        rows={5}
+                        aria-invalid={Boolean(showError('message'))}
+                        aria-describedby={
+                            showError('message') ? 'contact-message-error' : undefined
+                        }
+                        className={`${inputClass('message')} min-h-[120px] resize-y`}
                     />
+                    {showError('message') ? (
+                        <p
+                            id="contact-message-error"
+                            className="mt-1.5 text-xs font-medium text-red-600"
+                        >
+                            {showError('message')}
+                        </p>
+                    ) : null}
                 </div>
 
                 <div>
-                    <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-olive-500">
-                        Attach files
-                    </p>
+                    <p className={labelClass}>Attach files</p>
                     <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
@@ -360,13 +551,13 @@ function ContactMessageForm({ listing }) {
                             e.stopPropagation();
                         }}
                         onDrop={onDrop}
-                        className="flex w-full flex-col items-center justify-center rounded-xl border border-dashed border-mustard/70 bg-white px-4 py-8 text-center transition hover:border-mustard hover:bg-olive-50/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard"
+                        className="flex w-full flex-col items-center justify-center rounded-2xl border border-dashed border-mustard/60 bg-olive-50/40 px-4 py-7 text-center transition hover:border-mustard hover:bg-mustard/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard"
                     >
                         <CloudUpload
-                            className="h-10 w-10 text-mustard"
+                            className="h-9 w-9 text-mustard"
                             strokeWidth={1.5}
                         />
-                        <span className="mt-3 text-sm font-semibold text-earth-dusk">
+                        <span className="mt-2.5 text-sm font-semibold text-earth-dusk">
                             Drop files here or click to upload
                         </span>
                         <span className="mt-1 text-xs text-olive-500">
@@ -438,7 +629,7 @@ function ContactMessageForm({ listing }) {
                                         <button
                                             type="button"
                                             onClick={() => removeFile(doc.id)}
-                                            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white text-olive-700 ring-1 ring-olive-200 transition hover:bg-mustard"
+                                            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-olive-700 ring-1 ring-olive-200 transition hover:bg-mustard"
                                             aria-label={`Remove ${doc.file.name}`}
                                         >
                                             <X className="h-3.5 w-3.5" />
@@ -465,14 +656,18 @@ function ContactMessageForm({ listing }) {
                     error={captchaError}
                 />
 
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3 border-t border-olive-100 pt-5">
                     <button
                         type="submit"
                         disabled={uploading || sending}
-                        className="inline-flex items-center gap-2 rounded-full bg-olive-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-mustard hover:text-olive-950 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-olive-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-mustard hover:text-olive-950 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
                     >
                         <Send className="h-4 w-4" />
-                        {uploading ? 'Uploading…' : sending ? 'Sending…' : 'Send message'}
+                        {uploading
+                            ? 'Uploading…'
+                            : sending
+                              ? 'Sending…'
+                              : 'Send message'}
                     </button>
                     {sent ? (
                         <span className="text-sm font-semibold text-olive-700">
@@ -513,139 +708,54 @@ export default function ContactInfoPage({ listing }) {
             : null,
     ].filter(Boolean);
 
-    return (
-        <div className="mx-auto grid max-w-[1400px] gap-4 px-4 sm:px-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.9fr)] lg:items-start lg:gap-5">
-            <div className="flex flex-col gap-4">
-                <DetailSection title="Contact info">
-                    <div className="space-y-5">
-                        <div>
-                            <p className="font-display text-xl font-semibold text-earth-dusk">
-                                {listing.title}
-                            </p>
-                            <p className="mt-1 text-sm text-olive-600">
-                                {listing.tagline}
-                                {listing.location ? ` · ${listing.location}` : ''}
-                            </p>
-                        </div>
+    const hasContactDetails = Boolean(tel || email || socialLinks.length);
 
-                        {listing.address ? (
-                            <p className="flex items-start gap-2 text-sm text-olive-800">
-                                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-mustard" />
-                                <span>{listing.address}</span>
-                            </p>
-                        ) : null}
-
-                        {(listing.website ||
-                            (listing.websiteLinks || []).length > 0) && (
-                            <div>
-                                <p className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-olive-500">
-                                    Website links
-                                </p>
-                                <div className="flex flex-wrap gap-2">
-                                    {listing.website ? (
-                                        <a
-                                            href={listingVisitUrl(
-                                                listing.slug,
-                                                listing.website,
-                                            )}
-                                            className="inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-2 text-sm font-semibold text-olive-800 ring-1 ring-olive-200 transition hover:bg-olive-700 hover:text-white hover:ring-olive-700"
-                                        >
-                                            <Globe className="h-4 w-4" />
-                                            Website
-                                        </a>
-                                    ) : null}
-                                    {(listing.websiteLinks || []).map((item) => (
-                                        <a
-                                            key={`${item.label}-${item.url}`}
-                                            href={listingVisitUrl(
-                                                listing.slug,
-                                                item.url,
-                                            )}
-                                            className="inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-2 text-sm font-semibold text-olive-800 ring-1 ring-olive-200 transition hover:bg-olive-700 hover:text-white hover:ring-olive-700"
-                                        >
-                                            <Globe className="h-4 w-4" />
-                                            {item.label || 'Link'}
-                                        </a>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        <div className="grid gap-3 sm:grid-cols-2">
-                            {tel ? (
-                                <a
-                                    href={tel}
-                                    className="flex items-center gap-3 rounded-xl bg-olive-50 px-4 py-3 text-sm font-semibold text-olive-900 transition hover:bg-mustard/20"
-                                >
-                                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-mustard shadow-soft">
-                                        <Phone className="h-4 w-4" />
-                                    </span>
-                                    <span>
-                                        <span className="block text-[11px] font-semibold uppercase tracking-wide text-olive-500">
-                                            Phone
-                                        </span>
-                                        {listing.phone}
-                                    </span>
-                                </a>
-                            ) : null}
-                            {email ? (
-                                <a
-                                    href={`mailto:${email}`}
-                                    className="flex items-center gap-3 rounded-xl bg-olive-50 px-4 py-3 text-sm font-semibold text-olive-900 transition hover:bg-mustard/20"
-                                >
-                                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-mustard shadow-soft">
-                                        <Mail className="h-4 w-4" />
-                                    </span>
-                                    <span className="min-w-0">
-                                        <span className="block text-[11px] font-semibold uppercase tracking-wide text-olive-500">
-                                            Email
-                                        </span>
-                                        <span className="break-all">{email}</span>
-                                    </span>
-                                </a>
-                            ) : null}
-                        </div>
-
-                        {socialLinks.length ? (
-                            <div>
-                                <p className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-olive-500">
-                                    Social
-                                </p>
-                                <div className="flex flex-wrap gap-2">
-                                    {socialLinks.map((item) => {
-                                        const Icon = item.icon;
-                                        return (
-                                            <a
-                                                key={item.label}
-                                                href={item.href}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                                className="inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-2 text-sm font-semibold text-olive-800 ring-1 ring-olive-200 transition hover:bg-olive-700 hover:text-white hover:ring-olive-700"
-                                            >
-                                                <Icon className="h-4 w-4" />
-                                                {item.label}
-                                            </a>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        ) : null}
-                    </div>
-                </DetailSection>
-
-                <ContactMessageForm listing={listing} />
-                <DirectionsMap listing={listing} />
+    const contactPanel = hasContactDetails ? (
+        <DetailSection title="Contact">
+            <div className="flex flex-col gap-2.5">
+                {tel ? (
+                    <ContactMethod
+                        href={tel}
+                        icon={Phone}
+                        label="Phone"
+                        value={listing.phone}
+                    />
+                ) : null}
+                {email ? (
+                    <ContactMethod
+                        href={`mailto:${email}`}
+                        icon={Mail}
+                        label="Email"
+                        value={email}
+                    />
+                ) : null}
+                {socialLinks.map((item) => (
+                    <ContactMethod
+                        key={item.label}
+                        href={item.href}
+                        icon={item.icon}
+                        label={item.label}
+                        value={
+                            item.label === 'WhatsApp'
+                                ? 'Chat on WhatsApp'
+                                : `Visit ${item.label}`
+                        }
+                        external
+                    />
+                ))}
             </div>
+        </DetailSection>
+    ) : null;
 
-            <aside className="flex flex-col gap-4 lg:sticky lg:top-36">
-                {listing.agent ? <AgentCard agent={listing.agent} /> : null}
-                <HoursList
-                    hours={listing.hours}
-                    status={listing.hoursStatus}
-                />
-                <EventSchedule items={listing.eventSchedule} />
-                <WaysToPay payments={listing.payments} />
-            </aside>
+    return (
+        <div className="mx-auto grid max-w-[1400px] gap-4 px-4 sm:px-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(280px,1fr)] lg:items-start lg:gap-5">
+            {/* Mobile: contact first for quick reach; desktop: form main, contact side */}
+            <div className="order-1 flex min-w-0 flex-col gap-4 lg:order-2 lg:sticky lg:top-36">
+                {contactPanel}
+            </div>
+            <div className="order-2 min-w-0 lg:order-1">
+                <ContactMessageForm listing={listing} />
+            </div>
         </div>
     );
 }
