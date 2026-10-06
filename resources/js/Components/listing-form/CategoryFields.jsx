@@ -5,7 +5,9 @@ import {
     POPULAR_DIETARY_OPTIONS,
     POPULAR_DRESS_CODES,
     POPULAR_NEARBY_ATTRACTIONS,
+    POPULAR_SHOPPING_DELIVERY_OPTIONS,
     POPULAR_STAY_ACTIVITIES,
+    POPULAR_WHOLESALE_RETAIL_OPTIONS,
     PRICE_LEVELS,
     categoryStepTitle,
 } from './categoryFieldConfig';
@@ -26,12 +28,19 @@ import {
     normalizeTier as normalizeStayTier,
     tierMeets as stayTierMeets,
 } from '@/data/stayTierFeatures';
+import {
+    canUseShoppingFeature,
+    normalizeTier as normalizeShoppingTier,
+    tierMeets as shoppingTierMeets,
+} from '@/data/shoppingTierFeatures';
 import { Plus, X } from 'lucide-react';
 import { useState } from 'react';
 
 const SUGGEST_OPTIONS = {
     dietary: POPULAR_DIETARY_OPTIONS,
     delivery: POPULAR_DELIVERY_OPTIONS,
+    shopping_delivery: POPULAR_SHOPPING_DELIVERY_OPTIONS,
+    wholesale_retail: POPULAR_WHOLESALE_RETAIL_OPTIONS,
     dress_code: POPULAR_DRESS_CODES,
     activities: POPULAR_STAY_ACTIVITIES,
     nearby: POPULAR_NEARBY_ATTRACTIONS,
@@ -217,10 +226,17 @@ export default function CategoryFields({
     const fields = CATEGORY_DETAIL_FIELDS[categoryKey] || [];
     const isEatDrink = categoryKey === 'eatDrink';
     const isStay = categoryKey === 'stay';
+    const isShopping = categoryKey === 'shopping';
     const listingTier = isStay
         ? normalizeStayTier(tier)
-        : normalizeEatDrinkTier(tier);
-    const tierMeets = isStay ? stayTierMeets : eatDrinkTierMeets;
+        : isShopping
+          ? normalizeShoppingTier(tier)
+          : normalizeEatDrinkTier(tier);
+    const tierMeets = isStay
+        ? stayTierMeets
+        : isShopping
+          ? shoppingTierMeets
+          : eatDrinkTierMeets;
 
     const setDetail = (key, value) => {
         onDetailsChange({ ...details, [key]: value });
@@ -230,15 +246,17 @@ export default function CategoryFields({
     const showPayments =
         (isEatDrink && canUseEatDrinkFeature(listingTier, 'payments')) ||
         (isStay && canUseStayFeature(listingTier, 'payments')) ||
-        (!isEatDrink && !isStay);
+        (isShopping && canUseShoppingFeature(listingTier, 'payments')) ||
+        (!isEatDrink && !isStay && !isShopping);
     const visibleFields = fields.filter((f) => {
-        if (isEatDrink || isStay) {
+        if (isEatDrink || isStay || isShopping) {
             return tierMeets(listingTier, f.minTier || 'free');
         }
         return true;
     });
     const priceLevels =
-        (isEatDrink || isStay) && !tierMeets(listingTier, 'featured')
+        (isEatDrink || isStay || isShopping) &&
+        !tierMeets(listingTier, 'featured')
             ? PRICE_LEVELS.filter((p) => p.value !== '$$$$')
             : PRICE_LEVELS;
 
@@ -380,7 +398,11 @@ export default function CategoryFields({
                         f.key === 'host_bio' ||
                         f.key === 'meal_plan' ||
                         f.key === 'nightly_rate' ||
-                        f.key === 'cancellation_policy';
+                        f.key === 'cancellation_policy' ||
+                        f.key === 'return_policy' ||
+                        f.key === 'whatsapp_catalog_url' ||
+                        f.key === 'online_store_url' ||
+                        f.key === 'price_list_pdf';
 
                     return (
                         <div

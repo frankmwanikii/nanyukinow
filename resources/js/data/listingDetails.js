@@ -2024,8 +2024,24 @@ function buildFactsFromDetails(listing) {
         if (d.booking_url) pairs.push({ label: 'Booking', value: 'Available' });
     } else if (key === 'shopping') {
         if (d.specialty) pairs.push({ label: 'Specialty', value: String(d.specialty) });
-        if (d.delivery) pairs.push({ label: 'Delivery', value: String(d.delivery) });
-        if (d.return_policy) pairs.push({ label: 'Returns', value: String(d.return_policy) });
+        const brands = Array.isArray(d.brands)
+            ? d.brands.filter(Boolean).join(', ')
+            : d.brands;
+        if (brands) pairs.push({ label: 'Brands', value: String(brands) });
+        const delivery = Array.isArray(d.delivery_options)
+            ? d.delivery_options.filter(Boolean).join(', ')
+            : d.delivery || d.delivery_options;
+        if (delivery) pairs.push({ label: 'Delivery', value: String(delivery) });
+        if (d.return_policy) {
+            pairs.push({ label: 'Returns', value: String(d.return_policy).replace(/<[^>]+>/g, ' ').trim() });
+        }
+        const wholesale = Array.isArray(d.wholesale_retail)
+            ? d.wholesale_retail.filter(Boolean).join(', ')
+            : d.wholesale_retail;
+        if (wholesale) pairs.push({ label: 'Wholesale / retail', value: String(wholesale) });
+        if (d.made_to_order === 'Show made-to-order badge') {
+            pairs.push({ label: 'Made to order', value: 'Available' });
+        }
     } else if (key === 'events') {
         if (listing.venue) pairs.push({ label: 'Venue', value: String(listing.venue) });
         if (d.organiser) pairs.push({ label: 'Organiser', value: String(d.organiser) });

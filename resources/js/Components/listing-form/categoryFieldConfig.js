@@ -72,6 +72,25 @@ export const POPULAR_DELIVERY_OPTIONS = [
     'Drive-through',
 ];
 
+/** Shopping delivery & fulfilment suggestions. */
+export const POPULAR_SHOPPING_DELIVERY_OPTIONS = [
+    'In-store pickup',
+    'Local rider delivery',
+    'Countrywide parcels',
+    'Same-day town delivery',
+    'Wholesale dispatch',
+    'Not available',
+];
+
+/** Wholesale vs. retail options for shopping listings. */
+export const POPULAR_WHOLESALE_RETAIL_OPTIONS = [
+    'Retail only',
+    'Wholesale only',
+    'Wholesale & retail',
+    'Trade accounts welcome',
+    'Minimum order for wholesale',
+];
+
 /** Popular dress codes for Eat & Drink. */
 export const POPULAR_DRESS_CODES = [
     'Casual',
@@ -431,26 +450,71 @@ export const CATEGORY_DETAIL_FIELDS = {
             key: 'specialty',
             label: 'Specialty',
             type: 'text',
-            placeholder: 'What do you sell?',
+            placeholder: 'e.g. Sneakers, smartphones, kitenge fabrics',
             required: true,
+            minTier: 'featured',
         },
         {
             key: 'brands',
             label: 'Brands / makers',
             type: 'tags',
             placeholder: 'Add brand and press Enter',
+            minTier: 'featured',
         },
         {
-            key: 'delivery',
-            label: 'Delivery',
-            type: 'select',
-            options: ['Available', 'Town only', 'Pickup only', 'Not available'],
+            key: 'delivery_options',
+            label: 'Delivery options',
+            type: 'suggest',
+            optionsKey: 'shopping_delivery',
+            placeholder: 'Search delivery options or type your own…',
+            help: 'Countrywide parcels, local rider, in-store pickup, and more.',
+            minTier: 'featured',
         },
         {
             key: 'return_policy',
-            label: 'Returns',
+            label: 'Returns & warranty',
+            type: 'richtext',
+            placeholder: 'Exchange windows, warranty terms, and repair policy…',
+            minTier: 'featured',
+        },
+        {
+            key: 'wholesale_retail',
+            label: 'Wholesale vs. retail',
+            type: 'suggest',
+            optionsKey: 'wholesale_retail',
+            placeholder: 'Who can buy from you?',
+            help: 'Retail only, wholesale, or both.',
+            minTier: 'featured',
+        },
+        {
+            key: 'whatsapp_catalog_url',
+            label: 'WhatsApp catalog link',
             type: 'text',
-            placeholder: 'e.g. 7-day exchange',
+            placeholder: 'https://wa.me/c/… or catalog URL',
+            help: 'Direct chat-to-buy or WhatsApp Business catalog.',
+            minTier: 'premium',
+        },
+        {
+            key: 'online_store_url',
+            label: 'Online store / e-commerce link',
+            type: 'text',
+            placeholder: 'https://yourshop.com',
+            minTier: 'premium',
+        },
+        {
+            key: 'price_list_pdf',
+            label: 'Product catalog / price list (PDF)',
+            type: 'text',
+            placeholder: 'https://…/price-list.pdf',
+            minTier: 'premium',
+        },
+        {
+            key: 'made_to_order',
+            label: 'Made-to-order badge',
+            type: 'select',
+            options: ['', 'Show made-to-order badge'],
+            help: 'Highlights custom or made-to-order items on your listing.',
+            minTier: 'premium',
         },
     ],
     properties: [
@@ -555,7 +619,9 @@ export function emptyDetailsFor(categoryKey) {
     const fields = CATEGORY_DETAIL_FIELDS[categoryKey] || [];
     const details = {
         payments:
-            categoryKey === 'eatDrink' || categoryKey === 'stay'
+            categoryKey === 'eatDrink' ||
+            categoryKey === 'stay' ||
+            categoryKey === 'shopping'
                 ? []
                 : ['Cash', 'M-Pesa'],
         video_url: '',

@@ -9,6 +9,7 @@ import PlacesLocationInput from '@/Components/listing-form/PlacesLocationInput';
 import RichTextEditor from '@/Components/listing-form/RichTextEditor';
 import EatDrinkTierUpsell from '@/Components/listing-form/EatDrinkTierUpsell';
 import StayTierUpsell from '@/Components/listing-form/StayTierUpsell';
+import ShoppingTierUpsell from '@/Components/listing-form/ShoppingTierUpsell';
 import {
     emptyDetailsFor,
 } from '@/Components/listing-form/categoryFieldConfig';
@@ -39,6 +40,13 @@ import {
     staySpaceLabel,
     tierDisplayLabel as stayTierDisplayLabel,
 } from '@/data/stayTierFeatures';
+import {
+    canUseShoppingFeature,
+    normalizeTier as normalizeShoppingTier,
+    shoppingDescriptionWordLimit,
+    shoppingGalleryLimit,
+    tierDisplayLabel as shoppingTierDisplayLabel,
+} from '@/data/shoppingTierFeatures';
 import { listingSubcategories, subcategoryLabel } from '@/utils/listingSubcategories';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -337,14 +345,19 @@ export default function Form({
     const subs = subcategoriesFor(categoryKey);
     const isEatDrink = categoryKey === 'eatDrink';
     const isStay = categoryKey === 'stay';
+    const isShopping = categoryKey === 'shopping';
     const listingTier = isStay
         ? normalizeStayTier(form.data.tier)
-        : normalizeEatDrinkTier(form.data.tier);
+        : isShopping
+          ? normalizeShoppingTier(form.data.tier)
+          : normalizeEatDrinkTier(form.data.tier);
     const galleryMax = isEatDrink
         ? eatDrinkGalleryLimit(listingTier)
         : isStay
           ? stayGalleryLimit(listingTier)
-          : 12;
+          : isShopping
+            ? shoppingGalleryLimit(listingTier)
+            : 12;
     const galleryPerRoomMax = isStay
         ? stayGalleryPerRoomLimit(listingTier)
         : null;
@@ -352,26 +365,41 @@ export default function Form({
         ? eatDrinkDescriptionWordLimit(listingTier)
         : isStay
           ? stayDescriptionWordLimit(listingTier)
-          : null;
+          : isShopping
+            ? shoppingDescriptionWordLimit(listingTier)
+            : null;
     const mapLocked =
         (isEatDrink && !canUseEatDrinkFeature(listingTier, 'map_location')) ||
-        (isStay && !canUseStayFeature(listingTier, 'map_location'));
+        (isStay && !canUseStayFeature(listingTier, 'map_location')) ||
+        (isShopping && !canUseShoppingFeature(listingTier, 'map_location'));
     const videoLocked =
         (isEatDrink && !canUseEatDrinkFeature(listingTier, 'video')) ||
-        (isStay && !canUseStayFeature(listingTier, 'video'));
+        (isStay && !canUseStayFeature(listingTier, 'video')) ||
+        (isShopping && !canUseShoppingFeature(listingTier, 'video'));
     const socialLocked =
         (isEatDrink && !canUseEatDrinkFeature(listingTier, 'social_contact')) ||
-        (isStay && !canUseStayFeature(listingTier, 'social_contact'));
+        (isStay && !canUseStayFeature(listingTier, 'social_contact')) ||
+        (isShopping && !canUseShoppingFeature(listingTier, 'social_contact'));
     const amenitiesLocked =
-        isStay && !canUseStayFeature(listingTier, 'amenities');
+        (isStay && !canUseStayFeature(listingTier, 'amenities')) ||
+        (isShopping && !canUseShoppingFeature(listingTier, 'amenities'));
     const hoursLocked =
         isStay && !canUseStayFeature(listingTier, 'reception_hours');
-    const galleryLocked = isStay && galleryMax <= 0;
-    const TierUpsell = isStay ? StayTierUpsell : EatDrinkTierUpsell;
-    const showTierUpsell = isEatDrink || isStay;
+    const logoLocked =
+        isShopping && !canUseShoppingFeature(listingTier, 'logo');
+    const galleryLocked =
+        (isStay || isShopping) && galleryMax <= 0;
+    const TierUpsell = isStay
+        ? StayTierUpsell
+        : isShopping
+          ? ShoppingTierUpsell
+          : EatDrinkTierUpsell;
+    const showTierUpsell = isEatDrink || isStay || isShopping;
     const tierLabel = isStay
         ? stayTierDisplayLabel(listingTier)
-        : eatDrinkTierDisplayLabel(listingTier);
+        : isShopping
+          ? shoppingTierDisplayLabel(listingTier)
+          : eatDrinkTierDisplayLabel(listingTier);
 
     const buildDraftBody = (data = formDataRef.current || form.data) => {
         const galleryUrls = serializeGalleryItems(galleryItems, {
@@ -1011,6 +1039,13 @@ export default function Form({
                                         categories={categories}
                                         patch={patch}
                                         descriptionWordLimit={descriptionWordLimit}
+                                        hideTagline={
+                                            isShopping &&
+                                            !canUseShoppingFeature(
+                                                listingTier,
+                                                'tagline',
+                                            )
+                                        }
                                     />
                                 ) : null}
 
@@ -1092,11 +1127,12 @@ export default function Form({
                                                     : null
                                             }
                                             tier={listingTier}
+                                            isAdmin={isAdmin}
                                         />
                                         {categoryKey !== 'properties' &&
                                         categoryKey !== 'events' ? (
                                             hoursLocked ? (
-                                                <StayTierUpsell
+                                                <TierUpsell
                                                     tier={listingTier}
                                                     isAdmin={isAdmin}
                                                 />
@@ -1124,7 +1160,7 @@ export default function Form({
 
                                 {step.id === 'amenities' ? (
                                     amenitiesLocked ? (
-                                        <StayTierUpsell
+                                        <TierUpsell
                                             tier={listingTier}
                                             isAdmin={isAdmin}
                                         />
@@ -1167,6 +1203,7 @@ export default function Form({
                                         categorized={isStay && !galleryLocked}
                                         spaceOptions={STAY_GALLERY_SPACES}
                                         hideGallery={galleryLocked}
+                                        hideLogo={logoLocked}
                                         libraryRoute={
                                             isAdmin
                                                 ? route('admin.gallery.browse')
@@ -1221,20 +1258,33 @@ export default function Form({
                                     />
                                     {galleryLocked ? (
                                         <div className="mt-4">
-                                            <StayTierUpsell
+                                            <TierUpsell
                                                 tier={listingTier}
                                                 isAdmin={isAdmin}
                                             />
                                             <p className="mt-2 text-xs text-olive-500 dark:text-olive-400">
-                                                Free Stay listings include a cover
-                                                image only. Standard unlocks a
-                                                categorized gallery (15 photos per
-                                                room) · Premium unlocks 30 per
-                                                room.
+                                                {isStay
+                                                    ? 'Free Stay listings include a cover image only. Standard unlocks a categorized gallery (15 photos per room) · Premium unlocks 30 per room.'
+                                                    : isShopping
+                                                      ? 'Free Shopping listings include a cover image only. Standard unlocks a 5-photo gallery · Premium unlocks a larger gallery.'
+                                                      : null}
                                             </p>
                                         </div>
                                     ) : null}
-                                    {isEatDrink || (isStay && !galleryLocked) ? (
+                                    {logoLocked ? (
+                                        <div className="mt-4">
+                                            <TierUpsell
+                                                tier={listingTier}
+                                                isAdmin={isAdmin}
+                                            />
+                                            <p className="mt-2 text-xs text-olive-500 dark:text-olive-400">
+                                                Shop logo uploads unlock on Standard.
+                                            </p>
+                                        </div>
+                                    ) : null}
+                                    {isEatDrink ||
+                                    (isStay && !galleryLocked) ||
+                                    (isShopping && !galleryLocked) ? (
                                         <p className="mt-2 text-xs text-olive-500 dark:text-olive-400">
                                             {isStay
                                                 ? `Gallery limit for ${tierLabel}: ${galleryPerRoomMax} photos per room`
@@ -1243,11 +1293,15 @@ export default function Form({
                                                 ? listingTier === 'featured'
                                                     ? ' · Premium unlocks 30 per room'
                                                     : ''
-                                                : listingTier === 'free'
-                                                  ? ' · Standard unlocks 10 · Premium unlocks 30'
-                                                  : listingTier === 'featured'
-                                                    ? ' · Premium unlocks 30'
-                                                    : ''}
+                                                : isShopping
+                                                  ? listingTier === 'featured'
+                                                      ? ' · Premium unlocks a larger gallery'
+                                                      : ''
+                                                  : listingTier === 'free'
+                                                    ? ' · Standard unlocks 10 · Premium unlocks 30'
+                                                    : listingTier === 'featured'
+                                                      ? ' · Premium unlocks 30'
+                                                      : ''}
                                             {isStay
                                                 ? ' · Choose a room tab, then add photos for that space.'
                                                 : ''}
@@ -1293,6 +1347,7 @@ export default function Form({
                                         patch={patch}
                                         isEatDrink={isEatDrink}
                                         isStay={isStay}
+                                        isShopping={isShopping}
                                         socialLocked={socialLocked}
                                         listingTier={listingTier}
                                         isAdmin={isAdmin}
@@ -1715,6 +1770,7 @@ function BasicsStep({
     categories,
     patch,
     descriptionWordLimit = null,
+    hideTagline = false,
 }) {
     const wordCount = eatDrinkCountWords(form.data.description);
     const overLimit =
@@ -1875,19 +1931,21 @@ function BasicsStep({
                 ) : null}
             </div>
 
-            <div>
-                <label className={label} htmlFor="tagline">
-                    Short tagline
-                </label>
-                <input
-                    id="tagline"
-                    className={field}
-                    value={form.data.tagline}
-                    onChange={(e) => patch({ tagline: e.target.value })}
-                    placeholder="What makes this place special?"
-                    maxLength={180}
-                />
-            </div>
+            {!hideTagline ? (
+                <div>
+                    <label className={label} htmlFor="tagline">
+                        Short tagline
+                    </label>
+                    <input
+                        id="tagline"
+                        className={field}
+                        value={form.data.tagline}
+                        onChange={(e) => patch({ tagline: e.target.value })}
+                        placeholder="What makes this place special?"
+                        maxLength={180}
+                    />
+                </div>
+            ) : null}
 
             <RichTextEditor
                 value={form.data.description}
@@ -1914,6 +1972,7 @@ function ContactStep({
     patch,
     isEatDrink = false,
     isStay = false,
+    isShopping = false,
     socialLocked = false,
     listingTier = 'free',
     isAdmin = false,
@@ -1921,8 +1980,32 @@ function ContactStep({
     const websiteLinks = Array.isArray(form.data.social_links?.links)
         ? form.data.social_links.links
         : [];
-    const showExtended = (!isEatDrink && !isStay) || !socialLocked;
-    const TierUpsell = isStay ? StayTierUpsell : EatDrinkTierUpsell;
+    const shoppingPremiumContact =
+        isShopping &&
+        canUseShoppingFeature(listingTier, 'whatsapp');
+    const showExtended =
+        (!isEatDrink && !isStay && !isShopping) ||
+        (isShopping && !socialLocked) ||
+        ((isEatDrink || isStay) && !socialLocked);
+    const showPremiumContactExtras =
+        !isShopping || shoppingPremiumContact;
+    const TierUpsell = isStay
+        ? StayTierUpsell
+        : isShopping
+          ? ShoppingTierUpsell
+          : EatDrinkTierUpsell;
+    const linksEndRef = useRef(null);
+    const prevLinkCount = useRef(websiteLinks.length);
+
+    useEffect(() => {
+        if (websiteLinks.length > prevLinkCount.current) {
+            linksEndRef.current?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'nearest',
+            });
+        }
+        prevLinkCount.current = websiteLinks.length;
+    }, [websiteLinks.length]);
 
     const setWebsiteLinks = (links) => {
         patch({
@@ -1948,6 +2031,44 @@ function ContactStep({
         setWebsiteLinks(websiteLinks.filter((_, i) => i !== index));
     };
 
+    const linkLabelOptions = isStay
+        ? [
+              'Book now',
+              'Booking page',
+              'Airbnb',
+              'Check availability',
+              'Google Maps',
+              'Directions',
+              'Website',
+          ]
+        : isEatDrink
+          ? [
+                'Book a table',
+                'Menu',
+                'Order online',
+                'Reservations',
+                'Google Maps',
+                'Directions',
+                'Website',
+            ]
+          : isShopping
+            ? [
+                  'WhatsApp catalog',
+                  'Online store',
+                  'Shop',
+                  'Google Maps',
+                  'Directions',
+                  'Website',
+              ]
+            : [
+                  'Website',
+                  'Booking',
+                  'Shop',
+                  'Google Maps',
+                  'Directions',
+                  'Menu',
+              ];
+
     // Stay Free: phone + email. Eat & Drink Free: phone only.
     // Standard+: WhatsApp, website, social.
     const contactFields = isStay
@@ -1964,12 +2085,19 @@ function ContactStep({
                 ['email', 'Email', 'email', true],
                 ['website', 'Primary website', 'text', true],
             ]
-          : [
-                ['phone', 'Phone', 'text', false],
-                ['whatsapp', 'WhatsApp', 'text', false],
-                ['email', 'Email', 'email', false],
-                ['website', 'Primary website', 'text', false],
-            ];
+          : isShopping
+            ? [
+                  ['phone', 'Contact number', 'text', false],
+                  ['email', 'Email', 'email', 'standard'],
+                  ['whatsapp', 'WhatsApp', 'text', 'premium'],
+                  ['website', 'Primary website', 'text', 'premium'],
+              ]
+            : [
+                  ['phone', 'Phone', 'text', false],
+                  ['whatsapp', 'WhatsApp', 'text', false],
+                  ['email', 'Email', 'email', false],
+                  ['website', 'Primary website', 'text', false],
+              ];
 
     return (
         <div className="space-y-5">
@@ -1982,7 +2110,7 @@ function ContactStep({
                         How should people reach you?
                     </p>
                 </div>
-                {showExtended ? (
+                {showExtended && showPremiumContactExtras ? (
                     <button
                         type="button"
                         onClick={addLink}
@@ -1994,13 +2122,26 @@ function ContactStep({
                 ) : null}
             </div>
 
-            {(isEatDrink || isStay) && socialLocked ? (
+            {(isEatDrink || isStay || isShopping) && socialLocked ? (
+                <TierUpsell tier={listingTier} isAdmin={isAdmin} />
+            ) : null}
+            {isShopping && showExtended && !showPremiumContactExtras ? (
                 <TierUpsell tier={listingTier} isAdmin={isAdmin} />
             ) : null}
 
             <div className="grid gap-4 sm:grid-cols-2">
                 {contactFields
-                    .filter(([, , , gated]) => showExtended || !gated)
+                    .filter(([, , , gated]) => {
+                        if (!gated) return true;
+                        if (isShopping) {
+                            if (gated === 'standard') return !socialLocked;
+                            if (gated === 'premium') {
+                                return shoppingPremiumContact;
+                            }
+                            return showExtended;
+                        }
+                        return showExtended;
+                    })
                     .map(([key, text, type]) => (
                         <div key={key}>
                             <label className={label} htmlFor={key}>
@@ -2022,82 +2163,8 @@ function ContactStep({
 
             {showExtended ? (
                 <>
-                    {websiteLinks.length > 0 ? (
-                        <div className="space-y-3">
-                            <div>
-                                <p className="text-sm font-semibold text-olive-950 dark:text-olive-50">
-                                    More website links
-                                </p>
-                                <p className="mt-0.5 text-xs text-olive-500 dark:text-olive-400">
-                                    Booking pages, menus, online shops, Google
-                                    Maps, or other sites you want visitors to
-                                    open.
-                                </p>
-                            </div>
-                            <div className="space-y-3">
-                                {websiteLinks.map((item, index) => (
-                                    <div
-                                        key={index}
-                                        className="grid gap-2 rounded-xl border border-olive-200 bg-olive-50/40 p-3 sm:grid-cols-[minmax(0,0.9fr)_minmax(0,1.4fr)_auto] sm:items-end dark:border-olive-700 dark:bg-olive-950/50"
-                                    >
-                                        <div>
-                                            <label
-                                                className={label}
-                                                htmlFor={`website_link_label_${index}`}
-                                            >
-                                                Label
-                                            </label>
-                                            <input
-                                                id={`website_link_label_${index}`}
-                                                className={field}
-                                                value={item.label || ''}
-                                                onChange={(e) =>
-                                                    updateLink(
-                                                        index,
-                                                        'label',
-                                                        e.target.value,
-                                                    )
-                                                }
-                                                placeholder="e.g. Book a table"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label
-                                                className={label}
-                                                htmlFor={`website_link_url_${index}`}
-                                            >
-                                                URL
-                                            </label>
-                                            <input
-                                                id={`website_link_url_${index}`}
-                                                className={field}
-                                                value={item.url || ''}
-                                                onChange={(e) =>
-                                                    updateLink(
-                                                        index,
-                                                        'url',
-                                                        e.target.value,
-                                                    )
-                                                }
-                                                placeholder="https://"
-                                            />
-                                        </div>
-                                        <button
-                                            type="button"
-                                            onClick={() => removeLink(index)}
-                                            className="inline-flex h-11 items-center justify-center rounded-xl border border-olive-200 px-3 text-olive-500 transition hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 dark:border-olive-700 dark:text-olive-400 dark:hover:border-rose-700 dark:hover:bg-rose-950/40 dark:hover:text-rose-400"
-                                            aria-label={`Remove link ${index + 1}`}
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    ) : null}
-
                     <div className="grid gap-4 sm:grid-cols-2">
-                        {(isEatDrink || isStay
+                        {(isEatDrink || isStay || isShopping
                             ? ['facebook', 'instagram']
                             : ['instagram', 'facebook', 'tiktok', 'youtube']
                         ).map((net) => (
@@ -2127,6 +2194,144 @@ function ContactStep({
                             </div>
                         ))}
                     </div>
+
+                    {showPremiumContactExtras && websiteLinks.length > 0 ? (
+                        <div className="space-y-4 border-t border-olive-100 pt-5 dark:border-olive-800">
+                            <div>
+                                <p className="text-sm font-semibold text-olive-950 dark:text-olive-50">
+                                    More website links
+                                </p>
+                                <p className="mt-0.5 text-xs text-olive-500 dark:text-olive-400">
+                                    Booking pages, menus, online shops, Google
+                                    Maps, or other sites you want visitors to
+                                    open.
+                                </p>
+                            </div>
+                            <div className="space-y-4">
+                                {websiteLinks.map((item, index) => {
+                                    const knownLabel = linkLabelOptions.includes(
+                                        item.label,
+                                    );
+                                    const selectValue = knownLabel
+                                        ? item.label
+                                        : item.label
+                                          ? '__custom__'
+                                          : '';
+
+                                    return (
+                                        <div
+                                            key={index}
+                                            className="grid gap-4 sm:grid-cols-[minmax(0,0.9fr)_minmax(0,1.4fr)_auto] sm:items-end"
+                                        >
+                                            <div>
+                                                <label
+                                                    className={label}
+                                                    htmlFor={`website_link_label_${index}`}
+                                                >
+                                                    Label
+                                                </label>
+                                                <select
+                                                    id={`website_link_label_${index}`}
+                                                    className={field}
+                                                    value={selectValue}
+                                                    onChange={(e) => {
+                                                        const next =
+                                                            e.target.value;
+                                                        if (
+                                                            next ===
+                                                            '__custom__'
+                                                        ) {
+                                                            updateLink(
+                                                                index,
+                                                                'label',
+                                                                item.label &&
+                                                                    !linkLabelOptions.includes(
+                                                                        item.label,
+                                                                    )
+                                                                    ? item.label
+                                                                    : '',
+                                                            );
+                                                            return;
+                                                        }
+                                                        updateLink(
+                                                            index,
+                                                            'label',
+                                                            next,
+                                                        );
+                                                    }}
+                                                >
+                                                    <option value="">
+                                                        Select…
+                                                    </option>
+                                                    {linkLabelOptions.map(
+                                                        (opt) => (
+                                                            <option
+                                                                key={opt}
+                                                                value={opt}
+                                                            >
+                                                                {opt}
+                                                            </option>
+                                                        ),
+                                                    )}
+                                                    <option value="__custom__">
+                                                        Custom…
+                                                    </option>
+                                                </select>
+                                                {selectValue ===
+                                                '__custom__' ? (
+                                                    <input
+                                                        className={`${field} mt-2`}
+                                                        value={item.label || ''}
+                                                        onChange={(e) =>
+                                                            updateLink(
+                                                                index,
+                                                                'label',
+                                                                e.target.value,
+                                                            )
+                                                        }
+                                                        placeholder="Custom label"
+                                                        autoFocus
+                                                    />
+                                                ) : null}
+                                            </div>
+                                            <div>
+                                                <label
+                                                    className={label}
+                                                    htmlFor={`website_link_url_${index}`}
+                                                >
+                                                    URL
+                                                </label>
+                                                <input
+                                                    id={`website_link_url_${index}`}
+                                                    className={field}
+                                                    value={item.url || ''}
+                                                    onChange={(e) =>
+                                                        updateLink(
+                                                            index,
+                                                            'url',
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    placeholder="https://"
+                                                />
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    removeLink(index)
+                                                }
+                                                className="inline-flex h-11 items-center justify-center rounded-xl border border-olive-200 px-3 text-olive-500 transition hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 dark:border-olive-700 dark:text-olive-400 dark:hover:border-rose-700 dark:hover:bg-rose-950/40 dark:hover:text-rose-400"
+                                                aria-label={`Remove link ${index + 1}`}
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </button>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                            <div ref={linksEndRef} />
+                        </div>
+                    ) : null}
                 </>
             ) : null}
         </div>

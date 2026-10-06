@@ -11,6 +11,12 @@ import {
     tierDisplayLabel,
 } from '@/data/eatDrinkTierFeatures';
 import { canUseStayFeature } from '@/data/stayTierFeatures';
+import ShoppingTierUpsell from './ShoppingTierUpsell';
+import {
+    canUseShoppingFeature,
+    shoppingProductHelp,
+    shoppingProductLimit,
+} from '@/data/shoppingTierFeatures';
 import {
     formatGigWhenLabel,
     WEEKDAYS,
@@ -377,6 +383,7 @@ export default function CategoryExtrasEditor({
     onDetailsChange,
     libraryRoute = null,
     tier = 'free',
+    isAdmin = false,
 }) {
     const [imageTarget, setImageTarget] = useState(null); // { list, index, key } — sponsors/products only
     const singleInputRef = useRef(null);
@@ -429,6 +436,18 @@ export default function CategoryExtrasEditor({
         categoryKey === 'eatDrink' && canUseEatDrinkFeature(tier, 'live_music');
     const showStayOffers =
         categoryKey === 'stay' && canUseStayFeature(tier, 'seasonal_offers');
+    const showShoppingProducts =
+        categoryKey === 'shopping' && canUseShoppingFeature(tier, 'products');
+    const showShoppingOffers =
+        categoryKey === 'shopping' && canUseShoppingFeature(tier, 'deals');
+    const shoppingProductCap =
+        categoryKey === 'shopping' ? shoppingProductLimit(tier) : null;
+    const shoppingProductsRemaining =
+        shoppingProductCap == null
+            ? 0
+            : Math.max(0, shoppingProductCap - products.length);
+    const atShoppingProductLimit =
+        shoppingProductCap != null && shoppingProductsRemaining <= 0;
     const menuLimit =
         categoryKey === 'eatDrink' ? eatDrinkMenuLimit(tier) : null;
     const imagesPerMenu =
@@ -1088,10 +1107,79 @@ export default function CategoryExtrasEditor({
                 </>
             ) : null}
 
-            {categoryKey === 'shopping' ? (
+            {categoryKey === 'shopping' && !showShoppingProducts ? (
+                <ShoppingTierUpsell tier={tier} isAdmin={isAdmin} />
+            ) : null}
+
+            {showShoppingOffers ? (
                 <Section
-                    title="Products"
-                    blurb="Items shown on the Products tab for this shop."
+                    title="Current offers / sales banner"
+                    blurb="Highlight promotions shown prominently on your shop page."
+                >
+                    <ul className="space-y-3">
+                        {deals.map((item, index) => (
+                            <li
+                                key={`shop-deal-${index}`}
+                                className="space-y-2 rounded-xl border border-olive-100 bg-olive-50/40 p-3"
+                            >
+                                <div className="flex items-center justify-between gap-2">
+                                    <span className="text-xs font-semibold uppercase tracking-wide text-olive-500">
+                                        Offer {index + 1}
+                                    </span>
+                                    <RowActions
+                                        onRemove={() =>
+                                            removeItem('deals', index)
+                                        }
+                                    />
+                                </div>
+                                <div>
+                                    <label className={label}>Title</label>
+                                    <input
+                                        className={field}
+                                        value={item.title || ''}
+                                        onChange={(e) =>
+                                            updateItem('deals', index, {
+                                                title: e.target.value,
+                                            })
+                                        }
+                                        placeholder="e.g. 20% off sneakers this week"
+                                    />
+                                </div>
+                                <div>
+                                    <RichTextEditor
+                                        id={`shop-deal-details-${index}`}
+                                        label="Details"
+                                        value={item.description || ''}
+                                        onChange={(html) =>
+                                            updateItem('deals', index, {
+                                                description: html,
+                                            })
+                                        }
+                                        placeholder="Valid dates, discount terms, promo codes…"
+                                        allowImages={false}
+                                        compact
+                                    />
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                    <button
+                        type="button"
+                        onClick={() =>
+                            addItem('deals', { title: '', description: '' })
+                        }
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white"
+                    >
+                        <Plus className="h-4 w-4" />
+                        Add offer
+                    </button>
+                </Section>
+            ) : null}
+
+            {showShoppingProducts ? (
+                <Section
+                    title="Product showcase"
+                    blurb={shoppingProductHelp(tier)}
                 >
                     <ul className="space-y-4">
                         {products.map((item, index) => (
@@ -1191,6 +1279,7 @@ export default function CategoryExtrasEditor({
                     </ul>
                     <button
                         type="button"
+                        disabled={atShoppingProductLimit}
                         onClick={() =>
                             addItem('products', {
                                 name: '',
@@ -1200,7 +1289,7 @@ export default function CategoryExtrasEditor({
                                 image: '',
                             })
                         }
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white"
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         <Plus className="h-4 w-4" />
                         Add product

@@ -17,6 +17,7 @@ use App\Support\ListingMedia;
 use App\Support\ListingPayload;
 use App\Support\ListingSlug;
 use App\Support\Membership;
+use App\Support\ShoppingTierFeatures;
 use App\Support\StayTierFeatures;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -464,7 +465,9 @@ class ListingController extends Controller
 
         $data = EatDrinkTierFeatures::applyToPayload($data, $tier, $categoryKey);
 
-        return StayTierFeatures::applyToPayload($data, $tier, $categoryKey);
+        $data = StayTierFeatures::applyToPayload($data, $tier, $categoryKey);
+
+        return ShoppingTierFeatures::applyToPayload($data, $tier, $categoryKey);
     }
 
     /**

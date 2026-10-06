@@ -131,6 +131,7 @@ function HoverActions({ children }) {
 function CoverLogoStage({
     coverPreview,
     logoPreview,
+    hideLogo = false,
     onBrowseCover,
     onBrowseLogo,
     onOpenLibraryCover = null,
@@ -261,6 +262,7 @@ function CoverLogoStage({
                 </div>
             </div>
 
+            {!hideLogo ? (
             <div className="rounded-2xl bg-olive-50/70 p-4 ring-1 ring-olive-100 dark:bg-olive-950/50 dark:ring-olive-800 sm:p-5">
                 <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                     <div className="flex flex-wrap items-center gap-2">
@@ -363,6 +365,7 @@ function CoverLogoStage({
                     </div>
                 </div>
             </div>
+            ) : null}
         </div>
     );
 }
@@ -451,6 +454,7 @@ export default function GalleryUploader({
     categorized = false,
     spaceOptions = [],
     hideGallery = false,
+    hideLogo = false,
 }) {
     const MAX_GALLERY =
         maxGallery === 0 || maxGallery === '0'
@@ -1072,6 +1076,7 @@ export default function GalleryUploader({
             <CoverLogoStage
                 coverPreview={coverPreview}
                 logoPreview={logoPreview}
+                hideLogo={hideLogo}
                 onBrowseCover={() => openAddMenu('cover')}
                 onBrowseLogo={() => openAddMenu('logo')}
                 onOpenLibraryCover={
