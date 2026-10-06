@@ -21,50 +21,9 @@ function BrandWash({ className = '' }) {
     );
 }
 
-function PremiumStage() {
-    return (
-        <>
-            {/* Deep olive base + soft mustard spotlight */}
-            <div
-                className="pointer-events-none absolute inset-0"
-                style={{
-                    background: `
-                        radial-gradient(ellipse 90% 55% at 50% -10%, rgba(242,184,46,0.22), transparent 55%),
-                        radial-gradient(ellipse 70% 50% at 100% 100%, rgba(168,225,144,0.08), transparent 50%),
-                        radial-gradient(ellipse 60% 45% at 0% 80%, rgba(242,184,46,0.1), transparent 45%),
-                        linear-gradient(165deg, #1c2116 0%, #2f3628 42%, #23281e 100%)
-                    `,
-                }}
-                aria-hidden
-            />
-
-            {/* Fine silk lines */}
-            <div
-                className="pointer-events-none absolute inset-0 opacity-[0.07]"
-                style={{
-                    backgroundImage:
-                        'repeating-linear-gradient(115deg, rgba(255,255,255,0.55) 0 1px, transparent 1px 14px)',
-                }}
-                aria-hidden
-            />
-
-            <div
-                className="pointer-events-none absolute inset-0 bg-grain opacity-40 mix-blend-overlay"
-                aria-hidden
-            />
-
-            {/* Soft vignette — helps the form feel lifted */}
-            <div
-                className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(12,14,10,0.6)_100%)]"
-                aria-hidden
-            />
-        </>
-    );
-}
-
 /**
  * Full-viewport auth shell.
- * variant "centered" — premium olive stage + white form panel (sign in)
+ * variant "centered" — dark glass login stage (sign in)
  * variant "brand" — clean olive wash sidebar + form (register)
  */
 export default function AuthSplitLayout({
@@ -80,37 +39,51 @@ export default function AuthSplitLayout({
 
     if (isCentered) {
         return (
-            <div className="relative min-h-svh overflow-hidden bg-[#1c2116] text-earth-dusk">
+            <div className="relative min-h-svh overflow-hidden bg-olive-950 text-white lg:h-svh">
                 <Head title={title} />
-                <PremiumStage />
 
-                <main className="relative z-10 flex min-h-svh flex-col items-center justify-center px-4 py-10 sm:px-6 sm:py-14">
-                    {showBrandMark ? (
-                        <Link
-                            href="/"
-                            className="mb-7 inline-flex transition hover:opacity-90"
-                        >
-                            <img
-                                src="/images/logo.png"
-                                alt="Nanyuki Now"
-                                className="h-16 w-auto object-contain drop-shadow-md sm:h-20"
-                            />
-                        </Link>
-                    ) : null}
+                {/* Brand wash — olive base + mustard horizon, no card frame */}
+                <div
+                    className="pointer-events-none absolute inset-0"
+                    style={{
+                        background: `
+                            radial-gradient(ellipse 95% 50% at 50% 108%, rgba(242,184,46,0.38), transparent 60%),
+                            radial-gradient(ellipse 70% 40% at 50% 92%, rgba(168,225,144,0.12), transparent 55%),
+                            radial-gradient(ellipse 55% 35% at 15% 20%, rgba(107,119,88,0.45), transparent 50%),
+                            radial-gradient(ellipse 45% 30% at 85% 15%, rgba(242,184,46,0.1), transparent 45%),
+                            linear-gradient(165deg, #1c2116 0%, #23281e 42%, #161911 100%)
+                        `,
+                    }}
+                    aria-hidden
+                />
+                <div
+                    className="pointer-events-none absolute inset-x-[-15%] bottom-[-22%] h-[48%] rounded-[100%] bg-mustard/25 blur-3xl"
+                    aria-hidden
+                />
+                <div
+                    className="pointer-events-none absolute -left-24 top-1/4 h-72 w-72 rounded-full bg-olive-600/25 blur-3xl"
+                    aria-hidden
+                />
+                <div
+                    className="pointer-events-none absolute inset-0 bg-grain opacity-35 mix-blend-overlay"
+                    aria-hidden
+                />
 
-                    <div className="relative w-full max-w-[30rem]">
-                        {/* Soft glow under the panel — suspended feel */}
-                        <div
-                            className="pointer-events-none absolute -inset-x-8 -bottom-10 top-12 rounded-[2rem] bg-black/45 blur-3xl"
-                            aria-hidden
-                        />
-                        <div
-                            className="pointer-events-none absolute inset-x-8 -bottom-4 h-10 rounded-full bg-mustard/15 blur-2xl"
-                            aria-hidden
-                        />
-                        <div className="relative rounded-2xl border border-white/80 bg-white p-6 shadow-[0_28px_80px_-20px_rgba(0,0,0,0.7),0_8px_24px_-8px_rgba(0,0,0,0.35)] sm:p-8">
-                            {children}
-                        </div>
+                <main className="relative z-10 flex min-h-svh items-center justify-center px-4 py-6 sm:px-6 lg:h-svh lg:py-4">
+                    <div className="w-full max-w-[24.5rem]">
+                        {showBrandMark ? (
+                            <Link
+                                href="/"
+                                className="mb-6 flex justify-center transition hover:opacity-90"
+                            >
+                                <img
+                                    src="/images/logo.png"
+                                    alt="Nanyuki Now"
+                                    className="h-12 w-auto object-contain drop-shadow-md sm:h-14"
+                                />
+                            </Link>
+                        ) : null}
+                        {children}
                     </div>
                 </main>
             </div>

@@ -57,6 +57,7 @@ export default function RecaptchaField({
     value = '',
     onChange,
     error = '',
+    theme = 'light',
 }) {
     const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '';
     const widgetId = useId();
@@ -102,6 +103,7 @@ export default function RecaptchaField({
                     if (cancelled || !containerRef.current) return;
                     widgetRef.current = grecaptcha.render(containerRef.current, {
                         sitekey: siteKey,
+                        theme,
                         callback: (token) => onChange?.(token),
                         'expired-callback': () => onChange?.(''),
                         'error-callback': () => {
@@ -120,22 +122,34 @@ export default function RecaptchaField({
         return () => {
             cancelled = true;
         };
-    }, [siteKey, onChange]);
+    }, [siteKey, onChange, theme]);
+
+    const isDark = theme === 'dark';
 
     if (!siteKey) {
         return (
             <div className="w-full">
-                <label className="mb-2 block text-[15px] font-semibold text-olive-900">
+                <label
+                    className={`mb-2 block text-[13px] font-medium tracking-wide ${
+                        isDark ? 'text-white/65' : 'text-olive-800'
+                    }`}
+                >
                     Security check
                 </label>
                 <label
                     htmlFor={`recaptcha-fallback-${widgetId}`}
-                    className={`flex w-full cursor-pointer items-center gap-3 rounded-lg border bg-white px-3.5 py-3 shadow-sm transition ${
-                        error
-                            ? 'border-red-400'
-                            : fallbackChecked
-                              ? 'border-emerald-500'
-                              : 'border-olive-200/90'
+                    className={`flex w-full cursor-pointer items-center gap-3 rounded-xl border px-3.5 py-3 transition ${
+                        isDark
+                            ? error
+                                ? 'border-red-400/60 bg-red-500/10'
+                                : fallbackChecked
+                                  ? 'border-emerald-400/50 bg-emerald-500/10'
+                                  : 'border-white/10 bg-white/[0.06]'
+                            : error
+                              ? 'border-red-400 bg-white shadow-sm'
+                              : fallbackChecked
+                                ? 'border-emerald-500 bg-white shadow-sm'
+                                : 'border-olive-200/90 bg-white shadow-sm'
                     }`}
                 >
                     <input
@@ -147,13 +161,27 @@ export default function RecaptchaField({
                             setFallbackChecked(next);
                             onChange?.(next ? 'fallback-verified' : '');
                         }}
-                        className="h-4 w-4 rounded border-olive-300 text-olive-700 focus:ring-mustard"
+                        className={`h-4 w-4 rounded focus:ring-mustard ${
+                            isDark
+                                ? 'border-white/30 bg-transparent text-mustard'
+                                : 'border-olive-300 text-olive-700'
+                        }`}
                     />
-                    <span className="inline-flex min-w-0 flex-1 items-center gap-1.5 text-sm font-semibold text-earth-dusk">
+                    <span
+                        className={`inline-flex min-w-0 flex-1 items-center gap-1.5 text-sm font-semibold ${
+                            isDark ? 'text-white/90' : 'text-earth-dusk'
+                        }`}
+                    >
                         <ShieldCheck className="h-4 w-4 shrink-0 text-mustard" />
                         I’m not a robot
                         {fallbackChecked ? (
-                            <span className="ml-auto inline-flex items-center gap-1 text-xs font-semibold text-emerald-700">
+                            <span
+                                className={`ml-auto inline-flex items-center gap-1 text-xs font-semibold ${
+                                    isDark
+                                        ? 'text-emerald-300'
+                                        : 'text-emerald-700'
+                                }`}
+                            >
                                 <Check
                                     className="h-3.5 w-3.5"
                                     strokeWidth={2.5}
@@ -164,7 +192,11 @@ export default function RecaptchaField({
                     </span>
                 </label>
                 {error ? (
-                    <p className="mt-1.5 text-xs font-medium text-red-600">
+                    <p
+                        className={`mt-1.5 text-xs font-medium ${
+                            isDark ? 'text-red-300' : 'text-red-600'
+                        }`}
+                    >
                         {error}
                     </p>
                 ) : null}
@@ -174,7 +206,11 @@ export default function RecaptchaField({
 
     return (
         <div className="w-full">
-            <label className="mb-2 block text-[15px] font-semibold text-olive-900">
+            <label
+                className={`mb-2 block text-[13px] font-medium tracking-wide ${
+                    isDark ? 'text-white/65' : 'text-olive-800'
+                }`}
+            >
                 Security check
             </label>
             <div
@@ -194,20 +230,38 @@ export default function RecaptchaField({
                 </div>
             </div>
             {loadError ? (
-                <p className="mt-1.5 text-xs font-medium text-red-600">
+                <p
+                    className={`mt-1.5 text-xs font-medium ${
+                        isDark ? 'text-red-300' : 'text-red-600'
+                    }`}
+                >
                     {loadError}
                 </p>
             ) : null}
             {error && !loadError ? (
-                <p className="mt-1.5 text-xs font-medium text-red-600">{error}</p>
+                <p
+                    className={`mt-1.5 text-xs font-medium ${
+                        isDark ? 'text-red-300' : 'text-red-600'
+                    }`}
+                >
+                    {error}
+                </p>
             ) : null}
             {value && !error && !loadError ? (
-                <p className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-emerald-700">
+                <p
+                    className={`mt-1.5 inline-flex items-center gap-1 text-xs font-semibold ${
+                        isDark ? 'text-emerald-300' : 'text-emerald-700'
+                    }`}
+                >
                     <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
                     Verified
                 </p>
             ) : !value ? (
-                <p className="mt-1.5 text-xs text-olive-500">
+                <p
+                    className={`mt-1.5 text-xs ${
+                        isDark ? 'text-white/40' : 'text-olive-500'
+                    }`}
+                >
                     Complete the reCAPTCHA before continuing.
                 </p>
             ) : null}

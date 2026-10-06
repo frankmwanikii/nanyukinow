@@ -11,15 +11,12 @@ import {
     validateLoginIdentifier,
     validateLoginPassword,
 } from '@/Components/auth/authHelpers';
-import RecaptchaField from '@/Components/listing/RecaptchaField';
 import { Link, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
 export default function Login({ status, canResetPassword }) {
     const { flash } = usePage().props;
     const [showPassword, setShowPassword] = useState(false);
-    const [captchaToken, setCaptchaToken] = useState('');
-    const [captchaError, setCaptchaError] = useState('');
     const {
         data,
         setData,
@@ -28,12 +25,10 @@ export default function Login({ status, canResetPassword }) {
         errors,
         clearErrors,
         reset,
-        transform,
     } = useForm({
         login: '',
         password: '',
         remember: true,
-        'g-recaptcha-response': '',
     });
 
     const loginIdFeedback = fieldFeedback(
@@ -51,55 +46,44 @@ export default function Login({ status, canResetPassword }) {
 
     const loginValid =
         validateLoginIdentifier(data.login) === true &&
-        validateLoginPassword(data.password) === true &&
-        Boolean(captchaToken);
+        validateLoginPassword(data.password) === true;
 
     const submit = (e) => {
         e.preventDefault();
-        if (!captchaToken) {
-            setCaptchaError('Please complete the security check.');
-            return;
-        }
         if (!loginValid) return;
-        setCaptchaError('');
-        transform((form) => ({
-            ...form,
-            'g-recaptcha-response': captchaToken,
-        }));
         post(route('login'), {
-            onFinish: () => {
-                transform((form) => form);
-                reset('password');
-            },
+            onFinish: () => reset('password'),
         });
     };
 
     return (
         <AuthSplitLayout title="Login" variant="centered">
             <div className="mb-6 text-center">
-                <h1 className="font-display text-[1.85rem] font-semibold tracking-tight text-earth-dusk sm:text-3xl">
-                    Login
+                <h1 className="font-display text-[1.85rem] font-semibold tracking-tight text-white sm:text-3xl">
+                    Welcome back
                 </h1>
-                <p className="mt-1.5 text-[15px] text-olive-600">Welcome back.</p>
+                <p className="mt-2 text-[15px] text-white/80">
+                    Please enter your details.
+                </p>
             </div>
 
             {(status || flash?.status) && (
-                <div className="mb-5 rounded-xl border border-mint/40 bg-mint/15 px-4 py-3 text-sm text-olive-800">
+                <div className="mb-4 rounded-xl border border-mint/40 bg-mint/15 px-4 py-3 text-sm text-mint-soft">
                     {status || flash?.status}
                 </div>
             )}
 
             {errors.suggest_register ? (
                 <div
-                    className="mb-5 rounded-xl border border-mustard/40 bg-mustard/15 px-4 py-3.5 text-sm text-olive-900"
+                    className="mb-4 rounded-xl border border-mustard/40 bg-mustard/15 px-4 py-3 text-sm text-white"
                     role="alert"
                 >
                     <p className="font-semibold">No account found</p>
-                    <p className="mt-1 text-olive-800/90">
+                    <p className="mt-1 text-white/85">
                         {errors.suggest_register}{' '}
                         <Link
                             href={route('register')}
-                            className="font-semibold underline underline-offset-2 transition hover:text-mustard"
+                            className="font-semibold text-mustard underline underline-offset-2 transition hover:text-mustard-soft"
                         >
                             Join now
                         </Link>
@@ -107,14 +91,13 @@ export default function Login({ status, canResetPassword }) {
                 </div>
             ) : null}
 
-            <GoogleContinueButton />
-            <AuthOrDivider />
-
             <form onSubmit={submit} className="space-y-4">
                 <AuthField
                     id="login"
                     label="Email or username"
                     type="text"
+                    tone="glass"
+                    placeholder="name@email.com"
                     value={data.login}
                     onChange={(e) => {
                         clearErrors('login', 'suggest_register');
@@ -130,12 +113,15 @@ export default function Login({ status, canResetPassword }) {
                             ? null
                             : loginIdFeedback.success
                     }
+                    showSuccessMessage={false}
                     autoComplete="username"
                 />
                 <AuthField
                     id="password"
                     label="Password"
                     type={showPassword ? 'text' : 'password'}
+                    tone="glass"
+                    placeholder="Enter your password"
                     value={data.password}
                     onChange={(e) => {
                         clearErrors('password');
@@ -143,70 +129,63 @@ export default function Login({ status, canResetPassword }) {
                     }}
                     error={loginPasswordFeedback.error}
                     success={loginPasswordFeedback.success}
+                    showSuccessMessage={false}
                     autoComplete="current-password"
-                    labelAside={
-                        canResetPassword ? (
-                            <Link
-                                href={route('password.request')}
-                                className="text-[13px] font-medium text-olive-500 underline underline-offset-2 hover:text-olive-800"
-                            >
-                                Forgot your password?
-                            </Link>
-                        ) : null
-                    }
                     trailing={
                         <PasswordToggle
+                            tone="glass"
                             show={showPassword}
                             onToggle={() => setShowPassword((v) => !v)}
                         />
                     }
                 />
 
-                <RecaptchaField
-                    value={captchaToken}
-                    onChange={(token) => {
-                        setCaptchaToken(token);
-                        setCaptchaError('');
-                        clearErrors('g-recaptcha-response');
-                        setData('g-recaptcha-response', token);
-                    }}
-                    error={
-                        captchaError || errors['g-recaptcha-response'] || ''
-                    }
-                />
-
-                <label className="inline-flex cursor-pointer items-center gap-2.5 text-sm text-olive-700">
-                    <input
-                        type="checkbox"
-                        checked={data.remember}
-                        onChange={(e) =>
-                            setData('remember', e.target.checked)
-                        }
-                        className="h-4 w-4 rounded border-olive-300 text-olive-700 focus:ring-olive-600"
-                    />
-                    Remember me
-                </label>
+                <div className="flex items-center justify-between gap-3 pt-0.5">
+                    <label className="inline-flex cursor-pointer items-center gap-2.5 text-sm text-white/85">
+                        <input
+                            type="checkbox"
+                            checked={data.remember}
+                            onChange={(e) =>
+                                setData('remember', e.target.checked)
+                            }
+                            className="h-4 w-4 rounded border-white/40 bg-olive-950/60 text-mustard focus:ring-mustard/50"
+                        />
+                        Remember me
+                    </label>
+                    {canResetPassword ? (
+                        <Link
+                            href={route('password.request')}
+                            className="text-[13px] font-medium text-mustard/90 transition hover:text-mustard-soft"
+                        >
+                            Forgot password?
+                        </Link>
+                    ) : null}
+                </div>
 
                 <button
                     type="submit"
                     disabled={processing || !loginValid}
-                    className="w-full rounded-lg bg-olive-900 px-4 py-3.5 text-[15px] font-semibold text-white transition hover:bg-mustard hover:text-earth-dusk disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:bg-olive-900 disabled:hover:text-white"
+                    className="w-full rounded-xl bg-mustard px-4 py-3.5 text-[15px] font-semibold tracking-tight text-earth-dusk transition hover:bg-mustard-soft disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-mustard"
                 >
                     {processing ? 'Signing in…' : 'Login'}
                 </button>
             </form>
 
-            <p className="mt-6 text-center text-sm text-olive-600">
+            <AuthOrDivider dense tone="glass" label="or sign in with" />
+
+            <GoogleContinueButton tone="glass" />
+
+            <p className="mt-5 text-center text-sm text-white/75">
                 Don&apos;t have an account?{' '}
                 <Link
                     href={route('register')}
-                    className="font-semibold text-olive-900 underline underline-offset-2 transition hover:text-mustard hover:decoration-mustard"
+                    className="font-semibold text-mustard underline decoration-mustard/40 underline-offset-4 transition hover:text-mustard-soft hover:decoration-mustard-soft"
                 >
                     Join
                 </Link>
             </p>
 
-            <AuthLegalNote />
+            <AuthLegalNote dense tone="glass" />
         </AuthSplitLayout>
     );
 }
