@@ -92,7 +92,7 @@ class PricingPlan extends Model
                     '1 free listing',
                     'Basic listing profile',
                     'Appear in search & explore',
-                    'Phone, WhatsApp & website links',
+                    'Phone number',
                     'One primary photo',
                     'Community reviews',
                 ],

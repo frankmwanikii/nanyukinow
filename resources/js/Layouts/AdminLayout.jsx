@@ -17,6 +17,8 @@ import {
     Search,
     Bell,
     ExternalLink,
+    LogOut,
+    MessagesSquare,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AdminThemeProvider, useAdminTheme } from '@/hooks/useAdminTheme';
@@ -32,6 +34,7 @@ const nav = [
     { label: 'Stories', href: 'admin.stories.index', icon: Newspaper },
     { label: 'Gallery', href: 'admin.gallery.index', icon: Images },
     { label: 'Users', href: 'admin.users.index', icon: Users },
+    { label: 'Messages', href: 'admin.messages.index', icon: MessagesSquare, badgeKey: 'inboxMessages' },
     { label: 'Pricing', href: 'admin.pricing.index', icon: CircleDollarSign },
     { label: 'Finance', href: 'admin.finance.index', icon: Wallet },
     { label: 'Claims', href: 'admin.claims.index', icon: BadgeCheck, badgeKey: 'pendingClaims' },
@@ -146,20 +149,6 @@ function ThemeToggleControl() {
     return <ThemeToggle isDark={isDark} setTheme={setTheme} />;
 }
 
-function SignOutIcon({ className = 'h-4 w-4' }) {
-    return (
-        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden className={className}>
-            <path
-                fillRule="evenodd"
-                clipRule="evenodd"
-                d="M3.5 3.2c0-.39.31-.7.7-.7h5.05c.17 0 .34.06.47.18l4.08 3.7c.2.18.31.44.31.71v13.41c0 .39-.31.7-.7.7H4.2a.7.7 0 0 1-.7-.7V3.2ZM7.35 10.65a1.35 1.35 0 1 0 0 2.7 1.35 1.35 0 0 0 0-2.7Z"
-            />
-            <path d="M15 5h5.75c.41 0 .75.34.75.75v12.5c0 .41-.34.75-.75.75H15a.75.75 0 0 1 0-1.5h5V6.5H15A.75.75 0 0 1 15 5Z" />
-            <path d="M11.25 11.1h5.55l-1.55-1.55a.75.75 0 0 1 1.06-1.06l3.05 3.05c.3.3.3.77 0 1.06l-3.05 3.05a.75.75 0 1 1-1.06-1.06l1.55-1.55h-5.55a.75.75 0 0 1 0-1.5Z" />
-        </svg>
-    );
-}
-
 function UserMenu({ user }) {
     const [open, setOpen] = useState(false);
 
@@ -239,7 +228,7 @@ function BrandMark({ className = '' }) {
 }
 
 function AdminShell({ children }) {
-    const { auth, pendingClaims = 0 } = usePage().props;
+    const { auth, pendingClaims = 0, inboxMessages = 0 } = usePage().props;
     const [open, setOpen] = useState(false);
     const { isDark } = useAdminTheme();
     const user = auth?.user;
@@ -337,7 +326,9 @@ function AdminShell({ children }) {
                                 const badge =
                                     item.badgeKey === 'pendingClaims'
                                         ? Number(pendingClaims) || 0
-                                        : 0;
+                                        : item.badgeKey === 'inboxMessages'
+                                          ? Number(inboxMessages) || 0
+                                          : 0;
                                 const active =
                                     route().current(item.href) ||
                                     (item.href === 'admin.listings.index' &&
@@ -352,6 +343,8 @@ function AdminShell({ children }) {
                                         route().current('admin.locations.*')) ||
                                     (item.href === 'admin.users.index' &&
                                         route().current('admin.users.*')) ||
+                                    (item.href === 'admin.messages.index' &&
+                                        route().current('admin.messages.*')) ||
                                     (item.href === 'admin.pricing.index' &&
                                         route().current('admin.pricing.*')) ||
                                     (item.href === 'admin.finance.index' &&
@@ -389,9 +382,12 @@ function AdminShell({ children }) {
                                 href={route('admin.logout')}
                                 method="post"
                                 as="button"
-                                className="inline-flex w-full items-center justify-center gap-2.5 rounded-full bg-olive-50 px-3 py-2.5 text-sm font-medium text-olive-700 ring-1 ring-inset ring-olive-200 transition hover:bg-rose-50 hover:text-rose-700 hover:ring-rose-200 dark:bg-white/[0.04] dark:text-olive-300 dark:ring-white/10 dark:hover:bg-rose-500/10 dark:hover:text-rose-300 dark:hover:ring-rose-400/20"
+                                className="inline-flex w-full items-center gap-3 rounded-2xl bg-white px-4 py-3.5 text-left text-sm font-medium text-olive-950 shadow-soft transition hover:bg-olive-50 hover:shadow-md dark:bg-olive-900 dark:text-olive-50 dark:shadow-none dark:ring-1 dark:ring-olive-700 dark:hover:bg-olive-800"
                             >
-                                <SignOutIcon className="h-4 w-4 shrink-0 opacity-90" />
+                                <LogOut
+                                    className="h-[18px] w-[18px] shrink-0 text-olive-950 dark:text-olive-50"
+                                    strokeWidth={1.75}
+                                />
                                 <span>Sign out</span>
                             </Link>
                         </div>

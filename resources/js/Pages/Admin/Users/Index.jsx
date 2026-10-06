@@ -279,32 +279,53 @@ export default function Index({ users, filters }) {
                                                         tab: 'payments',
                                                     }),
                                                 },
-                                                {
-                                                    label: 'Set Free plan',
-                                                    onClick: () =>
-                                                        router.post(route('admin.finance.assign'), {
-                                                            user_id: user.id,
-                                                            plan: 'free',
-                                                        }),
-                                                },
-                                                {
-                                                    label: 'Set Standard plan',
-                                                    onClick: () =>
-                                                        router.post(route('admin.finance.assign'), {
-                                                            user_id: user.id,
-                                                            plan: 'featured',
-                                                            duration_days: 30,
-                                                        }),
-                                                },
-                                                {
-                                                    label: 'Set Premium plan',
-                                                    onClick: () =>
-                                                        router.post(route('admin.finance.assign'), {
-                                                            user_id: user.id,
-                                                            plan: 'premium',
-                                                            duration_days: 30,
-                                                        }),
-                                                },
+                                                ...((user.plan || 'free') !== 'free'
+                                                    ? [
+                                                          {
+                                                              label: 'Set Free plan',
+                                                              onClick: () =>
+                                                                  router.post(
+                                                                      route('admin.finance.assign'),
+                                                                      {
+                                                                          user_id: user.id,
+                                                                          plan: 'free',
+                                                                      },
+                                                                  ),
+                                                          },
+                                                      ]
+                                                    : []),
+                                                ...((user.plan || 'free') !== 'featured'
+                                                    ? [
+                                                          {
+                                                              label: 'Set Standard plan',
+                                                              onClick: () =>
+                                                                  router.post(
+                                                                      route('admin.finance.assign'),
+                                                                      {
+                                                                          user_id: user.id,
+                                                                          plan: 'featured',
+                                                                          duration_days: 30,
+                                                                      },
+                                                                  ),
+                                                          },
+                                                      ]
+                                                    : []),
+                                                ...((user.plan || 'free') !== 'premium'
+                                                    ? [
+                                                          {
+                                                              label: 'Set Premium plan',
+                                                              onClick: () =>
+                                                                  router.post(
+                                                                      route('admin.finance.assign'),
+                                                                      {
+                                                                          user_id: user.id,
+                                                                          plan: 'premium',
+                                                                          duration_days: 30,
+                                                                      },
+                                                                  ),
+                                                          },
+                                                      ]
+                                                    : []),
                                                 {
                                                     label: 'Delete',
                                                     danger: true,

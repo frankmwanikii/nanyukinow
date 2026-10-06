@@ -1,7 +1,7 @@
 import { Link } from '@inertiajs/react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 const ALL_SLIDES = [
     {
@@ -56,38 +56,13 @@ const INTERVAL_MS = 6500;
 const REVEAL_MS = 0.95;
 const SWIPE_THRESHOLD = 48;
 
-function useIsMobileHero() {
-    const [isMobile, setIsMobile] = useState(false);
-
-    useEffect(() => {
-        const mq = window.matchMedia('(max-width: 639px)');
-        const update = () => setIsMobile(mq.matches);
-        update();
-        mq.addEventListener('change', update);
-        return () => mq.removeEventListener('change', update);
-    }, []);
-
-    return isMobile;
-}
-
 export default function HeroSlider() {
     const reduce = useReducedMotion();
-    const isMobile = useIsMobileHero();
-    const slides = useMemo(
-        () =>
-            isMobile
-                ? ALL_SLIDES.filter((slide) => slide.layout !== 'brand')
-                : ALL_SLIDES,
-        [isMobile],
-    );
+    const slides = ALL_SLIDES;
     const [index, setIndex] = useState(0);
     const [paused, setPaused] = useState(false);
     const directionRef = useRef(1);
     const touchStartX = useRef(null);
-
-    useEffect(() => {
-        setIndex((prev) => (prev >= slides.length ? 0 : prev));
-    }, [slides.length]);
 
     const step = useCallback(
         (delta) => {

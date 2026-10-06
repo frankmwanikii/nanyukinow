@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Conversation;
 use App\Models\ListingClaim;
 use App\Models\SiteSetting;
 use App\Support\MemberMessages;
@@ -93,6 +94,19 @@ class HandleInertiaRequests extends Middleware
                 try {
                     return ListingClaim::query()
                         ->where('status', ListingClaim::STATUS_PENDING)
+                        ->count();
+                } catch (Throwable) {
+                    return 0;
+                }
+            },
+            'inboxMessages' => function () use ($request) {
+                if (! $request->user()?->is_admin) {
+                    return 0;
+                }
+
+                try {
+                    return Conversation::query()
+                        ->where('last_message_at', '>=', now()->subDays(7))
                         ->count();
                 } catch (Throwable) {
                     return 0;

@@ -923,18 +923,30 @@ export default function Show({
                         </AdminButton>
                         <ActionMenu
                             items={[
-                                {
-                                    label: 'Set Free plan',
-                                    onClick: () => assignPlan('free'),
-                                },
-                                {
-                                    label: 'Set Standard (30 days)',
-                                    onClick: () => assignPlan('featured', 30),
-                                },
-                                {
-                                    label: 'Set Premium (30 days)',
-                                    onClick: () => assignPlan('premium', 30),
-                                },
+                                ...((membership?.key || 'free') !== 'free'
+                                    ? [
+                                          {
+                                              label: 'Set Free plan',
+                                              onClick: () => assignPlan('free'),
+                                          },
+                                      ]
+                                    : []),
+                                ...((membership?.key || 'free') !== 'featured'
+                                    ? [
+                                          {
+                                              label: 'Set Standard (30 days)',
+                                              onClick: () => assignPlan('featured', 30),
+                                          },
+                                      ]
+                                    : []),
+                                ...((membership?.key || 'free') !== 'premium'
+                                    ? [
+                                          {
+                                              label: 'Set Premium (30 days)',
+                                              onClick: () => assignPlan('premium', 30),
+                                          },
+                                      ]
+                                    : []),
                                 {
                                     label: 'Delete member',
                                     danger: true,

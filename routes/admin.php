@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\FinanceController;
 use App\Http\Controllers\Admin\GalleryController;
 use App\Http\Controllers\Admin\ListingController;
 use App\Http\Controllers\Admin\LocationController;
+use App\Http\Controllers\Admin\MessageController;
 use App\Http\Controllers\Admin\PageController;
 use App\Http\Controllers\Admin\PricingController;
 use App\Http\Controllers\Admin\ProfileController;
@@ -65,6 +66,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('users/{user}', [UserController::class, 'show'])->name('users.show');
         Route::put('users/{user}', [UserController::class, 'update'])->name('users.update');
         Route::delete('users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+
+        Route::get('messages', [MessageController::class, 'index'])->name('messages.index');
+        Route::post('messages', [MessageController::class, 'store'])->name('messages.store');
 
         Route::get('stories', [StoryController::class, 'index'])->name('stories.index');
         Route::get('stories/create', [StoryController::class, 'create'])->name('stories.create');
