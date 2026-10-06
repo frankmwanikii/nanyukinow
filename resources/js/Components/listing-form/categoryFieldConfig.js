@@ -83,6 +83,56 @@ export const POPULAR_DRESS_CODES = [
     'No dress code',
 ];
 
+/** Meal / board basis options for Stay. */
+export const MEAL_PLAN_OPTIONS = [
+    'Self-catering',
+    'Bed & breakfast (B&B)',
+    'Half board',
+    'Full board',
+    'All inclusive',
+    'Room only',
+];
+
+/** Cancellation policy suggestions for Stay. */
+export const CANCELLATION_OPTIONS = [
+    'Free cancellation up to 24 hours before check-in',
+    'Free cancellation up to 48 hours before check-in',
+    'Free cancellation up to 7 days before check-in',
+    'Non-refundable',
+    '50% refund up to 48 hours before check-in',
+    'Contact host for cancellation terms',
+];
+
+/** Popular Stay activities / experiences. */
+export const POPULAR_STAY_ACTIVITIES = [
+    'Game drives',
+    'Spa access',
+    'Guided walks',
+    'Horse riding',
+    'Mountain biking',
+    'Yoga',
+    'Bird watching',
+    'Cultural visits',
+    'Bush breakfast',
+    'Sundowners',
+    'Pool access',
+    'Farm tour',
+];
+
+/** Popular nearby attractions for Stay. */
+export const POPULAR_NEARBY_ATTRACTIONS = [
+    'Mount Kenya',
+    'Ol Pejeta Conservancy',
+    'Nanyuki town',
+    'Equator marker',
+    'Ngare Ndare Forest',
+    'Solio Ranch',
+    'Aberdare National Park',
+    'Timau',
+    'Naromoru',
+    'Trout tree / river',
+];
+
 /**
  * @typedef {{ key: string, label: string, type: string, placeholder?: string, options?: string[], required?: boolean, help?: string }} DetailField
  */
@@ -161,48 +211,73 @@ export const CATEGORY_DETAIL_FIELDS = {
         },
     ],
     stay: [
+        // Free — basic stay details
         {
             key: 'guests',
             label: 'Max guests',
             type: 'text',
             placeholder: 'e.g. 4',
             required: true,
+            minTier: 'free',
         },
         {
             key: 'rooms',
             label: 'Rooms / units',
             type: 'text',
             placeholder: 'e.g. 3 bedrooms',
+            minTier: 'free',
         },
         {
             key: 'beds',
             label: 'Beds',
             type: 'text',
             placeholder: 'e.g. 2 doubles, 1 twin',
+            minTier: 'free',
         },
         {
             key: 'baths',
             label: 'Bathrooms',
             type: 'text',
             placeholder: 'e.g. 2',
+            minTier: 'free',
         },
+        // Standard
         {
             key: 'check_in',
             label: 'Check-in',
             type: 'time',
             required: true,
+            minTier: 'featured',
         },
         {
             key: 'check_out',
             label: 'Check-out',
             type: 'time',
             required: true,
+            minTier: 'featured',
         },
         {
             key: 'nightly_rate',
-            label: 'From (nightly)',
+            label: 'Exact price per night',
             type: 'text',
             placeholder: 'e.g. KES 8,500',
+            help: 'Base rate guests see on your listing.',
+            minTier: 'featured',
+        },
+        {
+            key: 'meal_plan',
+            label: 'Meal plan / board basis',
+            type: 'select',
+            options: [
+                'Self-catering',
+                'Bed & breakfast (B&B)',
+                'Half board',
+                'Full board',
+                'All inclusive',
+                'Room only',
+            ],
+            help: 'What meals are included with a stay.',
+            minTier: 'featured',
         },
         {
             key: 'house_rules',
@@ -210,6 +285,65 @@ export const CATEGORY_DETAIL_FIELDS = {
             type: 'richtext',
             placeholder: 'Quiet hours, pets, smoking, check-in notes…',
             help: 'Shown on the listing page. Use lists for clear rules.',
+            minTier: 'featured',
+        },
+        {
+            key: 'cancellation_policy',
+            label: 'Cancellation policy',
+            type: 'select',
+            options: [
+                'Free cancellation up to 24 hours before check-in',
+                'Free cancellation up to 48 hours before check-in',
+                'Free cancellation up to 7 days before check-in',
+                'Non-refundable',
+                '50% refund up to 48 hours before check-in',
+                'Contact host for cancellation terms',
+            ],
+            help: 'Shown to guests before they enquire or book.',
+            minTier: 'featured',
+        },
+        // Premium
+        {
+            key: 'booking_url',
+            label: 'Direct booking link',
+            type: 'text',
+            placeholder: 'Airbnb, Booking.com, or your booking engine URL',
+            help: 'Shown as a book-now button on your listing.',
+            minTier: 'premium',
+        },
+        {
+            key: 'included',
+            label: 'Included activities / experiences',
+            type: 'suggest',
+            optionsKey: 'activities',
+            placeholder: 'Search activities or type your own…',
+            help: 'Game drives, spa access, guided walks, and more.',
+            minTier: 'premium',
+        },
+        {
+            key: 'nearby_attractions',
+            label: 'Nearby attractions / distances',
+            type: 'suggest',
+            optionsKey: 'nearby',
+            placeholder: 'Search attractions or type your own…',
+            help: 'e.g. Ol Pejeta — 25 min, Mount Kenya — day trip.',
+            minTier: 'premium',
+        },
+        {
+            key: 'host_name',
+            label: 'Host name',
+            type: 'text',
+            placeholder: 'Who hosts this stay?',
+            help: 'For Airbnbs and villas — shown on the listing page.',
+            minTier: 'premium',
+        },
+        {
+            key: 'host_bio',
+            label: 'Host bio',
+            type: 'richtext',
+            placeholder: 'A short intro about the host…',
+            help: 'Help guests feel confident booking with you.',
+            minTier: 'premium',
         },
     ],
     thingsToDo: [
@@ -420,7 +554,10 @@ export const CATEGORY_DETAIL_FIELDS = {
 export function emptyDetailsFor(categoryKey) {
     const fields = CATEGORY_DETAIL_FIELDS[categoryKey] || [];
     const details = {
-        payments: categoryKey === 'eatDrink' ? [] : ['Cash', 'M-Pesa'],
+        payments:
+            categoryKey === 'eatDrink' || categoryKey === 'stay'
+                ? []
+                : ['Cash', 'M-Pesa'],
         video_url: '',
         video_title: '',
         menus: [],
@@ -429,6 +566,7 @@ export function emptyDetailsFor(categoryKey) {
         event_schedule: [],
         products: [],
         deals: [],
+        host_photo: '',
     };
 
     fields.forEach((f) => {

@@ -447,8 +447,14 @@ export default function GalleryUploader({
     onGalleryChange,
     errors = {},
     maxGallery = DEFAULT_MAX_GALLERY,
+    categorized = false,
+    spaceOptions = [],
+    hideGallery = false,
 }) {
-    const MAX_GALLERY = Math.max(1, Number(maxGallery) || DEFAULT_MAX_GALLERY);
+    const MAX_GALLERY =
+        maxGallery === 0 || maxGallery === '0'
+            ? 0
+            : Math.max(1, Number(maxGallery) || DEFAULT_MAX_GALLERY);
     const coverInput = useRef(null);
     const logoInput = useRef(null);
     const posterInput = useRef(null);
@@ -600,6 +606,8 @@ export default function GalleryUploader({
                 file: null,
                 preview: url,
                 url,
+                kind: 'general',
+                label: 'General',
             })),
         ];
         onGalleryChange?.(next);
@@ -742,6 +750,8 @@ export default function GalleryUploader({
                     file,
                     preview,
                     url: null,
+                    kind: 'general',
+                    label: 'General',
                 },
             ];
             onGalleryChange?.(next);
@@ -767,6 +777,21 @@ export default function GalleryUploader({
         onGalleryChange?.(galleryItems.filter((g) => g.id !== id));
     };
 
+    const updateGallerySpace = (id, kind) => {
+        const match = spaceOptions.find((s) => s.value === kind);
+        onGalleryChange?.(
+            galleryItems.map((g) =>
+                g.id === id
+                    ? {
+                          ...g,
+                          kind: kind || 'general',
+                          label: match?.label || 'General',
+                      }
+                    : g,
+            ),
+        );
+    };
+
     const setCoverFromGallery = (item) => {
         if (item.preview) {
             onCoverChange?.({
@@ -780,7 +805,8 @@ export default function GalleryUploader({
     };
 
     const galleryCount = galleryItems.length;
-    const galleryPct = Math.round((galleryCount / MAX_GALLERY) * 100);
+    const galleryPct =
+        MAX_GALLERY > 0 ? Math.round((galleryCount / MAX_GALLERY) * 100) : 0;
     const cropping =
         cropState?.kind === 'gallery' && queueTotal > 0
             ? queueTotal - queue.length + 1
@@ -896,11 +922,14 @@ export default function GalleryUploader({
                 </p>
             ) : null}
 
+            {!hideGallery && MAX_GALLERY > 0 ? (
             <div className="rounded-2xl bg-olive-50/70 p-4 ring-1 ring-olive-100 dark:bg-olive-950/50 dark:ring-olive-800 sm:p-5">
                 <div className="min-w-0">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="flex flex-wrap items-center gap-2">
-                            <p className={label}>Gallery</p>
+                            <p className={label}>
+                                {categorized ? 'Categorized gallery' : 'Gallery'}
+                            </p>
                             <span className="rounded-full bg-white px-2.5 py-0.5 text-[11px] font-semibold text-olive-700 ring-1 ring-olive-200 dark:bg-olive-900 dark:text-olive-200 dark:ring-olive-700">
                                 {galleryCount} / {MAX_GALLERY}
                             </span>
@@ -1028,6 +1057,39 @@ export default function GalleryUploader({
                                                 <Trash2 className="h-3.5 w-3.5" />
                                             </button>
                                         </div>
+                                        {categorized && spaceOptions.length ? (
+                                            <div className="border-t border-olive-100 p-2 dark:border-olive-800">
+                                                <label
+                                                    className="sr-only"
+                                                    htmlFor={`gallery-space-${item.id}`}
+                                                >
+                                                    Room / space
+                                                </label>
+                                                <select
+                                                    id={`gallery-space-${item.id}`}
+                                                    className="w-full rounded-lg border-0 bg-olive-50 py-1.5 pl-2 pr-7 text-[11px] font-semibold text-olive-900 ring-1 ring-olive-200 focus:ring-2 focus:ring-mustard dark:bg-olive-900 dark:text-olive-100 dark:ring-olive-700"
+                                                    value={item.kind || 'general'}
+                                                    onChange={(e) =>
+                                                        updateGallerySpace(
+                                                            item.id,
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    onClick={(e) =>
+                                                        e.stopPropagation()
+                                                    }
+                                                >
+                                                    {spaceOptions.map((opt) => (
+                                                        <option
+                                                            key={opt.value}
+                                                            value={opt.value}
+                                                        >
+                                                            {opt.label}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        ) : null}
                                     </li>
                                 );
                             })}
@@ -1123,6 +1185,7 @@ export default function GalleryUploader({
                     </div>
                 ) : null}
             </div>
+            ) : null}
 
             {localError ? (
                 <p className="text-sm text-rose-600">{localError}</p>

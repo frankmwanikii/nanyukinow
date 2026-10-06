@@ -77,7 +77,7 @@ class MediaLibrary
 
                 foreach ($listing->gallery ?? [] as $galleryUrl) {
                     $push(
-                        is_string($galleryUrl) ? $galleryUrl : null,
+                        ListingGallery::entryUrl($galleryUrl),
                         'listings',
                         'gallery',
                         "Listing · {$title} (gallery)",
@@ -243,7 +243,11 @@ class MediaLibrary
                     }
                     $next = array_values(array_filter(
                         $gallery,
-                        fn ($item) => is_string($item) && $item !== $url,
+                        function ($item) use ($url) {
+                            $itemUrl = ListingGallery::entryUrl($item);
+
+                            return $itemUrl !== null && $itemUrl !== $url;
+                        },
                     ));
                     if (count($next) !== count($gallery)) {
                         $listing->gallery = $next;

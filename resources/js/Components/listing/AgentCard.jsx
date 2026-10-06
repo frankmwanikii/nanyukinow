@@ -1,7 +1,7 @@
 import { Mail, Phone, UserRound } from 'lucide-react';
 import DetailSection from './DetailSection';
 
-export default function AgentCard({ agent }) {
+export default function AgentCard({ agent, title = 'Contact agent' }) {
     if (!agent?.name && !agent?.phone) return null;
 
     const tel = agent.phone
@@ -9,7 +9,7 @@ export default function AgentCard({ agent }) {
         : null;
 
     return (
-        <DetailSection title="Contact agent">
+        <DetailSection title={title}>
             <div className="flex items-start gap-3">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-olive-100 text-olive-700">
                     <UserRound className="h-5 w-5" />

@@ -1976,6 +1976,11 @@ function buildFactsFromDetails(listing) {
         if (d.check_in) pairs.push({ label: 'Check-in', value: String(d.check_in) });
         if (d.check_out) pairs.push({ label: 'Check-out', value: String(d.check_out) });
         if (d.nightly_rate) pairs.push({ label: 'From', value: String(d.nightly_rate) });
+        if (d.meal_plan) pairs.push({ label: 'Board', value: String(d.meal_plan) });
+        if (d.cancellation_policy) {
+            pairs.push({ label: 'Cancellation', value: String(d.cancellation_policy) });
+        }
+        if (d.booking_url) pairs.push({ label: 'Booking', value: 'Available' });
     } else if (key === 'thingsToDo') {
         if (d.duration) pairs.push({ label: 'Duration', value: String(d.duration) });
         if (d.difficulty) pairs.push({ label: 'Difficulty', value: String(d.difficulty) });
@@ -2114,6 +2119,16 @@ export function getListingDetail(listing) {
               .filter(Boolean)
         : [];
 
+    const liveGalleryHasSpaces =
+        listing.categoryKey === 'stay' &&
+        Array.isArray(listing.gallery) &&
+        listing.gallery.some(
+            (entry) =>
+                entry &&
+                typeof entry === 'object' &&
+                (entry.kind || entry.label || Array.isArray(entry.images)),
+        );
+
     const aboutText =
         textOrNull(listing.about) ||
         textOrNull(listing.description) ||
@@ -2140,21 +2155,37 @@ export function getListingDetail(listing) {
                       note: 'Contact for viewings and details.',
                   };
               })()
-            : null;
+            : listing.categoryKey === 'stay'
+              ? (() => {
+                    const name = textOrNull(listing.details?.host_name);
+                    const bio = textOrNull(listing.details?.host_bio);
+                    if (!name && !bio) return null;
+                    return {
+                        name: name || 'Host',
+                        phone: textOrNull(listing.phone),
+                        email: textOrNull(listing.email),
+                        note: bio
+                            ? bio.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+                            : 'Your host for this stay.',
+                    };
+                })()
+              : null;
 
     const base = {
         about: aboutText,
         address: textOrNull(listing.address) || (live ? null : `${listing.location}, Kenya`),
         gallery: liveGalleryImages.length
             ? live
-                ? [
-                      {
-                          label: 'Gallery',
-                          kind: 'main',
-                          images: liveGalleryImages,
-                          cover: liveGalleryImages[0],
-                      },
-                  ]
+                ? liveGalleryHasSpaces
+                    ? normalizeGallerySpaces(listing.gallery)
+                    : [
+                          {
+                              label: 'Gallery',
+                              kind: 'main',
+                              images: liveGalleryImages,
+                              cover: liveGalleryImages[0],
+                          },
+                      ]
                 : ensureGalleryDepth([
                       {
                           label: 'Gallery',
@@ -2240,11 +2271,19 @@ export function getListingDetail(listing) {
         products: Array.isArray(listing.details?.products)
             ? listing.details.products.filter((p) => p?.name)
             : null,
-        highlights: nonEmptyList(listing.details?.highlights)
-            ? listing.details.highlights
-            : live
-              ? []
-              : (defaults.highlights ?? []),
+        highlights: (() => {
+            if (listing.categoryKey === 'stay') {
+                if (nonEmptyList(listing.details?.nearby_attractions)) {
+                    return listing.details.nearby_attractions;
+                }
+                return live ? [] : (defaults.highlights ?? []);
+            }
+            return nonEmptyList(listing.details?.highlights)
+                ? listing.details.highlights
+                : live
+                  ? []
+                  : (defaults.highlights ?? []);
+        })(),
         sponsors: Array.isArray(listing.details?.sponsors)
             ? listing.details.sponsors.filter((s) => s?.name || s?.logo)
             : null,

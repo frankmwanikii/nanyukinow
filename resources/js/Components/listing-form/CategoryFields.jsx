@@ -4,6 +4,8 @@ import {
     POPULAR_DELIVERY_OPTIONS,
     POPULAR_DIETARY_OPTIONS,
     POPULAR_DRESS_CODES,
+    POPULAR_NEARBY_ATTRACTIONS,
+    POPULAR_STAY_ACTIVITIES,
     PRICE_LEVELS,
     categoryStepTitle,
 } from './categoryFieldConfig';
@@ -16,9 +18,14 @@ import {
     canUseEatDrinkFeature,
     eatDrinkCuisineHelp,
     eatDrinkCuisineLimit,
-    normalizeTier,
-    tierMeets,
+    normalizeTier as normalizeEatDrinkTier,
+    tierMeets as eatDrinkTierMeets,
 } from '@/data/eatDrinkTierFeatures';
+import {
+    canUseStayFeature,
+    normalizeTier as normalizeStayTier,
+    tierMeets as stayTierMeets,
+} from '@/data/stayTierFeatures';
 import { Plus, X } from 'lucide-react';
 import { useState } from 'react';
 
@@ -26,6 +33,8 @@ const SUGGEST_OPTIONS = {
     dietary: POPULAR_DIETARY_OPTIONS,
     delivery: POPULAR_DELIVERY_OPTIONS,
     dress_code: POPULAR_DRESS_CODES,
+    activities: POPULAR_STAY_ACTIVITIES,
+    nearby: POPULAR_NEARBY_ATTRACTIONS,
 };
 
 /** Migrate legacy tag arrays into HTML the rich editor can open. */
@@ -207,7 +216,11 @@ export default function CategoryFields({
 }) {
     const fields = CATEGORY_DETAIL_FIELDS[categoryKey] || [];
     const isEatDrink = categoryKey === 'eatDrink';
-    const listingTier = normalizeTier(tier);
+    const isStay = categoryKey === 'stay';
+    const listingTier = isStay
+        ? normalizeStayTier(tier)
+        : normalizeEatDrinkTier(tier);
+    const tierMeets = isStay ? stayTierMeets : eatDrinkTierMeets;
 
     const setDetail = (key, value) => {
         onDetailsChange({ ...details, [key]: value });
@@ -215,13 +228,17 @@ export default function CategoryFields({
 
     const payments = details.payments || [];
     const showPayments =
-        !isEatDrink || canUseEatDrinkFeature(listingTier, 'payments');
+        (isEatDrink && canUseEatDrinkFeature(listingTier, 'payments')) ||
+        (isStay && canUseStayFeature(listingTier, 'payments')) ||
+        (!isEatDrink && !isStay);
     const visibleFields = fields.filter((f) => {
-        if (!isEatDrink) return true;
-        return tierMeets(listingTier, f.minTier || 'free');
+        if (isEatDrink || isStay) {
+            return tierMeets(listingTier, f.minTier || 'free');
+        }
+        return true;
     });
     const priceLevels =
-        isEatDrink && !tierMeets(listingTier, 'featured')
+        (isEatDrink || isStay) && !tierMeets(listingTier, 'featured')
             ? PRICE_LEVELS.filter((p) => p.value !== '$$$$')
             : PRICE_LEVELS;
 
@@ -359,7 +376,11 @@ export default function CategoryFields({
                         f.key.includes('highlight') ||
                         f.key === 'booking_url' ||
                         f.key === 'reservations' ||
-                        f.key === 'avg_meal';
+                        f.key === 'avg_meal' ||
+                        f.key === 'host_bio' ||
+                        f.key === 'meal_plan' ||
+                        f.key === 'nightly_rate' ||
+                        f.key === 'cancellation_policy';
 
                     return (
                         <div
@@ -571,7 +592,7 @@ export default function CategoryFields({
                     <DropdownMultiSelect
                         id="payments"
                         options={
-                            isEatDrink
+                            isEatDrink || isStay
                                 ? [
                                       'M-Pesa',
                                       'Card',

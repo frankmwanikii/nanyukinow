@@ -57,7 +57,12 @@ function TimeField({ value, disabled, onChange, ariaLabel }) {
     );
 }
 
-export default function HoursEditor({ hours, onChange }) {
+export default function HoursEditor({
+    hours,
+    onChange,
+    title = 'Opening hours',
+    helpText = 'Set Monday, then apply the same hours across the week.',
+}) {
     const rows = hours?.length ? hours : defaultHours();
 
     const update = (index, patch) => {
@@ -103,9 +108,9 @@ export default function HoursEditor({ hours, onChange }) {
         <div className="space-y-4">
             <div className="flex flex-wrap items-end justify-between gap-3">
                 <div>
-                    <p className={label}>Opening hours</p>
+                    <p className={label}>{title}</p>
                     <p className="text-xs text-olive-500 dark:text-olive-400">
-                        Set Monday, then apply the same hours across the week.
+                        {helpText}
                     </p>
                 </div>
                 <div className="flex flex-wrap gap-2">

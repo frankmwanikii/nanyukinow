@@ -8,6 +8,7 @@ import ListingPreview from '@/Components/listing-form/ListingPreview';
 import PlacesLocationInput from '@/Components/listing-form/PlacesLocationInput';
 import RichTextEditor from '@/Components/listing-form/RichTextEditor';
 import EatDrinkTierUpsell from '@/Components/listing-form/EatDrinkTierUpsell';
+import StayTierUpsell from '@/Components/listing-form/StayTierUpsell';
 import {
     emptyDetailsFor,
 } from '@/Components/listing-form/categoryFieldConfig';
@@ -22,12 +23,21 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import { PROPERTY_TYPES, mainCategories } from '@/data/categories';
 import {
     canUseEatDrinkFeature,
-    countWords,
+    countWords as eatDrinkCountWords,
     eatDrinkDescriptionWordLimit,
     eatDrinkGalleryLimit,
-    normalizeTier,
-    tierDisplayLabel,
+    normalizeTier as normalizeEatDrinkTier,
+    tierDisplayLabel as eatDrinkTierDisplayLabel,
 } from '@/data/eatDrinkTierFeatures';
+import {
+    canUseStayFeature,
+    normalizeTier as normalizeStayTier,
+    stayDescriptionWordLimit,
+    stayGalleryLimit,
+    STAY_GALLERY_SPACES,
+    staySpaceLabel,
+    tierDisplayLabel as stayTierDisplayLabel,
+} from '@/data/stayTierFeatures';
 import { listingSubcategories, subcategoryLabel } from '@/utils/listingSubcategories';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -138,12 +148,42 @@ const STEPS = [
 
 function galleryFromListing(listing) {
     const urls = listing?.gallery || [];
-    return urls.map((url, i) => ({
-        id: `existing-${i}`,
-        url,
-        preview: url,
-        file: null,
-    }));
+    return urls.map((entry, i) => {
+        if (typeof entry === 'string') {
+            return {
+                id: `existing-${i}`,
+                url: entry,
+                preview: entry,
+                file: null,
+                kind: 'general',
+                label: 'General',
+            };
+        }
+        const src = entry?.src || entry?.url || '';
+        const kind = entry?.kind || 'general';
+        return {
+            id: `existing-${i}`,
+            url: src,
+            preview: src,
+            file: null,
+            kind,
+            label: entry?.label || staySpaceLabel(kind),
+        };
+    });
+}
+
+function serializeGalleryItems(items, { categorized = false } = {}) {
+    return items
+        .filter((g) => g.url && !g.file)
+        .map((g) => {
+            if (!categorized) return g.url;
+            const kind = g.kind || 'general';
+            return {
+                src: g.url,
+                kind,
+                label: g.label || staySpaceLabel(kind),
+            };
+        });
 }
 
 export default function Form({
@@ -287,25 +327,45 @@ export default function Form({
 
     const categoryKey = resolveCategoryKey(selectedCategory);
     const subs = subcategoriesFor(categoryKey);
-    const listingTier = normalizeTier(form.data.tier);
     const isEatDrink = categoryKey === 'eatDrink';
+    const isStay = categoryKey === 'stay';
+    const listingTier = isStay
+        ? normalizeStayTier(form.data.tier)
+        : normalizeEatDrinkTier(form.data.tier);
     const galleryMax = isEatDrink
         ? eatDrinkGalleryLimit(listingTier)
-        : 12;
+        : isStay
+          ? stayGalleryLimit(listingTier)
+          : 12;
     const descriptionWordLimit = isEatDrink
         ? eatDrinkDescriptionWordLimit(listingTier)
-        : null;
+        : isStay
+          ? stayDescriptionWordLimit(listingTier)
+          : null;
     const mapLocked =
-        isEatDrink && !canUseEatDrinkFeature(listingTier, 'map_location');
+        (isEatDrink && !canUseEatDrinkFeature(listingTier, 'map_location')) ||
+        (isStay && !canUseStayFeature(listingTier, 'map_location'));
     const videoLocked =
-        isEatDrink && !canUseEatDrinkFeature(listingTier, 'video');
+        (isEatDrink && !canUseEatDrinkFeature(listingTier, 'video')) ||
+        (isStay && !canUseStayFeature(listingTier, 'video'));
     const socialLocked =
-        isEatDrink && !canUseEatDrinkFeature(listingTier, 'social_contact');
+        (isEatDrink && !canUseEatDrinkFeature(listingTier, 'social_contact')) ||
+        (isStay && !canUseStayFeature(listingTier, 'social_contact'));
+    const amenitiesLocked =
+        isStay && !canUseStayFeature(listingTier, 'amenities');
+    const hoursLocked =
+        isStay && !canUseStayFeature(listingTier, 'reception_hours');
+    const galleryLocked = isStay && galleryMax <= 0;
+    const TierUpsell = isStay ? StayTierUpsell : EatDrinkTierUpsell;
+    const showTierUpsell = isEatDrink || isStay;
+    const tierLabel = isStay
+        ? stayTierDisplayLabel(listingTier)
+        : eatDrinkTierDisplayLabel(listingTier);
 
     const buildDraftBody = (data = formDataRef.current || form.data) => {
-        const galleryUrls = galleryItems
-            .filter((g) => g.url && !g.file)
-            .map((g) => g.url);
+        const galleryUrls = serializeGalleryItems(galleryItems, {
+            categorized: isStay,
+        });
         const body = new FormData();
         const append = (key, value) => {
             if (value === null || value === undefined) return;
@@ -346,6 +406,15 @@ export default function Form({
         append('details', JSON.stringify(data.details || {}));
         append('social_links', JSON.stringify(data.social_links || {}));
         append('gallery_urls', JSON.stringify(galleryUrls));
+        if (isStay) {
+            const galleryFileMeta = galleryItems
+                .filter((g) => g.file)
+                .map((g) => ({
+                    kind: g.kind || 'general',
+                    label: g.label || staySpaceLabel(g.kind || 'general'),
+                }));
+            append('gallery_file_meta', JSON.stringify(galleryFileMeta));
+        }
         append('start_at', data.start_at || '');
         append('end_at', data.end_at || '');
         append('ticket_price', data.ticket_price || '');
@@ -631,18 +700,29 @@ export default function Form({
             }
         }
 
-        const galleryUrls = galleryItems
-            .filter((g) => g.url && !g.file)
-            .map((g) => g.url);
+        $galleryUrls = serializeGalleryItems(galleryItems, {
+            categorized: isStay,
+        });
         const galleryFiles = galleryItems
             .filter((g) => g.file)
             .map((g) => g.file);
+        const galleryFileMeta = isStay
+            ? galleryItems
+                  .filter((g) => g.file)
+                  .map((g) => ({
+                      kind: g.kind || 'general',
+                      label: g.label || staySpaceLabel(g.kind || 'general'),
+                  }))
+            : [];
 
         form.transform((data) => {
             const payload = {
                 ...data,
                 gallery_urls: isAdmin ? galleryUrls : JSON.stringify(galleryUrls),
                 gallery_files: galleryFiles,
+                gallery_file_meta: isAdmin
+                    ? galleryFileMeta
+                    : JSON.stringify(galleryFileMeta),
                 amenities: isAdmin ? data.amenities : JSON.stringify(data.amenities || []),
                 hours:
                     categoryKey === 'properties' || categoryKey === 'events'
@@ -921,8 +1001,8 @@ export default function Form({
 
                                 {step.id === 'location' ? (
                                     <div className="space-y-5">
-                                        {isEatDrink && mapLocked ? (
-                                            <EatDrinkTierUpsell
+                                        {showTierUpsell && mapLocked ? (
+                                            <TierUpsell
                                                 tier={listingTier}
                                                 isAdmin={isAdmin}
                                             />
@@ -942,8 +1022,8 @@ export default function Form({
 
                                 {step.id === 'details' ? (
                                     <>
-                                        {isEatDrink ? (
-                                            <EatDrinkTierUpsell
+                                        {showTierUpsell ? (
+                                            <TierUpsell
                                                 tier={listingTier}
                                                 isAdmin={isAdmin}
                                             />
@@ -1000,17 +1080,40 @@ export default function Form({
                                         />
                                         {categoryKey !== 'properties' &&
                                         categoryKey !== 'events' ? (
-                                            <HoursEditor
-                                                hours={form.data.hours}
-                                                onChange={(hours) =>
-                                                    patch({ hours })
-                                                }
-                                            />
+                                            hoursLocked ? (
+                                                <StayTierUpsell
+                                                    tier={listingTier}
+                                                    isAdmin={isAdmin}
+                                                />
+                                            ) : (
+                                                <HoursEditor
+                                                    hours={form.data.hours}
+                                                    onChange={(hours) =>
+                                                        patch({ hours })
+                                                    }
+                                                    title={
+                                                        isStay
+                                                            ? 'Reception hours'
+                                                            : 'Opening hours'
+                                                    }
+                                                    helpText={
+                                                        isStay
+                                                            ? 'When guests can check in at reception or reach you on-site.'
+                                                            : undefined
+                                                    }
+                                                />
+                                            )
                                         ) : null}
                                     </>
                                 ) : null}
 
                                 {step.id === 'amenities' ? (
+                                    amenitiesLocked ? (
+                                        <StayTierUpsell
+                                            tier={listingTier}
+                                            isAdmin={isAdmin}
+                                        />
+                                    ) : (
                                     <AmenitiesPicker
                                         amenities={amenityOptions}
                                         selected={form.data.amenities}
@@ -1033,6 +1136,7 @@ export default function Form({
                                             });
                                         }}
                                     />
+                                    )
                                 ) : null}
 
                                 {step.id === 'media' ? (
@@ -1044,6 +1148,9 @@ export default function Form({
                                         galleryItems={galleryItems}
                                         showPoster={categoryKey === 'events'}
                                         maxGallery={galleryMax}
+                                        categorized={isStay && !galleryLocked}
+                                        spaceOptions={STAY_GALLERY_SPACES}
+                                        hideGallery={galleryLocked}
                                         libraryRoute={
                                             isAdmin
                                                 ? route('admin.gallery.browse')
@@ -1096,22 +1203,44 @@ export default function Form({
                                         }}
                                         onGalleryChange={setGalleryItems}
                                     />
-                                    {isEatDrink ? (
+                                    {galleryLocked ? (
+                                        <div className="mt-4">
+                                            <StayTierUpsell
+                                                tier={listingTier}
+                                                isAdmin={isAdmin}
+                                            />
+                                            <p className="mt-2 text-xs text-olive-500 dark:text-olive-400">
+                                                Free Stay listings include a cover
+                                                image only. Standard unlocks a
+                                                categorized gallery (10 photos) ·
+                                                Premium unlocks up to 50.
+                                            </p>
+                                        </div>
+                                    ) : null}
+                                    {isEatDrink || (isStay && !galleryLocked) ? (
                                         <p className="mt-2 text-xs text-olive-500 dark:text-olive-400">
-                                            Gallery limit for{' '}
-                                            {tierDisplayLabel(listingTier)}:{' '}
+                                            Gallery limit for {tierLabel}:{' '}
                                             {galleryMax} images
-                                            {listingTier === 'free'
-                                                ? ' · Standard unlocks 10 · Premium unlocks 30'
-                                                : listingTier === 'featured'
-                                                  ? ' · Premium unlocks 30'
-                                                  : ''}
+                                            {isStay
+                                                ? listingTier === 'featured'
+                                                    ? ' · Premium unlocks 50'
+                                                    : listingTier === 'premium'
+                                                      ? ''
+                                                      : ''
+                                                : listingTier === 'free'
+                                                  ? ' · Standard unlocks 10 · Premium unlocks 30'
+                                                  : listingTier === 'featured'
+                                                    ? ' · Premium unlocks 30'
+                                                    : ''}
+                                            {isStay
+                                                ? ' · Tag each photo by room (Bedroom, Kitchen, etc.).'
+                                                : ''}
                                             .
                                         </p>
                                     ) : null}
-                                    {isEatDrink && videoLocked ? (
+                                    {showTierUpsell && videoLocked ? (
                                         <div className="mt-6">
-                                            <EatDrinkTierUpsell
+                                            <TierUpsell
                                                 tier={listingTier}
                                                 isAdmin={isAdmin}
                                             />
@@ -1147,6 +1276,7 @@ export default function Form({
                                         form={form}
                                         patch={patch}
                                         isEatDrink={isEatDrink}
+                                        isStay={isStay}
                                         socialLocked={socialLocked}
                                         listingTier={listingTier}
                                         isAdmin={isAdmin}
@@ -1570,7 +1700,7 @@ function BasicsStep({
     patch,
     descriptionWordLimit = null,
 }) {
-    const wordCount = countWords(form.data.description);
+    const wordCount = eatDrinkCountWords(form.data.description);
     const overLimit =
         descriptionWordLimit != null && wordCount > descriptionWordLimit;
     const selectedSubs = Array.isArray(form.data.subcategory)
@@ -1767,6 +1897,7 @@ function ContactStep({
     form,
     patch,
     isEatDrink = false,
+    isStay = false,
     socialLocked = false,
     listingTier = 'free',
     isAdmin = false,
@@ -1774,7 +1905,8 @@ function ContactStep({
     const websiteLinks = Array.isArray(form.data.social_links?.links)
         ? form.data.social_links.links
         : [];
-    const showExtended = !isEatDrink || !socialLocked;
+    const showExtended = (!isEatDrink && !isStay) || !socialLocked;
+    const TierUpsell = isStay ? StayTierUpsell : EatDrinkTierUpsell;
 
     const setWebsiteLinks = (links) => {
         patch({
@@ -1800,19 +1932,28 @@ function ContactStep({
         setWebsiteLinks(websiteLinks.filter((_, i) => i !== index));
     };
 
-    const contactFields = isEatDrink
+    // Stay Free: phone + email. Eat & Drink Free: phone only.
+    // Standard+: WhatsApp, website, social.
+    const contactFields = isStay
         ? [
               ['phone', 'Contact number', 'text', false],
+              ['email', 'Email', 'email', false],
               ['whatsapp', 'WhatsApp', 'text', true],
-              ['email', 'Email', 'email', true],
               ['website', 'Primary website', 'text', true],
           ]
-        : [
-              ['phone', 'Phone', 'text', false],
-              ['whatsapp', 'WhatsApp', 'text', false],
-              ['email', 'Email', 'email', false],
-              ['website', 'Primary website', 'text', false],
-          ];
+        : isEatDrink
+          ? [
+                ['phone', 'Contact number', 'text', false],
+                ['whatsapp', 'WhatsApp', 'text', true],
+                ['email', 'Email', 'email', true],
+                ['website', 'Primary website', 'text', true],
+            ]
+          : [
+                ['phone', 'Phone', 'text', false],
+                ['whatsapp', 'WhatsApp', 'text', false],
+                ['email', 'Email', 'email', false],
+                ['website', 'Primary website', 'text', false],
+            ];
 
     return (
         <div className="space-y-5">
@@ -1825,8 +1966,8 @@ function ContactStep({
                 </p>
             </div>
 
-            {isEatDrink && socialLocked ? (
-                <EatDrinkTierUpsell tier={listingTier} isAdmin={isAdmin} />
+            {(isEatDrink || isStay) && socialLocked ? (
+                <TierUpsell tier={listingTier} isAdmin={isAdmin} />
             ) : null}
 
             <div className="grid gap-4 sm:grid-cols-2">
@@ -1934,7 +2075,7 @@ function ContactStep({
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-                {(isEatDrink
+                {(isEatDrink || isStay
                     ? ['facebook', 'instagram']
                     : ['instagram', 'facebook', 'tiktok', 'youtube']
                 ).map((net) => (

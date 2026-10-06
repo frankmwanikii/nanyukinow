@@ -10,6 +10,7 @@ import {
     normalizeTier,
     tierDisplayLabel,
 } from '@/data/eatDrinkTierFeatures';
+import { canUseStayFeature } from '@/data/stayTierFeatures';
 import {
     formatGigWhenLabel,
     WEEKDAYS,
@@ -426,6 +427,8 @@ export default function CategoryExtrasEditor({
         categoryKey === 'eatDrink' && canUseEatDrinkFeature(tier, 'deals');
     const showLiveMusic =
         categoryKey === 'eatDrink' && canUseEatDrinkFeature(tier, 'live_music');
+    const showStayOffers =
+        categoryKey === 'stay' && canUseStayFeature(tier, 'seasonal_offers');
     const menuLimit =
         categoryKey === 'eatDrink' ? eatDrinkMenuLimit(tier) : null;
     const imagesPerMenu =
@@ -832,6 +835,71 @@ export default function CategoryExtrasEditor({
                 </Section>
                 ) : null}
                 </>
+            ) : null}
+
+            {showStayOffers ? (
+                <Section
+                    title="Seasonal pricing / special offers"
+                    blurb="Promote resident rates, holiday weekends, and limited-time discounts."
+                >
+                    <ul className="space-y-3">
+                        {deals.map((item, index) => (
+                            <li
+                                key={`stay-deal-${index}`}
+                                className="space-y-2 rounded-xl border border-olive-100 bg-olive-50/40 p-3"
+                            >
+                                <div className="flex items-center justify-between gap-2">
+                                    <span className="text-xs font-semibold uppercase tracking-wide text-olive-500">
+                                        Offer {index + 1}
+                                    </span>
+                                    <RowActions
+                                        onRemove={() =>
+                                            removeItem('deals', index)
+                                        }
+                                    />
+                                </div>
+                                <div>
+                                    <label className={label}>Title</label>
+                                    <input
+                                        className={field}
+                                        value={item.title || ''}
+                                        onChange={(e) =>
+                                            updateItem('deals', index, {
+                                                title: e.target.value,
+                                            })
+                                        }
+                                        placeholder="e.g. Resident midweek rate"
+                                    />
+                                </div>
+                                <div>
+                                    <RichTextEditor
+                                        id={`stay-deal-details-${index}`}
+                                        label="Details"
+                                        value={item.description || ''}
+                                        onChange={(html) =>
+                                            updateItem('deals', index, {
+                                                description: html,
+                                            })
+                                        }
+                                        placeholder="Valid dates, discount amount, booking notes…"
+                                        allowImages={false}
+                                        compact
+                                    />
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                    <button
+                        type="button"
+                        onClick={() =>
+                            addItem('deals', { title: '', description: '' })
+                        }
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white"
+                    >
+                        <Plus className="h-4 w-4" />
+                        Add offer
+                    </button>
+                </Section>
             ) : null}
 
             {categoryKey === 'events' ? (

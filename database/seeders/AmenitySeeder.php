@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Amenity;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Str;
 
 class AmenitySeeder extends Seeder
 {
@@ -38,6 +37,9 @@ class AmenitySeeder extends Seeder
             ['name' => 'Concierge', 'slug' => 'concierge', 'category_key' => 'stay'],
             ['name' => 'Breakfast included', 'slug' => 'breakfast', 'category_key' => 'stay'],
             ['name' => 'Kitchen', 'slug' => 'kitchen', 'category_key' => 'stay'],
+            ['name' => 'Smart TV', 'slug' => 'smart-tv', 'category_key' => 'stay'],
+            ['name' => 'Hot shower', 'slug' => 'hot-shower', 'category_key' => 'stay'],
+            ['name' => 'Pet friendly', 'slug' => 'stay-pet-friendly', 'category_key' => 'stay'],
 
             // Things to do
             ['name' => 'Guide included', 'slug' => 'guide', 'category_key' => 'thingsToDo'],

@@ -12,10 +12,12 @@ use App\Models\User;
 use App\Notifications\ListingReviewedNotification;
 use App\Support\CategoryKey;
 use App\Support\EatDrinkTierFeatures;
+use App\Support\ListingGallery;
 use App\Support\ListingMedia;
 use App\Support\ListingPayload;
 use App\Support\ListingSlug;
 use App\Support\Membership;
+use App\Support\StayTierFeatures;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -349,17 +351,14 @@ class ListingController extends Controller
     private function prepareData(array $data, Request $request, ?Listing $listing = null): array
     {
         // Handle file uploads (cover, logo, event_poster, gallery_files)
-        $galleryUrls = is_array($data['gallery_urls'] ?? null)
-            ? array_values(array_filter($data['gallery_urls'], fn ($url) => is_string($url) && $url !== ''))
+        $galleryEntries = is_array($data['gallery_urls'] ?? null) ? $data['gallery_urls'] : [];
+        $galleryFiles = $request->hasFile('gallery_files')
+            ? array_values(array_filter($request->file('gallery_files') ?: []))
             : [];
-
-        if ($request->hasFile('gallery_files')) {
-            foreach ($request->file('gallery_files') as $file) {
-                if ($file) {
-                    $galleryUrls[] = ListingMedia::store($file, 'listings/gallery');
-                }
-            }
-        }
+        $galleryFileMeta = is_array($data['gallery_file_meta'] ?? null)
+            ? $data['gallery_file_meta']
+            : [];
+        $galleryUrls = ListingGallery::fromRequest($galleryEntries, $galleryFiles, $galleryFileMeta);
 
         $imageUrl = $data['image_url'] ?? $listing?->image_url;
         if ($request->hasFile('cover')) {
@@ -463,7 +462,9 @@ class ListingController extends Controller
             : $listing?->category?->slug;
         $categoryKey = CategoryKey::fromSlug($categorySlug);
 
-        return EatDrinkTierFeatures::applyToPayload($data, $tier, $categoryKey);
+        $data = EatDrinkTierFeatures::applyToPayload($data, $tier, $categoryKey);
+
+        return StayTierFeatures::applyToPayload($data, $tier, $categoryKey);
     }
 
     /**

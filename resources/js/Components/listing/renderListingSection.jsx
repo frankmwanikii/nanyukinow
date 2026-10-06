@@ -98,7 +98,11 @@ export function renderListingSection(key, listing) {
             return (
                 <BulletList
                     key={key}
-                    title="What's included"
+                    title={
+                        listing.categoryKey === 'stay'
+                            ? 'Included activities'
+                            : "What's included"
+                    }
                     items={listing.included}
                 />
             );
@@ -157,7 +161,14 @@ export function renderListingSection(key, listing) {
             const deals = Array.isArray(listing.deals) ? listing.deals : [];
             if (!deals.length) return null;
             return (
-                <DetailSection key={key} title="Deals & happy hour">
+                <DetailSection
+                    key={key}
+                    title={
+                        listing.categoryKey === 'stay'
+                            ? 'Seasonal offers'
+                            : 'Deals & happy hour'
+                    }
+                >
                     <ul className="space-y-3">
                         {deals.map((deal, index) => (
                             <li
@@ -217,6 +228,18 @@ export function renderListingSection(key, listing) {
                     items={listing.highlights}
                 />
             );
+        case 'host':
+            return (
+                <AgentCard
+                    key={key}
+                    agent={listing.agent}
+                    title={
+                        listing.categoryKey === 'stay'
+                            ? 'Meet your host'
+                            : 'Contact agent'
+                    }
+                />
+            );
         case 'eventWhen':
             return <EventWhen key={key} listing={listing} />;
         case 'eventWhere':
@@ -253,6 +276,11 @@ export function renderListingSection(key, listing) {
                     key={key}
                     hours={listing.hours}
                     status={listing.hoursStatus}
+                    title={
+                        listing.categoryKey === 'stay'
+                            ? 'Reception hours'
+                            : 'Working hours'
+                    }
                 />
             );
         case 'payments':

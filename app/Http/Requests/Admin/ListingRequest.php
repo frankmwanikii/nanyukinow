@@ -40,6 +40,7 @@ class ListingRequest extends FormRequest
         $merge['social_links'] = $this->decodeArrayField('social_links');
         $merge['details'] = $this->decodeArrayField('details');
         $merge['gallery_urls'] = $this->decodeArrayField('gallery_urls');
+        $merge['gallery_file_meta'] = $this->decodeArrayField('gallery_file_meta');
         $merge['subcategory'] = $this->decodeSubcategoryField();
 
         $this->merge($merge);
@@ -113,10 +114,13 @@ class ListingRequest extends FormRequest
             'cover' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:15360'],
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:15360'],
             'event_poster' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:15360'],
-            'gallery_files' => ['nullable', 'array', 'max:30'],
+            'gallery_files' => ['nullable', 'array', 'max:50'],
             'gallery_files.*' => ['image', 'mimes:jpg,jpeg,png,webp,gif', 'max:15360'],
-            'gallery_urls' => ['nullable', 'array', 'max:30'],
-            'gallery_urls.*' => ['nullable', 'string', 'max:500'],
+            'gallery_urls' => ['nullable', 'array', 'max:50'],
+            'gallery_urls.*' => ['nullable'],
+            'gallery_file_meta' => ['nullable', 'array', 'max:50'],
+            'gallery_file_meta.*.kind' => ['nullable', 'string', 'max:60'],
+            'gallery_file_meta.*.label' => ['nullable', 'string', 'max:120'],
             'amenities' => ['nullable', 'array', 'max:40'],
             'amenities.*' => ['string', 'max:80'],
             'hours' => ['nullable', 'array'],

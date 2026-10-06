@@ -11,10 +11,12 @@ use App\Models\Category;
 use App\Models\Listing;
 use App\Support\CategoryKey;
 use App\Support\EatDrinkTierFeatures;
+use App\Support\ListingGallery;
 use App\Support\ListingMedia;
 use App\Support\ListingSlug;
 use App\Support\ListingSubcategories;
 use App\Support\Membership;
+use App\Support\StayTierFeatures;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -242,18 +244,14 @@ class ListingController extends Controller
      */
     private function buildListingPayload(Request $request, array $data, ?Listing $existing = null): array
     {
-        $galleryUrls = array_values(array_filter(
-            $data['gallery_urls'] ?? [],
-            fn ($url) => is_string($url) && $url !== '',
-        ));
-
-        if ($request->hasFile('gallery_files')) {
-            foreach ($request->file('gallery_files') as $file) {
-                if ($file) {
-                    $galleryUrls[] = ListingMedia::store($file, 'listings/gallery');
-                }
-            }
-        }
+        $galleryEntries = is_array($data['gallery_urls'] ?? null) ? $data['gallery_urls'] : [];
+        $galleryFiles = $request->hasFile('gallery_files')
+            ? array_values(array_filter($request->file('gallery_files') ?: []))
+            : [];
+        $galleryFileMeta = is_array($data['gallery_file_meta'] ?? null)
+            ? $data['gallery_file_meta']
+            : [];
+        $galleryUrls = ListingGallery::fromRequest($galleryEntries, $galleryFiles, $galleryFileMeta);
 
         $imageUrl = $data['image_url'] ?? $existing?->image_url;
         if ($request->hasFile('cover')) {
@@ -330,7 +328,9 @@ class ListingController extends Controller
             'ticket_url' => $data['ticket_url'] ?? null,
         ];
 
-        return EatDrinkTierFeatures::applyToPayload($payload, $tier, $categoryKey);
+        $payload = EatDrinkTierFeatures::applyToPayload($payload, $tier, $categoryKey);
+
+        return StayTierFeatures::applyToPayload($payload, $tier, $categoryKey);
     }
 
     /**
