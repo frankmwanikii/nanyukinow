@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\SitePage;
-use App\Models\SiteSetting;
+use App\Support\CategoryKey;
 use App\Support\Membership;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -16,24 +16,13 @@ class PricingPageController extends Controller
         $user = $request->user();
 
         $page = SitePage::findBySlug('pricing');
-        $content = $page?->content ?? [];
 
         return Inertia::render('Pricing', [
-            'plans' => Membership::publicPlans(),
+            'plansByCategory' => Membership::publicPlansByCategory(),
+            'categories' => CategoryKey::options(),
+            'initialCategory' => CategoryKey::fromSlug($request->string('category')->toString()),
             'currentPlan' => $user ? Membership::planSummary($user) : null,
             'page' => $page?->toPublicArray(),
-            'upgradeContact' => [
-                'whatsapp' => SiteSetting::getValue('upgrade_whatsapp', ''),
-                'phone' => SiteSetting::getValue('contact_phone', ''),
-                'email' => SiteSetting::getValue('contact_email', 'hello@nanyukinow.co.ke'),
-                'mpesa_paybill' => SiteSetting::getValue('upgrade_mpesa_paybill', '542542'),
-                'mpesa_account' => SiteSetting::getValue('upgrade_mpesa_account', '451220'),
-                'instructions' => $content['instructions']
-                    ?? SiteSetting::getValue(
-                        'upgrade_instructions',
-                        'Choose a plan, pick how you want to pay, then submit your payment reference. We’ll activate your plan after verifying payment.',
-                    ),
-            ],
         ]);
     }
 }

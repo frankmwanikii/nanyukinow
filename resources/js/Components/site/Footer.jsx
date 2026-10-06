@@ -1,4 +1,4 @@
-import { Link, usePage } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import { Mail, MapPin, Phone } from 'lucide-react';
 import Logo from './Logo';
 
@@ -53,7 +53,6 @@ const socialLinks = [
 
 export default function Footer() {
     const year = new Date().getFullYear();
-    const user = usePage().props.auth?.user;
 
     return (
         <footer className="relative z-10 bg-earth-dusk text-white">
@@ -93,45 +92,12 @@ export default function Footer() {
                             </Link>
                         </li>
                         <li>
-                            <a
-                                href="#categories"
-                                className="transition hover:text-mint"
-                            >
-                                Find it by category
-                            </a>
-                        </li>
-                        <li>
                             <Link
                                 href="/pricing"
                                 className="transition hover:text-mint"
                             >
                                 Pricing
                             </Link>
-                        </li>
-                        <li>
-                            <Link
-                                href="/account"
-                                className="transition hover:text-mint"
-                            >
-                                My dashboard
-                            </Link>
-                        </li>
-                        <li>
-                            {user ? (
-                                <Link
-                                    href={route('account.listings.create')}
-                                    className="transition hover:text-mint"
-                                >
-                                    Add Business
-                                </Link>
-                            ) : (
-                                <Link
-                                    href={route('register')}
-                                    className="transition hover:text-mint"
-                                >
-                                    Add Business
-                                </Link>
-                            )}
                         </li>
                     </ul>
                 </div>
@@ -225,15 +191,18 @@ export default function Footer() {
                 <div className="mx-auto flex max-w-[1400px] flex-col items-center justify-between gap-2 px-4 py-4 text-center text-xs text-white/50 sm:flex-row sm:px-6 sm:text-left">
                     <p>
                         © {year} Nanyuki Now. All rights reserved.{' '}
-                        <span className="text-white/35">·</span> Designed by{' '}
-                        <a
-                            href="https://fraittech.co.ke"
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-white/70 transition hover:text-mint"
-                        >
-                            Fraittech
-                        </a>
+                        <span className="text-white/35">·</span>{' '}
+                        <span className="whitespace-nowrap">
+                            Designed by{' '}
+                            <a
+                                href="https://fraittech.co.ke"
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-white/70 transition hover:text-mint"
+                            >
+                                Fraittech
+                            </a>
+                        </span>
                     </p>
                     <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 sm:justify-end">
                         <Link href="/terms" className="transition hover:text-mint">

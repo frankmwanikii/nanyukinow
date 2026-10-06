@@ -1,4 +1,5 @@
 import { Link, router, usePage } from '@inertiajs/react';
+import { tryOpenAccountMenu } from '@/lib/accountMenuBridge';
 import {
     Bell,
     CheckCheck,
@@ -81,7 +82,12 @@ export function MemberUserMenu({ user, compact = false }) {
         <div className="relative shrink-0">
             <button
                 type="button"
-                onClick={() => setOpen((v) => !v)}
+                onClick={() => {
+                    if (tryOpenAccountMenu()) {
+                        return;
+                    }
+                    setOpen((v) => !v);
+                }}
                 aria-expanded={open}
                 aria-haspopup="menu"
                 aria-label="Account menu"

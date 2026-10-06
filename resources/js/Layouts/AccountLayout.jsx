@@ -8,8 +8,8 @@ import {
     CreditCard,
     Home,
     LayoutDashboard,
-    Menu,
     MessageSquare,
+    PanelLeft,
     PlusCircle,
     Settings,
     Sparkles,
@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { registerAccountMenuOpener } from '@/lib/accountMenuBridge';
 
 /** Fallback until the real site nav is measured (logo h-14 + py-5 ≈ 96px) */
 const NAV_H_FALLBACK = 96;
@@ -160,6 +161,10 @@ function AccountShell({ title = 'Account', children }) {
             ].filter((item) => !item.hide),
         [user?.plan, unreadMessages],
     );
+
+    useEffect(() => {
+        return registerAccountMenuOpener(() => setMobileOpen(true));
+    }, []);
 
     useEffect(() => {
         if (!mobileOpen) return undefined;
@@ -318,10 +323,10 @@ function AccountShell({ title = 'Account', children }) {
                             type="button"
                             onClick={() => setMobileOpen(true)}
                             className="inline-flex h-10 w-10 items-center justify-center rounded-full text-olive-700 transition hover:bg-olive-100 dark:text-olive-200 dark:hover:bg-olive-800 lg:hidden"
-                            aria-label="Open menu"
+                            aria-label="Open account menu"
                             aria-expanded={mobileOpen}
                         >
-                            <Menu className="h-5 w-5" strokeWidth={1.85} />
+                            <PanelLeft className="h-5 w-5" strokeWidth={1.85} />
                         </button>
                         <h1 className="min-w-0 flex-1 truncate font-display text-xl font-semibold tracking-tight text-olive-950 dark:text-olive-50 sm:text-2xl">
                             {title}
@@ -329,7 +334,7 @@ function AccountShell({ title = 'Account', children }) {
                         <ThemeToggle isDark={isDark} setTheme={setTheme} />
                     </header>
 
-                    <div className="px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
+                    <div className="px-4 py-5 pb-8 sm:px-6 sm:py-6 lg:px-8 lg:pb-6">
                         {children}
                     </div>
                 </div>

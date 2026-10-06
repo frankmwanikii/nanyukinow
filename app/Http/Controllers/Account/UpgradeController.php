@@ -8,6 +8,7 @@ use App\Http\Requests\Account\StoreUpgradeRequest;
 use App\Models\PlanUpgrade;
 use App\Models\PricingPlan;
 use App\Models\SiteSetting;
+use App\Support\CategoryKey;
 use App\Support\Membership;
 use App\Support\PaymentGateway;
 use App\Support\PaymentMethods;
@@ -36,7 +37,12 @@ class UpgradeController extends Controller
 
         return Inertia::render('Account/Upgrade', [
             'plan' => Membership::planSummary($user),
-            'plans' => Membership::publicPlans(),
+            'plans' => Membership::publicPlans(
+                CategoryKey::fromSlug($request->string('category')->toString())
+            ),
+            'plansByCategory' => Membership::publicPlansByCategory(),
+            'categories' => CategoryKey::options(),
+            'initialCategory' => CategoryKey::fromSlug($request->string('category')->toString()),
             'pendingUpgrade' => $pending?->toMemberArray(),
             'paymentMethods' => PaymentMethods::memberOptions(),
             'initialBilling' => $billing,
@@ -71,8 +77,9 @@ class UpgradeController extends Controller
         $method = $data['payment_method'];
         $billingPeriod = $data['billing_period'] ?? 'month';
         $current = $user->effectivePlan();
+        $isPeriodUpgrade = Membership::isBillingPeriodUpgrade($user, $toPlan, $billingPeriod);
 
-        if ($toPlan === Membership::FREE || $toPlan === $current) {
+        if ($toPlan === Membership::FREE || ($toPlan === $current && ! $isPeriodUpgrade)) {
             return response()->json([
                 'ok' => false,
                 'message' => 'Choose a higher plan than your current one.',
@@ -80,7 +87,7 @@ class UpgradeController extends Controller
             ], 422);
         }
 
-        if ($current === Membership::PREMIUM) {
+        if ($current === Membership::PREMIUM && ! $isPeriodUpgrade) {
             return response()->json([
                 'ok' => false,
                 'message' => 'You are already on Premium.',
@@ -89,7 +96,7 @@ class UpgradeController extends Controller
         }
 
         PricingPlan::ensureDefaults();
-        $pricing = PricingPlan::query()->where('key', $toPlan)->first();
+        $pricing = PricingPlan::findForCategory($toPlan, $data['category'] ?? null);
         $amount = $pricing
             ? $pricing->amountForPeriod($billingPeriod)
             : (int) ($data['amount'] ?? 0);
@@ -137,21 +144,18 @@ class UpgradeController extends Controller
         $toPlan = Membership::normalize($request->validated('to_plan'));
         $billingPeriod = $request->validated('billing_period') ?? 'month';
         $current = $user->effectivePlan();
+        $isPeriodUpgrade = Membership::isBillingPeriodUpgrade($user, $toPlan, $billingPeriod);
 
-        if ($toPlan === Membership::FREE || $toPlan === $current) {
+        if ($toPlan === Membership::FREE || ($toPlan === $current && ! $isPeriodUpgrade)) {
             return back()->withErrors(['to_plan' => 'Choose a higher plan than your current one.']);
         }
 
-        if ($current === Membership::PREMIUM) {
+        if ($current === Membership::PREMIUM && ! $isPeriodUpgrade) {
             return back()->with('error', 'You are already on Premium.');
         }
 
-        if ($current === Membership::STANDARD && $toPlan === Membership::STANDARD) {
-            return back()->withErrors(['to_plan' => 'You are already on Standard. Choose Premium.']);
-        }
-
         $rank = [Membership::FREE => 0, Membership::STANDARD => 1, Membership::PREMIUM => 2];
-        if (($rank[$toPlan] ?? 0) <= ($rank[$current] ?? 0)) {
+        if (! $isPeriodUpgrade && ($rank[$toPlan] ?? 0) <= ($rank[$current] ?? 0)) {
             return back()->withErrors(['to_plan' => 'Choose a higher plan than your current one.']);
         }
 
@@ -165,7 +169,10 @@ class UpgradeController extends Controller
         }
 
         PricingPlan::ensureDefaults();
-        $pricing = PricingPlan::query()->where('key', $toPlan)->first();
+        $pricing = PricingPlan::findForCategory(
+            $toPlan,
+            $request->validated('category') ?? null,
+        );
 
         PlanUpgrade::query()->create([
             'user_id' => $user->id,

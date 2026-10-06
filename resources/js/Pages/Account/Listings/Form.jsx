@@ -806,7 +806,7 @@ export default function Form({
                 </div>
             ) : null}
 
-            {phase === 'category' && !isEdit && !(listing?.id || draftKey) ? (
+            {phase === 'category' && !isEdit ? (
                 <CategoryPicker
                     categories={orderedCategories}
                     selectedId={form.data.category_id}

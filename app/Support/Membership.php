@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\PlanUpgrade;
 use App\Models\PricingPlan;
 use App\Models\User;
 use Illuminate\Support\Collection;
@@ -92,7 +93,7 @@ class Membership
     {
         $plan = self::normalize($plan);
 
-        $fromDb = PricingPlan::query()->where('key', $plan)->value('listing_limit');
+        $fromDb = PricingPlan::query()->where('key', $plan)->max('listing_limit');
 
         if ($fromDb !== null) {
             return max(0, (int) $fromDb);
@@ -146,11 +147,18 @@ class Membership
     /**
      * @return Collection<int, array<string, mixed>>
      */
-    public static function publicPlans(): Collection
+    public static function publicPlans(?string $categoryKey = null): Collection
     {
-        PricingPlan::ensureDefaults();
+        $normalized = CategoryKey::fromSlug($categoryKey) ?? (CategoryKey::keys()[0] ?? null);
+
+        if ($normalized === null) {
+            return collect();
+        }
+
+        PricingPlan::ensureDefaultsForCategory($normalized);
 
         return PricingPlan::query()
+            ->forCategory($normalized)
             ->where('is_active', true)
             ->orderBy('sort_order')
             ->orderBy('id')
@@ -162,6 +170,20 @@ class Membership
                 'listing_limit' => (int) ($plan->listing_limit ?: self::listingLimit($plan->key)),
             ])
             ->values();
+    }
+
+    /**
+     * @return array<string, list<array<string, mixed>>>
+     */
+    public static function publicPlansByCategory(): array
+    {
+        $grouped = [];
+
+        foreach (CategoryKey::keys() as $key) {
+            $grouped[$key] = self::publicPlans($key)->all();
+        }
+
+        return $grouped;
     }
 
     public static function assignFree(User $user): void
@@ -281,6 +303,7 @@ class Membership
             'listings_remaining' => max(0, $limit - $used),
             'can_create' => $used < $limit,
             'allowed_tiers' => self::allowedTiers($plan),
+            'billing_period' => self::billingPeriodFor($user, $plan),
             'started_at' => $startedAt?->toIso8601String(),
             'expires_at' => $expiresAt?->toIso8601String(),
             'is_expired' => $isExpired,
@@ -291,5 +314,59 @@ class Membership
             'days_used' => $daysUsed,
             'period_percent' => $usagePercent,
         ];
+    }
+
+    /**
+     * Billing period the member currently has for their active paid plan.
+     * Free returns null. Falls back to duration inference when no upgrade row exists.
+     */
+    public static function billingPeriodFor(User $user, ?string $plan = null): ?string
+    {
+        $plan = self::normalize($plan ?? $user->effectivePlan());
+
+        if ($plan === self::FREE) {
+            return null;
+        }
+
+        $upgrade = PlanUpgrade::query()
+            ->where('user_id', $user->id)
+            ->where('to_plan', $plan)
+            ->where('status', PlanUpgrade::STATUS_APPROVED)
+            ->latest('reviewed_at')
+            ->latest('id')
+            ->first();
+
+        if ($upgrade && in_array($upgrade->billing_period, ['month', 'year', 'one_time'], true)) {
+            return $upgrade->billing_period === 'year' || $upgrade->billing_period === 'one_time'
+                ? 'year'
+                : 'month';
+        }
+
+        $startedAt = $user->plan_started_at;
+        $expiresAt = $user->plan_expires_at;
+
+        if ($startedAt && $expiresAt && $expiresAt->greaterThan($startedAt)) {
+            $days = (int) $startedAt->copy()->startOfDay()->diffInDays($expiresAt->copy()->startOfDay());
+
+            return $days >= 180 ? 'year' : 'month';
+        }
+
+        return 'month';
+    }
+
+    /**
+     * True when the member already owns this tier on monthly and is paying to switch it to yearly.
+     */
+    public static function isBillingPeriodUpgrade(User $user, string $toPlan, ?string $billingPeriod): bool
+    {
+        $current = self::normalize($user->effectivePlan());
+        $toPlan = self::normalize($toPlan);
+
+        if ($toPlan === self::FREE || $toPlan !== $current) {
+            return false;
+        }
+
+        return self::billingPeriodFor($user, $current) === 'month'
+            && $billingPeriod === 'year';
     }
 }

@@ -11,9 +11,18 @@ import {
     StatusBadge,
 } from '@/Components/Admin/ui';
 import { useConfirm } from '@/Components/ConfirmDialog';
+import {
+    CategoryInclusionMatrix,
+    CategoryPicker,
+} from '@/Components/pricing/CategoryPricingBreakdown';
+import {
+    categoryInclusionsForPlan,
+    getPricingCategoryBreakdown,
+} from '@/data/pricingCategoryBreakdown';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
     ArrowLeft,
+    Check,
     Eye,
     Plus,
     Save,
@@ -22,7 +31,7 @@ import {
     Trash2,
     Wallet,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 function formatMoney(amount, currency) {
     const n = Number(amount) || 0;
@@ -107,10 +116,11 @@ const TABS = [
     { id: 'preview', label: 'Preview', icon: Eye },
 ];
 
-export default function Edit({ plan, billingPeriods = [] }) {
+export default function Edit({ plan, allPlans = [], categories = [], billingPeriods = [] }) {
     const { confirm, dialog } = useConfirm();
     const [tab, setTab] = useState('general');
     const [previewBilling, setPreviewBilling] = useState('month');
+    const [previewCategory, setPreviewCategory] = useState(plan.category_key || null);
 
     const form = useForm({
         name: plan.name,
@@ -269,6 +279,25 @@ export default function Edit({ plan, billingPeriods = [] }) {
               : 'month';
     const previewAmount = amountForPeriod(form.data, previewPeriod);
     const errorCount = Object.keys(form.errors || {}).length;
+    const previewBreakdown = useMemo(
+        () => getPricingCategoryBreakdown(previewCategory),
+        [previewCategory],
+    );
+    const matrixPlans =
+        allPlans.length > 0
+            ? allPlans
+            : [
+                  {
+                      id: plan.id,
+                      key: plan.key,
+                      name: form.data.name || plan.name,
+                      listing_limit: form.data.listing_limit,
+                      sort_order: form.data.sort_order,
+                  },
+              ];
+    const categoryInclusions = previewBreakdown
+        ? categoryInclusionsForPlan(previewBreakdown.rows, plan.key)
+        : (form.data.inclusions || []).filter((i) => String(i || '').trim());
 
     const actionBar = (
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -300,19 +329,29 @@ export default function Edit({ plan, billingPeriods = [] }) {
 
             <div className="mb-5">
                 <Link
-                    href={route('admin.pricing.index')}
+                    href={route('admin.pricing.index', {
+                        category: plan.category_key
+                            ? categories.find((c) => c.key === plan.category_key)?.slug ||
+                              plan.category_key
+                            : undefined,
+                    })}
                     className="inline-flex items-center gap-1.5 text-sm font-semibold text-olive-600 transition hover:text-olive-900 dark:text-olive-400 dark:hover:text-olive-100"
                 >
                     <ArrowLeft className="h-3.5 w-3.5" />
-                    Back to pricing
+                    Back to {plan.category_label || 'pricing'}
                 </Link>
             </div>
 
             <PageHeader
                 title={plan.name}
-                description="Tune price, inclusions, visibility, and listing limits for this membership tier."
+                description={`${plan.category_label || 'Category'} · set monthly/yearly charges, listing limits, and how this tier appears on the public pricing page.`}
                 actions={
                     <div className="flex flex-wrap items-center gap-2">
+                        {plan.category_label ? (
+                            <span className="rounded-full border border-olive-200 bg-white px-2.5 py-1 text-xs font-semibold text-olive-700 dark:border-olive-700 dark:bg-olive-900 dark:text-olive-200">
+                                {plan.category_label}
+                            </span>
+                        ) : null}
                         <StatusBadge status={plan.is_active ? 'active' : 'inactive'} />
                         {plan.is_highlighted ? (
                             <span className="rounded-full bg-mustard/25 px-2.5 py-1 text-xs font-semibold text-earth-dusk">
@@ -575,146 +614,208 @@ export default function Edit({ plan, billingPeriods = [] }) {
                 ) : null}
 
                 {tab === 'preview' ? (
-                    <FormPanel
-                        title="Preview"
-                        description="How this tier appears on the public pricing page."
-                    >
-                        <div className="space-y-5">
-                            {hasYearly && form.data.billing_period !== 'one_time' ? (
-                                <div className="flex justify-center">
-                                    <BillingSwitcher
-                                        value={previewBilling}
-                                        onChange={setPreviewBilling}
+                    <div className="space-y-6">
+                        <FormPanel
+                            title="Preview"
+                            description="How this tier appears on the public pricing page for a chosen listing category."
+                        >
+                            <div className="space-y-5">
+                                {!previewBreakdown ? (
+                                    <CategoryPicker
+                                        onSelect={setPreviewCategory}
+                                        title="Preview for category"
+                                        description="Tap a card to open how this tier looks for that listing type."
                                     />
-                                </div>
-                            ) : null}
-
-                            <article
-                                className={`mx-auto max-w-sm overflow-hidden rounded-xl border border-olive-200 ${
-                                    form.data.is_highlighted
-                                        ? 'bg-olive-950 text-white'
-                                        : 'bg-white'
-                                }`}
-                            >
-                                <div className="p-6 sm:p-7">
-                                    <div className="flex items-baseline justify-between gap-3">
-                                        <h3
-                                            className={`font-display text-lg font-semibold tracking-tight ${
-                                                form.data.is_highlighted
-                                                    ? 'text-white'
-                                                    : 'text-olive-950'
-                                            }`}
-                                        >
-                                            {form.data.name || plan.name}
-                                        </h3>
-                                        {form.data.is_highlighted ? (
-                                            <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-mustard">
-                                                Popular
-                                            </span>
-                                        ) : null}
-                                    </div>
-                                    {form.data.tagline ? (
-                                        <p
-                                            className={`mt-2 text-sm leading-relaxed ${
-                                                form.data.is_highlighted
-                                                    ? 'text-white/65'
-                                                    : 'text-olive-500'
-                                            }`}
-                                        >
-                                            {form.data.tagline}
+                                ) : (
+                                    <div className="flex flex-wrap items-center justify-between gap-3">
+                                        <p className="text-sm font-semibold text-olive-800 dark:text-olive-200">
+                                            Previewing · {previewBreakdown.label}
                                         </p>
-                                    ) : null}
+                                        <button
+                                            type="button"
+                                            onClick={() => setPreviewCategory(null)}
+                                            className="text-sm font-semibold text-olive-600 transition hover:text-olive-950 dark:text-olive-300 dark:hover:text-olive-50"
+                                        >
+                                            ← Change category
+                                        </button>
+                                    </div>
+                                )}
 
-                                    <div className="mt-8">
-                                        <div className="flex items-baseline gap-1.5">
-                                            <span
-                                                className={`font-display text-3xl font-semibold tracking-tight tabular-nums ${
-                                                    form.data.is_highlighted
-                                                        ? 'text-white'
-                                                        : 'text-olive-950'
-                                                }`}
-                                            >
-                                                {displayPrice(form.data, previewPeriod)}
-                                            </span>
-                                            {!form.data.price_label && previewAmount > 0 ? (
-                                                <span
-                                                    className={`text-sm ${
-                                                        form.data.is_highlighted
-                                                            ? 'text-white/55'
-                                                            : 'text-olive-400'
-                                                    }`}
-                                                >
-                                                    {periodSuffix(previewPeriod)}
-                                                </span>
-                                            ) : null}
-                                        </div>
-                                        {previewPeriod === 'year' &&
-                                        !form.data.price_label &&
-                                        previewAmount > 0 ? (
+                                {previewBreakdown &&
+                                hasYearly &&
+                                form.data.billing_period !== 'one_time' ? (
+                                    <div className="flex justify-center">
+                                        <BillingSwitcher
+                                            value={previewBilling}
+                                            onChange={setPreviewBilling}
+                                        />
+                                    </div>
+                                ) : null}
+
+                                {previewBreakdown ? (
+                                <article
+                                    className={`mx-auto max-w-sm overflow-hidden rounded-xl border border-olive-200 dark:border-olive-700 ${
+                                        form.data.is_highlighted
+                                            ? 'bg-olive-950 text-white'
+                                            : 'bg-white dark:bg-olive-900'
+                                    }`}
+                                >
+                                    <div className="p-6 sm:p-7">
+                                        {previewBreakdown ? (
                                             <p
-                                                className={`mt-1 text-xs ${
+                                                className={`mb-3 text-[11px] font-semibold uppercase tracking-[0.14em] ${
                                                     form.data.is_highlighted
-                                                        ? 'text-white/50'
+                                                        ? 'text-mustard'
                                                         : 'text-olive-400'
                                                 }`}
                                             >
-                                                {formatMoney(
-                                                    Math.round(previewAmount / 12),
-                                                    form.data.currency,
-                                                )}
-                                                /mo billed yearly
+                                                {previewBreakdown.label}
                                             </p>
                                         ) : null}
-                                        <p
-                                            className={`mt-2 text-sm font-medium ${
-                                                form.data.is_highlighted
-                                                    ? 'text-mustard'
-                                                    : 'text-olive-700'
-                                            }`}
-                                        >
-                                            {form.data.listing_limit} listing
-                                            {Number(form.data.listing_limit) === 1 ? '' : 's'}{' '}
-                                            included
-                                        </p>
-                                    </div>
+                                        <div className="flex items-baseline justify-between gap-3">
+                                            <h3
+                                                className={`font-display text-lg font-semibold tracking-tight ${
+                                                    form.data.is_highlighted
+                                                        ? 'text-white'
+                                                        : 'text-olive-950 dark:text-olive-50'
+                                                }`}
+                                            >
+                                                {form.data.name || plan.name}
+                                            </h3>
+                                            {form.data.is_highlighted ? (
+                                                <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-mustard">
+                                                    Popular
+                                                </span>
+                                            ) : null}
+                                        </div>
+                                        {form.data.tagline ? (
+                                            <p
+                                                className={`mt-2 text-sm leading-relaxed ${
+                                                    form.data.is_highlighted
+                                                        ? 'text-white/65'
+                                                        : 'text-olive-500 dark:text-olive-400'
+                                                }`}
+                                            >
+                                                {form.data.tagline}
+                                            </p>
+                                        ) : null}
 
-                                    <ul className="mt-8 space-y-2.5 border-t border-dashed border-olive-200/70 pt-6">
-                                        {(form.data.inclusions || [])
-                                            .filter((i) => String(i || '').trim())
-                                            .map((item, i) => (
-                                                <li
-                                                    key={`${i}-${item}`}
-                                                    className={`flex gap-2.5 text-sm leading-snug ${
+                                        <div className="mt-8">
+                                            <div className="flex items-baseline gap-1.5">
+                                                <span
+                                                    className={`font-display text-3xl font-semibold tracking-tight tabular-nums ${
                                                         form.data.is_highlighted
-                                                            ? 'text-white/80'
-                                                            : 'text-olive-700'
+                                                            ? 'text-white'
+                                                            : 'text-olive-950 dark:text-olive-50'
                                                     }`}
                                                 >
+                                                    {displayPrice(form.data, previewPeriod)}
+                                                </span>
+                                                {!form.data.price_label && previewAmount > 0 ? (
                                                     <span
-                                                        className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${
+                                                        className={`text-sm ${
                                                             form.data.is_highlighted
-                                                                ? 'bg-mustard'
-                                                                : 'bg-olive-800'
+                                                                ? 'text-white/55'
+                                                                : 'text-olive-400'
                                                         }`}
-                                                    />
-                                                    <span>{item}</span>
-                                                </li>
-                                            ))}
-                                    </ul>
+                                                    >
+                                                        {periodSuffix(previewPeriod)}
+                                                    </span>
+                                                ) : null}
+                                            </div>
+                                            {previewPeriod === 'year' &&
+                                            !form.data.price_label &&
+                                            previewAmount > 0 ? (
+                                                <p
+                                                    className={`mt-1 text-xs ${
+                                                        form.data.is_highlighted
+                                                            ? 'text-white/50'
+                                                            : 'text-olive-400'
+                                                    }`}
+                                                >
+                                                    {formatMoney(
+                                                        Math.round(previewAmount / 12),
+                                                        form.data.currency,
+                                                    )}
+                                                    /mo billed yearly
+                                                </p>
+                                            ) : null}
+                                            <p
+                                                className={`mt-2 text-sm font-medium ${
+                                                    form.data.is_highlighted
+                                                        ? 'text-mustard'
+                                                        : 'text-olive-700 dark:text-olive-300'
+                                                }`}
+                                            >
+                                                {form.data.listing_limit} listing
+                                                {Number(form.data.listing_limit) === 1
+                                                    ? ''
+                                                    : 's'}{' '}
+                                                included
+                                            </p>
+                                        </div>
 
-                                    <div
-                                        className={`mt-8 px-4 py-2.5 text-center text-sm font-semibold ${
-                                            form.data.is_highlighted
-                                                ? 'bg-mustard text-earth-dusk'
-                                                : 'bg-olive-900 text-white'
-                                        }`}
-                                    >
-                                        {form.data.cta_label || 'Get started'}
+                                        <ul className="mt-8 space-y-2.5 border-t border-dashed border-olive-200/70 pt-6 dark:border-olive-700">
+                                            {categoryInclusions.length === 0 ? (
+                                                <li
+                                                    className={`text-sm ${
+                                                        form.data.is_highlighted
+                                                            ? 'text-white/70'
+                                                            : 'text-olive-600 dark:text-olive-400'
+                                                    }`}
+                                                >
+                                                    {previewBreakdown
+                                                        ? `Core listing fields for ${previewBreakdown.label}.`
+                                                        : 'Add inclusions or pick a category.'}
+                                                </li>
+                                            ) : (
+                                                categoryInclusions.map((item) => (
+                                                    <li
+                                                        key={item}
+                                                        className={`flex gap-2.5 text-sm leading-snug ${
+                                                            form.data.is_highlighted
+                                                                ? 'text-white/80'
+                                                                : 'text-olive-700 dark:text-olive-200'
+                                                        }`}
+                                                    >
+                                                        <Check
+                                                            className={`mt-0.5 h-4 w-4 shrink-0 ${
+                                                                form.data.is_highlighted
+                                                                    ? 'text-mustard'
+                                                                    : 'text-olive-800 dark:text-olive-300'
+                                                            }`}
+                                                            strokeWidth={2.25}
+                                                        />
+                                                        <span>{item}</span>
+                                                    </li>
+                                                ))
+                                            )}
+                                        </ul>
+
+                                        <div
+                                            className={`mt-8 px-4 py-2.5 text-center text-sm font-semibold ${
+                                                form.data.is_highlighted
+                                                    ? 'bg-mustard text-earth-dusk'
+                                                    : 'bg-olive-900 text-white dark:bg-mustard dark:text-earth-dusk'
+                                            }`}
+                                        >
+                                            {form.data.cta_label || 'Get started'}
+                                        </div>
                                     </div>
-                                </div>
-                            </article>
-                        </div>
-                    </FormPanel>
+                                </article>
+                                ) : null}
+                            </div>
+                        </FormPanel>
+
+                        {previewBreakdown ? (
+                            <CategoryInclusionMatrix
+                                breakdown={previewBreakdown}
+                                plans={matrixPlans}
+                                currentKey={plan.key}
+                                stepLabel={`${previewBreakdown.label} · all tiers`}
+                            />
+                        ) : null}
+                    </div>
                 ) : null}
 
                 <div className="sticky bottom-0 z-20 -mx-4 border-t border-olive-200 bg-earth-sand/95 px-4 py-3 backdrop-blur-sm sm:-mx-6 sm:px-6 dark:border-olive-800 dark:bg-olive-950/95">

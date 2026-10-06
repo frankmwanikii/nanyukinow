@@ -1,12 +1,30 @@
+import { CategoryPicker } from '@/Components/pricing/CategoryPricingBreakdown';
 import AccountLayout from '@/Layouts/AccountLayout';
+import {
+    categoryInclusionsForPlan,
+    getPricingCategoryBreakdown,
+    normalizePlanKey,
+    PRICING_CATEGORY_OPTIONS,
+} from '@/data/pricingCategoryBreakdown';
 import { Head, useForm } from '@inertiajs/react';
 import axios from 'axios';
-import { Check, RefreshCw, Send, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Check, ChevronDown, RefreshCw, Send, X, Zap } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 
 const field =
     'w-full rounded-lg border border-olive-200 bg-white px-3.5 py-3 text-base text-olive-900 outline-none transition placeholder:text-olive-400 focus:border-mustard focus:ring-2 focus:ring-mustard/30 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-50 dark:placeholder:text-olive-500 dark:focus:border-mustard dark:focus:ring-mustard/30';
 const labelCls = 'mb-1.5 block text-sm font-semibold text-olive-600 dark:text-olive-400';
+
+function planRank(planKey) {
+    const key = normalizePlanKey(planKey);
+    if (key === 'premium') {
+        return 2;
+    }
+    if (key === 'featured') {
+        return 1;
+    }
+    return 0;
+}
 
 function formatMoney(amount, currency) {
     try {
@@ -57,54 +75,15 @@ function maxYearlySavings(plans = []) {
     return best;
 }
 
-function BillingSwitcher({ value, onChange, savingsPercent = 0 }) {
-    return (
-        <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div
-                role="radiogroup"
-                aria-label="Billing period"
-                className="relative inline-grid grid-cols-2 rounded-full bg-olive-100/90 p-1 dark:bg-olive-900 dark:ring-1 dark:ring-olive-700"
-            >
-                <span
-                    aria-hidden
-                    className={`pointer-events-none absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-white shadow-sm ring-1 ring-olive-200/80 transition-transform duration-300 ease-out dark:bg-mustard dark:ring-mustard/40 ${
-                        value === 'year' ? 'translate-x-full' : 'translate-x-0'
-                    }`}
-                />
-                {[
-                    { id: 'month', label: 'Monthly' },
-                    { id: 'year', label: 'Yearly' },
-                ].map((opt) => {
-                    const active = value === opt.id;
-                    return (
-                        <button
-                            key={opt.id}
-                            type="button"
-                            role="radio"
-                            aria-checked={active}
-                            onClick={() => onChange(opt.id)}
-                            className={`relative z-10 min-w-[6.5rem] rounded-full px-4 py-2 text-sm font-semibold transition ${
-                                active
-                                    ? 'text-olive-950 dark:text-earth-dusk'
-                                    : 'text-olive-500 hover:text-olive-800 dark:text-olive-400 dark:hover:text-olive-100'
-                            }`}
-                        >
-                            {opt.label}
-                        </button>
-                    );
-                })}
-            </div>
-            {savingsPercent > 0 ? (
-                <p className="text-sm font-medium text-olive-600 dark:text-olive-400">
-                    Save up to{' '}
-                    <span className="font-semibold text-earth-clay dark:text-mustard">
-                        {savingsPercent}%
-                    </span>{' '}
-                    yearly
-                </p>
-            ) : null}
-        </div>
-    );
+function formatAmountOnly(amount) {
+    const n = Number(amount) || 0;
+    return new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(n);
+}
+
+function periodShort(period) {
+    if (period === 'year') return '/ year';
+    if (period === 'one_time') return ' one-time';
+    return '/ month';
 }
 
 function MpesaIcon({ className = 'h-10 w-auto max-w-[9rem]' }) {
@@ -134,423 +113,280 @@ function MethodIcon({ method, className }) {
     return <MpesaIcon className={className || 'h-10 w-auto max-w-[9rem]'} />;
 }
 
-function planState(plan, currentKey, pending) {
-    const isCurrent = currentKey === plan.key;
-    const isFree = plan.key === 'free';
-    const canUpgrade =
-        !isFree &&
-        !isCurrent &&
-        !pending &&
-        currentKey !== 'premium' &&
-        !(currentKey === 'featured' && plan.key === 'featured');
-
-    let ctaLabel = plan.cta_label || 'Get started';
-    if (isCurrent) ctaLabel = 'Current plan';
-    else if (isFree) ctaLabel = 'Included';
-    else if (pending) ctaLabel = 'Pending';
-    else if (canUpgrade) ctaLabel = 'Upgrade';
-
-    return { isCurrent, isFree, canUpgrade, ctaLabel };
-}
-
-const TIER_ORDER = ['free', 'featured', 'premium'];
-
-function planRank(plan) {
-    const idx = TIER_ORDER.indexOf(plan?.key);
-    return idx === -1 ? 99 : idx;
-}
-
-function sortPlans(plans = []) {
-    return [...plans].sort((a, b) => {
-        const byRank = planRank(a) - planRank(b);
-        if (byRank !== 0) return byRank;
-        return (a.sort_order ?? 0) - (b.sort_order ?? 0);
-    });
-}
-
-function isMetaInclusion(item) {
-    const text = String(item || '').trim();
-    if (!text) return true;
-    // Structural “inherits lower tier” notes — not real matrix rows
-    if (/^everything in\b/i.test(text)) return true;
-    // Listing counts come from listing_limit instead
-    if (/^(up to\s+)?\d+\s+(free\s+)?listings?\b/i.test(text)) return true;
-    if (/^\d+\s+free listing\b/i.test(text)) return true;
-    // Broken / incomplete bullets
-    if (/^listings?$/i.test(text)) return true;
-    return false;
-}
-
-function cleanFeatureLabel(item) {
-    const text = String(item || '').trim().replace(/\s+/g, ' ');
-    if (!text) return '';
-    return text.charAt(0).toUpperCase() + text.slice(1);
-}
-
-/**
- * Expand each plan’s inclusions so higher tiers inherit lower-tier features.
- * Skips meta lines like “Everything in Free”.
- */
-function buildInclusionMatrix(plans) {
-    const ordered = sortPlans(plans);
-    const expanded = new Map(); // plan.key -> Set<feature>
-    const introduction = new Map(); // feature -> plan.key that first added it
-    const featureOrder = [];
-
-    ordered.forEach((plan, index) => {
-        const set = new Set();
-        if (index > 0) {
-            const prev = expanded.get(ordered[index - 1].key);
-            prev?.forEach((f) => set.add(f));
-        }
-
-        (plan.inclusions || []).forEach((raw) => {
-            if (isMetaInclusion(raw)) return;
-            const feature = cleanFeatureLabel(raw);
-            if (!feature) return;
-            if (!introduction.has(feature)) {
-                introduction.set(feature, plan.key);
-                featureOrder.push(feature);
-            }
-            set.add(feature);
-        });
-
-        expanded.set(plan.key, set);
-    });
-
-    return { ordered, expanded, featureOrder, introduction };
-}
-
-function MatrixCheck({ on }) {
-    if (on) {
-        return (
-            <span
-                className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-mint/35 text-olive-900 dark:bg-mint/20 dark:text-mint"
-                aria-label="Included"
-            >
-                <Check className="h-3.5 w-3.5" strokeWidth={2.75} />
-            </span>
-        );
-    }
+function BillingSwitcher({ value, onChange, savingsPercent = 0 }) {
+    const yearly = value === 'year';
 
     return (
-        <span className="text-sm text-olive-300 dark:text-olive-600" aria-label="Not included">
-            —
-        </span>
+        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+            <button
+                type="button"
+                onClick={() => onChange('month')}
+                className={`text-sm font-semibold transition ${
+                    !yearly
+                        ? 'text-olive-950 dark:text-olive-50'
+                        : 'text-olive-400 hover:text-olive-700 dark:text-olive-500 dark:hover:text-olive-300'
+                }`}
+            >
+                Monthly
+            </button>
+            <button
+                type="button"
+                role="switch"
+                aria-checked={yearly}
+                aria-label="Billing period"
+                onClick={() => onChange(yearly ? 'month' : 'year')}
+                className={`relative h-8 w-14 shrink-0 rounded-full transition ${
+                    yearly ? 'bg-olive-800' : 'bg-olive-200 dark:bg-olive-700'
+                }`}
+            >
+                <span
+                    className={`absolute top-1 left-1 h-6 w-6 rounded-full bg-white shadow-sm transition ${
+                        yearly ? 'translate-x-6' : 'translate-x-0'
+                    }`}
+                />
+            </button>
+            <button
+                type="button"
+                onClick={() => onChange('year')}
+                className={`inline-flex items-center gap-2 text-sm font-semibold transition ${
+                    yearly
+                        ? 'text-olive-950 dark:text-olive-50'
+                        : 'text-olive-400 hover:text-olive-700 dark:text-olive-500 dark:hover:text-olive-300'
+                }`}
+            >
+                Yearly
+                {savingsPercent > 0 ? (
+                    <span className="rounded-full bg-mint/40 px-2 py-0.5 text-xs font-bold text-olive-800 dark:bg-mint/20 dark:text-mint">
+                        save {savingsPercent}%
+                    </span>
+                ) : null}
+            </button>
+        </div>
     );
 }
 
-function InclusionMatrix({ plans, currentKey = null }) {
-    const { ordered, expanded, featureOrder } = buildInclusionMatrix(plans);
-
-    if (ordered.length === 0) return null;
-
-    const hasFeatures = featureOrder.length > 0;
-    const hasLimits = ordered.some((p) => Number(p.listing_limit) > 0);
-    if (!hasFeatures && !hasLimits) return null;
+/**
+ * Features accordion: open on desktop, collapsed on mobile.
+ */
+function PlanCardFeatures({ planName, listingLimit = null, inclusions, categoryLabel }) {
+    const [open, setOpen] = useState(false);
+    const listingLine =
+        listingLimit == null
+            ? null
+            : `${listingLimit} listing${listingLimit === 1 ? '' : 's'} included`;
 
     return (
-        <div className="overflow-hidden rounded-2xl border border-olive-200/80 bg-white shadow-soft dark:border-olive-800 dark:bg-olive-900 dark:shadow-none">
-            <div className="border-b border-olive-100 px-5 py-5 sm:px-6 dark:border-olive-800">
-                <h2 className="font-display text-xl font-semibold tracking-tight text-olive-950 dark:text-olive-50">
-                    What’s included
-                </h2>
-                <p className="mt-1 max-w-xl text-sm text-olive-500 dark:text-olive-400">
-                    Higher plans include everything below them — so you only pay for the extras
-                    you need.
+        <div className="mt-6 flex-1 border-t border-olive-100 pt-5 dark:border-olive-800">
+            <button
+                type="button"
+                className="flex w-full items-center justify-between gap-3 py-1 text-left md:pointer-events-none md:hidden"
+                aria-expanded={open}
+                onClick={() => setOpen((value) => !value)}
+            >
+                <span className="text-sm font-bold text-olive-950 dark:text-olive-50">
+                    Key features
+                </span>
+                <ChevronDown
+                    className={`h-5 w-5 shrink-0 text-olive-400 transition ${
+                        open ? 'rotate-180' : ''
+                    }`}
+                    strokeWidth={2}
+                />
+            </button>
+
+            <div className={`${open ? 'mt-3 block' : 'hidden'} md:mt-0 md:block`}>
+                <p className="mb-3 hidden text-sm font-semibold text-olive-900 dark:text-olive-100 md:block">
+                    With {planName}, get:
                 </p>
-            </div>
-
-            <div className="overflow-x-auto">
-                <table className="w-full min-w-[34rem] border-collapse text-left text-sm">
-                    <thead>
-                        <tr className="border-b border-olive-100 dark:border-olive-800">
-                            <th
-                                scope="col"
-                                className="sticky left-0 z-10 bg-white px-5 py-3.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-olive-400 dark:bg-olive-900 dark:text-olive-500 sm:px-6"
-                            >
-                                Feature
-                            </th>
-                            {ordered.map((plan) => {
-                                const isYours = currentKey && plan.key === currentKey;
-                                return (
-                                    <th
-                                        key={plan.id || plan.key}
-                                        scope="col"
-                                        className={`px-4 py-3.5 text-center ${
-                                            isYours
-                                                ? 'bg-mustard/10 dark:bg-mustard/10'
-                                                : ''
-                                        }`}
-                                    >
-                                        <span className="block font-display text-sm font-semibold text-olive-950 dark:text-olive-50">
-                                            {plan.name}
-                                        </span>
-                                        {isYours ? (
-                                            <span className="mt-0.5 block text-[10px] font-semibold uppercase tracking-[0.14em] text-mustard">
-                                                Your plan
-                                            </span>
-                                        ) : null}
-                                    </th>
-                                );
-                            })}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {hasLimits ? (
-                            <tr className="border-b border-olive-100 dark:border-olive-800">
-                                <th
-                                    scope="row"
-                                    className="sticky left-0 z-10 bg-earth-sand/50 px-5 py-3.5 text-left text-sm font-medium text-olive-800 dark:bg-olive-950/60 dark:text-olive-200 sm:px-6"
-                                >
-                                    Listings included
-                                </th>
-                                {ordered.map((plan) => {
-                                    const isYours = currentKey && plan.key === currentKey;
-                                    return (
-                                        <td
-                                            key={`limit-${plan.id || plan.key}`}
-                                            className={`px-4 py-3.5 text-center ${
-                                                isYours
-                                                    ? 'bg-mustard/10 dark:bg-mustard/10'
-                                                    : 'bg-earth-sand/50 dark:bg-olive-950/60'
-                                            }`}
-                                        >
-                                            <span className="font-display text-base font-semibold tabular-nums text-olive-950 dark:text-olive-50">
-                                                {plan.listing_limit ?? '—'}
-                                            </span>
-                                        </td>
-                                    );
-                                })}
-                            </tr>
-                        ) : null}
-
-                        {featureOrder.map((feature, index) => {
-                            const zebra = index % 2 === 0;
+                {listingLine ? (
+                    <p className="mb-4 text-sm font-semibold text-olive-800 dark:text-olive-200">
+                        {listingLine}
+                    </p>
+                ) : null}
+                <ul className="space-y-3">
+                    {inclusions.length === 0 ? (
+                        <li className="text-sm text-olive-600 dark:text-olive-400">
+                            Core listing fields for {categoryLabel}.
+                        </li>
+                    ) : (
+                        inclusions.map((item) => {
+                            const isInherit = /^Everything in /i.test(item);
                             return (
-                                <tr
-                                    key={feature}
-                                    className="border-b border-olive-100 last:border-b-0 dark:border-olive-800"
+                                <li
+                                    key={item}
+                                    className={`flex gap-3 text-sm leading-snug ${
+                                        isInherit
+                                            ? 'font-semibold text-olive-900 dark:text-olive-100'
+                                            : 'text-olive-700 dark:text-olive-300'
+                                    }`}
                                 >
-                                    <th
-                                        scope="row"
-                                        className={`sticky left-0 z-10 px-5 py-3.5 text-left text-sm font-medium text-olive-800 dark:text-olive-200 sm:px-6 ${
-                                            zebra
-                                                ? 'bg-white dark:bg-olive-900'
-                                                : 'bg-olive-50/60 dark:bg-olive-950/40'
-                                        }`}
-                                    >
-                                        {feature}
-                                    </th>
-                                    {ordered.map((plan) => {
-                                        const isYours =
-                                            currentKey && plan.key === currentKey;
-                                        const has =
-                                            expanded.get(plan.key)?.has(feature) ??
-                                            false;
-                                        return (
-                                            <td
-                                                key={`${plan.id || plan.key}-${feature}`}
-                                                className={`px-4 py-3.5 text-center ${
-                                                    isYours
-                                                        ? 'bg-mustard/10 dark:bg-mustard/10'
-                                                        : zebra
-                                                          ? 'bg-white dark:bg-olive-900'
-                                                          : 'bg-olive-50/60 dark:bg-olive-950/40'
-                                                }`}
-                                            >
-                                                <div className="flex justify-center">
-                                                    <MatrixCheck on={has} />
-                                                </div>
-                                            </td>
-                                        );
-                                    })}
-                                </tr>
+                                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-olive-100 text-olive-800 dark:bg-olive-800 dark:text-mustard">
+                                        <Check className="h-3 w-3" strokeWidth={2.75} />
+                                    </span>
+                                    <span className="min-w-0 text-pretty pt-0.5">{item}</span>
+                                </li>
                             );
-                        })}
-                    </tbody>
-                </table>
-            </div>
-
-            <div className="flex flex-wrap gap-4 border-t border-olive-100 px-5 py-3.5 text-xs text-olive-500 dark:border-olive-800 dark:text-olive-400 sm:px-6">
-                <span className="inline-flex items-center gap-1.5">
-                    <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-mint/35 dark:bg-mint/20">
-                        <Check className="h-3 w-3 text-olive-900 dark:text-mint" strokeWidth={2.75} />
-                    </span>
-                    Included
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                    <span className="text-olive-300 dark:text-olive-600">—</span>
-                    Not on this plan
-                </span>
+                        })
+                    )}
+                </ul>
             </div>
         </div>
     );
 }
 
-function PlansMatrix({ plans, currentKey, pending, onUpgrade, billing = 'month' }) {
+function planCtaState(plan, currentPlan, pending, viewingPeriod) {
+    const sameTier =
+        normalizePlanKey(currentPlan?.key) === normalizePlanKey(plan.key);
+    const isFreeTier = normalizePlanKey(plan.key) === 'free';
+    const ownedPeriod = currentPlan?.billing_period;
+    const currentRank = planRank(currentPlan?.key);
+    const thisRank = planRank(plan.key);
+    const isLowerThanCurrent = currentRank > thisRank;
+    const ownsThisPeriod =
+        sameTier &&
+        (isFreeTier ||
+            ownedPeriod === 'year' ||
+            (ownedPeriod === 'month' && viewingPeriod === 'month'));
+    const needsYearlyUpgrade =
+        sameTier &&
+        !isFreeTier &&
+        ownedPeriod === 'month' &&
+        viewingPeriod === 'year';
+
+    let ctaLabel = plan.cta_label || 'Upgrade';
+    let ctaDisabled = false;
+    let canCheckout = false;
+
+    if (pending) {
+        ctaLabel = 'Pending';
+        ctaDisabled = true;
+    } else if (isLowerThanCurrent || isFreeTier) {
+        ctaLabel = 'Included';
+        ctaDisabled = true;
+    } else if (needsYearlyUpgrade) {
+        ctaLabel = 'Switch to yearly';
+        canCheckout = true;
+    } else if (ownsThisPeriod) {
+        ctaLabel = 'Current plan';
+        ctaDisabled = true;
+    } else {
+        ctaLabel = plan.cta_label || 'Upgrade';
+        canCheckout = true;
+    }
+
+    return {
+        ctaLabel,
+        ctaDisabled,
+        canCheckout,
+    };
+}
+
+function PlanCards({
+    plans,
+    currentPlan,
+    pending,
+    onUpgrade,
+    billing = 'month',
+    inclusionsByPlan,
+    categoryLabel,
+}) {
     return (
-        <div className="overflow-hidden rounded-2xl border border-olive-200/80 bg-white shadow-soft dark:border-olive-800 dark:bg-olive-950 dark:shadow-none">
-            <div
-                className={`grid divide-olive-100 dark:divide-olive-800 lg:divide-x ${
-                    plans.length === 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-2'
-                }`}
-            >
-                {plans.map((plan) => {
-                    const { isCurrent, canUpgrade, ctaLabel } = planState(
-                        plan,
-                        currentKey,
-                        pending,
-                    );
-                    const featured = Boolean(plan.is_highlighted);
-                    const period =
-                        plan.billing_period === 'one_time' ? 'one_time' : billing;
-                    const amount = amountForPeriod(plan, period);
+        <div
+            className={`mx-auto grid max-w-6xl gap-5 lg:items-stretch ${
+                plans.length === 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-2'
+            }`}
+        >
+            {plans.map((plan) => {
+                const featured = Boolean(plan.is_highlighted);
+                const period =
+                    plan.billing_period === 'one_time' ? 'one_time' : billing;
+                const amount = amountForPeriod(plan, period);
+                const inclusions = inclusionsByPlan?.[normalizePlanKey(plan.key)] || [];
+                const { ctaLabel, ctaDisabled, canCheckout } = planCtaState(
+                    plan,
+                    currentPlan,
+                    pending,
+                    period,
+                );
 
-                    return (
-                        <article
-                            key={plan.id}
-                            className={`relative flex flex-col border-b border-olive-100 p-6 last:border-b-0 sm:p-7 lg:border-b-0 dark:border-olive-800 ${
-                                featured
-                                    ? 'bg-olive-950 text-white lg:scale-[1.01] lg:shadow-lift dark:bg-olive-800 dark:ring-1 dark:ring-inset dark:ring-mustard/35'
-                                    : 'bg-white dark:bg-olive-900'
-                            }`}
-                        >
-                            <div className="flex items-baseline justify-between gap-3">
-                                <h2
-                                    className={`font-display text-lg font-semibold tracking-tight ${
-                                        featured
-                                            ? 'text-white'
-                                            : 'text-olive-950 dark:text-olive-50'
-                                    }`}
-                                >
-                                    {plan.name}
-                                </h2>
-                                {featured ? (
-                                    <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-mustard">
-                                        Popular
-                                    </span>
-                                ) : isCurrent ? (
-                                    <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-olive-400 dark:text-olive-500">
-                                        Yours
-                                    </span>
-                                ) : null}
-                            </div>
+                const ctaClass = ctaDisabled
+                    ? 'mt-6 inline-flex w-full cursor-not-allowed items-center justify-center rounded-full bg-olive-100/70 px-4 py-3 text-center text-sm font-bold text-olive-400 dark:bg-olive-800/50 dark:text-olive-500'
+                    : featured
+                      ? 'mt-6 inline-flex w-full items-center justify-center rounded-full bg-olive-900 px-4 py-3 text-center text-sm font-bold text-white shadow-soft transition hover:bg-mustard hover:text-earth-dusk dark:bg-mustard dark:text-earth-dusk dark:hover:bg-olive-100'
+                      : 'mt-6 inline-flex w-full items-center justify-center rounded-full bg-olive-100 px-4 py-3 text-center text-sm font-bold text-olive-900 transition hover:bg-mustard hover:text-earth-dusk dark:bg-olive-800 dark:text-olive-50 dark:hover:bg-mustard dark:hover:text-earth-dusk';
 
-                            {plan.tagline && (
-                                <p
-                                    className={`mt-2 text-sm leading-relaxed ${
-                                        featured
-                                            ? 'text-white/65'
-                                            : 'text-olive-500 dark:text-olive-400'
-                                    }`}
-                                >
-                                    {plan.tagline}
-                                </p>
-                            )}
+                return (
+                    <article
+                        key={plan.id}
+                        className={`relative flex flex-col rounded-3xl bg-white p-6 shadow-soft sm:p-8 dark:bg-olive-900 dark:shadow-none ${
+                            featured
+                                ? 'ring-2 ring-olive-800 dark:ring-mustard/50 lg:scale-[1.02]'
+                                : 'ring-1 ring-olive-100 dark:ring-olive-800'
+                        }`}
+                    >
+                        {featured ? (
+                            <span className="absolute right-5 top-5 inline-flex items-center gap-1 rounded-full bg-olive-800 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white dark:bg-mustard dark:text-earth-dusk">
+                                <Zap
+                                    className="h-3 w-3 fill-mustard text-mustard dark:fill-earth-dusk dark:text-earth-dusk"
+                                    strokeWidth={0}
+                                />
+                                Popular
+                            </span>
+                        ) : null}
 
-                            <div className="mt-8">
-                                <div className="flex items-baseline gap-1.5">
-                                    <span
-                                        className={`font-display text-3xl font-semibold tracking-tight tabular-nums sm:text-4xl ${
-                                            featured
-                                                ? 'text-white'
-                                                : 'text-olive-950 dark:text-olive-50'
-                                        }`}
-                                    >
-                                        {displayPrice(plan, period)}
-                                    </span>
-                                    {!plan.price_label && amount > 0 && (
-                                        <span
-                                            className={`text-sm ${
-                                                featured
-                                                    ? 'text-white/55'
-                                                    : 'text-olive-400 dark:text-olive-500'
-                                            }`}
-                                        >
-                                            {periodSuffix(period)}
+                        <div className="flex items-baseline justify-between gap-3">
+                            <h3 className="font-display text-3xl font-bold tracking-tight text-olive-950 dark:text-olive-50">
+                                {plan.name}
+                            </h3>
+                        </div>
+
+                        <div className="mt-4">
+                            {(() => {
+                                const label = String(plan.price_label || '').trim();
+                                const showZero = amount === 0 || /^free$/i.test(label);
+                                const customLabel =
+                                    label && !/^free$/i.test(label) ? label : null;
+
+                                if (customLabel) {
+                                    return (
+                                        <p className="font-display text-4xl font-bold tracking-tight text-olive-950 dark:text-olive-50">
+                                            {customLabel}
+                                        </p>
+                                    );
+                                }
+
+                                return (
+                                    <p className="flex flex-wrap items-baseline gap-x-1.5 font-display tracking-tight text-olive-950 dark:text-olive-50">
+                                        <span className="text-4xl font-bold tabular-nums">
+                                            {plan.currency || 'KES'}{' '}
+                                            {showZero ? '0' : formatAmountOnly(amount)}
                                         </span>
-                                    )}
-                                </div>
-                                {period === 'year' && !plan.price_label && amount > 0 ? (
-                                    <p
-                                        className={`mt-1 text-xs ${
-                                            featured
-                                                ? 'text-white/50'
-                                                : 'text-olive-400 dark:text-olive-500'
-                                        }`}
-                                    >
-                                        {formatMoney(Math.round(amount / 12), plan.currency)}
-                                        /mo billed yearly
+                                        <span className="text-base font-medium text-olive-500 dark:text-olive-400">
+                                            {periodShort(period)}
+                                        </span>
                                     </p>
-                                ) : null}
-                                <p
-                                    className={`mt-2 text-sm font-medium ${
-                                        featured
-                                            ? 'text-mustard'
-                                            : 'text-olive-700 dark:text-olive-300'
-                                    }`}
-                                >
-                                    {plan.listing_limit} listing
-                                    {plan.listing_limit === 1 ? '' : 's'} included
-                                </p>
-                            </div>
+                                );
+                            })()}
+                        </div>
 
-                            <ul
-                                className={`mt-8 flex-1 space-y-2.5 border-t border-dashed pt-6 ${
-                                    featured
-                                        ? 'border-white/15'
-                                        : 'border-olive-200/80 dark:border-olive-700'
-                                }`}
-                            >
-                                {(plan.inclusions || [])
-                                    .filter((item) => !isMetaInclusion(item))
-                                    .map((item) => (
-                                        <li
-                                            key={item}
-                                            className={`flex gap-2.5 text-sm leading-snug ${
-                                                featured
-                                                    ? 'text-white/80'
-                                                    : 'text-olive-700 dark:text-olive-200'
-                                            }`}
-                                        >
-                                            <Check
-                                                className={`mt-0.5 h-4 w-4 shrink-0 ${
-                                                    featured
-                                                        ? 'text-mustard'
-                                                        : 'text-olive-800 dark:text-mustard'
-                                                }`}
-                                                strokeWidth={2.25}
-                                            />
-                                            <span>{cleanFeatureLabel(item)}</span>
-                                        </li>
-                                    ))}
-                            </ul>
+                        <button
+                            type="button"
+                            disabled={ctaDisabled || !canCheckout}
+                            onClick={() => canCheckout && onUpgrade(plan)}
+                            className={ctaClass}
+                        >
+                            {ctaLabel}
+                        </button>
 
-                            <button
-                                type="button"
-                                disabled={!canUpgrade}
-                                onClick={() => canUpgrade && onUpgrade(plan)}
-                                className={`mt-8 w-full rounded-xl px-4 py-2.5 text-center text-sm font-semibold transition disabled:cursor-not-allowed ${
-                                    canUpgrade
-                                        ? featured
-                                            ? 'nn-upgrade-glow bg-mustard text-earth-dusk hover:bg-white'
-                                            : 'bg-olive-900 text-white hover:bg-mustard hover:text-earth-dusk dark:bg-mustard dark:text-earth-dusk dark:hover:bg-olive-100'
-                                        : isCurrent
-                                          ? featured
-                                              ? 'border border-white/25 text-white'
-                                              : 'border border-olive-200 text-olive-500 dark:border-olive-700 dark:text-olive-400'
-                                          : featured
-                                            ? 'border border-white/15 text-white/45'
-                                            : 'border border-olive-100 text-olive-400 dark:border-olive-800 dark:text-olive-600'
-                                }`}
-                            >
-                                {ctaLabel}
-                            </button>
-                        </article>
-                    );
-                })}
-            </div>
+                        <PlanCardFeatures
+                            planName={plan.name}
+                            listingLimit={plan.listing_limit}
+                            inclusions={inclusions}
+                            categoryLabel={categoryLabel}
+                        />
+                    </article>
+                );
+            })}
         </div>
     );
 }
@@ -591,6 +427,7 @@ function PaymentCheckout({
     onClose,
     form,
     billing = 'month',
+    isPeriodUpgrade = false,
 }) {
     const method = form.data.payment_method;
     const [phone, setPhone] = useState('');
@@ -666,6 +503,7 @@ function PaymentCheckout({
 
     const paymentPayload = () => ({
         to_plan: form.data.to_plan || plan.key,
+        category: form.data.category || undefined,
         billing_period: form.data.billing_period || period,
         payment_method: method,
         amount,
@@ -737,40 +575,44 @@ function PaymentCheckout({
                 onClick={onClose}
             />
 
-            <div
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="checkout-title"
-                className="relative z-10 flex max-h-[94vh] w-full max-w-md flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl dark:bg-olive-900 dark:shadow-none dark:ring-1 dark:ring-olive-800 sm:mx-4 sm:rounded-2xl"
-            >
-                {/* Header */}
-                <div className="flex shrink-0 items-start justify-between gap-3 border-b border-olive-100 px-5 py-4 dark:border-olive-800">
-                    <div className="min-w-0">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-olive-400 dark:text-olive-500">
-                            Secure checkout
-                        </p>
-                        <h2
-                            id="checkout-title"
-                            className="mt-1 font-display text-xl font-semibold tracking-tight text-olive-950 dark:text-olive-50"
-                        >
-                            Upgrade to {plan.name}
-                        </h2>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="inline-flex h-9 w-9 shrink-0 items-center justify-center text-olive-500 transition hover:bg-olive-50 hover:text-olive-900 dark:text-olive-400 dark:hover:bg-olive-800 dark:hover:text-olive-50"
-                        aria-label="Close"
-                    >
-                        <X className="h-5 w-5" />
-                    </button>
-                </div>
-
-                <form
-                    onSubmit={handlePrimaryPay}
-                    className="flex min-h-0 flex-1 flex-col"
+            <div className="relative z-10 w-full max-w-xl sm:mx-8">
+                <button
+                    type="button"
+                    onClick={onClose}
+                    className="absolute right-3 top-3 z-20 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-olive-600 shadow-md ring-1 ring-olive-200/80 transition hover:bg-mustard hover:text-earth-dusk dark:bg-olive-800 dark:text-olive-200 dark:ring-olive-700 dark:hover:bg-mustard dark:hover:text-earth-dusk sm:-right-12 sm:top-0"
+                    aria-label="Close"
                 >
-                    <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-5">
+                    <X className="h-5 w-5" strokeWidth={2.25} />
+                </button>
+
+                <div
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="checkout-title"
+                    className="flex max-h-[94vh] w-full flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl dark:bg-olive-900 dark:shadow-none dark:ring-1 dark:ring-olive-800 sm:rounded-2xl"
+                >
+                    {/* Header */}
+                    <div className="shrink-0 border-b border-olive-100 px-5 py-4 pr-14 dark:border-olive-800 sm:px-6 sm:pr-6">
+                        <div className="min-w-0">
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-olive-400 dark:text-olive-500">
+                                Secure checkout
+                            </p>
+                            <h2
+                                id="checkout-title"
+                                className="mt-1 font-display text-xl font-semibold tracking-tight text-olive-950 dark:text-olive-50 sm:text-2xl"
+                            >
+                                {isPeriodUpgrade
+                                    ? `Go yearly · ${plan.name}`
+                                    : `Upgrade to ${plan.name}`}
+                            </h2>
+                        </div>
+                    </div>
+
+                    <form
+                        onSubmit={handlePrimaryPay}
+                        className="flex min-h-0 flex-1 flex-col"
+                    >
+                        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-5 sm:px-6">
                         {/* Order summary */}
                         <div className="flex items-center justify-between gap-3 border border-olive-200 bg-[#f4f2ec] px-4 py-3.5 dark:border-olive-700 dark:bg-olive-950">
                             <div>
@@ -1175,6 +1017,7 @@ function PaymentCheckout({
                         )}
                     </div>
                 </form>
+                </div>
             </div>
         </div>
     );
@@ -1183,22 +1026,61 @@ function PaymentCheckout({
 export default function Upgrade({
     plan,
     plans = [],
+    plansByCategory = {},
+    initialCategory = null,
     pendingUpgrade = null,
     paymentMethods = [],
     upgradeContact = {},
     initialBilling = 'month',
 }) {
     const [checkoutPlan, setCheckoutPlan] = useState(null);
-    const [billing, setBilling] = useState(
-        initialBilling === 'year' ? 'year' : 'month',
+    const [categoryKey, setCategoryKey] = useState(
+        () => initialCategory || PRICING_CATEGORY_OPTIONS[0]?.key || null,
     );
-    const savings = maxYearlySavings(plans);
-    const showSwitcher = plans.some(
+    const [billing, setBilling] = useState(() => {
+        if (initialBilling === 'year') {
+            return 'year';
+        }
+        if (plan?.billing_period === 'year') {
+            return 'year';
+        }
+        return 'month';
+    });
+
+    const breakdown = useMemo(
+        () => getPricingCategoryBreakdown(categoryKey),
+        [categoryKey],
+    );
+
+    const categoryPlans = useMemo(() => {
+        if (categoryKey && plansByCategory?.[categoryKey]?.length) {
+            return plansByCategory[categoryKey];
+        }
+        if (categoryKey && plans.length) {
+            return plans.filter((p) => p.category_key === categoryKey);
+        }
+        return plans;
+    }, [categoryKey, plansByCategory, plans]);
+
+    const inclusionsByPlan = useMemo(() => {
+        if (!breakdown) {
+            return {};
+        }
+        return {
+            free: categoryInclusionsForPlan(breakdown.rows, 'free'),
+            featured: categoryInclusionsForPlan(breakdown.rows, 'featured'),
+            premium: categoryInclusionsForPlan(breakdown.rows, 'premium'),
+        };
+    }, [breakdown]);
+
+    const savings = useMemo(() => maxYearlySavings(categoryPlans), [categoryPlans]);
+    const showSwitcher = categoryPlans.some(
         (p) => Number(p.price_amount) > 0 && p.yearly_price_amount != null,
     );
 
     const form = useForm({
         to_plan: 'featured',
+        category: categoryKey || null,
         billing_period: billing,
         payment_reference: '',
         payment_method: 'mpesa',
@@ -1210,9 +1092,22 @@ export default function Upgrade({
         form.setData('billing_period', next);
     };
 
+    const selectCategory = (key) => {
+        setCategoryKey(key);
+        form.setData('category', key);
+        setCheckoutPlan(null);
+    };
+
+    const clearCategory = () => {
+        setCategoryKey(null);
+        form.setData('category', null);
+        setCheckoutPlan(null);
+    };
+
     const openCheckout = (selected) => {
         form.setData({
             to_plan: selected.key,
+            category: categoryKey || null,
             billing_period: billing,
             payment_reference: '',
             payment_method: 'mpesa',
@@ -1226,48 +1121,84 @@ export default function Upgrade({
         <AccountLayout title="Plans">
             <Head title="View plans" />
 
-            <div className="space-y-6">
-                <p className="max-w-2xl text-sm text-olive-600 dark:text-olive-400">
-                    Pick the package that fits your business. Upgrade anytime for better placement
-                    and more listings.
-                </p>
-
+            <div className="space-y-8">
                 {pendingUpgrade && (
                     <div className="rounded-2xl border border-mustard/40 bg-mustard/15 px-5 py-4 text-sm text-earth-dusk dark:border-mustard/30 dark:bg-mustard/10 dark:text-mustard">
                         Pending upgrade to <strong>{pendingUpgrade.to_label}</strong> via{' '}
-                        <strong className="capitalize">{pendingUpgrade.payment_method || 'mpesa'}</strong>{' '}
+                        <strong className="capitalize">
+                            {pendingUpgrade.payment_method || 'mpesa'}
+                        </strong>{' '}
                         (ref {pendingUpgrade.payment_reference}). Cancel it from your dashboard if
                         you need to submit a new one.
                     </div>
                 )}
 
-                {showSwitcher ? (
-                    <BillingSwitcher
-                        value={billing}
-                        onChange={setBillingPeriod}
-                        savingsPercent={savings}
+                {!breakdown ? (
+                    <CategoryPicker
+                        onSelect={selectCategory}
+                        title="Choose a listing category to see plans"
+                        description="Open a category to compare Free, Standard, and Premium for that type of listing."
                     />
-                ) : null}
+                ) : (
+                    <div className="space-y-8">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                            <button
+                                type="button"
+                                onClick={clearCategory}
+                                className="inline-flex items-center gap-1.5 text-sm font-semibold text-olive-700 transition hover:text-olive-950 dark:text-olive-300 dark:hover:text-olive-50"
+                            >
+                                ← All categories
+                            </button>
+                        </div>
 
-                <PlansMatrix
-                    plans={plans}
-                    currentKey={plan.key}
-                    pending={Boolean(pendingUpgrade)}
-                    onUpgrade={openCheckout}
-                    billing={billing}
-                />
+                        <div className="mx-auto max-w-2xl text-center">
+                            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-olive-400 dark:text-olive-500">
+                                {breakdown.label}
+                            </p>
+                            <h2 className="mt-2 font-display text-3xl font-semibold tracking-tight text-olive-950 dark:text-olive-50 sm:text-4xl">
+                                Plans & inclusions
+                            </h2>
+                            <p className="mt-2 text-sm leading-relaxed text-olive-600 dark:text-olive-400 sm:text-base">
+                                Unlock advanced features and grow your visibility in Nanyuki.
+                            </p>
+                            {showSwitcher ? (
+                                <div className="mt-6">
+                                    <BillingSwitcher
+                                        value={billing}
+                                        onChange={setBillingPeriod}
+                                        savingsPercent={savings}
+                                    />
+                                </div>
+                            ) : null}
+                        </div>
 
-                <InclusionMatrix plans={plans} currentKey={plan.key} />
+                        <PlanCards
+                            plans={categoryPlans}
+                            currentPlan={plan}
+                            pending={Boolean(pendingUpgrade)}
+                            onUpgrade={openCheckout}
+                            billing={billing}
+                            inclusionsByPlan={inclusionsByPlan}
+                            categoryLabel={breakdown.label}
+                        />
+                    </div>
+                )}
             </div>
 
             {checkoutPlan && (
                 <PaymentCheckout
-                    key={`${checkoutPlan.key}-${billing}`}
+                    key={`${checkoutPlan.key}-${billing}-${categoryKey || 'none'}`}
                     plan={checkoutPlan}
                     paymentMethods={paymentMethods}
                     upgradeContact={upgradeContact}
                     form={form}
                     billing={billing}
+                    isPeriodUpgrade={
+                        normalizePlanKey(checkoutPlan.key) ===
+                            normalizePlanKey(plan.key) &&
+                        plan.billing_period === 'month' &&
+                        billing === 'year'
+                    }
                     onClose={() => setCheckoutPlan(null)}
                 />
             )}

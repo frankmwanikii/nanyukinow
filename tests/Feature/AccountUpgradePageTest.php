@@ -27,10 +27,51 @@ class AccountUpgradePageTest extends TestCase
             ->assertInertia(fn ($page) => $page
                 ->component('Account/Upgrade')
                 ->has('plans', 3)
+                ->has('plansByCategory')
+                ->has('categories')
                 ->has('paymentMethods', 2)
                 ->has('upgradeContact')
                 ->where('initialBilling', 'month')
                 ->has('plan'));
+    }
+
+    public function test_member_on_monthly_can_request_same_tier_yearly_upgrade(): void
+    {
+        PricingPlan::ensureDefaults();
+        $user = User::factory()->standard()->create([
+            'plan_started_at' => now(),
+            'plan_expires_at' => now()->addDays(30),
+        ]);
+
+        PlanUpgrade::query()->create([
+            'user_id' => $user->id,
+            'from_plan' => Membership::FREE,
+            'to_plan' => Membership::STANDARD,
+            'amount' => 300,
+            'currency' => 'KES',
+            'billing_period' => 'month',
+            'status' => PlanUpgrade::STATUS_APPROVED,
+            'payment_reference' => 'MONTHLYSTD1',
+            'payment_method' => 'mpesa',
+            'reviewed_at' => now(),
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('account.upgrade.store'), [
+                'to_plan' => Membership::STANDARD,
+                'billing_period' => 'year',
+                'payment_reference' => 'YEARLYSWITCH1',
+                'payment_method' => 'mpesa',
+            ])
+            ->assertRedirect(route('account.index'));
+
+        $this->assertDatabaseHas('plan_upgrades', [
+            'user_id' => $user->id,
+            'to_plan' => Membership::STANDARD,
+            'billing_period' => 'year',
+            'status' => PlanUpgrade::STATUS_PENDING,
+            'payment_reference' => 'YEARLYSWITCH1',
+        ]);
     }
 
     public function test_upgrade_page_respects_yearly_billing_query(): void

@@ -5,10 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\PricingPlanUpdateRequest;
 use App\Models\PricingPlan;
-use App\Support\AdminPagination;
+use App\Support\CategoryKey;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -16,38 +15,34 @@ class PricingController extends Controller
 {
     public function index(Request $request): Response
     {
-        $perPage = AdminPagination::perPage($request);
-        $page = max(1, $request->integer('page', 1));
-        $all = PricingPlan::orderedForAdmin();
-        $total = $all->count();
-        $items = $all->slice(($page - 1) * $perPage, $perPage)->values();
+        $categoryKey = CategoryKey::fromSlug($request->string('category')->toString());
 
-        $plans = new LengthAwarePaginator(
-            $items,
-            $total,
-            $perPage,
-            $page,
-            [
-                'path' => $request->url(),
-                'query' => $request->query(),
-            ],
-        );
+        PricingPlan::ensureDefaults();
+
+        $plans = $categoryKey
+            ? PricingPlan::orderedForAdmin($categoryKey)
+            : collect();
 
         return Inertia::render('Admin/Pricing/Index', [
             'plans' => $plans,
-            'filters' => [
-                'per_page' => $perPage,
-            ],
+            'categories' => CategoryKey::options(),
+            'selectedCategory' => $categoryKey,
+            'selectedCategoryLabel' => CategoryKey::label($categoryKey),
             'billingPeriods' => $this->billingPeriods(),
         ]);
     }
 
-    public function edit(PricingPlan $pricing): Response
+    public function edit(Request $request, PricingPlan $pricing): Response
     {
+        $categoryKey = CategoryKey::fromSlug($pricing->category_key);
+        $siblingPlans = PricingPlan::orderedForAdmin($categoryKey);
+
         return Inertia::render('Admin/Pricing/Edit', [
             'plan' => [
                 'id' => $pricing->id,
                 'key' => $pricing->key,
+                'category_key' => $pricing->category_key,
+                'category_label' => CategoryKey::label($pricing->category_key),
                 'name' => $pricing->name,
                 'tagline' => $pricing->tagline,
                 'price_amount' => $pricing->price_amount,
@@ -63,6 +58,8 @@ class PricingController extends Controller
                 'listing_limit' => $pricing->listing_limit,
                 'updated_at' => $pricing->updated_at?->toIso8601String(),
             ],
+            'allPlans' => $siblingPlans,
+            'categories' => CategoryKey::options(),
             'billingPeriods' => $this->billingPeriods(),
         ]);
     }
@@ -73,13 +70,14 @@ class PricingController extends Controller
 
         if (($data['is_highlighted'] ?? false) === true) {
             PricingPlan::query()
+                ->forCategory($pricing->category_key)
                 ->whereKeyNot($pricing->id)
                 ->update(['is_highlighted' => false]);
         }
 
         $pricing->update($data);
 
-        return back()->with('success', "{$pricing->name} pricing saved.");
+        return back()->with('success', "{$pricing->name} pricing saved for ".CategoryKey::label($pricing->category_key).'.');
     }
 
     /**
@@ -97,8 +95,14 @@ class PricingController extends Controller
     public function destroy(PricingPlan $pricing): RedirectResponse
     {
         $name = $pricing->name;
+        $categoryKey = $pricing->category_key;
+        $category = CategoryKey::label($categoryKey) ?: $categoryKey;
         $pricing->delete();
 
-        return back()->with('success', "{$name} tier deleted.");
+        return redirect()
+            ->route('admin.pricing.index', [
+                'category' => CategoryKey::slug($categoryKey) ?: $categoryKey,
+            ])
+            ->with('success', "{$name} pricing removed from {$category}.");
     }
 }

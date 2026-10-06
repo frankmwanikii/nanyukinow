@@ -31,8 +31,9 @@ class MembershipFlowTest extends TestCase
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->component('Pricing')
-                ->has('plans', 3)
-                ->where('plans.1.name', 'Standard'));
+                ->has('plansByCategory.eatDrink', 3)
+                ->has('categories', 7)
+                ->where('plansByCategory.eatDrink.1.name', 'Standard'));
     }
 
     public function test_member_can_create_one_free_listing_then_is_blocked(): void
@@ -245,9 +246,44 @@ class MembershipFlowTest extends TestCase
             ->assertInertia(fn ($page) => $page
                 ->component('Account/Billing')
                 ->where('plan.key', Membership::STANDARD)
+                ->where('plan.billing_period', 'month')
                 ->where('plan.days_remaining', 20)
                 ->has('history')
                 ->has('pendingUpgrade'));
+    }
+
+    public function test_plan_summary_exposes_billing_period_from_approved_upgrade(): void
+    {
+        PricingPlan::ensureDefaults();
+        $user = User::factory()->standard()->create([
+            'plan_started_at' => now(),
+            'plan_expires_at' => now()->addDays(365),
+        ]);
+
+        PlanUpgrade::query()->create([
+            'user_id' => $user->id,
+            'from_plan' => Membership::FREE,
+            'to_plan' => Membership::STANDARD,
+            'amount' => 3000,
+            'currency' => 'KES',
+            'billing_period' => 'year',
+            'status' => PlanUpgrade::STATUS_APPROVED,
+            'payment_reference' => 'YEARLYOWNED1',
+            'payment_method' => 'mpesa',
+            'reviewed_at' => now(),
+        ]);
+
+        $summary = Membership::planSummary($user);
+
+        $this->assertSame('year', $summary['billing_period']);
+
+        $this->actingAs($user)
+            ->get(route('pricing'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Pricing')
+                ->where('currentPlan.key', Membership::STANDARD)
+                ->where('currentPlan.billing_period', 'year'));
     }
 
     public function test_account_dashboard_requires_auth(): void

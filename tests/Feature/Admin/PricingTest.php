@@ -4,6 +4,7 @@ namespace Tests\Feature\Admin;
 
 use App\Models\PricingPlan;
 use App\Models\User;
+use App\Support\CategoryKey;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -11,7 +12,7 @@ class PricingTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_admin_can_view_pricing_page_with_default_plans(): void
+    public function test_admin_can_view_pricing_page_and_must_pick_category(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
 
@@ -20,11 +21,27 @@ class PricingTest extends TestCase
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->component('Admin/Pricing/Index')
-                ->has('plans.data', 3)
-                ->has('billingPeriods')
-                ->where('plans.data.0.key', 'free')
-                ->where('plans.data.1.key', 'featured')
-                ->where('plans.data.2.key', 'premium'));
+                ->has('categories', 7)
+                ->where('selectedCategory', null)
+                ->has('plans', 0));
+    }
+
+    public function test_admin_can_view_category_pricing_tiers(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        PricingPlan::ensureDefaults();
+
+        $this->actingAs($admin)
+            ->get(route('admin.pricing.index', ['category' => 'eat-drink']))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Admin/Pricing/Index')
+                ->where('selectedCategory', 'eatDrink')
+                ->has('plans', 3)
+                ->where('plans.0.key', 'free')
+                ->where('plans.0.category_key', 'eatDrink')
+                ->where('plans.1.key', 'featured')
+                ->where('plans.2.key', 'premium'));
     }
 
     public function test_guest_cannot_view_pricing(): void
@@ -33,11 +50,14 @@ class PricingTest extends TestCase
             ->assertRedirect(route('admin.login'));
     }
 
-    public function test_admin_can_update_a_pricing_plan(): void
+    public function test_admin_can_update_a_category_pricing_plan(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
         PricingPlan::ensureDefaults();
-        $plan = PricingPlan::query()->where('key', 'featured')->firstOrFail();
+        $plan = PricingPlan::query()
+            ->where('key', 'featured')
+            ->where('category_key', 'stay')
+            ->firstOrFail();
 
         $this->actingAs($admin)
             ->put(route('admin.pricing.update', $plan), [
@@ -48,39 +68,47 @@ class PricingTest extends TestCase
                 'currency' => 'KES',
                 'billing_period' => 'month',
                 'price_label' => null,
-                'inclusions' => [
-                    'Everything in Free',
-                    'Featured badge on cards',
-                    'Priority support',
-                ],
-                'cta_label' => 'Upgrade now',
+                'inclusions' => ['Gallery', 'Map pin'],
+                'cta_label' => 'Upgrade',
                 'is_highlighted' => true,
                 'is_active' => true,
                 'sort_order' => 2,
-                'listing_limit' => 5,
+                'listing_limit' => 3,
             ])
             ->assertRedirect();
 
         $plan->refresh();
-
         $this->assertSame('Featured Plus', $plan->name);
         $this->assertSame(3200, $plan->price_amount);
         $this->assertSame(32000, $plan->yearly_price_amount);
-        $this->assertSame(5, $plan->listing_limit);
-        $this->assertTrue($plan->is_highlighted);
-        $this->assertContains('Priority support', $plan->inclusions);
+        $this->assertSame('stay', $plan->category_key);
+
+        $eatDrink = PricingPlan::query()
+            ->where('key', 'featured')
+            ->where('category_key', 'eatDrink')
+            ->firstOrFail();
+        $this->assertNotSame(3200, $eatDrink->price_amount);
     }
 
-    public function test_highlighting_a_plan_clears_other_highlights(): void
+    public function test_highlighting_one_tier_clears_others_in_same_category_only(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
         PricingPlan::ensureDefaults();
 
-        $featured = PricingPlan::query()->where('key', 'featured')->firstOrFail();
-        $premium = PricingPlan::query()->where('key', 'premium')->firstOrFail();
+        $featured = PricingPlan::query()
+            ->where('key', 'featured')
+            ->where('category_key', 'events')
+            ->firstOrFail();
+        $premium = PricingPlan::query()
+            ->where('key', 'premium')
+            ->where('category_key', 'events')
+            ->firstOrFail();
+        $otherCategoryFeatured = PricingPlan::query()
+            ->where('key', 'featured')
+            ->where('category_key', 'shopping')
+            ->firstOrFail();
 
-        $featured->update(['is_highlighted' => true]);
-        $premium->update(['is_highlighted' => false]);
+        $otherCategoryFeatured->update(['is_highlighted' => true]);
 
         $this->actingAs($admin)
             ->put(route('admin.pricing.update', $premium), [
@@ -96,25 +124,29 @@ class PricingTest extends TestCase
                 'is_highlighted' => true,
                 'is_active' => true,
                 'sort_order' => $premium->sort_order,
-                'listing_limit' => $premium->listing_limit ?? 10,
+                'listing_limit' => $premium->listing_limit,
             ])
             ->assertRedirect();
 
         $this->assertFalse($featured->fresh()->is_highlighted);
         $this->assertTrue($premium->fresh()->is_highlighted);
+        $this->assertTrue($otherCategoryFeatured->fresh()->is_highlighted);
     }
 
     public function test_admin_can_delete_a_pricing_plan(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
         PricingPlan::ensureDefaults();
-        $plan = PricingPlan::query()->where('key', 'featured')->firstOrFail();
+        $plan = PricingPlan::query()
+            ->where('key', 'featured')
+            ->where('category_key', 'services')
+            ->firstOrFail();
 
         $this->actingAs($admin)
             ->delete(route('admin.pricing.destroy', $plan))
-            ->assertRedirect();
+            ->assertRedirect(route('admin.pricing.index', ['category' => 'services']));
 
         $this->assertDatabaseMissing('pricing_plans', ['id' => $plan->id]);
-        $this->assertSame(2, PricingPlan::query()->count());
+        $this->assertSame(count(CategoryKey::keys()) * 3 - 1, PricingPlan::query()->count());
     }
 }

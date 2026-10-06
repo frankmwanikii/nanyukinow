@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Support\CategoryKey;
 use App\Support\Membership;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 
@@ -10,6 +12,7 @@ class PricingPlan extends Model
 {
     protected $fillable = [
         'key',
+        'category_key',
         'name',
         'tagline',
         'price_amount',
@@ -53,6 +56,21 @@ class PricingPlan extends Model
         }
 
         return max(0, (int) $this->price_amount);
+    }
+
+    /**
+     * @param  Builder<PricingPlan>  $query
+     * @return Builder<PricingPlan>
+     */
+    public function scopeForCategory(Builder $query, ?string $categoryKey): Builder
+    {
+        $normalized = CategoryKey::fromSlug($categoryKey);
+
+        if ($normalized === null) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query->where('category_key', $normalized);
     }
 
     /**
@@ -136,13 +154,87 @@ class PricingPlan extends Model
 
     public static function ensureDefaults(): void
     {
-        if (static::query()->exists()) {
+        foreach (CategoryKey::keys() as $categoryKey) {
+            static::ensureDefaultsForCategory($categoryKey);
+        }
+    }
+
+    public static function ensureDefaultsForCategory(?string $categoryKey): void
+    {
+        $normalized = CategoryKey::fromSlug($categoryKey);
+        if ($normalized === null) {
             return;
         }
 
-        foreach (static::defaults() as $plan) {
-            static::query()->create($plan);
+        $existingKeys = static::query()
+            ->forCategory($normalized)
+            ->pluck('key')
+            ->all();
+
+        if (count($existingKeys) >= 3) {
+            return;
         }
+
+        $template = static::query()
+            ->whereIn('key', [Membership::FREE, Membership::STANDARD, Membership::PREMIUM])
+            ->orderBy('id')
+            ->get()
+            ->groupBy('key');
+
+        foreach (static::defaults() as $plan) {
+            if (in_array($plan['key'], $existingKeys, true)) {
+                continue;
+            }
+
+            $source = $template->get($plan['key'])?->first();
+            $payload = $source
+                ? [
+                    ...$source->only([
+                        'name',
+                        'tagline',
+                        'price_amount',
+                        'yearly_price_amount',
+                        'currency',
+                        'billing_period',
+                        'price_label',
+                        'inclusions',
+                        'cta_label',
+                        'is_highlighted',
+                        'is_active',
+                        'sort_order',
+                        'listing_limit',
+                    ]),
+                    'key' => $plan['key'],
+                    'category_key' => $normalized,
+                ]
+                : [
+                    ...$plan,
+                    'category_key' => $normalized,
+                ];
+
+            static::query()->create($payload);
+        }
+    }
+
+    public static function findForCategory(string $planKey, ?string $categoryKey): ?self
+    {
+        $normalized = CategoryKey::fromSlug($categoryKey);
+        $planKey = Membership::normalize($planKey);
+
+        if ($normalized !== null) {
+            static::ensureDefaultsForCategory($normalized);
+
+            $match = static::query()
+                ->forCategory($normalized)
+                ->where('key', $planKey)
+                ->first();
+
+            if ($match) {
+                return $match;
+            }
+        }
+
+        return static::query()->where('key', $planKey)->orderBy('id')->first();
     }
 
     public function toAdminArray(): array
@@ -150,6 +242,8 @@ class PricingPlan extends Model
         return [
             'id' => $this->id,
             'key' => $this->key,
+            'category_key' => $this->category_key,
+            'category_label' => CategoryKey::label($this->category_key),
             'name' => $this->name,
             'tagline' => $this->tagline,
             'price_amount' => $this->price_amount,
@@ -168,11 +262,17 @@ class PricingPlan extends Model
         ];
     }
 
-    public static function orderedForAdmin(): Collection
+    public static function orderedForAdmin(?string $categoryKey = null): Collection
     {
-        static::ensureDefaults();
+        $normalized = CategoryKey::fromSlug($categoryKey);
+        if ($normalized === null) {
+            return collect();
+        }
+
+        static::ensureDefaultsForCategory($normalized);
 
         return static::query()
+            ->forCategory($normalized)
             ->orderBy('sort_order')
             ->orderBy('id')
             ->get()

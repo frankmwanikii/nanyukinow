@@ -116,11 +116,6 @@
         @apply text-olive-50;
     }
 
-    .dark .nn-editor:empty:before,
-    .dark .nn-editor:has(> br:only-child):before {
-        color: theme('colors.olive.500');
-    }
-
     .nn-editor img,
     .nn-editor .nn-editor-img {
         display: block;
@@ -131,10 +126,29 @@
     }
 
     .nn-editor:empty:before,
-    .nn-editor:has(> br:only-child):before {
+    .nn-editor:has(> br:only-child):before,
+    .nn-editor p.is-editor-empty:first-child::before,
+    .nn-editor .is-editor-empty:first-child::before {
         pointer-events: none;
+        float: left;
+        height: 0;
         color: theme('colors.olive.400');
         content: attr(data-placeholder);
+    }
+
+    .dark .nn-editor:empty:before,
+    .dark .nn-editor:has(> br:only-child):before,
+    .dark .nn-editor p.is-editor-empty:first-child::before,
+    .dark .nn-editor .is-editor-empty:first-child::before {
+        color: theme('colors.olive.500');
+    }
+
+    .nn-editor.ProseMirror {
+        outline: none;
+    }
+
+    .nn-editor.ProseMirror-focused {
+        outline: none;
     }
 }
 

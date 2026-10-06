@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Account;
 
+use App\Support\CategoryKey;
 use App\Support\Membership;
 use App\Support\PaymentMethods;
 use Illuminate\Foundation\Http\FormRequest;
@@ -21,6 +22,7 @@ class StoreUpgradeRequest extends FormRequest
     {
         return [
             'to_plan' => ['required', Rule::in([Membership::STANDARD, Membership::PREMIUM])],
+            'category' => ['nullable', 'string', Rule::in(CategoryKey::keys())],
             'billing_period' => ['nullable', Rule::in(['month', 'year', 'one_time'])],
             'payment_method' => ['required', Rule::in(PaymentMethods::keys())],
             'payment_reference' => ['required', 'string', 'max:120'],

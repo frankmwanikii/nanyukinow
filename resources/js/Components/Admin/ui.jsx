@@ -14,7 +14,7 @@ import {
     MoreVertical,
     X,
 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, router } from '@inertiajs/react';
 
@@ -628,7 +628,7 @@ export function FormPanel({ title, description, children, className = '' }) {
 /** Card shell for data tables */
 export function DataCard({ title, tools, children, footer }) {
     return (
-        <div className="overflow-hidden rounded-lg border border-olive-200/80 bg-white dark:border-olive-800 dark:bg-olive-900">
+        <div className="rounded-lg border border-olive-200/80 bg-white dark:border-olive-800 dark:bg-olive-900">
             {(title || tools) && (
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-olive-200 px-5 py-4 dark:border-olive-800">
                     {title && (
@@ -776,22 +776,48 @@ export function ActionMenu({ label = 'Actions', items = [] }) {
     const [open, setOpen] = useState(false);
     const triggerRef = useRef(null);
     const menuRef = useRef(null);
-    const [coords, setCoords] = useState({ top: 0, right: 0 });
+    const [coords, setCoords] = useState({ top: 0, right: 0, placement: 'bottom' });
 
     const updatePosition = () => {
         const el = triggerRef.current;
         if (!el) return;
+
         const rect = el.getBoundingClientRect();
-        setCoords({
-            top: rect.bottom + 4,
-            right: Math.max(8, window.innerWidth - rect.right),
-        });
+        const gutter = 8;
+        const gap = 4;
+        const estimatedHeight =
+            (label ? 36 : 8) + Math.max(items.length, 1) * 36 + 8;
+        const menuHeight = menuRef.current?.offsetHeight || estimatedHeight;
+        const spaceBelow = window.innerHeight - rect.bottom - gutter;
+        const spaceAbove = rect.top - gutter;
+        const openUp = spaceBelow < menuHeight && spaceAbove > spaceBelow;
+        const right = Math.max(gutter, window.innerWidth - rect.right);
+
+        if (openUp) {
+            setCoords({
+                placement: 'top',
+                top: Math.max(gutter, rect.top - menuHeight - gap),
+                right,
+            });
+        } else {
+            setCoords({
+                placement: 'bottom',
+                top: rect.bottom + gap,
+                right,
+            });
+        }
     };
+
+    useLayoutEffect(() => {
+        if (!open) return undefined;
+        updatePosition();
+        // Remeasure after paint so menu height is accurate for flip.
+        const frame = requestAnimationFrame(updatePosition);
+        return () => cancelAnimationFrame(frame);
+    }, [open, items.length, label]);
 
     useEffect(() => {
         if (!open) return undefined;
-
-        updatePosition();
 
         const onKey = (e) => {
             if (e.key === 'Escape') setOpen(false);
@@ -807,7 +833,7 @@ export function ActionMenu({ label = 'Actions', items = [] }) {
             window.removeEventListener('resize', onReposition);
             window.removeEventListener('scroll', onReposition, true);
         };
-    }, [open]);
+    }, [open, items.length, label]);
 
     const itemClass = (danger) =>
         `block w-full px-3 py-2 text-left text-sm transition ${
@@ -839,14 +865,15 @@ export function ActionMenu({ label = 'Actions', items = [] }) {
                         <button
                             type="button"
                             aria-label="Close menu"
-                            className="fixed inset-0 z-40 cursor-default"
+                            className="fixed inset-0 z-[90] cursor-default"
                             onClick={() => setOpen(false)}
                         />
                         <div
                             ref={menuRef}
                             role="menu"
+                            data-placement={coords.placement}
                             style={{ top: coords.top, right: coords.right }}
-                            className="fixed z-50 min-w-[8.5rem] overflow-hidden rounded-lg border border-olive-200 bg-white py-1 shadow-lift dark:border-olive-700 dark:bg-olive-900"
+                            className="fixed z-[100] min-w-[8.5rem] overflow-hidden rounded-lg border border-olive-200 bg-white py-1 shadow-lift dark:border-olive-700 dark:bg-olive-900"
                         >
                             {label ? (
                                 <div className="border-b border-olive-100 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-olive-400 dark:border-olive-800 dark:text-olive-500">

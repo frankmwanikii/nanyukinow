@@ -1,4 +1,5 @@
 import AccountLayout from '@/Layouts/AccountLayout';
+import { useConfirm } from '@/Components/ConfirmDialog';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import {
     ArrowLeft,
@@ -281,6 +282,7 @@ export default function Index({
     unread = { chats: 0, alerts: 0, total: 0 },
 }) {
     const { flash } = usePage().props;
+    const { confirm, dialog } = useConfirm();
     const [query, setQuery] = useState(q || '');
     const hasActive = Boolean(activeType && active);
 
@@ -356,13 +358,23 @@ export default function Index({
         router.post(route('account.messages.read-all'), {}, { preserveScroll: true });
     };
 
-    const deleteChat = (id) => {
-        if (!confirm('Delete this chat?')) return;
+    const deleteChat = async (id) => {
+        const ok = await confirm({
+            title: 'Delete this chat?',
+            message: 'This conversation and its messages will be removed permanently.',
+            confirmLabel: 'Delete chat',
+        });
+        if (!ok) return;
         router.delete(route('account.messages.destroy', id));
     };
 
-    const deleteAlert = (id) => {
-        if (!confirm('Delete this alert?')) return;
+    const deleteAlert = async (id) => {
+        const ok = await confirm({
+            title: 'Delete this alert?',
+            message: 'This alert will be removed from your inbox permanently.',
+            confirmLabel: 'Delete alert',
+        });
+        if (!ok) return;
         router.delete(route('account.messages.alerts.destroy', id));
     };
 
@@ -375,6 +387,7 @@ export default function Index({
 
     return (
         <AccountLayout title="Messages">
+            {dialog}
             <Head title="Messages" />
 
             <div className="space-y-4">

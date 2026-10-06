@@ -21,8 +21,8 @@ export default function SiteLayout({
                     lockViewport
                         ? 'h-svh overflow-hidden'
                         : hideFooter
-                          ? 'min-h-svh'
-                          : 'min-h-screen pb-[4.75rem] lg:pb-0'
+                          ? 'min-h-svh pb-[calc(4.75rem+env(safe-area-inset-bottom,0px))] lg:pb-0'
+                          : 'min-h-screen pb-[calc(4.75rem+env(safe-area-inset-bottom,0px))] lg:pb-0'
                 }`}
             >
                 <Navbar compact={compactNav} />
