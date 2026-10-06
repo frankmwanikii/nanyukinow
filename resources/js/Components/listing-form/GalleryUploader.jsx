@@ -13,7 +13,7 @@ import {
     Trash2,
     Upload,
 } from 'lucide-react';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 const MAX_BYTES = 15 * 1024 * 1024;
 const DEFAULT_MAX_GALLERY = 12;
@@ -447,6 +447,7 @@ export default function GalleryUploader({
     onGalleryChange,
     errors = {},
     maxGallery = DEFAULT_MAX_GALLERY,
+    maxPerSpace = null,
     categorized = false,
     spaceOptions = [],
     hideGallery = false,
@@ -455,6 +456,10 @@ export default function GalleryUploader({
         maxGallery === 0 || maxGallery === '0'
             ? 0
             : Math.max(1, Number(maxGallery) || DEFAULT_MAX_GALLERY);
+    const MAX_PER_SPACE =
+        categorized && maxPerSpace != null
+            ? Math.max(0, Number(maxPerSpace) || 0)
+            : null;
     const coverInput = useRef(null);
     const logoInput = useRef(null);
     const posterInput = useRef(null);
@@ -474,6 +479,35 @@ export default function GalleryUploader({
     const [logoUrlDraft, setLogoUrlDraft] = useState('');
     const [coverUrlError, setCoverUrlError] = useState(null);
     const [logoUrlError, setLogoUrlError] = useState(null);
+    const [activeSpace, setActiveSpace] = useState(
+        () => spaceOptions[0]?.value || 'bedroom',
+    );
+    const pendingSpaceRef = useRef(spaceOptions[0]?.value || 'bedroom');
+
+    useEffect(() => {
+        if (!categorized || !spaceOptions.length) return;
+        const stillValid = spaceOptions.some((s) => s.value === activeSpace);
+        if (!stillValid) {
+            setActiveSpace(spaceOptions[0].value);
+            pendingSpaceRef.current = spaceOptions[0].value;
+        }
+    }, [categorized, spaceOptions, activeSpace]);
+
+    const resolveSpaceMeta = (kind) => {
+        const allowed = spaceOptions.some((s) => s.value === kind)
+            ? kind
+            : spaceOptions[0]?.value || 'bedroom';
+        const match = spaceOptions.find((s) => s.value === allowed);
+        return {
+            kind: allowed,
+            label: match?.label || 'Bedroom',
+        };
+    };
+
+    const selectSpace = (kind) => {
+        setActiveSpace(kind);
+        pendingSpaceRef.current = kind;
+    };
 
     const lightboxItems = useMemo(() => {
         const items = [];
@@ -503,7 +537,9 @@ export default function GalleryUploader({
             if (!src) return;
             items.push({
                 src,
-                label: `Gallery ${index + 1}`,
+                label: item.label
+                    ? `${item.label} · ${index + 1}`
+                    : `Gallery ${index + 1}`,
                 hint: item.url && !item.file ? 'Saved' : 'Preview',
             });
         });
@@ -552,9 +588,27 @@ export default function GalleryUploader({
         const list = Array.isArray(files) ? files : Array.from(files || []);
         if (!list.length) return;
 
-        const remaining = MAX_GALLERY - galleryItems.length;
+        const spaceKind = categorized
+            ? activeSpace || spaceOptions[0]?.value || 'bedroom'
+            : 'bedroom';
+        const spaceCount = categorized
+            ? galleryItems.filter(
+                  (g) =>
+                      resolveSpaceMeta(g.kind).kind === spaceKind,
+              ).length
+            : galleryItems.length;
+        const spaceCap =
+            MAX_PER_SPACE != null ? MAX_PER_SPACE : MAX_GALLERY;
+        const remainingOverall = MAX_GALLERY - galleryItems.length;
+        const remainingSpace = spaceCap - spaceCount;
+        const remaining = Math.min(remainingOverall, remainingSpace);
+
         if (remaining <= 0) {
-            setLocalError(`You can upload up to ${MAX_GALLERY} gallery photos.`);
+            setLocalError(
+                categorized && MAX_PER_SPACE != null && remainingSpace <= 0
+                    ? `You can add up to ${MAX_PER_SPACE} photos in ${resolveSpaceMeta(spaceKind).label}.`
+                    : `You can upload up to ${MAX_GALLERY} gallery photos.`,
+            );
             return;
         }
 
@@ -570,18 +624,39 @@ export default function GalleryUploader({
         setLocalError(null);
         setQueue(accepted);
         setQueueTotal(accepted.length);
+        pendingSpaceRef.current = spaceKind;
         openCrop(accepted[0], 'gallery', 4 / 3);
     };
 
-    const addGalleryUrls = (urls) => {
+    const addGalleryUrls = (urls, spaceKind = null) => {
         const list = (urls || []).filter(
             (u) => typeof u === 'string' && u.trim() !== '',
         );
         if (!list.length) return;
 
-        const remaining = MAX_GALLERY - galleryItems.length;
+        const targetKind =
+            spaceKind ||
+            (categorized ? activeSpace : null) ||
+            pendingSpaceRef.current ||
+            spaceOptions[0]?.value ||
+            'bedroom';
+        const spaceCount = categorized
+            ? galleryItems.filter(
+                  (g) => resolveSpaceMeta(g.kind).kind === targetKind,
+              ).length
+            : galleryItems.length;
+        const spaceCap =
+            MAX_PER_SPACE != null ? MAX_PER_SPACE : MAX_GALLERY;
+        const remainingOverall = MAX_GALLERY - galleryItems.length;
+        const remainingSpace = spaceCap - spaceCount;
+        const remaining = Math.min(remainingOverall, remainingSpace);
+
         if (remaining <= 0) {
-            setLocalError(`You can upload up to ${MAX_GALLERY} gallery photos.`);
+            setLocalError(
+                categorized && MAX_PER_SPACE != null && remainingSpace <= 0
+                    ? `You can add up to ${MAX_PER_SPACE} photos in ${resolveSpaceMeta(targetKind).label}.`
+                    : `You can upload up to ${MAX_GALLERY} gallery photos.`,
+            );
             return;
         }
 
@@ -598,6 +673,8 @@ export default function GalleryUploader({
             return;
         }
 
+        const space = resolveSpaceMeta(targetKind);
+
         setLocalError(null);
         const next = [
             ...galleryItems,
@@ -606,8 +683,8 @@ export default function GalleryUploader({
                 file: null,
                 preview: url,
                 url,
-                kind: 'general',
-                label: 'General',
+                kind: space.kind,
+                label: space.label,
             })),
         ];
         onGalleryChange?.(next);
@@ -648,11 +725,34 @@ export default function GalleryUploader({
     };
 
     const openGalleryPicker = () => {
-        if (galleryItems.length >= MAX_GALLERY) {
+        const spaceKind = categorized
+            ? activeSpace || spaceOptions[0]?.value || 'bedroom'
+            : 'bedroom';
+        const spaceCount = categorized
+            ? galleryItems.filter(
+                  (g) =>
+                      resolveSpaceMeta(g.kind).kind === spaceKind,
+              ).length
+            : galleryItems.length;
+        const spaceCap =
+            MAX_PER_SPACE != null ? MAX_PER_SPACE : MAX_GALLERY;
+        const remainingOverall = MAX_GALLERY - galleryItems.length;
+        const remainingSpace = spaceCap - spaceCount;
+
+        if (remainingOverall <= 0) {
             setLocalError(`You can upload up to ${MAX_GALLERY} gallery photos.`);
             return;
         }
+        if (remainingSpace <= 0) {
+            setLocalError(
+                categorized && MAX_PER_SPACE != null
+                    ? `You can add up to ${MAX_PER_SPACE} photos in ${resolveSpaceMeta(spaceKind).label}.`
+                    : `You can upload up to ${MAX_GALLERY} gallery photos.`,
+            );
+            return;
+        }
         setLocalError(null);
+        pendingSpaceRef.current = spaceKind;
         galleryInput.current?.click();
     };
 
@@ -706,7 +806,12 @@ export default function GalleryUploader({
         if (addTarget === 'cover') coverInput.current?.click();
         else if (addTarget === 'logo') logoInput.current?.click();
         else if (addTarget === 'poster') posterInput.current?.click();
-        else galleryInput.current?.click();
+        else {
+            pendingSpaceRef.current = categorized
+                ? activeSpace || spaceOptions[0]?.value || 'bedroom'
+                : 'bedroom';
+            galleryInput.current?.click();
+        }
     };
 
     const applySlotUrl = (kind, url) => {
@@ -743,6 +848,11 @@ export default function GalleryUploader({
             onPosterChange?.({ file, preview });
         } else if (kind === 'gallery') {
             const preview = URL.createObjectURL(file);
+            const space = resolveSpaceMeta(
+                categorized
+                    ? pendingSpaceRef.current || activeSpace
+                    : spaceOptions[0]?.value || 'bedroom',
+            );
             const next = [
                 ...galleryItems,
                 {
@@ -750,8 +860,8 @@ export default function GalleryUploader({
                     file,
                     preview,
                     url: null,
-                    kind: 'general',
-                    label: 'General',
+                    kind: space.kind,
+                    label: space.label,
                 },
             ];
             onGalleryChange?.(next);
@@ -784,8 +894,8 @@ export default function GalleryUploader({
                 g.id === id
                     ? {
                           ...g,
-                          kind: kind || 'general',
-                          label: match?.label || 'General',
+                          kind: resolveSpaceMeta(kind).kind,
+                          label: resolveSpaceMeta(kind).label,
                       }
                     : g,
             ),
@@ -807,12 +917,135 @@ export default function GalleryUploader({
     const galleryCount = galleryItems.length;
     const galleryPct =
         MAX_GALLERY > 0 ? Math.round((galleryCount / MAX_GALLERY) * 100) : 0;
+    const activeSpaceMeta = resolveSpaceMeta(activeSpace);
+    const itemsBySpace = useMemo(() => {
+        const map = new Map();
+        spaceOptions.forEach((opt) => map.set(opt.value, []));
+        galleryItems.forEach((item) => {
+            const key = resolveSpaceMeta(item.kind).kind;
+            if (!map.has(key)) map.set(key, []);
+            map.get(key).push(item);
+        });
+        return map;
+    }, [galleryItems, spaceOptions]);
+    const activeSpaceItems = categorized
+        ? itemsBySpace.get(activeSpace) || []
+        : galleryItems;
+    const activeSpaceRemaining =
+        MAX_PER_SPACE != null
+            ? Math.max(0, MAX_PER_SPACE - activeSpaceItems.length)
+            : Math.max(0, MAX_GALLERY - galleryCount);
+    const activeSpaceFull =
+        categorized && MAX_PER_SPACE != null
+            ? activeSpaceItems.length >= MAX_PER_SPACE
+            : galleryCount >= MAX_GALLERY;
+    const galleryFull = galleryCount >= MAX_GALLERY;
+    const canAddToActiveSpace = !galleryFull && !activeSpaceFull;
     const cropping =
         cropState?.kind === 'gallery' && queueTotal > 0
             ? queueTotal - queue.length + 1
             : 0;
     const cropPct =
         queueTotal > 0 ? Math.round((cropping / queueTotal) * 100) : 0;
+
+    const renderGalleryTile = (item, index) => {
+        const src = item.preview || item.url;
+        const saved = Boolean(item.url) && !item.file;
+        return (
+            <li
+                key={item.id}
+                className="group relative overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-olive-200/80 dark:bg-olive-950 dark:ring-olive-700"
+            >
+                <button
+                    type="button"
+                    onClick={() => src && openLightboxAt(src)}
+                    className="relative block w-full cursor-zoom-in focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-mustard"
+                    aria-label={`View gallery photo ${index + 1}`}
+                >
+                    <img
+                        src={src}
+                        alt={
+                            item.label
+                                ? `${item.label} photo ${index + 1}`
+                                : `Gallery ${index + 1}`
+                        }
+                        className="aspect-[4/3] w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+                    />
+                    <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-olive-950/70 via-transparent to-transparent opacity-70 transition group-hover:opacity-100" />
+                    <span className="pointer-events-none absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-semibold text-olive-900 opacity-0 shadow-sm transition group-hover:opacity-100">
+                        <Expand className="h-3.5 w-3.5" />
+                        View
+                    </span>
+                </button>
+
+                <div className="pointer-events-none absolute left-2 top-2 flex gap-1">
+                    <span className="rounded-md bg-olive-950/75 px-1.5 py-0.5 text-[10px] font-bold text-white backdrop-blur">
+                        {index + 1}
+                    </span>
+                    <span
+                        className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold backdrop-blur ${
+                            saved
+                                ? 'bg-emerald-500/90 text-white'
+                                : 'bg-mustard/95 text-olive-950'
+                        }`}
+                    >
+                        {saved ? 'Saved' : 'Preview'}
+                    </span>
+                </div>
+
+                <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 p-2 opacity-100 sm:opacity-0 sm:transition sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
+                    <button
+                        type="button"
+                        title="Use as cover"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setCoverFromGallery(item);
+                        }}
+                        className="inline-flex items-center gap-1 rounded-lg bg-white/95 px-2 py-1.5 text-[11px] font-semibold text-olive-900 shadow-sm ring-1 ring-black/5"
+                    >
+                        <Star className="h-3.5 w-3.5" />
+                        Cover
+                    </button>
+                    <button
+                        type="button"
+                        title="Remove"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            removeGallery(item.id);
+                        }}
+                        className="rounded-lg bg-white/95 p-1.5 text-rose-600 shadow-sm ring-1 ring-rose-100"
+                    >
+                        <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                </div>
+                {categorized && spaceOptions.length ? (
+                    <div className="border-t border-olive-100 p-2 dark:border-olive-800">
+                        <label
+                            className="sr-only"
+                            htmlFor={`gallery-space-${item.id}`}
+                        >
+                            Move to room
+                        </label>
+                        <select
+                            id={`gallery-space-${item.id}`}
+                            className="w-full rounded-lg border-0 bg-olive-50 py-1.5 pl-2 pr-7 text-[11px] font-semibold text-olive-900 ring-1 ring-olive-200 focus:ring-2 focus:ring-mustard dark:bg-olive-900 dark:text-olive-100 dark:ring-olive-700"
+                            value={resolveSpaceMeta(item.kind).kind}
+                            onChange={(e) =>
+                                updateGallerySpace(item.id, e.target.value)
+                            }
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            {spaceOptions.map((opt) => (
+                                <option key={opt.value} value={opt.value}>
+                                    {opt.label}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                ) : null}
+            </li>
+        );
+    };
 
     return (
         <div className="space-y-8">
@@ -931,13 +1164,18 @@ export default function GalleryUploader({
                                 {categorized ? 'Categorized gallery' : 'Gallery'}
                             </p>
                             <span className="rounded-full bg-white px-2.5 py-0.5 text-[11px] font-semibold text-olive-700 ring-1 ring-olive-200 dark:bg-olive-900 dark:text-olive-200 dark:ring-olive-700">
-                                {galleryCount} / {MAX_GALLERY}
+                                {categorized && MAX_PER_SPACE != null
+                                    ? `${galleryCount} total · ${MAX_PER_SPACE}/room`
+                                    : `${galleryCount} / ${MAX_GALLERY}`}
                             </span>
                         </div>
                         {libraryRoute ? (
                             <button
                                 type="button"
-                                onClick={() => openAdminGallery('gallery')}
+                                onClick={() => {
+                                    pendingSpaceRef.current = activeSpace;
+                                    openAdminGallery('gallery');
+                                }}
                                 disabled={galleryCount >= MAX_GALLERY}
                                 className="inline-flex items-center gap-1.5 rounded-full bg-olive-900 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-olive-800 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm"
                             >
@@ -947,9 +1185,10 @@ export default function GalleryUploader({
                         ) : null}
                     </div>
                     <p className={help}>
-                        Multi-select photos, crop each one, then click any
-                        image to view full size.
-                        {libraryRoute
+                        {categorized
+                            ? 'Pick a room tab, then drop photos or click to multi-select for that space.'
+                            : 'Multi-select photos, crop each one, then click any image to view full size.'}
+                        {!categorized && libraryRoute
                             ? ' Admins can also pick from the media library.'
                             : ''}
                     </p>
@@ -966,7 +1205,11 @@ export default function GalleryUploader({
                         <div className="flex items-center justify-between gap-3 text-sm">
                             <span className="inline-flex items-center gap-2 font-semibold text-olive-900 dark:text-olive-100">
                                 <Loader2 className="h-4 w-4 animate-spin text-mustard" />
-                                Cropping photo {cropping} of {queueTotal}
+                                Cropping
+                                {categorized
+                                    ? ` ${activeSpaceMeta.label.toLowerCase()}`
+                                    : ''}{' '}
+                                photo {cropping} of {queueTotal}
                             </span>
                             <span className="text-xs font-semibold text-olive-500 dark:text-olive-400">
                                 {cropPct}%
@@ -981,6 +1224,126 @@ export default function GalleryUploader({
                     </div>
                 ) : null}
 
+                {categorized && spaceOptions.length ? (
+                    <div className="mt-4 space-y-4">
+                        <div className="-mx-1 flex items-center gap-2 overflow-x-auto px-1 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                            {spaceOptions.map((opt) => {
+                                const count = (itemsBySpace.get(opt.value) || [])
+                                    .length;
+                                const selected = activeSpace === opt.value;
+                                return (
+                                    <button
+                                        key={opt.value}
+                                        type="button"
+                                        onClick={() => selectSpace(opt.value)}
+                                        className={`inline-flex h-11 shrink-0 items-center gap-2 rounded-full px-3.5 text-xs font-semibold transition sm:text-sm ${
+                                            selected
+                                                ? 'bg-olive-900 text-white dark:bg-mustard dark:text-earth-dusk'
+                                                : 'bg-white text-olive-800 ring-1 ring-olive-200 hover:border-mustard hover:ring-mustard dark:bg-olive-900 dark:text-olive-100 dark:ring-olive-700'
+                                        }`}
+                                    >
+                                        <span>{opt.label}</span>
+                                        <span
+                                            className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold tabular-nums ${
+                                                selected
+                                                    ? 'bg-white/20 text-white dark:bg-olive-950/20 dark:text-earth-dusk'
+                                                    : count
+                                                      ? 'bg-olive-100 text-olive-800 dark:bg-olive-800 dark:text-olive-100'
+                                                      : 'bg-olive-50 text-olive-400 dark:bg-olive-950 dark:text-olive-500'
+                                            }`}
+                                        >
+                                            {count}
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        <div className="rounded-2xl bg-white/80 p-3 ring-1 ring-olive-100 dark:bg-olive-950/70 dark:ring-olive-800 sm:p-4">
+                            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                                <div className="min-w-0">
+                                    <p className="text-sm font-semibold text-olive-950 dark:text-olive-50">
+                                        {activeSpaceMeta.label} photos
+                                    </p>
+                                    <p className="text-xs text-olive-500 dark:text-olive-400">
+                                        {MAX_PER_SPACE != null
+                                            ? `${activeSpaceItems.length} / ${MAX_PER_SPACE} in this room`
+                                            : activeSpaceItems.length
+                                              ? `${activeSpaceItems.length} photo${activeSpaceItems.length === 1 ? '' : 's'} in this room`
+                                              : `No ${activeSpaceMeta.label.toLowerCase()} photos yet`}
+                                        {activeSpaceRemaining > 0
+                                            ? ` · ${activeSpaceRemaining} slot${activeSpaceRemaining === 1 ? '' : 's'} left here`
+                                            : activeSpaceFull
+                                              ? ' · Room limit reached'
+                                              : ''}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <DropZone
+                                multiple
+                                onFiles={(files) => {
+                                    selectSpace(activeSpace);
+                                    handleGalleryPick(files);
+                                }}
+                                disabled={!canAddToActiveSpace}
+                                className="min-w-0"
+                            >
+                                {activeSpaceItems.length ? (
+                                    <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+                                        {activeSpaceItems.map((item, index) =>
+                                            renderGalleryTile(item, index),
+                                        )}
+                                        {canAddToActiveSpace ? (
+                                            <li>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        selectSpace(activeSpace);
+                                                        openGalleryPicker();
+                                                    }}
+                                                    className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-olive-300 bg-olive-50/70 text-olive-600 transition hover:border-mustard hover:bg-mustard/5 hover:text-olive-900 dark:border-olive-700 dark:bg-olive-900/50 dark:text-olive-400 dark:hover:border-mustard dark:hover:bg-mustard/10 dark:hover:text-olive-100"
+                                                >
+                                                    <ImagePlus className="h-6 w-6" />
+                                                    <span className="px-2 text-center text-xs font-semibold">
+                                                        Add to{' '}
+                                                        {activeSpaceMeta.label}
+                                                    </span>
+                                                </button>
+                                            </li>
+                                        ) : null}
+                                    </ul>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            selectSpace(activeSpace);
+                                            openGalleryPicker();
+                                        }}
+                                        disabled={!canAddToActiveSpace}
+                                        className="flex w-full flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-olive-300 bg-olive-50/80 px-4 py-10 text-center transition hover:border-mustard hover:bg-mustard/5 disabled:cursor-not-allowed disabled:opacity-50 dark:border-olive-700 dark:bg-olive-900/40 dark:hover:border-mustard dark:hover:bg-mustard/10"
+                                    >
+                                        <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white ring-1 ring-olive-100 dark:bg-olive-950 dark:ring-olive-700">
+                                            <ImagePlus className="h-6 w-6 text-olive-700 dark:text-olive-300" />
+                                        </span>
+                                        <span>
+                                            <span className="block text-sm font-semibold text-olive-950 dark:text-olive-50">
+                                                Add {activeSpaceMeta.label}{' '}
+                                                photos
+                                            </span>
+                                            <span className="mt-1 block text-xs text-olive-500">
+                                                Drop here or click to multi-select
+                                                {MAX_PER_SPACE != null
+                                                    ? ` · up to ${MAX_PER_SPACE}`
+                                                    : ''}
+                                            </span>
+                                        </span>
+                                    </button>
+                                )}
+                            </DropZone>
+                        </div>
+                    </div>
+                ) : (
                 <DropZone
                     multiple
                     onFiles={handleGalleryPick}
@@ -989,110 +1352,9 @@ export default function GalleryUploader({
                 >
                     {galleryItems.length ? (
                         <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-                            {galleryItems.map((item, index) => {
-                                const src = item.preview || item.url;
-                                const saved = Boolean(item.url) && !item.file;
-                                return (
-                                    <li
-                                        key={item.id}
-                                        className="group relative overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-olive-200/80 dark:bg-olive-950 dark:ring-olive-700"
-                                    >
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                src && openLightboxAt(src)
-                                            }
-                                            className="relative block w-full cursor-zoom-in focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-mustard"
-                                            aria-label={`View gallery photo ${index + 1}`}
-                                        >
-                                            <img
-                                                src={src}
-                                                alt={`Gallery ${index + 1}`}
-                                                className="aspect-[4/3] w-full object-cover transition duration-300 group-hover:scale-[1.03]"
-                                            />
-                                            <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-olive-950/70 via-transparent to-transparent opacity-70 transition group-hover:opacity-100" />
-                                            <span className="pointer-events-none absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-semibold text-olive-900 opacity-0 shadow-sm transition group-hover:opacity-100">
-                                                <Expand className="h-3.5 w-3.5" />
-                                                View
-                                            </span>
-                                        </button>
-
-                                        <div className="pointer-events-none absolute left-2 top-2 flex gap-1">
-                                            <span className="rounded-md bg-olive-950/75 px-1.5 py-0.5 text-[10px] font-bold text-white backdrop-blur">
-                                                {index + 1}
-                                            </span>
-                                            <span
-                                                className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold backdrop-blur ${
-                                                    saved
-                                                        ? 'bg-emerald-500/90 text-white'
-                                                        : 'bg-mustard/95 text-olive-950'
-                                                }`}
-                                            >
-                                                {saved ? 'Saved' : 'Preview'}
-                                            </span>
-                                        </div>
-
-                                        <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 p-2 opacity-100 sm:opacity-0 sm:transition sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
-                                            <button
-                                                type="button"
-                                                title="Use as cover"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setCoverFromGallery(item);
-                                                }}
-                                                className="inline-flex items-center gap-1 rounded-lg bg-white/95 px-2 py-1.5 text-[11px] font-semibold text-olive-900 shadow-sm ring-1 ring-black/5"
-                                            >
-                                                <Star className="h-3.5 w-3.5" />
-                                                Cover
-                                            </button>
-                                            <button
-                                                type="button"
-                                                title="Remove"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    removeGallery(item.id);
-                                                }}
-                                                className="rounded-lg bg-white/95 p-1.5 text-rose-600 shadow-sm ring-1 ring-rose-100"
-                                            >
-                                                <Trash2 className="h-3.5 w-3.5" />
-                                            </button>
-                                        </div>
-                                        {categorized && spaceOptions.length ? (
-                                            <div className="border-t border-olive-100 p-2 dark:border-olive-800">
-                                                <label
-                                                    className="sr-only"
-                                                    htmlFor={`gallery-space-${item.id}`}
-                                                >
-                                                    Room / space
-                                                </label>
-                                                <select
-                                                    id={`gallery-space-${item.id}`}
-                                                    className="w-full rounded-lg border-0 bg-olive-50 py-1.5 pl-2 pr-7 text-[11px] font-semibold text-olive-900 ring-1 ring-olive-200 focus:ring-2 focus:ring-mustard dark:bg-olive-900 dark:text-olive-100 dark:ring-olive-700"
-                                                    value={item.kind || 'general'}
-                                                    onChange={(e) =>
-                                                        updateGallerySpace(
-                                                            item.id,
-                                                            e.target.value,
-                                                        )
-                                                    }
-                                                    onClick={(e) =>
-                                                        e.stopPropagation()
-                                                    }
-                                                >
-                                                    {spaceOptions.map((opt) => (
-                                                        <option
-                                                            key={opt.value}
-                                                            value={opt.value}
-                                                        >
-                                                            {opt.label}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                        ) : null}
-                                    </li>
-                                );
-                            })}
+                            {galleryItems.map((item, index) =>
+                                renderGalleryTile(item, index),
+                            )}
 
                             {galleryCount < MAX_GALLERY ? (
                                 <li>
@@ -1138,11 +1400,14 @@ export default function GalleryUploader({
                         </button>
                     )}
                 </DropZone>
+                )}
 
-                {galleryCount < MAX_GALLERY ? (
+                {canAddToActiveSpace ? (
                     <div className="mt-4">
                         <label className={label} htmlFor="gallery_image_url">
-                            Image URL (optional)
+                            {categorized
+                                ? `Image URL for ${activeSpaceMeta.label} (optional)`
+                                : 'Image URL (optional)'}
                         </label>
                         <div className="flex flex-col gap-2 sm:flex-row">
                             <input
@@ -1161,15 +1426,17 @@ export default function GalleryUploader({
                                     }
                                 }}
                                 placeholder="https://…/photo.jpg"
-                                disabled={galleryCount >= MAX_GALLERY}
+                                disabled={!canAddToActiveSpace}
                             />
                             <button
                                 type="button"
                                 onClick={submitGalleryUrl}
-                                disabled={galleryCount >= MAX_GALLERY}
+                                disabled={!canAddToActiveSpace}
                                 className="inline-flex shrink-0 items-center justify-center rounded-xl bg-olive-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-olive-800 disabled:cursor-not-allowed disabled:opacity-50"
                             >
-                                Add URL
+                                {categorized
+                                    ? `Add to ${activeSpaceMeta.label}`
+                                    : 'Add URL'}
                             </button>
                         </div>
                         {galleryUrlError ? (
@@ -1178,8 +1445,9 @@ export default function GalleryUploader({
                             </p>
                         ) : (
                             <p className={help}>
-                                Paste a direct image link if you already host
-                                the photo online.
+                                {categorized
+                                    ? `Paste a direct image link — it will be added under ${activeSpaceMeta.label}.`
+                                    : 'Paste a direct image link if you already host the photo online.'}
                             </p>
                         )}
                     </div>

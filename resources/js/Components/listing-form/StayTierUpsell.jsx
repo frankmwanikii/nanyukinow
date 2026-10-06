@@ -5,11 +5,11 @@ import { Sparkles } from 'lucide-react';
 const COPY = {
     free: {
         next: 'Standard',
-        line: 'Map pin, categorized gallery, check-in times, nightly rate, meal plans, amenities, house rules, payments, and social links unlock on Standard. Video, booking link, activities, seasonal offers, and host profile unlock on Premium.',
+        line: 'Map pin, categorized gallery (15 photos per room), check-in times, nightly rate, meal plans, amenities, house rules, payments, and social links unlock on Standard. Video, booking link, activities, seasonal offers, and host profile unlock on Premium.',
     },
     featured: {
         next: 'Premium',
-        line: 'Video preview, larger gallery, direct booking link, included activities, seasonal offers, nearby attractions, and host profile unlock on Premium.',
+        line: 'Video preview, larger gallery (30 photos per room), direct booking link, included activities, seasonal offers, nearby attractions, and host profile unlock on Premium.',
     },
 };
 

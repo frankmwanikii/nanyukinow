@@ -34,6 +34,7 @@ import {
     normalizeTier as normalizeStayTier,
     stayDescriptionWordLimit,
     stayGalleryLimit,
+    stayGalleryPerRoomLimit,
     STAY_GALLERY_SPACES,
     staySpaceLabel,
     tierDisplayLabel as stayTierDisplayLabel,
@@ -146,6 +147,13 @@ const STEPS = [
     { id: 'preview', title: 'Preview' },
 ];
 
+function normalizeStayGalleryKind(kind) {
+    const value = kind || 'bedroom';
+    return STAY_GALLERY_SPACES.some((s) => s.value === value)
+        ? value
+        : 'exterior';
+}
+
 function galleryFromListing(listing) {
     const urls = listing?.gallery || [];
     return urls.map((entry, i) => {
@@ -155,12 +163,12 @@ function galleryFromListing(listing) {
                 url: entry,
                 preview: entry,
                 file: null,
-                kind: 'general',
-                label: 'General',
+                kind: 'bedroom',
+                label: 'Bedroom',
             };
         }
         const src = entry?.src || entry?.url || '';
-        const kind = entry?.kind || 'general';
+        const kind = normalizeStayGalleryKind(entry?.kind);
         return {
             id: `existing-${i}`,
             url: src,
@@ -177,7 +185,7 @@ function serializeGalleryItems(items, { categorized = false } = {}) {
         .filter((g) => g.url && !g.file)
         .map((g) => {
             if (!categorized) return g.url;
-            const kind = g.kind || 'general';
+            const kind = normalizeStayGalleryKind(g.kind);
             return {
                 src: g.url,
                 kind,
@@ -337,6 +345,9 @@ export default function Form({
         : isStay
           ? stayGalleryLimit(listingTier)
           : 12;
+    const galleryPerRoomMax = isStay
+        ? stayGalleryPerRoomLimit(listingTier)
+        : null;
     const descriptionWordLimit = isEatDrink
         ? eatDrinkDescriptionWordLimit(listingTier)
         : isStay
@@ -410,8 +421,10 @@ export default function Form({
             const galleryFileMeta = galleryItems
                 .filter((g) => g.file)
                 .map((g) => ({
-                    kind: g.kind || 'general',
-                    label: g.label || staySpaceLabel(g.kind || 'general'),
+                    kind: normalizeStayGalleryKind(g.kind),
+                    label:
+                        g.label ||
+                        staySpaceLabel(normalizeStayGalleryKind(g.kind)),
                 }));
             append('gallery_file_meta', JSON.stringify(galleryFileMeta));
         }
@@ -710,8 +723,10 @@ export default function Form({
             ? galleryItems
                   .filter((g) => g.file)
                   .map((g) => ({
-                      kind: g.kind || 'general',
-                      label: g.label || staySpaceLabel(g.kind || 'general'),
+                      kind: normalizeStayGalleryKind(g.kind),
+                      label:
+                          g.label ||
+                          staySpaceLabel(normalizeStayGalleryKind(g.kind)),
                   }))
             : [];
 
@@ -1148,6 +1163,7 @@ export default function Form({
                                         galleryItems={galleryItems}
                                         showPoster={categoryKey === 'events'}
                                         maxGallery={galleryMax}
+                                        maxPerSpace={galleryPerRoomMax}
                                         categorized={isStay && !galleryLocked}
                                         spaceOptions={STAY_GALLERY_SPACES}
                                         hideGallery={galleryLocked}
@@ -1212,28 +1228,28 @@ export default function Form({
                                             <p className="mt-2 text-xs text-olive-500 dark:text-olive-400">
                                                 Free Stay listings include a cover
                                                 image only. Standard unlocks a
-                                                categorized gallery (10 photos) ·
-                                                Premium unlocks up to 50.
+                                                categorized gallery (15 photos per
+                                                room) · Premium unlocks 30 per
+                                                room.
                                             </p>
                                         </div>
                                     ) : null}
                                     {isEatDrink || (isStay && !galleryLocked) ? (
                                         <p className="mt-2 text-xs text-olive-500 dark:text-olive-400">
-                                            Gallery limit for {tierLabel}:{' '}
-                                            {galleryMax} images
+                                            {isStay
+                                                ? `Gallery limit for ${tierLabel}: ${galleryPerRoomMax} photos per room`
+                                                : `Gallery limit for ${tierLabel}: ${galleryMax} images`}
                                             {isStay
                                                 ? listingTier === 'featured'
-                                                    ? ' · Premium unlocks 50'
-                                                    : listingTier === 'premium'
-                                                      ? ''
-                                                      : ''
+                                                    ? ' · Premium unlocks 30 per room'
+                                                    : ''
                                                 : listingTier === 'free'
                                                   ? ' · Standard unlocks 10 · Premium unlocks 30'
                                                   : listingTier === 'featured'
                                                     ? ' · Premium unlocks 30'
                                                     : ''}
                                             {isStay
-                                                ? ' · Tag each photo by room (Bedroom, Kitchen, etc.).'
+                                                ? ' · Choose a room tab, then add photos for that space.'
                                                 : ''}
                                             .
                                         </p>
@@ -1957,13 +1973,25 @@ function ContactStep({
 
     return (
         <div className="space-y-5">
-            <div>
-                <h3 className="font-display text-lg font-semibold text-olive-950 dark:text-white">
-                    Contact & social
-                </h3>
-                <p className="mt-1 text-sm text-olive-600 dark:text-olive-400">
-                    How should people reach you?
-                </p>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0">
+                    <h3 className="font-display text-lg font-semibold text-olive-950 dark:text-white">
+                        Contact & social
+                    </h3>
+                    <p className="mt-1 text-sm text-olive-600 dark:text-olive-400">
+                        How should people reach you?
+                    </p>
+                </div>
+                {showExtended ? (
+                    <button
+                        type="button"
+                        onClick={addLink}
+                        className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-olive-200 bg-white px-3.5 text-xs font-semibold text-olive-800 transition hover:border-mustard dark:border-olive-700 dark:bg-olive-900 dark:text-olive-100 dark:hover:border-mustard"
+                    >
+                        <Plus className="h-3.5 w-3.5" />
+                        Add link
+                    </button>
+                ) : null}
             </div>
 
             {(isEatDrink || isStay) && socialLocked ? (
@@ -1994,112 +2022,111 @@ function ContactStep({
 
             {showExtended ? (
                 <>
-            <div className="space-y-3 rounded-2xl border border-olive-200 bg-olive-50/40 p-4 sm:p-5 dark:border-olive-800 dark:bg-olive-950/50">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                        <h4 className="text-sm font-semibold text-olive-950 dark:text-olive-50">
-                            More website links
-                        </h4>
-                        <p className="mt-0.5 text-xs text-olive-500 dark:text-olive-400">
-                            Booking pages, menus, online shops, Google Maps, or other
-                            sites you want visitors to open.
-                        </p>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={addLink}
-                        className="inline-flex items-center gap-1.5 rounded-xl border border-olive-200 bg-white px-3 py-1.5 text-xs font-semibold text-olive-800 transition hover:border-mustard dark:border-olive-700 dark:bg-olive-900 dark:text-olive-100 dark:hover:border-mustard"
-                    >
-                        <Plus className="h-3.5 w-3.5" />
-                        Add link
-                    </button>
-                </div>
+                    {websiteLinks.length > 0 ? (
+                        <div className="space-y-3">
+                            <div>
+                                <p className="text-sm font-semibold text-olive-950 dark:text-olive-50">
+                                    More website links
+                                </p>
+                                <p className="mt-0.5 text-xs text-olive-500 dark:text-olive-400">
+                                    Booking pages, menus, online shops, Google
+                                    Maps, or other sites you want visitors to
+                                    open.
+                                </p>
+                            </div>
+                            <div className="space-y-3">
+                                {websiteLinks.map((item, index) => (
+                                    <div
+                                        key={index}
+                                        className="grid gap-2 rounded-xl border border-olive-200 bg-olive-50/40 p-3 sm:grid-cols-[minmax(0,0.9fr)_minmax(0,1.4fr)_auto] sm:items-end dark:border-olive-700 dark:bg-olive-950/50"
+                                    >
+                                        <div>
+                                            <label
+                                                className={label}
+                                                htmlFor={`website_link_label_${index}`}
+                                            >
+                                                Label
+                                            </label>
+                                            <input
+                                                id={`website_link_label_${index}`}
+                                                className={field}
+                                                value={item.label || ''}
+                                                onChange={(e) =>
+                                                    updateLink(
+                                                        index,
+                                                        'label',
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                placeholder="e.g. Book a table"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label
+                                                className={label}
+                                                htmlFor={`website_link_url_${index}`}
+                                            >
+                                                URL
+                                            </label>
+                                            <input
+                                                id={`website_link_url_${index}`}
+                                                className={field}
+                                                value={item.url || ''}
+                                                onChange={(e) =>
+                                                    updateLink(
+                                                        index,
+                                                        'url',
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                placeholder="https://"
+                                            />
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => removeLink(index)}
+                                            className="inline-flex h-11 items-center justify-center rounded-xl border border-olive-200 px-3 text-olive-500 transition hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 dark:border-olive-700 dark:text-olive-400 dark:hover:border-rose-700 dark:hover:bg-rose-950/40 dark:hover:text-rose-400"
+                                            aria-label={`Remove link ${index + 1}`}
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ) : null}
 
-                {websiteLinks.length === 0 ? (
-                    <p className="text-sm text-olive-500 dark:text-olive-400">
-                        No extra links yet. Use Add link for booking, menu, or shop URLs.
-                    </p>
-                ) : (
-                    <div className="space-y-3">
-                        {websiteLinks.map((item, index) => (
-                            <div
-                                key={index}
-                                className="grid gap-2 rounded-xl border border-olive-200 bg-white p-3 sm:grid-cols-[minmax(0,0.9fr)_minmax(0,1.4fr)_auto] sm:items-end dark:border-olive-700 dark:bg-olive-900"
-                            >
-                                <div>
-                                    <label
-                                        className={label}
-                                        htmlFor={`website_link_label_${index}`}
-                                    >
-                                        Label
-                                    </label>
-                                    <input
-                                        id={`website_link_label_${index}`}
-                                        className={field}
-                                        value={item.label || ''}
-                                        onChange={(e) =>
-                                            updateLink(index, 'label', e.target.value)
-                                        }
-                                        placeholder="e.g. Book a table"
-                                    />
-                                </div>
-                                <div>
-                                    <label
-                                        className={label}
-                                        htmlFor={`website_link_url_${index}`}
-                                    >
-                                        URL
-                                    </label>
-                                    <input
-                                        id={`website_link_url_${index}`}
-                                        className={field}
-                                        value={item.url || ''}
-                                        onChange={(e) =>
-                                            updateLink(index, 'url', e.target.value)
-                                        }
-                                        placeholder="https://"
-                                    />
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={() => removeLink(index)}
-                                    className="inline-flex h-11 items-center justify-center rounded-xl border border-olive-200 px-3 text-olive-500 transition hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 dark:border-olive-700 dark:text-olive-400 dark:hover:border-rose-700 dark:hover:bg-rose-950/40 dark:hover:text-rose-400"
-                                    aria-label={`Remove link ${index + 1}`}
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        {(isEatDrink || isStay
+                            ? ['facebook', 'instagram']
+                            : ['instagram', 'facebook', 'tiktok', 'youtube']
+                        ).map((net) => (
+                            <div key={net}>
+                                <label
+                                    className={label}
+                                    htmlFor={`social_${net}`}
                                 >
-                                    <Trash2 className="h-4 w-4" />
-                                </button>
+                                    {net.charAt(0).toUpperCase() + net.slice(1)}
+                                </label>
+                                <input
+                                    id={`social_${net}`}
+                                    className={field}
+                                    value={
+                                        form.data.social_links?.[net] || ''
+                                    }
+                                    onChange={(e) =>
+                                        patch({
+                                            social_links: {
+                                                ...form.data.social_links,
+                                                [net]: e.target.value,
+                                            },
+                                        })
+                                    }
+                                    placeholder="https://"
+                                />
                             </div>
                         ))}
                     </div>
-                )}
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-                {(isEatDrink || isStay
-                    ? ['facebook', 'instagram']
-                    : ['instagram', 'facebook', 'tiktok', 'youtube']
-                ).map((net) => (
-                    <div key={net}>
-                        <label className={label} htmlFor={`social_${net}`}>
-                            {net.charAt(0).toUpperCase() + net.slice(1)}
-                        </label>
-                        <input
-                            id={`social_${net}`}
-                            className={field}
-                            value={form.data.social_links?.[net] || ''}
-                            onChange={(e) =>
-                                patch({
-                                    social_links: {
-                                        ...form.data.social_links,
-                                        [net]: e.target.value,
-                                    },
-                                })
-                            }
-                            placeholder="https://"
-                        />
-                    </div>
-                ))}
-            </div>
                 </>
             ) : null}
         </div>

@@ -6,11 +6,20 @@ class StayTierFeatures
 {
     public const FREE_DESCRIPTION_WORD_LIMIT = 150;
 
+    public const ROOM_SPACE_COUNT = 7;
+
+    /** @var array<string, int> */
+    public const GALLERY_PER_ROOM_LIMITS = [
+        Membership::FREE => 0,
+        Membership::STANDARD => 15,
+        Membership::PREMIUM => 30,
+    ];
+
     /** @var array<string, int> */
     public const GALLERY_LIMITS = [
         Membership::FREE => 0,
-        Membership::STANDARD => 10,
-        Membership::PREMIUM => 50,
+        Membership::STANDARD => 15 * self::ROOM_SPACE_COUNT,
+        Membership::PREMIUM => 30 * self::ROOM_SPACE_COUNT,
     ];
 
     /**
@@ -46,6 +55,14 @@ class StayTierFeatures
         $tier = Membership::normalize($tier);
 
         return self::GALLERY_LIMITS[$tier] ?? self::GALLERY_LIMITS[Membership::FREE];
+    }
+
+    public static function galleryPerRoomLimit(?string $tier): int
+    {
+        $tier = Membership::normalize($tier);
+
+        return self::GALLERY_PER_ROOM_LIMITS[$tier]
+            ?? self::GALLERY_PER_ROOM_LIMITS[Membership::FREE];
     }
 
     public static function tierMeets(?string $current, string $required): bool
@@ -146,17 +163,20 @@ class StayTierFeatures
      */
     public static function normalizeGallery(array $gallery, ?string $tier): array
     {
-        $limit = self::galleryLimit($tier);
+        $perRoom = self::galleryPerRoomLimit($tier);
+        $totalLimit = self::galleryLimit($tier);
 
-        if ($limit === 0) {
+        if ($perRoom === 0 || $totalLimit === 0) {
             return [];
         }
 
-        $normalized = [];
+        $byKind = [];
 
         foreach ($gallery as $entry) {
             if (is_string($entry) && trim($entry) !== '') {
-                $normalized[] = trim($entry);
+                $kind = 'exterior';
+                $byKind[$kind] ??= [];
+                $byKind[$kind][] = trim($entry);
 
                 continue;
             }
@@ -175,19 +195,29 @@ class StayTierFeatures
 
             $kind = isset($entry['kind']) && is_string($entry['kind'])
                 ? trim($entry['kind'])
-                : 'general';
+                : 'exterior';
+            $kind = $kind !== '' ? $kind : 'exterior';
             $label = isset($entry['label']) && is_string($entry['label']) && trim($entry['label']) !== ''
                 ? trim($entry['label'])
                 : self::spaceLabel($kind);
 
-            $normalized[] = [
+            $byKind[$kind] ??= [];
+            $byKind[$kind][] = [
                 'src' => $src,
                 'label' => $label,
-                'kind' => $kind !== '' ? $kind : 'general',
+                'kind' => $kind,
             ];
         }
 
-        return array_values(array_slice($normalized, 0, $limit));
+        $normalized = [];
+
+        foreach ($byKind as $items) {
+            foreach (array_slice(array_values($items), 0, $perRoom) as $item) {
+                $normalized[] = $item;
+            }
+        }
+
+        return array_values(array_slice($normalized, 0, $totalLimit));
     }
 
     public static function spaceLabel(string $kind): string
@@ -200,9 +230,7 @@ class StayTierFeatures
             'dining' => 'Dining',
             'outdoor' => 'Outdoor',
             'exterior' => 'Exterior',
-            'pool' => 'Pool',
-            'view' => 'View',
-            default => 'General',
+            default => 'Exterior',
         };
     }
 

@@ -10,13 +10,11 @@ export const TIER_RANK = {
     premium: 2,
 };
 
-export const GALLERY_LIMITS = {
+export const GALLERY_PER_ROOM_LIMITS = {
     free: 0,
-    featured: 10,
-    premium: 50,
+    featured: 15,
+    premium: 30,
 };
-
-export const FREE_DESCRIPTION_WORD_LIMIT = 150;
 
 /** Room / space labels for the categorized Stay gallery. */
 export const STAY_GALLERY_SPACES = [
@@ -27,10 +25,18 @@ export const STAY_GALLERY_SPACES = [
     { value: 'dining', label: 'Dining' },
     { value: 'outdoor', label: 'Outdoor' },
     { value: 'exterior', label: 'Exterior' },
-    { value: 'pool', label: 'Pool' },
-    { value: 'view', label: 'View' },
-    { value: 'general', label: 'General' },
 ];
+
+/** Overall gallery cap = per-room limit × number of room tabs. */
+export const GALLERY_LIMITS = {
+    free: 0,
+    featured:
+        GALLERY_PER_ROOM_LIMITS.featured * STAY_GALLERY_SPACES.length,
+    premium:
+        GALLERY_PER_ROOM_LIMITS.premium * STAY_GALLERY_SPACES.length,
+};
+
+export const FREE_DESCRIPTION_WORD_LIMIT = 150;
 
 /** Feature → minimum tier required */
 export const STAY_FEATURE_TIERS = {
@@ -120,6 +126,13 @@ export function stayGalleryLimit(tier) {
     return GALLERY_LIMITS[normalizeTier(tier)] ?? GALLERY_LIMITS.free;
 }
 
+export function stayGalleryPerRoomLimit(tier) {
+    return (
+        GALLERY_PER_ROOM_LIMITS[normalizeTier(tier)] ??
+        GALLERY_PER_ROOM_LIMITS.free
+    );
+}
+
 export function stayDescriptionWordLimit(tier) {
     return tierMeets(tier, 'featured') ? null : FREE_DESCRIPTION_WORD_LIMIT;
 }
@@ -137,7 +150,7 @@ export function requiredTierLabel(feature) {
 
 export function staySpaceLabel(kind) {
     const match = STAY_GALLERY_SPACES.find((s) => s.value === kind);
-    return match?.label || 'General';
+    return match?.label || 'Exterior';
 }
 
 /** Plain-text word count from HTML or string. */

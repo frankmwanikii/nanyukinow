@@ -40,7 +40,7 @@ class ListingGallery
 
             $kind = isset($entry['kind']) && is_string($entry['kind']) && trim($entry['kind']) !== ''
                 ? trim($entry['kind'])
-                : 'general';
+                : 'exterior';
             $label = isset($entry['label']) && is_string($entry['label']) && trim($entry['label']) !== ''
                 ? trim($entry['label'])
                 : StayTierFeatures::spaceLabel($kind);
@@ -63,7 +63,7 @@ class ListingGallery
             if ($meta !== null) {
                 $kind = isset($meta['kind']) && is_string($meta['kind']) && trim($meta['kind']) !== ''
                     ? trim($meta['kind'])
-                    : 'general';
+                    : 'exterior';
                 $label = isset($meta['label']) && is_string($meta['label']) && trim($meta['label']) !== ''
                     ? trim($meta['label'])
                     : StayTierFeatures::spaceLabel($kind);

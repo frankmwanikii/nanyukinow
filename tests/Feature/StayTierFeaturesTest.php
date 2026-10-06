@@ -27,12 +27,53 @@ class StayTierFeaturesTest extends TestCase
 
     public function test_gallery_limits_match_tiers(): void
     {
+        $this->assertSame(0, StayTierFeatures::galleryPerRoomLimit(Membership::FREE));
+        $this->assertSame(15, StayTierFeatures::galleryPerRoomLimit(Membership::STANDARD));
+        $this->assertSame(30, StayTierFeatures::galleryPerRoomLimit(Membership::PREMIUM));
         $this->assertSame(0, StayTierFeatures::galleryLimit(Membership::FREE));
-        $this->assertSame(10, StayTierFeatures::galleryLimit(Membership::STANDARD));
-        $this->assertSame(50, StayTierFeatures::galleryLimit(Membership::PREMIUM));
+        $this->assertSame(105, StayTierFeatures::galleryLimit(Membership::STANDARD));
+        $this->assertSame(210, StayTierFeatures::galleryLimit(Membership::PREMIUM));
         $this->assertSame(1, Membership::listingPriority(Membership::FREE));
         $this->assertSame(2, Membership::listingPriority(Membership::STANDARD));
         $this->assertSame(3, Membership::listingPriority(Membership::PREMIUM));
+    }
+
+    public function test_normalize_gallery_enforces_per_room_limit(): void
+    {
+        $bedroom = [];
+        for ($i = 0; $i < 20; $i++) {
+            $bedroom[] = [
+                'src' => "/storage/bed-{$i}.jpg",
+                'kind' => 'bedroom',
+                'label' => 'Bedroom',
+            ];
+        }
+        $kitchen = [];
+        for ($i = 0; $i < 5; $i++) {
+            $kitchen[] = [
+                'src' => "/storage/kit-{$i}.jpg",
+                'kind' => 'kitchen',
+                'label' => 'Kitchen',
+            ];
+        }
+
+        $gallery = StayTierFeatures::normalizeGallery(
+            [...$bedroom, ...$kitchen],
+            Membership::STANDARD,
+        );
+
+        $bedroomCount = count(array_filter(
+            $gallery,
+            fn ($item) => is_array($item) && ($item['kind'] ?? null) === 'bedroom',
+        ));
+        $kitchenCount = count(array_filter(
+            $gallery,
+            fn ($item) => is_array($item) && ($item['kind'] ?? null) === 'kitchen',
+        ));
+
+        $this->assertSame(15, $bedroomCount);
+        $this->assertSame(5, $kitchenCount);
+        $this->assertCount(20, $gallery);
     }
 
     public function test_free_tier_strips_standard_and_premium_stay_fields(): void
