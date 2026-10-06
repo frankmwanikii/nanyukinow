@@ -7,9 +7,6 @@ import HoursEditor from '@/Components/listing-form/HoursEditor';
 import ListingPreview from '@/Components/listing-form/ListingPreview';
 import PlacesLocationInput from '@/Components/listing-form/PlacesLocationInput';
 import RichTextEditor from '@/Components/listing-form/RichTextEditor';
-import EatDrinkTierUpsell from '@/Components/listing-form/EatDrinkTierUpsell';
-import StayTierUpsell from '@/Components/listing-form/StayTierUpsell';
-import ShoppingTierUpsell from '@/Components/listing-form/ShoppingTierUpsell';
 import {
     emptyDetailsFor,
 } from '@/Components/listing-form/categoryFieldConfig';
@@ -22,31 +19,12 @@ import {
 import AccountLayout from '@/Layouts/AccountLayout';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { PROPERTY_TYPES, mainCategories } from '@/data/categories';
+import { countWords as eatDrinkCountWords } from '@/data/eatDrinkTierFeatures';
+import { resolveListingTier } from '@/data/listingTier';
 import {
-    canUseEatDrinkFeature,
-    countWords as eatDrinkCountWords,
-    eatDrinkDescriptionWordLimit,
-    eatDrinkGalleryLimit,
-    normalizeTier as normalizeEatDrinkTier,
-    tierDisplayLabel as eatDrinkTierDisplayLabel,
-} from '@/data/eatDrinkTierFeatures';
-import {
-    canUseStayFeature,
-    normalizeTier as normalizeStayTier,
-    stayDescriptionWordLimit,
-    stayGalleryLimit,
-    stayGalleryPerRoomLimit,
     STAY_GALLERY_SPACES,
     staySpaceLabel,
-    tierDisplayLabel as stayTierDisplayLabel,
 } from '@/data/stayTierFeatures';
-import {
-    canUseShoppingFeature,
-    normalizeTier as normalizeShoppingTier,
-    shoppingDescriptionWordLimit,
-    shoppingGalleryLimit,
-    tierDisplayLabel as shoppingTierDisplayLabel,
-} from '@/data/shoppingTierFeatures';
 import { listingSubcategories, subcategoryLabel } from '@/utils/listingSubcategories';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -346,64 +324,36 @@ export default function Form({
     const isEatDrink = categoryKey === 'eatDrink';
     const isStay = categoryKey === 'stay';
     const isShopping = categoryKey === 'shopping';
-    const listingTier = isStay
-        ? normalizeStayTier(form.data.tier)
-        : isShopping
-          ? normalizeShoppingTier(form.data.tier)
-          : normalizeEatDrinkTier(form.data.tier);
-    const galleryMax = isEatDrink
-        ? eatDrinkGalleryLimit(listingTier)
-        : isStay
-          ? stayGalleryLimit(listingTier)
-          : isShopping
-            ? shoppingGalleryLimit(listingTier)
-            : 12;
-    const galleryPerRoomMax = isStay
-        ? stayGalleryPerRoomLimit(listingTier)
-        : null;
-    const descriptionWordLimit = isEatDrink
-        ? eatDrinkDescriptionWordLimit(listingTier)
-        : isStay
-          ? stayDescriptionWordLimit(listingTier)
-          : isShopping
-            ? shoppingDescriptionWordLimit(listingTier)
-            : null;
-    const mapLocked =
-        (isEatDrink && !canUseEatDrinkFeature(listingTier, 'map_location')) ||
-        (isStay && !canUseStayFeature(listingTier, 'map_location')) ||
-        (isShopping && !canUseShoppingFeature(listingTier, 'map_location'));
-    const videoLocked =
-        (isEatDrink && !canUseEatDrinkFeature(listingTier, 'video')) ||
-        (isStay && !canUseStayFeature(listingTier, 'video')) ||
-        (isShopping && !canUseShoppingFeature(listingTier, 'video'));
-    const socialLocked =
-        (isEatDrink && !canUseEatDrinkFeature(listingTier, 'social_contact')) ||
-        (isStay && !canUseStayFeature(listingTier, 'social_contact')) ||
-        (isShopping && !canUseShoppingFeature(listingTier, 'social_contact'));
-    const amenitiesLocked =
-        (isStay && !canUseStayFeature(listingTier, 'amenities')) ||
-        (isShopping && !canUseShoppingFeature(listingTier, 'amenities'));
-    const hoursLocked =
-        isStay && !canUseStayFeature(listingTier, 'reception_hours');
-    const logoLocked =
-        isShopping && !canUseShoppingFeature(listingTier, 'logo');
-    const galleryLocked =
-        (isStay || isShopping) && galleryMax <= 0;
-    const TierUpsell = isStay
-        ? StayTierUpsell
-        : isShopping
-          ? ShoppingTierUpsell
-          : EatDrinkTierUpsell;
-    const showTierUpsell = isEatDrink || isStay || isShopping;
-    const tierLabel = isStay
-        ? stayTierDisplayLabel(listingTier)
-        : isShopping
-          ? shoppingTierDisplayLabel(listingTier)
-          : eatDrinkTierDisplayLabel(listingTier);
+    const isProperties = categoryKey === 'properties';
+    const isThingsToDo = categoryKey === 'thingsToDo';
+    const isServices = categoryKey === 'services';
+    const isEvents = categoryKey === 'events';
+    const tierState = resolveListingTier(categoryKey, form.data.tier);
+    const {
+        listingTier,
+        galleryMax,
+        galleryPerRoomMax,
+        descriptionWordLimit,
+        mapLocked,
+        videoLocked,
+        socialLocked,
+        amenitiesLocked,
+        hoursLocked,
+        logoLocked,
+        galleryLocked,
+        hideTagline,
+        TierUpsell,
+        showTierUpsell,
+        tierLabel,
+        contactMode,
+        skipHours,
+        categorizedGallery,
+        canUse: canUseTierFeature,
+    } = tierState;
 
     const buildDraftBody = (data = formDataRef.current || form.data) => {
         const galleryUrls = serializeGalleryItems(galleryItems, {
-            categorized: isStay,
+            categorized: categorizedGallery,
         });
         const body = new FormData();
         const append = (key, value) => {
@@ -742,7 +692,7 @@ export default function Form({
         }
 
         $galleryUrls = serializeGalleryItems(galleryItems, {
-            categorized: isStay,
+            categorized: categorizedGallery,
         });
         const galleryFiles = galleryItems
             .filter((g) => g.file)
@@ -1039,13 +989,7 @@ export default function Form({
                                         categories={categories}
                                         patch={patch}
                                         descriptionWordLimit={descriptionWordLimit}
-                                        hideTagline={
-                                            isShopping &&
-                                            !canUseShoppingFeature(
-                                                listingTier,
-                                                'tagline',
-                                            )
-                                        }
+                                        hideTagline={hideTagline}
                                     />
                                 ) : null}
 
@@ -1130,7 +1074,8 @@ export default function Form({
                                             isAdmin={isAdmin}
                                         />
                                         {categoryKey !== 'properties' &&
-                                        categoryKey !== 'events' ? (
+                                        categoryKey !== 'events' &&
+                                        !skipHours ? (
                                             hoursLocked ? (
                                                 <TierUpsell
                                                     tier={listingTier}
@@ -1200,7 +1145,9 @@ export default function Form({
                                         showPoster={categoryKey === 'events'}
                                         maxGallery={galleryMax}
                                         maxPerSpace={galleryPerRoomMax}
-                                        categorized={isStay && !galleryLocked}
+                                        categorized={
+                                            categorizedGallery && !galleryLocked
+                                        }
                                         spaceOptions={STAY_GALLERY_SPACES}
                                         hideGallery={galleryLocked}
                                         hideLogo={logoLocked}
@@ -1267,7 +1214,13 @@ export default function Form({
                                                     ? 'Free Stay listings include a cover image only. Standard unlocks a categorized gallery (15 photos per room) · Premium unlocks 30 per room.'
                                                     : isShopping
                                                       ? 'Free Shopping listings include a cover image only. Standard unlocks a 5-photo gallery · Premium unlocks a larger gallery.'
-                                                      : null}
+                                                      : isProperties
+                                                        ? 'Free Property listings include a cover image only. Standard unlocks a 10-photo gallery · Premium unlocks a larger gallery.'
+                                                        : isThingsToDo ||
+                                                            isServices ||
+                                                            isEvents
+                                                          ? 'Free listings include a cover image only. Standard unlocks a photo gallery · Premium unlocks a larger gallery.'
+                                                          : null}
                                             </p>
                                         </div>
                                     ) : null}
@@ -1278,13 +1231,13 @@ export default function Form({
                                                 isAdmin={isAdmin}
                                             />
                                             <p className="mt-2 text-xs text-olive-500 dark:text-olive-400">
-                                                Shop logo uploads unlock on Standard.
+                                                Logo uploads unlock on Standard.
                                             </p>
                                         </div>
                                     ) : null}
-                                    {isEatDrink ||
-                                    (isStay && !galleryLocked) ||
-                                    (isShopping && !galleryLocked) ? (
+                                    {showTierUpsell &&
+                                    !galleryLocked &&
+                                    galleryMax > 0 ? (
                                         <p className="mt-2 text-xs text-olive-500 dark:text-olive-400">
                                             {isStay
                                                 ? `Gallery limit for ${tierLabel}: ${galleryPerRoomMax} photos per room`
@@ -1293,15 +1246,11 @@ export default function Form({
                                                 ? listingTier === 'featured'
                                                     ? ' · Premium unlocks 30 per room'
                                                     : ''
-                                                : isShopping
-                                                  ? listingTier === 'featured'
-                                                      ? ' · Premium unlocks a larger gallery'
-                                                      : ''
-                                                  : listingTier === 'free'
-                                                    ? ' · Standard unlocks 10 · Premium unlocks 30'
-                                                    : listingTier === 'featured'
-                                                      ? ' · Premium unlocks 30'
-                                                      : ''}
+                                                : listingTier === 'free'
+                                                  ? ' · Upgrade for a larger gallery'
+                                                  : listingTier === 'featured'
+                                                    ? ' · Premium unlocks a larger gallery'
+                                                    : ''}
                                             {isStay
                                                 ? ' · Choose a room tab, then add photos for that space.'
                                                 : ''}
@@ -1348,9 +1297,12 @@ export default function Form({
                                         isEatDrink={isEatDrink}
                                         isStay={isStay}
                                         isShopping={isShopping}
+                                        contactMode={contactMode}
+                                        canUseFeature={canUseTierFeature}
                                         socialLocked={socialLocked}
                                         listingTier={listingTier}
                                         isAdmin={isAdmin}
+                                        TierUpsell={TierUpsell}
                                     />
                                 ) : null}
 
@@ -1973,27 +1925,23 @@ function ContactStep({
     isEatDrink = false,
     isStay = false,
     isShopping = false,
+    contactMode = 'open',
+    canUseFeature = () => true,
     socialLocked = false,
     listingTier = 'free',
     isAdmin = false,
+    TierUpsell = null,
 }) {
     const websiteLinks = Array.isArray(form.data.social_links?.links)
         ? form.data.social_links.links
         : [];
-    const shoppingPremiumContact =
-        isShopping &&
-        canUseShoppingFeature(listingTier, 'whatsapp');
-    const showExtended =
-        (!isEatDrink && !isStay && !isShopping) ||
-        (isShopping && !socialLocked) ||
-        ((isEatDrink || isStay) && !socialLocked);
-    const showPremiumContactExtras =
-        !isShopping || shoppingPremiumContact;
-    const TierUpsell = isStay
-        ? StayTierUpsell
-        : isShopping
-          ? ShoppingTierUpsell
-          : EatDrinkTierUpsell;
+    const isConversion = contactMode === 'conversion';
+    const isGated = contactMode !== 'open';
+    const premiumContactUnlocked =
+        !isConversion || canUseFeature('whatsapp');
+    const showExtended = !isGated || !socialLocked;
+    const showPremiumContactExtras = !isConversion || premiumContactUnlocked;
+    const Upsell = TierUpsell;
     const linksEndRef = useRef(null);
     const prevLinkCount = useRef(websiteLinks.length);
 
@@ -2066,38 +2014,42 @@ function ContactStep({
                   'Shop',
                   'Google Maps',
                   'Directions',
+                  'Portfolio',
+                  'Tickets',
                   'Menu',
               ];
 
     // Stay Free: phone + email. Eat & Drink Free: phone only.
-    // Standard+: WhatsApp, website, social.
-    const contactFields = isStay
-        ? [
-              ['phone', 'Contact number', 'text', false],
-              ['email', 'Email', 'email', false],
-              ['whatsapp', 'WhatsApp', 'text', true],
-              ['website', 'Primary website', 'text', true],
-          ]
-        : isEatDrink
-          ? [
-                ['phone', 'Contact number', 'text', false],
-                ['whatsapp', 'WhatsApp', 'text', true],
-                ['email', 'Email', 'email', true],
-                ['website', 'Primary website', 'text', true],
-            ]
-          : isShopping
+    // Conversion (shopping/properties/thingsToDo/services/events):
+    //   Free phone · Standard email+social · Premium WhatsApp/website/links
+    const contactFields =
+        contactMode === 'stay'
             ? [
                   ['phone', 'Contact number', 'text', false],
-                  ['email', 'Email', 'email', 'standard'],
-                  ['whatsapp', 'WhatsApp', 'text', 'premium'],
-                  ['website', 'Primary website', 'text', 'premium'],
-              ]
-            : [
-                  ['phone', 'Phone', 'text', false],
-                  ['whatsapp', 'WhatsApp', 'text', false],
                   ['email', 'Email', 'email', false],
-                  ['website', 'Primary website', 'text', false],
-              ];
+                  ['whatsapp', 'WhatsApp', 'text', true],
+                  ['website', 'Primary website', 'text', true],
+              ]
+            : contactMode === 'eatDrink'
+              ? [
+                    ['phone', 'Contact number', 'text', false],
+                    ['whatsapp', 'WhatsApp', 'text', true],
+                    ['email', 'Email', 'email', true],
+                    ['website', 'Primary website', 'text', true],
+                ]
+              : contactMode === 'conversion'
+                ? [
+                      ['phone', 'Contact number', 'text', false],
+                      ['email', 'Email', 'email', 'standard'],
+                      ['whatsapp', 'WhatsApp', 'text', 'premium'],
+                      ['website', 'Primary website', 'text', 'premium'],
+                  ]
+                : [
+                      ['phone', 'Phone', 'text', false],
+                      ['whatsapp', 'WhatsApp', 'text', false],
+                      ['email', 'Email', 'email', false],
+                      ['website', 'Primary website', 'text', false],
+                  ];
 
     return (
         <div className="space-y-5">
@@ -2122,21 +2074,24 @@ function ContactStep({
                 ) : null}
             </div>
 
-            {(isEatDrink || isStay || isShopping) && socialLocked ? (
-                <TierUpsell tier={listingTier} isAdmin={isAdmin} />
+            {isGated && socialLocked && Upsell ? (
+                <Upsell tier={listingTier} isAdmin={isAdmin} />
             ) : null}
-            {isShopping && showExtended && !showPremiumContactExtras ? (
-                <TierUpsell tier={listingTier} isAdmin={isAdmin} />
+            {isConversion &&
+            showExtended &&
+            !showPremiumContactExtras &&
+            Upsell ? (
+                <Upsell tier={listingTier} isAdmin={isAdmin} />
             ) : null}
 
             <div className="grid gap-4 sm:grid-cols-2">
                 {contactFields
                     .filter(([, , , gated]) => {
                         if (!gated) return true;
-                        if (isShopping) {
+                        if (isConversion) {
                             if (gated === 'standard') return !socialLocked;
                             if (gated === 'premium') {
-                                return shoppingPremiumContact;
+                                return showPremiumContactExtras;
                             }
                             return showExtended;
                         }
@@ -2164,7 +2119,7 @@ function ContactStep({
             {showExtended ? (
                 <>
                     <div className="grid gap-4 sm:grid-cols-2">
-                        {(isEatDrink || isStay || isShopping
+                        {(isGated
                             ? ['facebook', 'instagram']
                             : ['instagram', 'facebook', 'tiktok', 'youtube']
                         ).map((net) => (

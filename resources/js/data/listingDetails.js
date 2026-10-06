@@ -1981,24 +1981,6 @@ function buildFactsFromDetails(listing) {
             pairs.push({ label: 'Cancellation', value: String(d.cancellation_policy) });
         }
         if (d.booking_url) pairs.push({ label: 'Booking', value: 'Available' });
-    } else if (key === 'thingsToDo') {
-        if (d.duration) pairs.push({ label: 'Duration', value: String(d.duration) });
-        if (d.difficulty) pairs.push({ label: 'Difficulty', value: String(d.difficulty) });
-        if (d.min_age) pairs.push({ label: 'Min age', value: String(d.min_age) });
-        if (d.group_size) pairs.push({ label: 'Group size', value: String(d.group_size) });
-        if (d.price_from) pairs.push({ label: 'From', value: String(d.price_from) });
-    } else if (key === 'services') {
-        if (d.service_area) pairs.push({ label: 'Service area', value: String(d.service_area) });
-        if (d.pricing_from) pairs.push({ label: 'From', value: String(d.pricing_from) });
-        if (d.response_time) pairs.push({ label: 'Response', value: String(d.response_time) });
-    } else if (key === 'properties') {
-        if (d.bedrooms) pairs.push({ label: 'Bedrooms', value: String(d.bedrooms) });
-        if (d.bathrooms) pairs.push({ label: 'Baths', value: String(d.bathrooms) });
-        if (d.size_sqm) pairs.push({ label: 'Size', value: String(d.size_sqm) });
-        if (d.price) pairs.push({ label: 'Price', value: String(d.price) });
-        if (d.furnished) pairs.push({ label: 'Furnishing', value: String(d.furnished) });
-        if (d.parking_spaces) pairs.push({ label: 'Parking', value: String(d.parking_spaces) });
-        if (d.year_built) pairs.push({ label: 'Year built', value: String(d.year_built) });
     } else if (key === 'eatDrink') {
         const cuisine = Array.isArray(d.cuisine)
             ? d.cuisine.filter(Boolean).join(', ')
@@ -2042,6 +2024,28 @@ function buildFactsFromDetails(listing) {
         if (d.made_to_order === 'Show made-to-order badge') {
             pairs.push({ label: 'Made to order', value: 'Available' });
         }
+    } else if (key === 'thingsToDo') {
+        if (d.duration) pairs.push({ label: 'Duration', value: String(d.duration) });
+        if (d.difficulty) pairs.push({ label: 'Difficulty', value: String(d.difficulty) });
+        if (d.price_from) pairs.push({ label: 'From', value: String(d.price_from) });
+        if (d.min_age) pairs.push({ label: 'Min age', value: String(d.min_age) });
+        if (d.group_size) pairs.push({ label: 'Group size', value: String(d.group_size) });
+        if (d.booking_url) pairs.push({ label: 'Booking', value: 'Available' });
+    } else if (key === 'services') {
+        if (d.service_area) pairs.push({ label: 'Service area', value: String(d.service_area) });
+        if (d.pricing_from) pairs.push({ label: 'From', value: String(d.pricing_from) });
+        if (d.response_time) pairs.push({ label: 'Response', value: String(d.response_time) });
+        if (d.booking_url) pairs.push({ label: 'Book', value: 'Available' });
+    } else if (key === 'properties') {
+        if (d.bedrooms) pairs.push({ label: 'Bedrooms', value: String(d.bedrooms) });
+        if (d.bathrooms) pairs.push({ label: 'Baths', value: String(d.bathrooms) });
+        if (d.size_sqm) pairs.push({ label: 'Size', value: String(d.size_sqm) });
+        if (d.price) pairs.push({ label: 'Price', value: String(d.price) });
+        if (d.furnished) pairs.push({ label: 'Furnishing', value: String(d.furnished) });
+        if (d.parking_spaces) pairs.push({ label: 'Parking', value: String(d.parking_spaces) });
+        if (d.year_built) pairs.push({ label: 'Year built', value: String(d.year_built) });
+        if (d.virtual_tour_url) pairs.push({ label: 'Virtual tour', value: 'Available' });
+        if (d.floor_plan_pdf) pairs.push({ label: 'Floor plan', value: 'Available' });
     } else if (key === 'events') {
         if (listing.venue) pairs.push({ label: 'Venue', value: String(listing.venue) });
         if (d.organiser) pairs.push({ label: 'Organiser', value: String(d.organiser) });
@@ -2266,6 +2270,11 @@ export function getListingDetail(listing) {
             : live
               ? []
               : (defaults.credentials ?? []),
+        portfolio: Array.isArray(listing.details?.portfolio)
+            ? listing.details.portfolio.filter(
+                  (p) => p?.title || p?.url || p?.image || p?.description,
+              )
+            : null,
         brands: nonEmptyList(listing.details?.brands)
             ? listing.details.brands
             : live

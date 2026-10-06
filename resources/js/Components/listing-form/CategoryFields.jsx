@@ -33,6 +33,27 @@ import {
     normalizeTier as normalizeShoppingTier,
     tierMeets as shoppingTierMeets,
 } from '@/data/shoppingTierFeatures';
+import {
+    canUsePropertiesFeature,
+    normalizeTier as normalizePropertiesTier,
+    tierMeets as propertiesTierMeets,
+} from '@/data/propertiesTierFeatures';
+import {
+    canUseThingsToDoFeature,
+    normalizeTier as normalizeThingsToDoTier,
+    tierMeets as thingsToDoTierMeets,
+} from '@/data/thingsToDoTierFeatures';
+import {
+    canUseServicesFeature,
+    normalizeTier as normalizeServicesTier,
+    tierMeets as servicesTierMeets,
+} from '@/data/servicesTierFeatures';
+import {
+    canUseEventsFeature,
+    normalizeTier as normalizeEventsTier,
+    tierMeets as eventsTierMeets,
+} from '@/data/eventsTierFeatures';
+import { isTieredCategory } from '@/data/listingTier';
 import { Plus, X } from 'lucide-react';
 import { useState } from 'react';
 
@@ -227,16 +248,39 @@ export default function CategoryFields({
     const isEatDrink = categoryKey === 'eatDrink';
     const isStay = categoryKey === 'stay';
     const isShopping = categoryKey === 'shopping';
+    const isProperties = categoryKey === 'properties';
+    const isThingsToDo = categoryKey === 'thingsToDo';
+    const isServices = categoryKey === 'services';
+    const isEvents = categoryKey === 'events';
+    const isTiered = isTieredCategory(categoryKey);
+
     const listingTier = isStay
         ? normalizeStayTier(tier)
         : isShopping
           ? normalizeShoppingTier(tier)
-          : normalizeEatDrinkTier(tier);
+          : isProperties
+            ? normalizePropertiesTier(tier)
+            : isThingsToDo
+              ? normalizeThingsToDoTier(tier)
+              : isServices
+                ? normalizeServicesTier(tier)
+                : isEvents
+                  ? normalizeEventsTier(tier)
+                  : normalizeEatDrinkTier(tier);
+
     const tierMeets = isStay
         ? stayTierMeets
         : isShopping
           ? shoppingTierMeets
-          : eatDrinkTierMeets;
+          : isProperties
+            ? propertiesTierMeets
+            : isThingsToDo
+              ? thingsToDoTierMeets
+              : isServices
+                ? servicesTierMeets
+                : isEvents
+                  ? eventsTierMeets
+                  : eatDrinkTierMeets;
 
     const setDetail = (key, value) => {
         onDetailsChange({ ...details, [key]: value });
@@ -247,16 +291,23 @@ export default function CategoryFields({
         (isEatDrink && canUseEatDrinkFeature(listingTier, 'payments')) ||
         (isStay && canUseStayFeature(listingTier, 'payments')) ||
         (isShopping && canUseShoppingFeature(listingTier, 'payments')) ||
-        (!isEatDrink && !isStay && !isShopping);
+        (isProperties && canUsePropertiesFeature(listingTier, 'payments')) ||
+        (isThingsToDo && canUseThingsToDoFeature(listingTier, 'payments')) ||
+        (isServices && canUseServicesFeature(listingTier, 'payments')) ||
+        (isEvents && canUseEventsFeature(listingTier, 'payments')) ||
+        !isTiered;
+    const showEventTickets =
+        !isEvents || canUseEventsFeature(listingTier, 'tickets');
+    const showEventTicketUrl =
+        !isEvents || canUseEventsFeature(listingTier, 'ticket_url');
     const visibleFields = fields.filter((f) => {
-        if (isEatDrink || isStay || isShopping) {
+        if (isTiered) {
             return tierMeets(listingTier, f.minTier || 'free');
         }
         return true;
     });
     const priceLevels =
-        (isEatDrink || isStay || isShopping) &&
-        !tierMeets(listingTier, 'featured')
+        isTiered && !tierMeets(listingTier, 'featured')
             ? PRICE_LEVELS.filter((p) => p.value !== '$$$$')
             : PRICE_LEVELS;
 
@@ -317,64 +368,77 @@ export default function CategoryFields({
                             required
                         />
                     </div>
-                    <div>
-                        <label className={label} htmlFor="ticket_price">
-                            Ticket price
-                        </label>
-                        <input
-                            id="ticket_price"
-                            className={field}
-                            value={eventFields.ticket_price || ''}
-                            onChange={(e) =>
-                                onEventChange?.({
-                                    ticket_price: e.target.value,
-                                })
-                            }
-                            placeholder="From KES 1,200"
-                        />
-                    </div>
-                    <div>
-                        <label className={label} htmlFor="early_bird_price">
-                            Early bird
-                        </label>
-                        <input
-                            id="early_bird_price"
-                            className={field}
-                            value={eventFields.early_bird_price || ''}
-                            onChange={(e) =>
-                                onEventChange?.({
-                                    early_bird_price: e.target.value,
-                                })
-                            }
-                        />
-                    </div>
-                    <div>
-                        <label className={label} htmlFor="gate_price">
-                            Gate price
-                        </label>
-                        <input
-                            id="gate_price"
-                            className={field}
-                            value={eventFields.gate_price || ''}
-                            onChange={(e) =>
-                                onEventChange?.({ gate_price: e.target.value })
-                            }
-                        />
-                    </div>
-                    <div>
-                        <label className={label} htmlFor="ticket_url">
-                            Ticket link
-                        </label>
-                        <input
-                            id="ticket_url"
-                            className={field}
-                            value={eventFields.ticket_url || ''}
-                            onChange={(e) =>
-                                onEventChange?.({ ticket_url: e.target.value })
-                            }
-                            placeholder="https://"
-                        />
-                    </div>
+                    {showEventTickets ? (
+                        <>
+                            <div>
+                                <label className={label} htmlFor="ticket_price">
+                                    Ticket price
+                                </label>
+                                <input
+                                    id="ticket_price"
+                                    className={field}
+                                    value={eventFields.ticket_price || ''}
+                                    onChange={(e) =>
+                                        onEventChange?.({
+                                            ticket_price: e.target.value,
+                                        })
+                                    }
+                                    placeholder="From KES 1,200"
+                                />
+                            </div>
+                            <div>
+                                <label
+                                    className={label}
+                                    htmlFor="early_bird_price"
+                                >
+                                    Early bird
+                                </label>
+                                <input
+                                    id="early_bird_price"
+                                    className={field}
+                                    value={eventFields.early_bird_price || ''}
+                                    onChange={(e) =>
+                                        onEventChange?.({
+                                            early_bird_price: e.target.value,
+                                        })
+                                    }
+                                />
+                            </div>
+                            <div>
+                                <label className={label} htmlFor="gate_price">
+                                    Gate price
+                                </label>
+                                <input
+                                    id="gate_price"
+                                    className={field}
+                                    value={eventFields.gate_price || ''}
+                                    onChange={(e) =>
+                                        onEventChange?.({
+                                            gate_price: e.target.value,
+                                        })
+                                    }
+                                />
+                            </div>
+                        </>
+                    ) : null}
+                    {showEventTicketUrl ? (
+                        <div>
+                            <label className={label} htmlFor="ticket_url">
+                                Ticket link
+                            </label>
+                            <input
+                                id="ticket_url"
+                                className={field}
+                                value={eventFields.ticket_url || ''}
+                                onChange={(e) =>
+                                    onEventChange?.({
+                                        ticket_url: e.target.value,
+                                    })
+                                }
+                                placeholder="https://"
+                            />
+                        </div>
+                    ) : null}
                 </div>
             ) : null}
 
@@ -402,7 +466,10 @@ export default function CategoryFields({
                         f.key === 'return_policy' ||
                         f.key === 'whatsapp_catalog_url' ||
                         f.key === 'online_store_url' ||
-                        f.key === 'price_list_pdf';
+                        f.key === 'price_list_pdf' ||
+                        f.key === 'virtual_tour_url' ||
+                        f.key === 'floor_plan_pdf' ||
+                        f.key === 'enquiry_url';
 
                     return (
                         <div
@@ -585,7 +652,8 @@ export default function CategoryFields({
 
             {(categoryKey === 'eatDrink' ||
                 categoryKey === 'stay' ||
-                categoryKey === 'shopping') && (
+                categoryKey === 'shopping' ||
+                categoryKey === 'thingsToDo') && (
                 <div>
                     <label className={label} htmlFor="price_range">
                         Price level

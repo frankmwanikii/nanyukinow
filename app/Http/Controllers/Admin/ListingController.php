@@ -12,13 +12,17 @@ use App\Models\User;
 use App\Notifications\ListingReviewedNotification;
 use App\Support\CategoryKey;
 use App\Support\EatDrinkTierFeatures;
+use App\Support\EventsTierFeatures;
 use App\Support\ListingGallery;
 use App\Support\ListingMedia;
 use App\Support\ListingPayload;
 use App\Support\ListingSlug;
 use App\Support\Membership;
+use App\Support\PropertiesTierFeatures;
+use App\Support\ServicesTierFeatures;
 use App\Support\ShoppingTierFeatures;
 use App\Support\StayTierFeatures;
+use App\Support\ThingsToDoTierFeatures;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -464,10 +468,13 @@ class ListingController extends Controller
         $categoryKey = CategoryKey::fromSlug($categorySlug);
 
         $data = EatDrinkTierFeatures::applyToPayload($data, $tier, $categoryKey);
-
         $data = StayTierFeatures::applyToPayload($data, $tier, $categoryKey);
+        $data = ShoppingTierFeatures::applyToPayload($data, $tier, $categoryKey);
+        $data = PropertiesTierFeatures::applyToPayload($data, $tier, $categoryKey);
+        $data = ThingsToDoTierFeatures::applyToPayload($data, $tier, $categoryKey);
+        $data = ServicesTierFeatures::applyToPayload($data, $tier, $categoryKey);
 
-        return ShoppingTierFeatures::applyToPayload($data, $tier, $categoryKey);
+        return EventsTierFeatures::applyToPayload($data, $tier, $categoryKey);
     }
 
     /**

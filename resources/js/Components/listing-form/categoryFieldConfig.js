@@ -372,6 +372,7 @@ export const CATEGORY_DETAIL_FIELDS = {
             type: 'text',
             placeholder: 'e.g. Half day, 3 hours',
             required: true,
+            minTier: 'free',
         },
         {
             key: 'difficulty',
@@ -379,36 +380,50 @@ export const CATEGORY_DETAIL_FIELDS = {
             type: 'select',
             options: ['Easy', 'Moderate', 'Challenging', 'All levels'],
             required: true,
-        },
-        {
-            key: 'min_age',
-            label: 'Minimum age',
-            type: 'text',
-            placeholder: 'e.g. 12+',
-        },
-        {
-            key: 'group_size',
-            label: 'Group size',
-            type: 'text',
-            placeholder: 'e.g. 2–8 people',
+            minTier: 'free',
         },
         {
             key: 'price_from',
             label: 'From price',
             type: 'text',
             placeholder: 'e.g. KES 3,500 / person',
+            minTier: 'free',
+        },
+        {
+            key: 'min_age',
+            label: 'Minimum age',
+            type: 'text',
+            placeholder: 'e.g. 12+',
+            minTier: 'featured',
+        },
+        {
+            key: 'group_size',
+            label: 'Group size',
+            type: 'text',
+            placeholder: 'e.g. 2–8 people',
+            minTier: 'featured',
         },
         {
             key: 'included',
             label: 'What’s included',
             type: 'tags',
             placeholder: 'Add item and press Enter',
+            minTier: 'featured',
         },
         {
             key: 'bring',
             label: 'What to bring',
             type: 'tags',
             placeholder: 'Add item and press Enter',
+            minTier: 'featured',
+        },
+        {
+            key: 'booking_url',
+            label: 'Booking / enquire link',
+            type: 'text',
+            placeholder: 'https://… or WhatsApp booking link',
+            help: 'Direct guests to book or enquire about this experience.',
+            minTier: 'premium',
         },
     ],
     services: [
@@ -418,18 +433,14 @@ export const CATEGORY_DETAIL_FIELDS = {
             type: 'text',
             placeholder: 'Nanyuki & surrounds',
             required: true,
+            minTier: 'free',
         },
         {
             key: 'pricing_from',
             label: 'Pricing from',
             type: 'text',
             placeholder: 'e.g. KES 2,000 / hour',
-        },
-        {
-            key: 'response_time',
-            label: 'Typical response',
-            type: 'text',
-            placeholder: 'e.g. Within 2 hours',
+            minTier: 'free',
         },
         {
             key: 'offerings',
@@ -437,12 +448,29 @@ export const CATEGORY_DETAIL_FIELDS = {
             type: 'tags',
             placeholder: 'Add offering and press Enter',
             required: true,
+            minTier: 'free',
+        },
+        {
+            key: 'response_time',
+            label: 'Typical response',
+            type: 'text',
+            placeholder: 'e.g. Within 2 hours',
+            minTier: 'featured',
         },
         {
             key: 'credentials',
             label: 'Credentials / licenses',
             type: 'tags',
             placeholder: 'Add credential and press Enter',
+            minTier: 'featured',
+        },
+        {
+            key: 'booking_url',
+            label: 'Booking / request link',
+            type: 'text',
+            placeholder: 'https://… or WhatsApp booking link',
+            help: 'Where clients can request your service.',
+            minTier: 'premium',
         },
     ],
     shopping: [
@@ -524,6 +552,7 @@ export const CATEGORY_DETAIL_FIELDS = {
             type: 'text',
             placeholder: 'e.g. 3',
             required: true,
+            minTier: 'free',
         },
         {
             key: 'bathrooms',
@@ -531,12 +560,7 @@ export const CATEGORY_DETAIL_FIELDS = {
             type: 'text',
             placeholder: 'e.g. 2',
             required: true,
-        },
-        {
-            key: 'size_sqm',
-            label: 'Size (sqm / acres)',
-            type: 'text',
-            placeholder: 'e.g. 220 sqm or ½ acre',
+            minTier: 'free',
         },
         {
             key: 'price',
@@ -544,46 +568,82 @@ export const CATEGORY_DETAIL_FIELDS = {
             type: 'text',
             placeholder: 'e.g. KES 18M or KES 45,000 / month',
             required: true,
+            minTier: 'free',
+        },
+        {
+            key: 'size_sqm',
+            label: 'Size (sqm / acres)',
+            type: 'text',
+            placeholder: 'e.g. 220 sqm or ½ acre',
+            minTier: 'featured',
         },
         {
             key: 'furnished',
             label: 'Furnishing',
             type: 'select',
             options: ['Furnished', 'Semi-furnished', 'Unfurnished', 'N/A'],
+            minTier: 'featured',
         },
         {
             key: 'parking_spaces',
             label: 'Parking',
             type: 'text',
             placeholder: 'e.g. 2 cars',
+            minTier: 'featured',
         },
         {
             key: 'year_built',
             label: 'Year built',
             type: 'text',
             placeholder: 'e.g. 2019',
+            minTier: 'featured',
         },
         {
             key: 'highlights',
             label: 'Highlights',
             type: 'tags',
             placeholder: 'Add highlight and press Enter',
+            minTier: 'featured',
         },
         {
             key: 'agent_name',
             label: 'Agent / contact name',
             type: 'text',
             placeholder: 'Who handles viewings?',
+            minTier: 'featured',
         },
         {
             key: 'agent_phone',
             label: 'Agent phone',
             type: 'text',
+            minTier: 'featured',
         },
         {
             key: 'agent_email',
             label: 'Agent email',
             type: 'email',
+            minTier: 'featured',
+        },
+        {
+            key: 'virtual_tour_url',
+            label: 'Virtual tour link',
+            type: 'text',
+            placeholder: 'Matterport, YouTube tour, or 360° link',
+            minTier: 'premium',
+        },
+        {
+            key: 'floor_plan_pdf',
+            label: 'Floor plan (PDF)',
+            type: 'text',
+            placeholder: 'https://…/floor-plan.pdf',
+            minTier: 'premium',
+        },
+        {
+            key: 'enquiry_url',
+            label: 'Enquiry / viewing link',
+            type: 'text',
+            placeholder: 'https://… or WhatsApp enquiry link',
+            minTier: 'premium',
         },
     ],
     events: [
@@ -593,24 +653,28 @@ export const CATEGORY_DETAIL_FIELDS = {
             type: 'text',
             placeholder: 'Who is hosting?',
             required: true,
+            minTier: 'free',
         },
         {
             key: 'age_limit',
             label: 'Age limit',
             type: 'text',
             placeholder: 'e.g. 18+, All ages',
+            minTier: 'featured',
         },
         {
             key: 'doors_open',
             label: 'Doors open',
             type: 'text',
             placeholder: 'e.g. 18:30',
+            minTier: 'featured',
         },
         {
             key: 'dress_code',
             label: 'Dress code',
             type: 'text',
             placeholder: 'Casual, smart…',
+            minTier: 'featured',
         },
     ],
 };
@@ -621,7 +685,11 @@ export function emptyDetailsFor(categoryKey) {
         payments:
             categoryKey === 'eatDrink' ||
             categoryKey === 'stay' ||
-            categoryKey === 'shopping'
+            categoryKey === 'shopping' ||
+            categoryKey === 'properties' ||
+            categoryKey === 'thingsToDo' ||
+            categoryKey === 'services' ||
+            categoryKey === 'events'
                 ? []
                 : ['Cash', 'M-Pesa'],
         video_url: '',
@@ -631,6 +699,7 @@ export function emptyDetailsFor(categoryKey) {
         sponsors: [],
         event_schedule: [],
         products: [],
+        portfolio: [],
         deals: [],
         host_photo: '',
     };

@@ -130,6 +130,54 @@ export function renderListingSection(key, listing) {
                     items={listing.credentials}
                 />
             );
+        case 'portfolio': {
+            const items = Array.isArray(listing.portfolio)
+                ? listing.portfolio.filter((p) => p?.title || p?.url || p?.image)
+                : [];
+            if (!items.length) return null;
+            return (
+                <DetailSection key={key} title="Portfolio / past work">
+                    <ul className="space-y-3">
+                        {items.map((item, index) => (
+                            <li
+                                key={`portfolio-${index}`}
+                                className="flex gap-3 rounded-2xl border border-olive-100 bg-olive-50/40 p-3 dark:border-olive-800 dark:bg-olive-950/40"
+                            >
+                                {item.image ? (
+                                    <img
+                                        src={item.image}
+                                        alt=""
+                                        className="h-16 w-16 shrink-0 rounded-xl object-cover"
+                                    />
+                                ) : null}
+                                <div className="min-w-0 flex-1">
+                                    {item.title ? (
+                                        <p className="font-display text-base font-semibold text-olive-950 dark:text-olive-50">
+                                            {item.title}
+                                        </p>
+                                    ) : null}
+                                    {item.description ? (
+                                        <p className="mt-0.5 text-sm text-olive-700 dark:text-olive-300">
+                                            {item.description}
+                                        </p>
+                                    ) : null}
+                                    {item.url ? (
+                                        <a
+                                            href={item.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="mt-1 inline-flex text-sm font-semibold text-olive-900 underline-offset-2 hover:underline dark:text-mustard"
+                                        >
+                                            View work
+                                        </a>
+                                    ) : null}
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                </DetailSection>
+            );
+        }
         case 'brands':
             return (
                 <BulletList
@@ -166,7 +214,12 @@ export function renderListingSection(key, listing) {
                     title={
                         listing.categoryKey === 'stay'
                             ? 'Seasonal offers'
-                            : 'Deals & happy hour'
+                            : listing.categoryKey === 'shopping'
+                              ? 'Current offers'
+                              : listing.categoryKey === 'thingsToDo' ||
+                                  listing.categoryKey === 'services'
+                                ? 'Special offers'
+                                : 'Deals & happy hour'
                     }
                 >
                     <ul className="space-y-3">

@@ -11,13 +11,17 @@ use App\Models\Category;
 use App\Models\Listing;
 use App\Support\CategoryKey;
 use App\Support\EatDrinkTierFeatures;
+use App\Support\EventsTierFeatures;
 use App\Support\ListingGallery;
 use App\Support\ListingMedia;
 use App\Support\ListingSlug;
 use App\Support\ListingSubcategories;
 use App\Support\Membership;
+use App\Support\PropertiesTierFeatures;
+use App\Support\ServicesTierFeatures;
 use App\Support\ShoppingTierFeatures;
 use App\Support\StayTierFeatures;
+use App\Support\ThingsToDoTierFeatures;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -330,10 +334,13 @@ class ListingController extends Controller
         ];
 
         $payload = EatDrinkTierFeatures::applyToPayload($payload, $tier, $categoryKey);
-
         $payload = StayTierFeatures::applyToPayload($payload, $tier, $categoryKey);
+        $payload = ShoppingTierFeatures::applyToPayload($payload, $tier, $categoryKey);
+        $payload = PropertiesTierFeatures::applyToPayload($payload, $tier, $categoryKey);
+        $payload = ThingsToDoTierFeatures::applyToPayload($payload, $tier, $categoryKey);
+        $payload = ServicesTierFeatures::applyToPayload($payload, $tier, $categoryKey);
 
-        return ShoppingTierFeatures::applyToPayload($payload, $tier, $categoryKey);
+        return EventsTierFeatures::applyToPayload($payload, $tier, $categoryKey);
     }
 
     /**

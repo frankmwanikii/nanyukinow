@@ -12,11 +12,20 @@ import {
 } from '@/data/eatDrinkTierFeatures';
 import { canUseStayFeature } from '@/data/stayTierFeatures';
 import ShoppingTierUpsell from './ShoppingTierUpsell';
+import ServicesTierUpsell from './ServicesTierUpsell';
+import EventsTierUpsell from './EventsTierUpsell';
 import {
     canUseShoppingFeature,
     shoppingProductHelp,
     shoppingProductLimit,
 } from '@/data/shoppingTierFeatures';
+import {
+    canUseServicesFeature,
+    servicesPortfolioHelp,
+    servicesPortfolioLimit,
+} from '@/data/servicesTierFeatures';
+import { canUseEventsFeature } from '@/data/eventsTierFeatures';
+import { canUseThingsToDoFeature } from '@/data/thingsToDoTierFeatures';
 import {
     formatGigWhenLabel,
     WEEKDAYS,
@@ -440,6 +449,16 @@ export default function CategoryExtrasEditor({
         categoryKey === 'shopping' && canUseShoppingFeature(tier, 'products');
     const showShoppingOffers =
         categoryKey === 'shopping' && canUseShoppingFeature(tier, 'deals');
+    const showServicesPortfolio =
+        categoryKey === 'services' && canUseServicesFeature(tier, 'portfolio');
+    const showServicesOffers =
+        categoryKey === 'services' && canUseServicesFeature(tier, 'deals');
+    const showThingsToDoOffers =
+        categoryKey === 'thingsToDo' && canUseThingsToDoFeature(tier, 'deals');
+    const showEventAgenda =
+        categoryKey === 'events' && canUseEventsFeature(tier, 'agenda');
+    const showEventSponsors =
+        categoryKey === 'events' && canUseEventsFeature(tier, 'sponsors');
     const shoppingProductCap =
         categoryKey === 'shopping' ? shoppingProductLimit(tier) : null;
     const shoppingProductsRemaining =
@@ -448,6 +467,15 @@ export default function CategoryExtrasEditor({
             : Math.max(0, shoppingProductCap - products.length);
     const atShoppingProductLimit =
         shoppingProductCap != null && shoppingProductsRemaining <= 0;
+    const portfolio = Array.isArray(details.portfolio) ? details.portfolio : [];
+    const portfolioCap =
+        categoryKey === 'services' ? servicesPortfolioLimit(tier) : null;
+    const portfolioRemaining =
+        portfolioCap == null
+            ? 0
+            : Math.max(0, portfolioCap - portfolio.length);
+    const atPortfolioLimit =
+        portfolioCap != null && portfolioRemaining <= 0;
     const menuLimit =
         categoryKey === 'eatDrink' ? eatDrinkMenuLimit(tier) : null;
     const imagesPerMenu =
@@ -923,6 +951,8 @@ export default function CategoryExtrasEditor({
 
             {categoryKey === 'events' ? (
                 <>
+                    {showEventAgenda ? (
+                        <>
                     <Section
                         title="Agenda / lineup"
                         blurb="Time-ordered programme shown on the event page."
@@ -1041,7 +1071,12 @@ export default function CategoryExtrasEditor({
                             Add schedule row
                         </button>
                     </Section>
+                        </>
+                    ) : (
+                        <EventsTierUpsell tier={tier} isAdmin={isAdmin} />
+                    )}
 
+                    {showEventSponsors ? (
                     <Section
                         title="Sponsors"
                         blurb="Optional logos and names shown on the event page."
@@ -1104,6 +1139,9 @@ export default function CategoryExtrasEditor({
                             Add sponsor
                         </button>
                     </Section>
+                    ) : showEventAgenda ? (
+                        <EventsTierUpsell tier={tier} isAdmin={isAdmin} />
+                    ) : null}
                 </>
             ) : null}
 
@@ -1293,6 +1331,182 @@ export default function CategoryExtrasEditor({
                     >
                         <Plus className="h-4 w-4" />
                         Add product
+                    </button>
+                </Section>
+            ) : null}
+
+            {categoryKey === 'services' && !showServicesPortfolio ? (
+                <ServicesTierUpsell tier={tier} isAdmin={isAdmin} />
+            ) : null}
+
+            {showServicesPortfolio ? (
+                <Section
+                    title="Portfolio / past work"
+                    blurb={servicesPortfolioHelp(tier)}
+                >
+                    <ul className="space-y-4">
+                        {portfolio.map((item, index) => (
+                            <li
+                                key={`portfolio-${index}`}
+                                className="space-y-3 rounded-xl border border-olive-100 bg-olive-50/40 p-3"
+                            >
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs font-semibold uppercase tracking-wide text-olive-500">
+                                        Work {index + 1}
+                                    </span>
+                                    <RowActions
+                                        onRemove={() =>
+                                            removeItem('portfolio', index)
+                                        }
+                                    />
+                                </div>
+                                <div className="grid gap-3 sm:grid-cols-2">
+                                    <div>
+                                        <label className={label}>Title</label>
+                                        <input
+                                            className={field}
+                                            value={item.title || ''}
+                                            onChange={(e) =>
+                                                updateItem('portfolio', index, {
+                                                    title: e.target.value,
+                                                })
+                                            }
+                                            placeholder="Project or client name"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className={label}>
+                                            Link to work
+                                        </label>
+                                        <input
+                                            className={field}
+                                            value={item.url || ''}
+                                            onChange={(e) =>
+                                                updateItem('portfolio', index, {
+                                                    url: e.target.value,
+                                                })
+                                            }
+                                            placeholder="https://… (Behance, Drive, site…)"
+                                        />
+                                    </div>
+                                    <div className="sm:col-span-2">
+                                        <label className={label}>
+                                            Short description
+                                        </label>
+                                        <input
+                                            className={field}
+                                            value={item.description || ''}
+                                            onChange={(e) =>
+                                                updateItem('portfolio', index, {
+                                                    description: e.target.value,
+                                                })
+                                            }
+                                            placeholder="What you delivered"
+                                        />
+                                    </div>
+                                </div>
+                                <ImagePickButton
+                                    image={item.image}
+                                    onPick={() =>
+                                        setImageTarget({
+                                            list: 'portfolio',
+                                            index,
+                                            key: 'image',
+                                        })
+                                    }
+                                    onClear={() =>
+                                        updateItem('portfolio', index, {
+                                            image: '',
+                                        })
+                                    }
+                                />
+                            </li>
+                        ))}
+                    </ul>
+                    <button
+                        type="button"
+                        disabled={atPortfolioLimit}
+                        onClick={() =>
+                            addItem('portfolio', {
+                                title: '',
+                                url: '',
+                                description: '',
+                                image: '',
+                            })
+                        }
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        <Plus className="h-4 w-4" />
+                        Add work
+                    </button>
+                </Section>
+            ) : null}
+
+            {showServicesOffers || showThingsToDoOffers ? (
+                <Section
+                    title={
+                        showThingsToDoOffers
+                            ? 'Special offers'
+                            : 'Current offers'
+                    }
+                    blurb="Promote packages, seasonal rates, or limited-time discounts."
+                >
+                    <ul className="space-y-3">
+                        {deals.map((item, index) => (
+                            <li
+                                key={`svc-deal-${index}`}
+                                className="space-y-2 rounded-xl border border-olive-100 bg-olive-50/40 p-3"
+                            >
+                                <div className="flex items-center justify-between gap-2">
+                                    <span className="text-xs font-semibold uppercase tracking-wide text-olive-500">
+                                        Offer {index + 1}
+                                    </span>
+                                    <RowActions
+                                        onRemove={() =>
+                                            removeItem('deals', index)
+                                        }
+                                    />
+                                </div>
+                                <div>
+                                    <label className={label}>Title</label>
+                                    <input
+                                        className={field}
+                                        value={item.title || ''}
+                                        onChange={(e) =>
+                                            updateItem('deals', index, {
+                                                title: e.target.value,
+                                            })
+                                        }
+                                        placeholder="e.g. 10% off weekday bookings"
+                                    />
+                                </div>
+                                <div>
+                                    <RichTextEditor
+                                        id={`svc-deal-details-${index}`}
+                                        label="Details"
+                                        value={item.description || ''}
+                                        onChange={(html) =>
+                                            updateItem('deals', index, {
+                                                description: html,
+                                            })
+                                        }
+                                        placeholder="Valid dates, terms…"
+                                        allowImages={false}
+                                        compact
+                                    />
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                    <button
+                        type="button"
+                        onClick={() =>
+                            addItem('deals', { title: '', description: '' })
+                        }
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white"
+                    >
+                        <Plus className="h-4 w-4" />
+                        Add offer
                     </button>
                 </Section>
             ) : null}
