@@ -11,18 +11,30 @@ import {
     validateLoginIdentifier,
     validateLoginPassword,
 } from '@/Components/auth/authHelpers';
+import RecaptchaField from '@/Components/listing/RecaptchaField';
 import { Link, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
 export default function Login({ status, canResetPassword }) {
     const { flash } = usePage().props;
     const [showPassword, setShowPassword] = useState(false);
-    const { data, setData, post, processing, errors, clearErrors, reset } =
-        useForm({
-            login: '',
-            password: '',
-            remember: true,
-        });
+    const [captchaToken, setCaptchaToken] = useState('');
+    const [captchaError, setCaptchaError] = useState('');
+    const {
+        data,
+        setData,
+        post,
+        processing,
+        errors,
+        clearErrors,
+        reset,
+        transform,
+    } = useForm({
+        login: '',
+        password: '',
+        remember: true,
+        'g-recaptcha-response': '',
+    });
 
     const loginIdFeedback = fieldFeedback(
         data.login,
@@ -39,13 +51,26 @@ export default function Login({ status, canResetPassword }) {
 
     const loginValid =
         validateLoginIdentifier(data.login) === true &&
-        validateLoginPassword(data.password) === true;
+        validateLoginPassword(data.password) === true &&
+        Boolean(captchaToken);
 
     const submit = (e) => {
         e.preventDefault();
+        if (!captchaToken) {
+            setCaptchaError('Please complete the security check.');
+            return;
+        }
         if (!loginValid) return;
+        setCaptchaError('');
+        transform((form) => ({
+            ...form,
+            'g-recaptcha-response': captchaToken,
+        }));
         post(route('login'), {
-            onFinish: () => reset('password'),
+            onFinish: () => {
+                transform((form) => form);
+                reset('password');
+            },
         });
     };
 
@@ -134,6 +159,19 @@ export default function Login({ status, canResetPassword }) {
                             show={showPassword}
                             onToggle={() => setShowPassword((v) => !v)}
                         />
+                    }
+                />
+
+                <RecaptchaField
+                    value={captchaToken}
+                    onChange={(token) => {
+                        setCaptchaToken(token);
+                        setCaptchaError('');
+                        clearErrors('g-recaptcha-response');
+                        setData('g-recaptcha-response', token);
+                    }}
+                    error={
+                        captchaError || errors['g-recaptcha-response'] || ''
                     }
                 />
 

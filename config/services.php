@@ -42,4 +42,8 @@ return [
         'maps_key' => env('VITE_GOOGLE_MAPS_API_KEY', env('GOOGLE_MAPS_API_KEY')),
     ],
 
+    'recaptcha' => [
+        'secret' => env('RECAPTCHA_SECRET_KEY'),
+    ],
+
 ];

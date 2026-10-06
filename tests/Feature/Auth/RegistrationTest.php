@@ -3,6 +3,7 @@
 namespace Tests\Feature\Auth;
 
 use App\Models\User;
+use App\Support\Recaptcha;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -20,17 +21,20 @@ class RegistrationTest extends TestCase
     public function test_new_users_can_register(): void
     {
         $response = $this->post('/register', [
-            'name' => 'Test User',
+            'first_name' => 'Test',
+            'last_name' => 'User',
             'username' => 'test_user',
             'email' => 'test@example.com',
             'password' => 'Password1!',
             'password_confirmation' => 'Password1!',
+            'g-recaptcha-response' => Recaptcha::FALLBACK_TOKEN,
         ]);
 
         $this->assertAuthenticated();
         $response->assertRedirect(route('account.index', absolute: false));
         $this->assertDatabaseHas('users', [
             'email' => 'test@example.com',
+            'name' => 'Test User',
             'plan' => 'free',
         ]);
     }
@@ -38,14 +42,31 @@ class RegistrationTest extends TestCase
     public function test_registration_rejects_weak_passwords(): void
     {
         $response = $this->from('/register')->post('/register', [
-            'name' => 'Test User',
+            'first_name' => 'Test',
+            'last_name' => 'User',
             'username' => 'test_user',
             'email' => 'test@example.com',
             'password' => '12345678',
             'password_confirmation' => '12345678',
+            'g-recaptcha-response' => Recaptcha::FALLBACK_TOKEN,
         ]);
 
         $response->assertSessionHasErrors('password');
+        $this->assertGuest();
+    }
+
+    public function test_registration_requires_recaptcha(): void
+    {
+        $response = $this->from('/register')->post('/register', [
+            'first_name' => 'Test',
+            'last_name' => 'User',
+            'username' => 'test_user',
+            'email' => 'test@example.com',
+            'password' => 'Password1!',
+            'password_confirmation' => 'Password1!',
+        ]);
+
+        $response->assertSessionHasErrors('g-recaptcha-response');
         $this->assertGuest();
     }
 
@@ -77,11 +98,13 @@ class RegistrationTest extends TestCase
         User::factory()->create(['email' => 'taken@example.com']);
 
         $response = $this->from('/register')->post('/register', [
-            'name' => 'Test User',
+            'first_name' => 'Test',
+            'last_name' => 'User',
             'username' => 'fresh_user',
             'email' => 'taken@example.com',
             'password' => 'Password1!',
             'password_confirmation' => 'Password1!',
+            'g-recaptcha-response' => Recaptcha::FALLBACK_TOKEN,
         ]);
 
         $response->assertSessionHasErrors([

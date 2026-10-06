@@ -1,33 +1,20 @@
 import { Head, Link } from '@inertiajs/react';
 
-function BrandPattern({ className = '' }) {
+function BrandWash({ className = '' }) {
     return (
         <>
             <div
-                className={`pointer-events-none absolute inset-0 opacity-[0.22] ${className}`}
+                className={`pointer-events-none absolute inset-0 ${className}`}
                 style={{
-                    backgroundImage: [
-                        'radial-gradient(circle at 18% 22%, rgba(242,184,46,0.55) 0, rgba(242,184,46,0.55) 4.5rem, transparent 4.6rem)',
-                        'radial-gradient(circle at 82% 18%, rgba(255,255,255,0.14) 0, rgba(255,255,255,0.14) 3.2rem, transparent 3.3rem)',
-                        'radial-gradient(circle at 70% 72%, rgba(242,184,46,0.28) 0, rgba(242,184,46,0.28) 6rem, transparent 6.1rem)',
-                        'radial-gradient(circle at 12% 78%, rgba(255,255,255,0.1) 0, rgba(255,255,255,0.1) 5rem, transparent 5.1rem)',
-                        'radial-gradient(circle at 48% 48%, rgba(168,225,144,0.12) 0, rgba(168,225,144,0.12) 7rem, transparent 7.1rem)',
-                        `url("data:image/svg+xml,%3Csvg width='64' height='64' viewBox='0 0 64 64' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='0.14' stroke-width='1'%3E%3Cpath d='M32 4 L60 32 L32 60 L4 32 Z'/%3E%3Ccircle cx='32' cy='32' r='10'/%3E%3C/g%3E%3C/svg%3E")`,
-                    ].join(', '),
-                    backgroundSize: 'auto, auto, auto, auto, auto, 64px 64px',
+                    background: `
+                        radial-gradient(ellipse 80% 60% at 20% 0%, rgba(242,184,46,0.12), transparent 55%),
+                        linear-gradient(165deg, #3a4232 0%, #2f3628 48%, #252a20 100%)
+                    `,
                 }}
                 aria-hidden
             />
             <div
-                className="pointer-events-none absolute inset-0 bg-grain opacity-50 mix-blend-overlay"
-                aria-hidden
-            />
-            <div
-                className="pointer-events-none absolute -left-16 top-1/3 h-72 w-72 rounded-full bg-mustard/20 blur-3xl"
-                aria-hidden
-            />
-            <div
-                className="pointer-events-none absolute -right-20 bottom-10 h-80 w-80 rounded-full bg-olive-950/40 blur-3xl"
+                className="pointer-events-none absolute inset-0 bg-grain opacity-25 mix-blend-overlay"
                 aria-hidden
             />
         </>
@@ -78,7 +65,7 @@ function PremiumStage() {
 /**
  * Full-viewport auth shell.
  * variant "centered" — premium olive stage + white form panel (sign in)
- * variant "brand" — olive shape-pattern sidebar + form (register)
+ * variant "brand" — clean olive wash sidebar + form (register)
  */
 export default function AuthSplitLayout({
     title,
@@ -86,6 +73,7 @@ export default function AuthSplitLayout({
     panelBody,
     variant = 'brand',
     showBrandMark = true,
+    dense = false,
     children,
 }) {
     const isCentered = variant === 'centered';
@@ -133,54 +121,79 @@ export default function AuthSplitLayout({
         <div className="min-h-svh bg-white text-earth-dusk">
             <Head title={title} />
 
-            <div className="grid min-h-svh lg:grid-cols-2">
-                <aside className="relative hidden flex-col justify-between overflow-hidden bg-olive-700 text-white lg:flex">
-                    <BrandPattern />
+            <div className="grid min-h-svh w-full min-w-0 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+                <aside className="relative hidden min-w-0 overflow-hidden bg-olive-700 text-white lg:flex">
+                    <BrandWash />
 
-                    <div className="relative z-10 flex h-full flex-col justify-between p-10 xl:p-14">
-                        <div aria-hidden className="h-10" />
-
-                        <div className="max-w-md">
-                            <h1 className="font-display text-3xl font-semibold leading-[1.1] tracking-tight text-white xl:text-[2.1rem]">
-                                {panelTitle}
-                            </h1>
-                            {panelBody ? (
-                                <p className="mt-4 text-sm leading-relaxed text-white/75 xl:text-[15px]">
-                                    {panelBody}
-                                </p>
-                            ) : null}
+                    <div className="relative z-10 flex h-full w-full flex-col px-8 py-12 xl:px-10 xl:py-14">
+                        <div className="flex flex-1 flex-col items-center justify-center text-center">
+                            <Link
+                                href="/"
+                                className="mb-8 inline-flex transition hover:opacity-90 xl:mb-10"
+                            >
+                                <img
+                                    src="/images/logo.png"
+                                    alt="Nanyuki Now"
+                                    className="h-28 w-auto object-contain drop-shadow-md xl:h-36"
+                                />
+                            </Link>
+                            <div className="w-full max-w-sm">
+                                <h1 className="font-display text-[1.65rem] font-semibold leading-[1.2] tracking-tight text-white xl:text-[1.8rem]">
+                                    {panelTitle}
+                                </h1>
+                                {panelBody ? (
+                                    <p className="mt-4 text-[15px] leading-relaxed text-white/70">
+                                        {panelBody}
+                                    </p>
+                                ) : null}
+                            </div>
                         </div>
 
-                        <p className="relative z-10 border-t border-white/15 pt-6 text-sm text-white/50">
+                        <p className="border-t border-white/15 pt-5 text-center text-sm text-white/45">
                             Your city, right now.
                         </p>
                     </div>
                 </aside>
 
-                <div className="relative flex items-center gap-3 overflow-hidden bg-olive-700 px-5 py-4 lg:hidden">
-                    <div
-                        className="pointer-events-none absolute inset-0 opacity-30"
-                        style={{
-                            backgroundImage: `url("data:image/svg+xml,%3Csvg width='48' height='48' viewBox='0 0 48 48' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23f2b82e' stroke-opacity='0.35' stroke-width='1'%3E%3Cpath d='M24 3 L45 24 L24 45 L3 24 Z'/%3E%3C/g%3E%3C/svg%3E")`,
-                            backgroundSize: '48px 48px',
-                        }}
-                        aria-hidden
-                    />
-                    <div
-                        className="pointer-events-none absolute inset-0 bg-grain opacity-40 mix-blend-overlay"
-                        aria-hidden
-                    />
-                    <Link href="/" className="relative z-10 inline-flex">
-                        <img
-                            src="/images/logo.png"
-                            alt="Nanyuki Now"
-                            className="h-9 w-auto object-contain"
-                        />
-                    </Link>
+                <div className="relative flex min-h-[12.5rem] items-center overflow-hidden bg-olive-700 px-6 py-10 text-white sm:min-h-[14rem] sm:py-12 lg:hidden">
+                    <BrandWash />
+                    <div className="relative z-10 mx-auto flex w-full max-w-sm flex-col items-center space-y-3.5 text-center">
+                        <Link href="/" className="inline-flex">
+                            <img
+                                src="/images/logo.png"
+                                alt="Nanyuki Now"
+                                className="h-16 w-auto object-contain drop-shadow-md sm:h-20"
+                            />
+                        </Link>
+                        {panelTitle ? (
+                            <h1 className="font-display text-[1.35rem] font-semibold leading-snug tracking-tight text-white sm:text-[1.5rem]">
+                                {panelTitle}
+                            </h1>
+                        ) : null}
+                        {panelBody ? (
+                            <p className="text-[15px] leading-relaxed text-white/70">
+                                {panelBody}
+                            </p>
+                        ) : null}
+                    </div>
                 </div>
 
-                <main className="flex flex-1 items-start justify-center px-5 py-8 sm:px-8 sm:py-12 lg:items-center lg:overflow-y-auto lg:px-12 lg:py-16">
-                    <div className="w-full max-w-[26rem]">{children}</div>
+                <main
+                    className={`flex w-full min-w-0 flex-1 justify-center px-4 sm:px-8 ${
+                        dense
+                            ? 'items-center overflow-y-auto py-4 sm:py-6 lg:justify-start lg:px-8 lg:py-5 xl:px-10'
+                            : 'items-start py-6 sm:py-12 lg:items-center lg:justify-start lg:overflow-y-auto lg:px-8 lg:py-10 xl:px-10'
+                    }`}
+                >
+                    <div
+                        className={`w-full min-w-0 ${
+                            dense
+                                ? 'max-w-[30rem]'
+                                : 'max-w-[28rem] lg:max-w-[56rem]'
+                        }`}
+                    >
+                        {children}
+                    </div>
                 </main>
             </div>
         </div>

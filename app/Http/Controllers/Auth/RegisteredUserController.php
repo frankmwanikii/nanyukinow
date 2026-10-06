@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Notifications\WelcomeMemberNotification;
+use App\Support\Recaptcha;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -56,7 +57,8 @@ class RegisteredUserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'name' => 'required|string|max:255',
+            'first_name' => ['required', 'string', 'max:120'],
+            'last_name' => ['required', 'string', 'max:120'],
             'username' => [
                 'required',
                 'string',
@@ -74,12 +76,21 @@ class RegisteredUserController extends Controller
                     ->numbers()
                     ->symbols(),
             ],
+            'g-recaptcha-response' => ['required', 'string'],
         ], [
             'email.unique' => 'This email is already registered. Please sign in.',
+            'g-recaptcha-response.required' => 'Please complete the security check.',
         ]);
 
+        Recaptcha::validateRequest(
+            $request->string('g-recaptcha-response')->toString(),
+            $request->ip(),
+        );
+
+        $name = trim($request->string('first_name').' '.$request->string('last_name'));
+
         $user = User::create([
-            'name' => $request->name,
+            'name' => $name,
             'username' => Str::lower($request->username),
             'email' => $request->email,
             'password' => Hash::make($request->password),

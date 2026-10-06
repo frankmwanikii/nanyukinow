@@ -48,6 +48,22 @@ export function validateName(value) {
     return true;
 }
 
+export function validateFirstName(value) {
+    const trimmed = value.trim();
+    if (!trimmed) return 'Enter your first name';
+    if (trimmed.length < 1) return 'Enter your first name';
+    if (trimmed.length > 120) return 'First name is too long';
+    return true;
+}
+
+export function validateLastName(value) {
+    const trimmed = value.trim();
+    if (!trimmed) return 'Enter your last name';
+    if (trimmed.length < 1) return 'Enter your last name';
+    if (trimmed.length > 120) return 'Last name is too long';
+    return true;
+}
+
 export function validateUsername(value) {
     if (!value) return 'Choose a username';
     if (value.length < 3) return 'Username must be at least 3 characters';

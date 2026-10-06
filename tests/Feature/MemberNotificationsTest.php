@@ -11,8 +11,8 @@ use App\Notifications\ListingReviewedNotification;
 use App\Notifications\PlanUpgradeReviewedNotification;
 use App\Notifications\WelcomeMemberNotification;
 use App\Support\Membership;
+use App\Support\Recaptcha;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class MemberNotificationsTest extends TestCase

@@ -50,6 +50,8 @@ export function AuthField({
     trailing = null,
     hint = null,
     labelAside = null,
+    dense = false,
+    showSuccessMessage = true,
 }) {
     const borderClass = error
         ? 'border-red-400 focus:border-red-500 focus:ring-red-500/15'
@@ -58,11 +60,15 @@ export function AuthField({
           : 'border-olive-200/90 focus:border-olive-600 focus:ring-olive-600/15';
 
     return (
-        <div>
-            <div className="mb-2 flex items-baseline justify-between gap-3">
+        <div className="min-w-0">
+            <div
+                className={`flex items-baseline justify-between gap-3 ${dense ? 'mb-1' : 'mb-2'}`}
+            >
                 <label
                     htmlFor={id}
-                    className="block text-[13px] font-medium tracking-wide text-olive-800"
+                    className={`block font-semibold text-olive-900 ${
+                        dense ? 'text-xs' : 'text-[15px]'
+                    }`}
                 >
                     {label}
                     {hint ? (
@@ -83,26 +89,30 @@ export function AuthField({
                     placeholder={placeholder}
                     aria-invalid={error ? true : undefined}
                     aria-describedby={
-                        error || success ? `${id}-feedback` : undefined
+                        error || (success && showSuccessMessage)
+                            ? `${id}-feedback`
+                            : undefined
                     }
-                    className={`w-full rounded-lg border bg-white px-3.5 py-3 text-[15px] text-earth-dusk placeholder:text-olive-400/80 shadow-sm transition focus:outline-none focus:ring-2 ${
-                        trailing ? 'pr-11' : ''
-                    } ${borderClass}`}
+                    className={`w-full border bg-white text-earth-dusk placeholder:text-olive-400/80 shadow-sm transition focus:outline-none focus:ring-2 ${
+                        dense
+                            ? 'rounded-xl px-3 py-2 text-sm'
+                            : 'rounded-lg px-3.5 py-3 text-[15px]'
+                    } ${trailing ? 'pr-11' : ''} ${borderClass}`}
                 />
                 {trailing}
             </div>
             {error ? (
                 <div
                     id={`${id}-feedback`}
-                    className="mt-1.5 text-xs text-red-600"
+                    className={`text-xs text-red-600 ${dense ? 'mt-1' : 'mt-1.5'}`}
                     role="alert"
                 >
                     {error}
                 </div>
-            ) : success ? (
+            ) : success && showSuccessMessage ? (
                 <p
                     id={`${id}-feedback`}
-                    className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-emerald-700"
+                    className={`inline-flex items-center gap-1 text-xs font-medium text-emerald-700 ${dense ? 'mt-1' : 'mt-1.5'}`}
                 >
                     <Check className="h-3.5 w-3.5 shrink-0" strokeWidth={2.5} />
                     {success}
@@ -112,23 +122,31 @@ export function AuthField({
     );
 }
 
-export function GoogleContinueButton({ showIcon = true }) {
+export function GoogleContinueButton({ showIcon = true, dense = false }) {
     return (
         <a
             href={route('auth.google')}
-            className="flex w-full items-center justify-center gap-3 rounded-lg border border-olive-200 bg-white px-4 py-3 text-[15px] font-medium text-earth-dusk transition hover:border-mustard hover:bg-mustard hover:text-earth-dusk"
+            className={`flex w-full items-center justify-center gap-3 border border-olive-200 bg-white font-medium text-earth-dusk transition hover:border-mustard hover:bg-mustard hover:text-earth-dusk ${
+                dense
+                    ? 'rounded-xl px-3 py-2 text-sm'
+                    : 'rounded-lg px-4 py-3 text-[15px]'
+            }`}
         >
-            {showIcon ? <GoogleIcon className="h-5 w-5" /> : null}
+            {showIcon ? (
+                <GoogleIcon className={dense ? 'h-4 w-4' : 'h-5 w-5'} />
+            ) : null}
             Continue with Google
         </a>
     );
 }
 
-export function AuthOrDivider() {
+export function AuthOrDivider({ dense = false }) {
     return (
-        <div className="my-6 flex items-center gap-4">
+        <div
+            className={`flex items-center gap-3 ${dense ? 'my-3' : 'my-6 gap-4'}`}
+        >
             <div className="h-px flex-1 bg-olive-100" />
-            <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-olive-400">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-olive-400">
                 or
             </span>
             <div className="h-px flex-1 bg-olive-100" />
@@ -136,9 +154,15 @@ export function AuthOrDivider() {
     );
 }
 
-export function AuthLegalNote() {
+export function AuthLegalNote({ dense = false }) {
     return (
-        <p className="mt-6 text-center text-[11px] leading-relaxed text-olive-500 sm:whitespace-nowrap sm:text-[12px]">
+        <p
+            className={`text-center leading-relaxed text-olive-500 ${
+                dense
+                    ? 'mt-3 text-[10px] sm:text-[11px]'
+                    : 'mt-6 text-[11px] sm:whitespace-nowrap sm:text-[12px]'
+            }`}
+        >
             By continuing you agree to our{' '}
             <Link
                 href="/terms"
