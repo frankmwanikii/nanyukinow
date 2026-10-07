@@ -3,8 +3,8 @@ import {
     ChevronRight,
     List,
     Map as MapIcon,
+    Meh,
     SlidersHorizontal,
-    Star,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import ExploreCategoryTabs from '@/Components/site/ExploreCategoryTabs';
@@ -308,19 +308,24 @@ function ExploreContent({
                     <div className="min-h-0 flex-1 overflow-y-auto px-3 py-4 sm:px-4">
                         {pageItems.length === 0 ? (
                             <div className="flex h-full min-h-[240px] flex-col items-center justify-center rounded-2xl border border-dashed border-olive-300 bg-white/70 px-6 text-center">
-                                <Star className="mb-3 h-8 w-8 text-olive-300" />
-                                <p className="font-display text-lg font-semibold text-earth-dusk">
+                                <Meh
+                                    className="mx-auto h-12 w-12 text-earth-dusk sm:h-14 sm:w-14"
+                                    strokeWidth={1.5}
+                                    aria-hidden
+                                />
+                                <p className="mt-3 font-display text-xl font-semibold tracking-tight text-earth-dusk sm:text-2xl">
                                     {sitePage?.content?.empty_title ||
-                                        'No listings match'}
+                                        'Nothing here yet!'}
                                 </p>
-                                <p className="mt-1 max-w-sm text-sm text-olive-600">
-                                    {sitePage?.content?.empty_body ||
-                                        'Try another category, clear a filter, or search a different keyword.'}
-                                </p>
+                                {sitePage?.content?.empty_body ? (
+                                    <p className="mt-2 max-w-sm text-sm leading-relaxed text-olive-600 sm:text-base">
+                                        {sitePage.content.empty_body}
+                                    </p>
+                                ) : null}
                                 <button
                                     type="button"
                                     onClick={clearFilters}
-                                    className="mt-5 rounded-full bg-[#4f5a3e] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-olive-800"
+                                    className="mt-5 rounded-full bg-olive-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-mustard hover:text-olive-950"
                                 >
                                     Clear filters
                                 </button>

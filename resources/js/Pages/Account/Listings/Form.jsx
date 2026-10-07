@@ -691,7 +691,7 @@ export default function Form({
             }
         }
 
-        $galleryUrls = serializeGalleryItems(galleryItems, {
+        const galleryUrls = serializeGalleryItems(galleryItems, {
             categorized: categorizedGallery,
         });
         const galleryFiles = galleryItems

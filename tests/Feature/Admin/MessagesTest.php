@@ -5,6 +5,7 @@ namespace Tests\Feature\Admin;
 use App\Mail\AdminBroadcastMail;
 use App\Models\Category;
 use App\Models\CommunicationCampaign;
+use App\Models\CommunicationLog;
 use App\Models\Conversation;
 use App\Models\Listing;
 use App\Models\Message;
@@ -54,6 +55,7 @@ class MessagesTest extends TestCase
         $conversation = Conversation::query()->create([
             'listing_id' => $listing->id,
             'subject' => 'Weekend availability',
+            'admin_status' => 'new',
             'last_message_at' => now(),
         ]);
         Message::query()->create([
@@ -64,13 +66,13 @@ class MessagesTest extends TestCase
         ]);
 
         $this->actingAs($admin)
-            ->get(route('admin.messages.index', ['tab' => 'inbox']))
+            ->get(route('admin.messages.index', ['folder' => 'inbox']))
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->component('Admin/Messages/Index')
-                ->where('tab', 'inbox')
-                ->has('inbox.data', 1)
-                ->where('inbox.data.0.from', 'Jane')
+                ->where('folder', 'inbox')
+                ->has('messages.data', 1)
+                ->where('messages.data.0.name', 'Jane')
                 ->has('counts'));
     }
 
@@ -83,19 +85,17 @@ class MessagesTest extends TestCase
             'email' => 'admin@example.com',
         ]);
         User::factory()->create(['email' => 'member@example.com', 'name' => 'Member One']);
-        NewsletterSubscriber::query()->create([
-            'email' => 'fan@example.com',
-            'subscribed_at' => now(),
-        ]);
 
         $this->actingAs($admin)
             ->post(route('admin.messages.store'), [
+                'intent' => 'send',
+                'mode' => 'audience',
                 'channel' => 'email',
                 'audience' => 'all_members',
                 'subject' => 'Weekend picks',
                 'body' => "Hello from Nanyuki Now.\n\nSee you soon.",
             ])
-            ->assertRedirect(route('admin.messages.index', ['tab' => 'sent']));
+            ->assertRedirect(route('admin.messages.index', ['folder' => 'sent']));
 
         Mail::assertSent(AdminBroadcastMail::class, 2);
 
@@ -108,6 +108,8 @@ class MessagesTest extends TestCase
             'recipient_count' => 2,
             'sent_count' => 2,
         ]);
+
+        $this->assertSame(2, CommunicationLog::query()->count());
     }
 
     public function test_admin_can_broadcast_to_newsletter_subscribers(): void
@@ -122,17 +124,25 @@ class MessagesTest extends TestCase
 
         $this->actingAs($admin)
             ->post(route('admin.messages.store'), [
+                'intent' => 'send',
+                'mode' => 'audience',
                 'channel' => 'email',
                 'audience' => 'newsletter',
                 'subject' => 'Insider update',
                 'body' => 'Fresh stays this week.',
             ])
-            ->assertRedirect(route('admin.messages.index', ['tab' => 'sent']));
+            ->assertRedirect(route('admin.messages.index', ['folder' => 'sent']));
 
         Mail::assertSent(AdminBroadcastMail::class, function (AdminBroadcastMail $mail) {
             return $mail->hasTo('fan@example.com')
                 && $mail->subjectLine === 'Insider update';
         });
+
+        $this->assertDatabaseHas('communication_logs', [
+            'recipient_email' => 'fan@example.com',
+            'subject' => 'Insider update',
+            'status' => 'sent',
+        ]);
     }
 
     public function test_sms_broadcast_is_saved_but_not_delivered(): void
@@ -146,14 +156,16 @@ class MessagesTest extends TestCase
         ]);
 
         $this->actingAs($admin)
-            ->from(route('admin.messages.index', ['tab' => 'compose']))
+            ->from(route('admin.messages.index', ['folder' => 'compose']))
             ->post(route('admin.messages.store'), [
+                'intent' => 'send',
+                'mode' => 'audience',
                 'channel' => 'sms',
                 'audience' => 'all_members',
                 'subject' => 'Flash offer',
                 'body' => '20% off stays this weekend',
             ])
-            ->assertRedirect(route('admin.messages.index', ['tab' => 'sent']));
+            ->assertRedirect(route('admin.messages.index', ['folder' => 'sent']));
 
         Mail::assertNothingSent();
 
@@ -161,6 +173,27 @@ class MessagesTest extends TestCase
             'channel' => 'sms',
             'status' => CommunicationCampaign::STATUS_FAILED,
             'sent_count' => 0,
+        ]);
+    }
+
+    public function test_admin_can_save_draft(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+
+        $this->actingAs($admin)
+            ->post(route('admin.messages.store'), [
+                'intent' => 'draft',
+                'mode' => 'audience',
+                'channel' => 'email',
+                'audience' => 'newsletter',
+                'subject' => 'Draft subject',
+                'body' => 'Draft body',
+            ])
+            ->assertRedirect(route('admin.messages.index', ['folder' => 'drafts']));
+
+        $this->assertDatabaseHas('communication_campaigns', [
+            'subject' => 'Draft subject',
+            'status' => CommunicationCampaign::STATUS_DRAFT,
         ]);
     }
 }

@@ -13,6 +13,8 @@ class Conversation extends Model
     protected $fillable = [
         'listing_id',
         'subject',
+        'admin_status',
+        'starred',
         'last_message_at',
     ];
 
@@ -20,6 +22,7 @@ class Conversation extends Model
     {
         return [
             'last_message_at' => 'datetime',
+            'starred' => 'boolean',
         ];
     }
 

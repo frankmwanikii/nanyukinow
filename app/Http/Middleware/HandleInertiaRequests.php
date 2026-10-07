@@ -106,7 +106,7 @@ class HandleInertiaRequests extends Middleware
 
                 try {
                     return Conversation::query()
-                        ->where('last_message_at', '>=', now()->subDays(7))
+                        ->where('admin_status', 'new')
                         ->count();
                 } catch (Throwable) {
                     return 0;

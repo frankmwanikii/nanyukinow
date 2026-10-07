@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\CommunicationCampaign;
+use App\Models\CommunicationLog;
 use App\Models\Conversation;
 use App\Models\NewsletterSubscriber;
 use App\Models\User;
@@ -70,9 +71,23 @@ class AdminCommunications
     }
 
     /**
-     * @return array{members: int, newsletter: int, free: int, featured: int, premium: int, inbox: int}
+     * @return array{
+     *     inbox: int,
+     *     inbox_unread: int,
+     *     sent: int,
+     *     drafts: int,
+     *     starred: int,
+     *     label_read: int,
+     *     label_closed: int,
+     *     newsletter: int,
+     *     subscribers: int,
+     *     members: int,
+     *     free: int,
+     *     featured: int,
+     *     premium: int
+     * }
      */
-    public static function audienceCounts(): array
+    public static function mailCounts(): array
     {
         $planCounts = [
             Membership::FREE => 0,
@@ -90,12 +105,20 @@ class AdminCommunications
         }
 
         return [
-            'members' => $users->count(),
+            'inbox' => Conversation::query()->count(),
+            'inbox_unread' => Conversation::query()->where('admin_status', 'new')->count(),
+            'sent' => CommunicationLog::query()->count(),
+            'drafts' => CommunicationCampaign::query()->where('status', CommunicationCampaign::STATUS_DRAFT)->count(),
+            'starred' => Conversation::query()->where('starred', true)->count()
+                + CommunicationLog::query()->where('starred', true)->count(),
+            'label_read' => Conversation::query()->where('admin_status', 'read')->count(),
+            'label_closed' => Conversation::query()->where('admin_status', 'closed')->count(),
             'newsletter' => NewsletterSubscriber::query()->count(),
+            'subscribers' => NewsletterSubscriber::query()->count(),
+            'members' => $users->count(),
             'free' => $planCounts[Membership::FREE],
             'featured' => $planCounts[Membership::STANDARD],
             'premium' => $planCounts[Membership::PREMIUM],
-            'inbox' => Conversation::query()->count(),
         ];
     }
 

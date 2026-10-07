@@ -69,6 +69,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::get('messages', [MessageController::class, 'index'])->name('messages.index');
         Route::post('messages', [MessageController::class, 'store'])->name('messages.store');
+        Route::post('messages/star', [MessageController::class, 'star'])->name('messages.star');
+        Route::post('messages/label', [MessageController::class, 'label'])->name('messages.label');
+        Route::post('messages/delete', [MessageController::class, 'destroy'])->name('messages.destroy');
 
         Route::get('stories', [StoryController::class, 'index'])->name('stories.index');
         Route::get('stories/create', [StoryController::class, 'create'])->name('stories.create');

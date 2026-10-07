@@ -18,9 +18,26 @@ class StoreBroadcastRequest extends FormRequest
      */
     public function rules(): array
     {
+        $mode = $this->string('mode')->toString();
+        $isDraft = $this->string('intent')->toString() === 'draft';
+
         return [
+            'intent' => ['nullable', 'string', Rule::in(['send', 'draft'])],
+            'mode' => ['required', 'string', Rule::in(['audience', 'single'])],
             'channel' => ['required', 'string', Rule::in(CommunicationCampaign::CHANNELS)],
-            'audience' => ['required', 'string', Rule::in(CommunicationCampaign::AUDIENCES)],
+            'audience' => [
+                Rule::requiredIf($mode === 'audience'),
+                'nullable',
+                'string',
+                Rule::in(CommunicationCampaign::AUDIENCES),
+            ],
+            'to_email' => [
+                Rule::requiredIf($mode === 'single' && ! $isDraft),
+                'nullable',
+                'email',
+                'max:255',
+            ],
+            'to_name' => ['nullable', 'string', 'max:120'],
             'subject' => ['required', 'string', 'max:160'],
             'body' => ['required', 'string', 'max:10000'],
         ];
@@ -34,6 +51,7 @@ class StoreBroadcastRequest extends FormRequest
         return [
             'subject.required' => 'Add a subject line.',
             'body.required' => 'Write a message before sending.',
+            'to_email.required' => 'Choose or enter a recipient.',
         ];
     }
 }

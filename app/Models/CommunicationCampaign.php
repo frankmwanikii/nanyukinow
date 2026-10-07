@@ -21,6 +21,8 @@ class CommunicationCampaign extends Model
 
     public const AUDIENCE_PLAN_PREMIUM = 'plan_premium';
 
+    public const STATUS_DRAFT = 'draft';
+
     public const STATUS_SENT = 'sent';
 
     public const STATUS_FAILED = 'failed';

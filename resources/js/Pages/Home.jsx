@@ -1,4 +1,5 @@
 import { Link } from '@inertiajs/react';
+import { Meh } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import SiteLayout from '@/Layouts/SiteLayout';
 import Reveal from '@/Components/site/Reveal';
@@ -14,6 +15,27 @@ import { testimonials } from '@/data/listings';
 
 const CTA_IMAGE = '/images/designed-for-you.webp';
 const PAGE_SIZE = 9;
+
+function ListingsSoonPlaceholder({ light = false }) {
+    return (
+        <div className="mx-auto max-w-md py-10 text-center sm:py-14">
+            <Meh
+                className={`mx-auto h-12 w-12 sm:h-14 sm:w-14 ${
+                    light ? 'text-white/85' : 'text-earth-dusk'
+                }`}
+                strokeWidth={1.5}
+                aria-hidden
+            />
+            <p
+                className={`mt-3 font-display text-xl font-semibold tracking-tight sm:text-2xl ${
+                    light ? 'text-white' : 'text-earth-dusk'
+                }`}
+            >
+                Nothing here yet!
+            </p>
+        </div>
+    );
+}
 
 function GoldListSection({ items = [], title, subtitle }) {
     const [visible, setVisible] = useState(PAGE_SIZE);
@@ -34,28 +56,37 @@ function GoldListSection({ items = [], title, subtitle }) {
                         }
                     />
                 </Reveal>
-                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                    {shown.map((listing, i) => (
-                        <Reveal key={listing.id} delay={(i % PAGE_SIZE) * 0.04}>
-                            <ListingCard listing={listing} featured />
-                        </Reveal>
-                    ))}
-                </div>
-                {hasMore ? (
-                    <div className="mt-10 flex justify-center">
-                        <button
-                            type="button"
-                            onClick={() =>
-                                setVisible((n) =>
-                                    Math.min(n + PAGE_SIZE, items.length),
-                                )
-                            }
-                            className="inline-flex rounded-full bg-mustard px-8 py-3.5 text-sm font-bold text-olive-950 shadow-lift transition hover:bg-white hover:text-mustard sm:px-10 sm:text-base"
-                        >
-                            Load more
-                        </button>
-                    </div>
-                ) : null}
+                {items.length === 0 ? (
+                    <ListingsSoonPlaceholder light />
+                ) : (
+                    <>
+                        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                            {shown.map((listing, i) => (
+                                <Reveal
+                                    key={listing.id}
+                                    delay={(i % PAGE_SIZE) * 0.04}
+                                >
+                                    <ListingCard listing={listing} featured />
+                                </Reveal>
+                            ))}
+                        </div>
+                        {hasMore ? (
+                            <div className="mt-10 flex justify-center">
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setVisible((n) =>
+                                            Math.min(n + PAGE_SIZE, items.length),
+                                        )
+                                    }
+                                    className="inline-flex rounded-full bg-mustard px-8 py-3.5 text-sm font-bold text-olive-950 shadow-lift transition hover:bg-white hover:text-mustard sm:px-10 sm:text-base"
+                                >
+                                    Load more
+                                </button>
+                            </div>
+                        ) : null}
+                    </>
+                )}
             </div>
         </section>
     );
@@ -83,28 +114,37 @@ function AirbnbsSection({ items = [], title, subtitle }) {
                         }
                     />
                 </Reveal>
-                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                    {shown.map((listing, i) => (
-                        <Reveal key={listing.id} delay={(i % PAGE_SIZE) * 0.04}>
-                            <ListingCard listing={listing} />
-                        </Reveal>
-                    ))}
-                </div>
-                {hasMore ? (
-                    <div className="mt-10 flex justify-center">
-                        <button
-                            type="button"
-                            onClick={() =>
-                                setVisible((n) =>
-                                    Math.min(n + PAGE_SIZE, items.length),
-                                )
-                            }
-                            className="inline-flex rounded-full bg-mustard px-8 py-3.5 text-sm font-bold text-olive-950 shadow-lift transition hover:bg-white hover:text-mustard sm:px-10 sm:text-base"
-                        >
-                            Load more
-                        </button>
-                    </div>
-                ) : null}
+                {items.length === 0 ? (
+                    <ListingsSoonPlaceholder light />
+                ) : (
+                    <>
+                        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                            {shown.map((listing, i) => (
+                                <Reveal
+                                    key={listing.id}
+                                    delay={(i % PAGE_SIZE) * 0.04}
+                                >
+                                    <ListingCard listing={listing} />
+                                </Reveal>
+                            ))}
+                        </div>
+                        {hasMore ? (
+                            <div className="mt-10 flex justify-center">
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setVisible((n) =>
+                                            Math.min(n + PAGE_SIZE, items.length),
+                                        )
+                                    }
+                                    className="inline-flex rounded-full bg-mustard px-8 py-3.5 text-sm font-bold text-olive-950 shadow-lift transition hover:bg-white hover:text-mustard sm:px-10 sm:text-base"
+                                >
+                                    Load more
+                                </button>
+                            </div>
+                        ) : null}
+                    </>
+                )}
             </div>
         </section>
     );
@@ -128,28 +168,37 @@ function WildlifeSafarisSection({ items = [] }) {
                         subtitle="Seeking untamed adventures?"
                     />
                 </Reveal>
-                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                    {shown.map((listing, i) => (
-                        <Reveal key={listing.id} delay={(i % PAGE_SIZE) * 0.04}>
-                            <ListingCard listing={listing} />
-                        </Reveal>
-                    ))}
-                </div>
-                {hasMore ? (
-                    <div className="mt-10 flex justify-center">
-                        <button
-                            type="button"
-                            onClick={() =>
-                                setVisible((n) =>
-                                    Math.min(n + PAGE_SIZE, items.length),
-                                )
-                            }
-                            className="inline-flex rounded-full bg-olive-600 px-8 py-3.5 text-sm font-bold text-white shadow-lift transition hover:bg-mustard hover:text-olive-950 sm:px-10 sm:text-base"
-                        >
-                            Load more
-                        </button>
-                    </div>
-                ) : null}
+                {items.length === 0 ? (
+                    <ListingsSoonPlaceholder />
+                ) : (
+                    <>
+                        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                            {shown.map((listing, i) => (
+                                <Reveal
+                                    key={listing.id}
+                                    delay={(i % PAGE_SIZE) * 0.04}
+                                >
+                                    <ListingCard listing={listing} />
+                                </Reveal>
+                            ))}
+                        </div>
+                        {hasMore ? (
+                            <div className="mt-10 flex justify-center">
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setVisible((n) =>
+                                            Math.min(n + PAGE_SIZE, items.length),
+                                        )
+                                    }
+                                    className="inline-flex rounded-full bg-olive-600 px-8 py-3.5 text-sm font-bold text-white shadow-lift transition hover:bg-mustard hover:text-olive-950 sm:px-10 sm:text-base"
+                                >
+                                    Load more
+                                </button>
+                            </div>
+                        ) : null}
+                    </>
+                )}
             </div>
         </section>
     );
@@ -225,7 +274,11 @@ function HomeContent({
                             subtitle="What people are saving and sharing this week."
                         />
                     </Reveal>
-                    <TrendingCarousel items={trending} />
+                    {trending.length === 0 ? (
+                        <ListingsSoonPlaceholder light />
+                    ) : (
+                        <TrendingCarousel items={trending} />
+                    )}
                 </div>
             </section>
 
