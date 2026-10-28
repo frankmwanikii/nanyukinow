@@ -57,8 +57,9 @@
     z-index: 0;
 }
 
-.nn-directions-map.leaflet-container,
-.nn-directions-map .leaflet-container {
+/* Fill the sized wrapper — never set height:100% on the map root itself
+   (that collapses when the parent only sizes from this child). */
+.nn-directions-map-frame .leaflet-container {
     height: 100%;
     width: 100%;
 }

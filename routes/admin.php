@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Account\EditorMediaController;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ClaimController;
@@ -38,6 +39,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('listings/{listing:slug}', [ListingController::class, 'update'])->name('listings.update');
         Route::delete('listings/{listing:slug}', [ListingController::class, 'destroy'])->name('listings.destroy');
         Route::post('listings/bulk', [ListingController::class, 'bulk'])->name('listings.bulk');
+        Route::post('listings/editor-media', [EditorMediaController::class, 'store'])
+            ->middleware('throttle:40,1')
+            ->name('listings.editor-media');
 
         Route::get('claims', [ClaimController::class, 'index'])->name('claims.index');
         Route::get('claims/{claim}', [ClaimController::class, 'show'])->name('claims.show');

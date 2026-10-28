@@ -467,6 +467,17 @@ class ListingController extends Controller
             : $listing?->category?->slug;
         $categoryKey = CategoryKey::fromSlug($categorySlug);
 
+        // Admins may attach Eat & Drink menus even when the listing is still Free;
+        // normalize with at least Standard caps so the pages are not stripped.
+        $adminMenus = null;
+        if (
+            $categoryKey === 'eatDrink'
+            && isset($data['details']['menus'])
+            && is_array($data['details']['menus'])
+        ) {
+            $adminMenus = $data['details']['menus'];
+        }
+
         $data = EatDrinkTierFeatures::applyToPayload($data, $tier, $categoryKey);
         $data = StayTierFeatures::applyToPayload($data, $tier, $categoryKey);
         $data = ShoppingTierFeatures::applyToPayload($data, $tier, $categoryKey);
@@ -474,7 +485,23 @@ class ListingController extends Controller
         $data = ThingsToDoTierFeatures::applyToPayload($data, $tier, $categoryKey);
         $data = ServicesTierFeatures::applyToPayload($data, $tier, $categoryKey);
 
-        return EventsTierFeatures::applyToPayload($data, $tier, $categoryKey);
+        $data = EventsTierFeatures::applyToPayload($data, $tier, $categoryKey);
+
+        if ($adminMenus !== null) {
+            $menuTier = EatDrinkTierFeatures::tierMeets($tier, Membership::STANDARD)
+                ? $tier
+                : Membership::STANDARD;
+            $normalizedMenus = EatDrinkTierFeatures::normalizeMenus($adminMenus, $menuTier);
+            $details = is_array($data['details'] ?? null) ? $data['details'] : [];
+            if ($normalizedMenus === []) {
+                unset($details['menus']);
+            } else {
+                $details['menus'] = $normalizedMenus;
+            }
+            $data['details'] = $details === [] ? null : $details;
+        }
+
+        return $data;
     }
 
     /**

@@ -2069,12 +2069,18 @@ export function getListingDetail(listing) {
         getListingById(listing.id) ||
         null;
 
-    // Server payloads currently omit coords; pull from catalogue / area centers.
+    // Prefer server lat/lng, then latitude/longitude, then catalogue demo coords.
     listing = enrichListing({
         ...catalog,
         ...listing,
-        lat: parseCoord(listing.lat) ?? parseCoord(catalog?.lat),
-        lng: parseCoord(listing.lng) ?? parseCoord(catalog?.lng),
+        lat:
+            parseCoord(listing.lat) ??
+            parseCoord(listing.latitude) ??
+            parseCoord(catalog?.lat),
+        lng:
+            parseCoord(listing.lng) ??
+            parseCoord(listing.longitude) ??
+            parseCoord(catalog?.lng),
     });
 
     const live = isLiveListing(listing);

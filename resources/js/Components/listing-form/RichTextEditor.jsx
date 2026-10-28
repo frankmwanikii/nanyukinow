@@ -1,5 +1,6 @@
 import { label } from './fieldStyles';
 import { useAlert, usePrompt } from '@/Components/ConfirmDialog';
+import { uploadEditorMedia } from '@/utils/uploadEditorMedia';
 import { EditorContent, useEditor } from '@tiptap/react';
 import { BubbleMenu } from '@tiptap/react/menus';
 import StarterKit from '@tiptap/starter-kit';
@@ -47,31 +48,12 @@ function normalizeEditorHtml(html) {
     return trimmed;
 }
 
-async function fileToEditorImage(file) {
-    try {
-        const csrf =
-            document
-                .querySelector('meta[name="csrf-token"]')
-                ?.getAttribute('content') || '';
-        const body = new FormData();
-        body.append('image', file);
-        const res = await fetch('/account/listings/editor-media', {
-            method: 'POST',
-            headers: {
-                Accept: 'application/json',
-                'X-CSRF-TOKEN': csrf,
-                'X-Requested-With': 'XMLHttpRequest',
-            },
-            credentials: 'same-origin',
-            body,
-        });
-        if (res.ok) {
-            const json = await res.json();
-            if (json?.url) return json.url;
-        }
-    } catch {
-        // fall through
+async function fileToEditorImage(file, uploadUrl = null) {
+    const url = await uploadEditorMedia(file, uploadUrl);
+    if (url) {
+        return url;
     }
+
     return compressImage(file);
 }
 
@@ -171,6 +153,7 @@ export default function RichTextEditor({
     help: helpText,
     compact = false,
     allowImages = true,
+    uploadUrl = null,
 }) {
     const { alert, dialog: alertDialog } = useAlert();
     const { prompt, dialog: promptDialog } = usePrompt();
@@ -290,7 +273,7 @@ export default function RichTextEditor({
             if (!editor || !file || !file.type.startsWith('image/')) return;
             setUploading(true);
             try {
-                const src = await fileToEditorImage(file);
+                const src = await fileToEditorImage(file, uploadUrl);
                 editor.chain().focus().setImage({ src, alt: '' }).run();
                 emitHtml(editor);
             } catch (err) {
@@ -304,7 +287,7 @@ export default function RichTextEditor({
                 if (fileRef.current) fileRef.current.value = '';
             }
         },
-        [alert, editor, emitHtml],
+        [alert, editor, emitHtml, uploadUrl],
     );
 
     useEffect(() => {

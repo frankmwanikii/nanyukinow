@@ -210,8 +210,11 @@ export default function MediaAddDialog({
                         type="button"
                         className={optionBtn}
                         onClick={() => {
+                            // Open the OS file picker first while the page is
+                            // stable, then close this panel. Parents keep their
+                            // <input type="file"> mounted outside this dialog.
                             onUpload?.();
-                            onClose?.();
+                            window.setTimeout(() => onClose?.(), 0);
                         }}
                     >
                         <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-olive-900 text-white transition group-hover:scale-105 dark:bg-mustard dark:text-olive-950">

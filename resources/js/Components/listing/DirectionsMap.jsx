@@ -9,6 +9,19 @@ function parseCoord(value) {
     return Number.isFinite(n) ? n : null;
 }
 
+function resolveLatLng(listing) {
+    const lat =
+        parseCoord(listing?.lat) ?? parseCoord(listing?.latitude) ?? null;
+    const lng =
+        parseCoord(listing?.lng) ?? parseCoord(listing?.longitude) ?? null;
+
+    if (lat === null || lng === null) {
+        return { lat: null, lng: null };
+    }
+
+    return { lat, lng };
+}
+
 function googlePinSvg() {
     return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
       <svg xmlns="http://www.w3.org/2000/svg" width="32" height="40" viewBox="0 0 32 40">
@@ -26,8 +39,7 @@ export default function DirectionsMap({ listing }) {
     const googleKey = getMapsApiKey();
     const [status, setStatus] = useState('loading');
 
-    const lat = parseCoord(listing?.lat);
-    const lng = parseCoord(listing?.lng);
+    const { lat, lng } = resolveLatLng(listing);
     const hasCoords = lat !== null && lng !== null;
 
     useEffect(() => {
@@ -39,76 +51,123 @@ export default function DirectionsMap({ listing }) {
         }
 
         let cancelled = false;
-        setStatus('loading');
+        let resizeObserver = null;
+        const timers = [];
 
-        if (provider === 'leaflet') {
-            if (!containerRef.current) return undefined;
+        const paint = () => {
+            const el = containerRef.current;
+            if (cancelled || !el) {
+                return;
+            }
 
-            containerRef.current.innerHTML = '';
-            const map = createOsmMap(containerRef.current, {
-                center: { lat, lng },
-                zoom: 14,
-            });
+            // Wait until the frame has a real size (avoids blank Leaflet tiles).
+            if (el.clientWidth < 8 || el.clientHeight < 8) {
+                return;
+            }
 
-            L.marker([lat, lng], {
-                icon: leafletPinIcon({ teardrop: true }),
-                title: listing?.title || listing?.address || '',
-            }).addTo(map);
+            if (mapRef.current) {
+                if (provider === 'leaflet' && mapRef.current.invalidateSize) {
+                    mapRef.current.invalidateSize();
+                }
+                return;
+            }
 
-            mapRef.current = map;
-            requestAnimationFrame(() => map.invalidateSize());
-            setStatus('ready');
+            setStatus('loading');
+            el.innerHTML = '';
 
-            return () => {
-                cancelled = true;
-                map.remove();
-                mapRef.current = null;
-                if (containerRef.current) containerRef.current.innerHTML = '';
-            };
-        }
-
-        if (!googleKey) {
-            setStatus('missing');
-            return undefined;
-        }
-
-        loadGoogleMaps(googleKey, { libraries: [] })
-            .then((maps) => {
-                if (cancelled || !containerRef.current) return;
-
-                containerRef.current.innerHTML = '';
-                const map = new maps.Map(containerRef.current, {
+            if (provider === 'leaflet') {
+                const map = createOsmMap(el, {
                     center: { lat, lng },
                     zoom: 14,
-                    mapTypeControl: false,
-                    streetViewControl: false,
-                    fullscreenControl: true,
-                    clickableIcons: false,
-                    gestureHandling: 'cooperative',
                 });
 
-                new maps.Marker({
-                    map,
-                    position: { lat, lng },
+                L.marker([lat, lng], {
+                    icon: leafletPinIcon({ teardrop: true }),
                     title: listing?.title || listing?.address || '',
-                    icon: {
-                        url: googlePinSvg(),
-                        scaledSize: new maps.Size(32, 40),
-                        anchor: new maps.Point(16, 38),
-                    },
-                });
+                }).addTo(map);
 
                 mapRef.current = map;
+                timers.push(
+                    window.setTimeout(() => {
+                        if (!cancelled) {
+                            map.invalidateSize();
+                        }
+                    }, 50),
+                );
+                timers.push(
+                    window.setTimeout(() => {
+                        if (!cancelled) {
+                            map.invalidateSize();
+                        }
+                    }, 250),
+                );
                 setStatus('ready');
-            })
-            .catch(() => {
-                if (!cancelled) setStatus('error');
-            });
+                return;
+            }
+
+            if (!googleKey) {
+                setStatus('missing');
+                return;
+            }
+
+            loadGoogleMaps(googleKey, { libraries: [] })
+                .then((maps) => {
+                    if (cancelled || !containerRef.current || mapRef.current) {
+                        return;
+                    }
+
+                    containerRef.current.innerHTML = '';
+                    const map = new maps.Map(containerRef.current, {
+                        center: { lat, lng },
+                        zoom: 14,
+                        mapTypeControl: false,
+                        streetViewControl: false,
+                        fullscreenControl: true,
+                        clickableIcons: false,
+                        gestureHandling: 'cooperative',
+                    });
+
+                    new maps.Marker({
+                        map,
+                        position: { lat, lng },
+                        title: listing?.title || listing?.address || '',
+                        icon: {
+                            url: googlePinSvg(),
+                            scaledSize: new maps.Size(32, 40),
+                            anchor: new maps.Point(16, 38),
+                        },
+                    });
+
+                    mapRef.current = map;
+                    setStatus('ready');
+                })
+                .catch(() => {
+                    if (!cancelled) {
+                        setStatus('error');
+                    }
+                });
+        };
+
+        paint();
+
+        if (typeof ResizeObserver !== 'undefined' && containerRef.current) {
+            resizeObserver = new ResizeObserver(() => paint());
+            resizeObserver.observe(containerRef.current);
+        } else {
+            timers.push(window.setTimeout(paint, 100));
+        }
 
         return () => {
             cancelled = true;
+            timers.forEach((id) => window.clearTimeout(id));
+            resizeObserver?.disconnect();
+            if (mapRef.current?.remove) {
+                mapRef.current.remove();
+            }
             mapRef.current = null;
-            if (containerRef.current) containerRef.current.innerHTML = '';
+            if (containerRef.current) {
+                containerRef.current.innerHTML = '';
+            }
         };
     }, [
         hasCoords,
@@ -122,20 +181,16 @@ export default function DirectionsMap({ listing }) {
 
     if (!listing) return null;
 
-    // Hide the whole Directions block until a pin (or usable address) exists.
-    if (!hasCoords && !listing.address) return null;
+    // Need a pin to show Directions (address-only is not enough for a map).
+    if (!hasCoords) return null;
 
     const directionsUrl = directionsUrlFor(provider, {
-        lat: hasCoords ? lat : null,
-        lng: hasCoords ? lng : null,
+        lat,
+        lng,
         query: listing.address || listing.title || 'Nanyuki',
     });
 
-    const showMap =
-        hasCoords && (provider === 'leaflet' || Boolean(googleKey));
-
-    // Without coordinates, don't show an empty "Map unavailable" card.
-    if (!hasCoords) return null;
+    const showMap = provider === 'leaflet' || Boolean(googleKey);
 
     return (
         <section
@@ -148,14 +203,11 @@ export default function DirectionsMap({ listing }) {
                 </h2>
             </div>
 
-            <div className="relative z-0 mt-3 overflow-hidden bg-olive-100 sm:mt-4">
+            <div className="nn-directions-map-frame relative z-0 mt-3 h-56 overflow-hidden bg-olive-100 sm:mt-4 sm:h-64">
                 {showMap ? (
-                    <div
-                        ref={containerRef}
-                        className="nn-directions-map h-56 w-full sm:h-64"
-                    />
+                    <div ref={containerRef} className="h-full w-full" />
                 ) : (
-                    <div className="flex h-56 items-center justify-center px-4 text-center text-sm text-olive-600 sm:h-64">
+                    <div className="flex h-full items-center justify-center px-4 text-center text-sm text-olive-600">
                         {provider === 'google' && !googleKey
                             ? 'Google Maps API key required'
                             : 'Map unavailable'}

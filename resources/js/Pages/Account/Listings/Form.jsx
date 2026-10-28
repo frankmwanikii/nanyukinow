@@ -328,6 +328,19 @@ export default function Form({
     const isThingsToDo = categoryKey === 'thingsToDo';
     const isServices = categoryKey === 'services';
     const isEvents = categoryKey === 'events';
+    // Prefer named routes, but never crash the form if Ziggy is stale.
+    let editorMediaUploadUrl = isAdmin
+        ? '/admin/listings/editor-media'
+        : '/account/listings/editor-media';
+    try {
+        editorMediaUploadUrl = route(
+            isAdmin
+                ? 'admin.listings.editor-media'
+                : 'account.listings.editor-media',
+        );
+    } catch {
+        // keep path fallback
+    }
     const tierState = resolveListingTier(categoryKey, form.data.tier);
     const {
         listingTier,
@@ -711,18 +724,18 @@ export default function Form({
         form.transform((data) => {
             const payload = {
                 ...data,
-                gallery_urls: isAdmin ? galleryUrls : JSON.stringify(galleryUrls),
+                // Always JSON-encode nested structures for multipart posts so
+                // deep menu/gallery arrays survive FormData serialization.
+                gallery_urls: JSON.stringify(galleryUrls),
                 gallery_files: galleryFiles,
-                gallery_file_meta: isAdmin
-                    ? galleryFileMeta
-                    : JSON.stringify(galleryFileMeta),
-                amenities: isAdmin ? data.amenities : JSON.stringify(data.amenities || []),
+                gallery_file_meta: JSON.stringify(galleryFileMeta),
+                amenities: JSON.stringify(data.amenities || []),
                 hours:
                     categoryKey === 'properties' || categoryKey === 'events'
                         ? null
-                        : (isAdmin ? data.hours : JSON.stringify(data.hours || [])),
-                details: isAdmin ? data.details : JSON.stringify(data.details || {}),
-                social_links: isAdmin ? data.social_links : JSON.stringify(data.social_links || {}),
+                        : JSON.stringify(data.hours || []),
+                details: JSON.stringify(data.details || {}),
+                social_links: JSON.stringify(data.social_links || {}),
                 latitude: data.latitude === '' ? null : data.latitude,
                 longitude: data.longitude === '' ? null : data.longitude,
             };
@@ -990,6 +1003,7 @@ export default function Form({
                                         patch={patch}
                                         descriptionWordLimit={descriptionWordLimit}
                                         hideTagline={hideTagline}
+                                        uploadUrl={editorMediaUploadUrl}
                                     />
                                 ) : null}
 
@@ -1070,6 +1084,7 @@ export default function Form({
                                                     ? route('admin.gallery.browse')
                                                     : null
                                             }
+                                            uploadUrl={editorMediaUploadUrl}
                                             tier={listingTier}
                                             isAdmin={isAdmin}
                                         />
@@ -1723,6 +1738,7 @@ function BasicsStep({
     patch,
     descriptionWordLimit = null,
     hideTagline = false,
+    uploadUrl = null,
 }) {
     const wordCount = eatDrinkCountWords(form.data.description);
     const overLimit =
@@ -1902,6 +1918,7 @@ function BasicsStep({
             <RichTextEditor
                 value={form.data.description}
                 onChange={(description) => patch({ description })}
+                uploadUrl={uploadUrl}
                 error={
                     form.errors.description ||
                     (overLimit

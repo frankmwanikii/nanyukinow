@@ -30,9 +30,34 @@ import {
     formatGigWhenLabel,
     WEEKDAYS,
 } from '@/utils/eatDrinkDetails';
+import { uploadEditorMedia } from '@/utils/uploadEditorMedia';
 import { Link } from '@inertiajs/react';
 import { ImagePlus, Images, Plus, Trash2, X } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { Component, useRef, useState } from 'react';
+
+class SectionErrorBoundary extends Component {
+    constructor(props) {
+        super(props);
+        this.state = { failed: false };
+    }
+
+    static getDerivedStateFromError() {
+        return { failed: true };
+    }
+
+    render() {
+        if (this.state.failed) {
+            return (
+                <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-200">
+                    This section hit a display error. Refresh the page and try
+                    again — your other listing fields are still safe.
+                </div>
+            );
+        }
+
+        return this.props.children;
+    }
+}
 
 function Section({ title, blurb, children }) {
     return (
@@ -123,9 +148,12 @@ function ImageDropzonePick({
             multiple={multiple}
             className="sr-only"
             onChange={(e) => {
-                const files = e.target.files;
+                e.preventDefault();
+                e.stopPropagation();
+                // Copy before clearing — input.files is a live FileList.
+                const files = Array.from(e.target.files || []);
                 e.target.value = '';
-                if (files?.length) {
+                if (files.length) {
                     onFiles?.(files);
                 }
             }}
@@ -194,37 +222,68 @@ function MenuImagesEditor({
     maxImages,
     onChange,
     libraryRoute = null,
+    uploadUrl = null,
 }) {
-    const remaining = Math.max(0, maxImages - images.length);
+    const safeMax = Math.max(1, Number(maxImages) || 1);
+    const remaining = Math.max(0, safeMax - images.length);
     const atLimit = remaining <= 0;
     const [libraryOpen, setLibraryOpen] = useState(false);
+    const [uploadError, setUploadError] = useState(null);
+    const [uploading, setUploading] = useState(false);
     const fileInputRef = useRef(null);
 
     const addFiles = async (fileList) => {
         const files = Array.from(fileList || []).filter((f) =>
             f.type?.startsWith('image/'),
         );
-        if (!files.length || atLimit) return;
+        if (!files.length) {
+            setUploadError('Choose a JPG, PNG, or WebP image.');
+            return;
+        }
+        if (atLimit) {
+            setUploadError(`This menu page already has ${safeMax} images.`);
+            return;
+        }
+        setUploadError(null);
+        setUploading(true);
         const chosen = files.slice(0, remaining);
         const urls = [];
-        for (const file of chosen) {
-            try {
-                const url = await uploadEditorImage(file);
-                urls.push(url || URL.createObjectURL(file));
-            } catch {
-                urls.push(URL.createObjectURL(file));
+        try {
+            for (const file of chosen) {
+                const url = await uploadEditorMedia(file, uploadUrl);
+                if (url) {
+                    urls.push(url);
+                }
             }
+        } finally {
+            setUploading(false);
         }
-        onChange([...images, ...urls].slice(0, maxImages));
+        if (!urls.length) {
+            setUploadError(
+                'Could not upload that image. Try a JPG, PNG, or WebP under 5MB.',
+            );
+            return;
+        }
+        if (urls.length < chosen.length) {
+            setUploadError(
+                `Uploaded ${urls.length} of ${chosen.length} images. Retry the rest.`,
+            );
+        }
+        onChange([...images, ...urls].slice(0, safeMax));
     };
 
     const addUrls = (urls) => {
         if (!urls?.length || atLimit) return;
-        onChange([...images, ...urls].slice(0, maxImages));
+        setUploadError(null);
+        onChange([...images, ...urls].slice(0, safeMax));
     };
 
     const removeAt = (index) => {
         onChange(images.filter((_, i) => i !== index));
+    };
+
+    const openFilePicker = () => {
+        fileInputRef.current?.click();
     };
 
     const openAdd = () => {
@@ -233,153 +292,148 @@ function MenuImagesEditor({
             setLibraryOpen(true);
             return;
         }
-        fileInputRef.current?.click();
+        openFilePicker();
     };
 
     return (
         <div className="space-y-3">
-            {libraryRoute && !atLimit ? (
-                <div className="flex flex-wrap justify-end gap-2">
-                    <button
-                        type="button"
-                        onClick={() => setLibraryOpen(true)}
-                        className="inline-flex items-center gap-1.5 rounded-full bg-olive-900 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-olive-800"
-                    >
-                        <Images className="h-3.5 w-3.5" />
-                        Open gallery
-                    </button>
-                </div>
-            ) : null}
-
-            {images.length ? (
-                <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                    {images.map((src, index) => (
-                        <li
-                            key={`${src}-${index}`}
-                            className="group relative overflow-hidden rounded-xl bg-olive-100"
-                        >
-                            <img
-                                src={src}
-                                alt=""
-                                className="aspect-[3/4] w-full object-cover"
-                            />
-                            <button
-                                type="button"
-                                onClick={() => removeAt(index)}
-                                className="absolute right-1.5 top-1.5 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/95 text-rose-700 shadow-sm"
-                                aria-label={`Remove image ${index + 1}`}
-                            >
-                                <X className="h-3.5 w-3.5" strokeWidth={2.5} />
-                            </button>
-                            <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/50 to-transparent px-2 py-1.5 text-[10px] font-semibold text-white">
-                                {index + 1} / {images.length}
-                            </span>
-                        </li>
-                    ))}
-                    {!atLimit ? (
-                        <li>
-                            <button
-                                type="button"
-                                onClick={openAdd}
-                                className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-olive-300 bg-white/70 text-olive-600 transition hover:border-mustard hover:bg-mustard/5"
-                            >
-                                <ImagePlus className="h-5 w-5" />
-                                <span className="text-[11px] font-semibold">
-                                    Add more
-                                </span>
-                                <span className="text-[10px] text-olive-500">
-                                    {images.length}/{maxImages}
-                                </span>
-                            </button>
-                        </li>
-                    ) : null}
-                </ul>
-            ) : (
-                <div className="space-y-2">
-                    <ImageDropzonePick
-                        inputId={inputId}
-                        image=""
-                        remainingLabel={`up to ${maxImages} images`}
-                        onFiles={(files) => void addFiles(files)}
-                        onClear={() => {}}
-                    />
-                    {libraryRoute ? (
-                        <button
-                            type="button"
-                            onClick={() => setLibraryOpen(true)}
-                            className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-olive-200 bg-white px-3 py-2 text-xs font-semibold text-olive-800 transition hover:border-mustard dark:border-olive-700 dark:bg-olive-900 dark:text-olive-100"
-                        >
-                            <Images className="h-3.5 w-3.5" />
-                            Or grab from gallery
-                        </button>
-                    ) : null}
-                </div>
-            )}
-
+            {/* Keep the file input mounted always so the OS picker still delivers
+                files after MediaAddDialog closes (same pattern as GalleryUploader). */}
             <input
                 ref={fileInputRef}
-                id={images.length ? inputId : undefined}
                 type="file"
                 accept="image/*"
                 multiple
-                className="sr-only"
+                className="hidden"
                 onChange={(e) => {
-                    const files = e.target.files;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const files = Array.from(e.target.files || []);
                     e.target.value = '';
-                    if (files?.length) {
+                    if (files.length) {
                         void addFiles(files);
                     }
                 }}
             />
 
-            {atLimit ? (
-                <p className={help}>
-                    This menu page is at the {maxImages}-image limit.
-                </p>
-            ) : null}
-
-            {libraryRoute ? (
+            {libraryOpen && libraryRoute ? (
                 <MediaAddDialog
-                    open={libraryOpen}
+                    open
                     onClose={() => setLibraryOpen(false)}
                     libraryRoute={libraryRoute}
-                    initialPanel="library"
+                    initialPanel="menu"
                     remaining={remaining}
                     target="gallery"
-                    onUpload={() => {
-                        setLibraryOpen(false);
-                        fileInputRef.current?.click();
-                    }}
+                    onUpload={openFilePicker}
                     onPickUrls={(urls) => {
                         addUrls(urls);
                         setLibraryOpen(false);
                     }}
                 />
+            ) : (
+                <>
+                    {libraryRoute && !atLimit ? (
+                        <div className="flex flex-wrap justify-end gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setLibraryOpen(true)}
+                                className="inline-flex items-center gap-1.5 rounded-full bg-olive-900 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-olive-800"
+                            >
+                                <Images className="h-3.5 w-3.5" />
+                                Open gallery
+                            </button>
+                        </div>
+                    ) : null}
+
+                    {images.length ? (
+                        <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                            {images.map((src, index) => (
+                                <li
+                                    key={`${src}-${index}`}
+                                    className="group relative overflow-hidden rounded-xl bg-olive-100"
+                                >
+                                    <img
+                                        src={src}
+                                        alt=""
+                                        className="aspect-[3/4] w-full object-cover"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => removeAt(index)}
+                                        className="absolute right-1.5 top-1.5 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/95 text-rose-700 shadow-sm"
+                                        aria-label={`Remove image ${index + 1}`}
+                                    >
+                                        <X
+                                            className="h-3.5 w-3.5"
+                                            strokeWidth={2.5}
+                                        />
+                                    </button>
+                                    <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/50 to-transparent px-2 py-1.5 text-[10px] font-semibold text-white">
+                                        {index + 1} / {images.length}
+                                    </span>
+                                </li>
+                            ))}
+                            {!atLimit ? (
+                                <li>
+                                    <button
+                                        type="button"
+                                        onClick={openAdd}
+                                        className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-olive-300 bg-white/70 text-olive-600 transition hover:border-mustard hover:bg-mustard/5"
+                                    >
+                                        <ImagePlus className="h-5 w-5" />
+                                        <span className="text-[11px] font-semibold">
+                                            Add more
+                                        </span>
+                                        <span className="text-[10px] text-olive-500">
+                                            {images.length}/{safeMax}
+                                        </span>
+                                    </button>
+                                </li>
+                            ) : null}
+                        </ul>
+                    ) : (
+                        <div className="space-y-2">
+                            <ImageDropzonePick
+                                inputId={inputId}
+                                image=""
+                                remainingLabel={`up to ${safeMax} images`}
+                                onFiles={(files) => void addFiles(files)}
+                                onClear={() => {}}
+                            />
+                            {libraryRoute ? (
+                                <button
+                                    type="button"
+                                    onClick={() => setLibraryOpen(true)}
+                                    className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-olive-200 bg-white px-3 py-2 text-xs font-semibold text-olive-800 transition hover:border-mustard dark:border-olive-700 dark:bg-olive-900 dark:text-olive-100"
+                                >
+                                    <Images className="h-3.5 w-3.5" />
+                                    Or grab from gallery
+                                </button>
+                            ) : null}
+                        </div>
+                    )}
+                </>
+            )}
+
+            {uploading ? (
+                <p className="text-sm font-medium text-olive-700 dark:text-olive-300">
+                    Uploading menu image…
+                </p>
+            ) : null}
+
+            {uploadError ? (
+                <p className="text-sm font-medium text-rose-700 dark:text-rose-300">
+                    {uploadError}
+                </p>
+            ) : null}
+
+            {!libraryOpen && atLimit ? (
+                <p className={help}>
+                    This menu page is at the {safeMax}-image limit.
+                </p>
             ) : null}
         </div>
     );
-}
-
-async function uploadEditorImage(file) {
-    const csrf =
-        document
-            .querySelector('meta[name="csrf-token"]')
-            ?.getAttribute('content') || '';
-    const body = new FormData();
-    body.append('image', file);
-    const res = await fetch('/account/listings/editor-media', {
-        method: 'POST',
-        headers: {
-            Accept: 'application/json',
-            'X-CSRF-TOKEN': csrf,
-            'X-Requested-With': 'XMLHttpRequest',
-        },
-        credentials: 'same-origin',
-        body,
-    });
-    if (!res.ok) return null;
-    const json = await res.json();
-    return json?.url || null;
 }
 
 /**
@@ -391,6 +445,7 @@ export default function CategoryExtrasEditor({
     details = {},
     onDetailsChange,
     libraryRoute = null,
+    uploadUrl = null,
     tier = 'free',
     isAdmin = false,
 }) {
@@ -438,11 +493,15 @@ export default function CategoryExtrasEditor({
         : [];
     const products = Array.isArray(details.products) ? details.products : [];
     const showMenus =
-        categoryKey !== 'eatDrink' || canUseEatDrinkFeature(tier, 'menus');
+        categoryKey !== 'eatDrink' ||
+        isAdmin ||
+        canUseEatDrinkFeature(tier, 'menus');
     const showDeals =
-        categoryKey === 'eatDrink' && canUseEatDrinkFeature(tier, 'deals');
+        categoryKey === 'eatDrink' &&
+        (isAdmin || canUseEatDrinkFeature(tier, 'deals'));
     const showLiveMusic =
-        categoryKey === 'eatDrink' && canUseEatDrinkFeature(tier, 'live_music');
+        categoryKey === 'eatDrink' &&
+        (isAdmin || canUseEatDrinkFeature(tier, 'live_music'));
     const showStayOffers =
         categoryKey === 'stay' && canUseStayFeature(tier, 'seasonal_offers');
     const showShoppingProducts =
@@ -476,22 +535,28 @@ export default function CategoryExtrasEditor({
             : Math.max(0, portfolioCap - portfolio.length);
     const atPortfolioLimit =
         portfolioCap != null && portfolioRemaining <= 0;
+    // Admins can edit menus even on Free listings; use Standard caps unless Premium.
+    const menuTier =
+        categoryKey === 'eatDrink' && isAdmin && !canUseEatDrinkFeature(tier, 'menus')
+            ? 'featured'
+            : tier;
     const menuLimit =
-        categoryKey === 'eatDrink' ? eatDrinkMenuLimit(tier) : null;
+        categoryKey === 'eatDrink' ? eatDrinkMenuLimit(menuTier) : null;
     const imagesPerMenu =
-        categoryKey === 'eatDrink' ? eatDrinkMenuImagesPerPage(tier) : 5;
+        categoryKey === 'eatDrink' ? eatDrinkMenuImagesPerPage(menuTier) : 5;
     const menuRemaining =
         menuLimit == null ? 0 : Math.max(0, menuLimit - menus.length);
     const atMenuLimit = menuLimit != null && menuRemaining <= 0;
 
     return (
+        <SectionErrorBoundary>
         <div className="space-y-5">
             {categoryKey === 'eatDrink' ? (
                 <>
                 {showMenus ? (
                 <Section
                     title="Menus"
-                    blurb={eatDrinkMenuHelp(tier)}
+                    blurb={eatDrinkMenuHelp(menuTier)}
                 >
                     <ul className="space-y-4">
                         {menus.map((item, index) => (
@@ -529,6 +594,7 @@ export default function CategoryExtrasEditor({
                                         images={menuItemImages(item)}
                                         maxImages={imagesPerMenu}
                                         libraryRoute={libraryRoute}
+                                        uploadUrl={uploadUrl}
                                         onChange={(nextImages) =>
                                             updateItem('menus', index, {
                                                 images: nextImages,
@@ -558,15 +624,23 @@ export default function CategoryExtrasEditor({
                     </ul>
                     {atMenuLimit ? (
                         <p className={help}>
-                            {normalizeTier(tier) === 'premium' ? (
+                            {normalizeTier(menuTier) === 'premium' ? (
                                 <>
                                     You’ve reached the Premium limit of{' '}
                                     {menuLimit} menu pages.
                                 </>
+                            ) : isAdmin ? (
+                                <>
+                                    You’ve reached the{' '}
+                                    {tierDisplayLabel(menuTier)} limit of{' '}
+                                    {menuLimit} menu pages. Set plan tier to
+                                    Premium for up to{' '}
+                                    {eatDrinkMenuLimit('premium')} menu pages.
+                                </>
                             ) : (
                                 <>
                                     You’ve reached the{' '}
-                                    {tierDisplayLabel(tier)} limit of{' '}
+                                    {tierDisplayLabel(menuTier)} limit of{' '}
                                     {menuLimit} menu pages.{' '}
                                     <Link
                                         href={route('account.upgrade')}
@@ -1542,18 +1616,15 @@ export default function CategoryExtrasEditor({
                     pendingSingleRef.current = null;
                     setImageTarget(null);
                     if (!file || !target) return;
-                    try {
-                        const url = await uploadEditorImage(file);
+                    const url = await uploadEditorMedia(file, uploadUrl);
+                    if (url) {
                         updateItem(target.list, target.index, {
-                            [target.key]: url || URL.createObjectURL(file),
-                        });
-                    } catch {
-                        updateItem(target.list, target.index, {
-                            [target.key]: URL.createObjectURL(file),
+                            [target.key]: url,
                         });
                     }
                 }}
             />
         </div>
+        </SectionErrorBoundary>
     );
 }
