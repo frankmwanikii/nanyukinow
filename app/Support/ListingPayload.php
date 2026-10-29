@@ -4,9 +4,15 @@ namespace App\Support;
 
 use App\Models\Listing;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 class ListingPayload
 {
+    /**
+     * Maximum length of the plain-text tagline derived from a description.
+     */
+    private const TAGLINE_LIMIT = 180;
+
     /**
      * Map an Eloquent listing into the shape the React UI expects.
      *
@@ -26,10 +32,10 @@ class ListingPayload
             'location' => $listing->location,
             'city' => $listing->city,
             'description' => $listing->description,
-            'tagline' => $listing->tagline ?: $listing->description,
-            'image' => $listing->image_url,
-            'logo' => $listing->logo_url,
-            'eventPoster' => $listing->event_poster_url,
+            'tagline' => $listing->tagline ?: self::plainText($listing->description),
+            'image' => self::publicMediaUrl($listing->image_url),
+            'logo' => self::publicMediaUrl($listing->logo_url),
+            'eventPoster' => self::publicMediaUrl($listing->event_poster_url),
             'gallery' => $listing->gallery ?? [],
             'amenities' => $listing->amenities ?? [],
             'hours' => $listing->hours ?? [],
@@ -79,6 +85,40 @@ class ListingPayload
             'organiser' => $details['organiser'] ?? null,
             'claim_status' => $listing->claim_status ?: 'unclaimed',
         ];
+    }
+
+    /**
+     * Drop empty or incomplete storage paths so the UI never renders a broken image.
+     */
+    private static function publicMediaUrl(?string $url): ?string
+    {
+        if (! filled($url)) {
+            return null;
+        }
+
+        $trimmed = trim($url);
+        if ($trimmed === '' || $trimmed === '/storage' || $trimmed === '/storage/') {
+            return null;
+        }
+
+        return $trimmed;
+    }
+
+    /**
+     * Reduce rich-text content to a short plain-text line.
+     */
+    private static function plainText(?string $html): ?string
+    {
+        if (! filled($html)) {
+            return null;
+        }
+
+        $text = html_entity_decode($html, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $text = preg_replace('/<[^>]*>/', ' ', $text) ?? '';
+        $text = str_replace("\u{00A0}", ' ', $text);
+        $text = trim(preg_replace('/\s+/u', ' ', $text) ?? '');
+
+        return $text !== '' ? Str::limit($text, self::TAGLINE_LIMIT) : null;
     }
 
     /**

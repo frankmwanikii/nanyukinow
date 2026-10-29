@@ -1,13 +1,23 @@
 <?php
 
+use App\Http\Controllers\Account\AmenityController;
 use App\Http\Controllers\Account\BillingController as AccountBillingController;
 use App\Http\Controllers\Account\BookmarkController as AccountBookmarkController;
 use App\Http\Controllers\Account\DashboardController as AccountDashboardController;
+use App\Http\Controllers\Account\EditorMediaController;
 use App\Http\Controllers\Account\ListingController as AccountListingController;
+use App\Http\Controllers\Account\MessageController;
+use App\Http\Controllers\Account\NotificationController;
+use App\Http\Controllers\Account\PlaceSearchController;
 use App\Http\Controllers\Account\UpgradeController as AccountUpgradeController;
+use App\Http\Controllers\ListingClaimController;
+use App\Http\Controllers\ListingContactController;
 use App\Http\Controllers\ListingController;
+use App\Http\Controllers\ListingReportController;
+use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\PricingPageController;
 use App\Http\Controllers\ProfileController;
+use App\Models\SitePage;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -25,7 +35,7 @@ Route::get('/stories', function () {
     return Inertia::render('Stories/Index', [
         'category' => request()->string('category')->toString() ?: null,
         'q' => request()->string('q')->toString() ?: null,
-        'page' => \App\Models\SitePage::findBySlug('stories')?->toPublicArray(),
+        'page' => SitePage::findBySlug('stories')?->toPublicArray(),
     ]);
 })->name('stories.index');
 
@@ -44,25 +54,28 @@ Route::post('/listings/{listing:slug}/like', [ListingController::class, 'like'])
 Route::post('/listings/{listing:slug}/bookmark', [ListingController::class, 'bookmark'])
     ->middleware(['auth', 'throttle:30,1'])
     ->name('listings.bookmark');
-Route::post('/listings/{listing:slug}/contact', [\App\Http\Controllers\ListingContactController::class, 'store'])
+Route::post('/listings/{listing:slug}/contact', [ListingContactController::class, 'store'])
     ->middleware('throttle:10,1')
     ->name('listings.contact');
-Route::post('/newsletter', [\App\Http\Controllers\NewsletterController::class, 'store'])
+Route::post('/newsletter', [NewsletterController::class, 'store'])
     ->middleware('throttle:10,1')
     ->name('newsletter.subscribe');
-Route::post('/listings/{listing:slug}/claim', [\App\Http\Controllers\ListingClaimController::class, 'store'])
+Route::post('/listings/{listing:slug}/claim', [ListingClaimController::class, 'store'])
     ->middleware('throttle:8,1')
     ->name('listings.claim');
+Route::post('/listings/{listing:slug}/report', [ListingReportController::class, 'store'])
+    ->middleware('throttle:8,1')
+    ->name('listings.report');
 
 Route::get('/terms', function () {
     return Inertia::render('Terms', [
-        'page' => \App\Models\SitePage::findBySlug('terms')?->toPublicArray(),
+        'page' => SitePage::findBySlug('terms')?->toPublicArray(),
     ]);
 })->name('terms');
 
 Route::get('/privacy', function () {
     return Inertia::render('Privacy', [
-        'page' => \App\Models\SitePage::findBySlug('privacy')?->toPublicArray(),
+        'page' => SitePage::findBySlug('privacy')?->toPublicArray(),
     ]);
 })->name('privacy');
 
@@ -85,19 +98,19 @@ Route::middleware('auth')->group(function () {
     Route::get('/account/listings/{listing:slug}/edit', [AccountListingController::class, 'edit'])->name('account.listings.edit');
     Route::put('/account/listings/{listing:slug}', [AccountListingController::class, 'update'])->name('account.listings.update');
     Route::delete('/account/listings/{listing:slug}', [AccountListingController::class, 'destroy'])->name('account.listings.destroy');
-    Route::post('/account/amenities', [\App\Http\Controllers\Account\AmenityController::class, 'store'])
+    Route::post('/account/amenities', [AmenityController::class, 'store'])
         ->middleware('throttle:30,1')
         ->name('account.amenities.store');
-    Route::post('/account/listings/editor-media', [\App\Http\Controllers\Account\EditorMediaController::class, 'store'])
+    Route::post('/account/listings/editor-media', [EditorMediaController::class, 'store'])
         ->middleware('throttle:40,1')
         ->name('account.listings.editor-media');
-    Route::get('/account/media/browse', [\App\Http\Controllers\Account\EditorMediaController::class, 'browse'])
+    Route::get('/account/media/browse', [EditorMediaController::class, 'browse'])
         ->middleware('throttle:60,1')
         ->name('account.media.browse');
-    Route::get('/account/places/search', [\App\Http\Controllers\Account\PlaceSearchController::class, 'search'])
+    Route::get('/account/places/search', [PlaceSearchController::class, 'search'])
         ->middleware('throttle:60,1')
         ->name('account.places.search');
-    Route::get('/account/places/reverse', [\App\Http\Controllers\Account\PlaceSearchController::class, 'reverse'])
+    Route::get('/account/places/reverse', [PlaceSearchController::class, 'reverse'])
         ->middleware('throttle:60,1')
         ->name('account.places.reverse');
 
@@ -108,16 +121,16 @@ Route::middleware('auth')->group(function () {
     Route::post('/account/upgrade', [AccountUpgradeController::class, 'store'])->name('account.upgrade.store');
     Route::post('/account/upgrade/{upgrade}/cancel', [AccountUpgradeController::class, 'cancel'])->name('account.upgrade.cancel');
 
-    Route::get('/account/notifications', [\App\Http\Controllers\Account\NotificationController::class, 'index'])->name('account.notifications');
-    Route::post('/account/notifications/read-all', [\App\Http\Controllers\Account\NotificationController::class, 'markAllRead'])->name('account.notifications.read-all');
-    Route::post('/account/notifications/{id}/read', [\App\Http\Controllers\Account\NotificationController::class, 'markRead'])->name('account.notifications.read');
+    Route::get('/account/notifications', [NotificationController::class, 'index'])->name('account.notifications');
+    Route::post('/account/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('account.notifications.read-all');
+    Route::post('/account/notifications/{id}/read', [NotificationController::class, 'markRead'])->name('account.notifications.read');
 
-    Route::get('/account/messages', [\App\Http\Controllers\Account\MessageController::class, 'index'])->name('account.messages');
-    Route::post('/account/messages/read-all', [\App\Http\Controllers\Account\MessageController::class, 'markAllRead'])->name('account.messages.read-all');
-    Route::delete('/account/messages/alerts/{id}', [\App\Http\Controllers\Account\MessageController::class, 'destroyAlert'])->name('account.messages.alerts.destroy');
-    Route::get('/account/messages/{conversation}', [\App\Http\Controllers\Account\MessageController::class, 'show'])->name('account.messages.show');
-    Route::post('/account/messages/{conversation}', [\App\Http\Controllers\Account\MessageController::class, 'reply'])->name('account.messages.reply');
-    Route::delete('/account/messages/{conversation}', [\App\Http\Controllers\Account\MessageController::class, 'destroy'])->name('account.messages.destroy');
+    Route::get('/account/messages', [MessageController::class, 'index'])->name('account.messages');
+    Route::post('/account/messages/read-all', [MessageController::class, 'markAllRead'])->name('account.messages.read-all');
+    Route::delete('/account/messages/alerts/{id}', [MessageController::class, 'destroyAlert'])->name('account.messages.alerts.destroy');
+    Route::get('/account/messages/{conversation}', [MessageController::class, 'show'])->name('account.messages.show');
+    Route::post('/account/messages/{conversation}', [MessageController::class, 'reply'])->name('account.messages.reply');
+    Route::delete('/account/messages/{conversation}', [MessageController::class, 'destroy'])->name('account.messages.destroy');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

@@ -389,10 +389,12 @@ class ListingController extends Controller
             $posterUrl = ListingMedia::store($request->file('event_poster'), 'listings/posters');
         }
 
-        $data['slug'] = ListingSlug::make(
+        $data['slug'] = ListingSlug::resolve(
             (string) ($data['title'] ?? 'listing'),
             $listing?->id,
-            isset($data['slug']) ? (string) $data['slug'] : $listing?->slug,
+            $listing?->slug,
+            $listing?->title,
+            isset($data['slug']) ? (string) $data['slug'] : null,
         );
 
         $data['is_featured'] = (bool) ($data['is_featured'] ?? false);

@@ -20,7 +20,21 @@ import {
 } from '@/data/listings';
 
 const PAGE_SIZE = 12;
-const MAX_PAGE_BUTTONS = 12;
+const MAX_PAGE_BUTTONS = 5;
+
+function pageWindow(current, total, max = MAX_PAGE_BUTTONS) {
+    if (total <= max) {
+        return Array.from({ length: total }, (_, i) => i + 1);
+    }
+    const half = Math.floor(max / 2);
+    let start = Math.max(1, current - half);
+    let end = start + max - 1;
+    if (end > total) {
+        end = total;
+        start = Math.max(1, end - max + 1);
+    }
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+}
 
 function syncUrl({ category, subcategory, propertyType, q, location }) {
     const next = explorePath({
@@ -73,6 +87,16 @@ function ExploreContent({
     ]);
 
     useEffect(() => {
+        syncUrl({
+            category: categoryKey,
+            subcategory,
+            propertyType,
+            q: query.trim() || null,
+            location,
+        });
+    }, [categoryKey, subcategory, propertyType, location]);
+
+    useEffect(() => {
         const handle = window.setTimeout(() => {
             syncUrl({
                 category: categoryKey,
@@ -83,7 +107,7 @@ function ExploreContent({
             });
         }, 220);
         return () => window.clearTimeout(handle);
-    }, [categoryKey, subcategory, propertyType, query, location]);
+    }, [query]);
 
     useEffect(() => {
         setPage(1);
@@ -317,15 +341,14 @@ function ExploreContent({
                                     {sitePage?.content?.empty_title ||
                                         'Nothing here yet!'}
                                 </p>
-                                {sitePage?.content?.empty_body ? (
-                                    <p className="mt-2 max-w-sm text-sm leading-relaxed text-olive-600 sm:text-base">
-                                        {sitePage.content.empty_body}
-                                    </p>
-                                ) : null}
+                                <p className="mt-2 max-w-sm text-sm leading-relaxed text-olive-600 sm:text-base">
+                                    {sitePage?.content?.empty_body ||
+                                        'Try another category, clear filters, or check back soon for new listings.'}
+                                </p>
                                 <button
                                     type="button"
                                     onClick={clearFilters}
-                                    className="mt-5 rounded-full bg-olive-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-mustard hover:text-olive-950"
+                                    className="mt-5 min-h-11 rounded-full bg-olive-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-mustard hover:text-olive-950"
                                 >
                                     Clear filters
                                 </button>
@@ -353,7 +376,7 @@ function ExploreContent({
 
                                 <div className="mt-8 flex flex-col items-center gap-3 pb-6">
                                     <nav
-                                        className="inline-flex items-center gap-1 rounded-2xl border border-olive-200/80 bg-white p-1.5 shadow-soft"
+                                        className="inline-flex max-w-full items-center gap-1 overflow-x-auto rounded-2xl border border-olive-200/80 bg-white p-1.5 shadow-soft [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                                         aria-label="Pagination"
                                     >
                                         <button
@@ -364,7 +387,7 @@ function ExploreContent({
                                                     Math.max(1, p - 1),
                                                 )
                                             }
-                                            className="inline-flex h-9 items-center gap-1 rounded-xl px-3 text-sm font-semibold text-olive-700 transition hover:bg-olive-50 disabled:cursor-not-allowed disabled:opacity-35"
+                                            className="inline-flex h-11 shrink-0 items-center gap-1 rounded-xl px-3 text-sm font-semibold text-olive-700 transition hover:bg-olive-50 disabled:cursor-not-allowed disabled:opacity-35"
                                             aria-label="Previous page"
                                         >
                                             <ChevronLeft className="h-4 w-4" />
@@ -373,40 +396,36 @@ function ExploreContent({
                                             </span>
                                         </button>
 
-                                        <div className="mx-0.5 h-5 w-px bg-olive-200" />
+                                        <div className="mx-0.5 hidden h-5 w-px shrink-0 bg-olive-200 sm:block" />
 
-                                        {Array.from(
-                                            {
-                                                length: Math.min(
-                                                    totalPages,
-                                                    MAX_PAGE_BUTTONS,
-                                                ),
+                                        {pageWindow(safePage, totalPages).map(
+                                            (n) => {
+                                                const active = n === safePage;
+                                                return (
+                                                    <button
+                                                        key={n}
+                                                        type="button"
+                                                        onClick={() =>
+                                                            setPage(n)
+                                                        }
+                                                        className={`flex h-11 min-w-11 shrink-0 items-center justify-center rounded-xl px-3 text-sm font-semibold transition ${
+                                                            active
+                                                                ? 'bg-[#4f5a3e] text-white shadow-sm'
+                                                                : 'text-earth-dusk hover:bg-olive-50'
+                                                        }`}
+                                                        aria-current={
+                                                            active
+                                                                ? 'page'
+                                                                : undefined
+                                                        }
+                                                    >
+                                                        {n}
+                                                    </button>
+                                                );
                                             },
-                                            (_, i) => i + 1,
-                                        ).map((n) => {
-                                            const active = n === safePage;
-                                            return (
-                                                <button
-                                                    key={n}
-                                                    type="button"
-                                                    onClick={() => setPage(n)}
-                                                    className={`flex h-9 min-w-9 items-center justify-center rounded-xl px-3 text-sm font-semibold transition ${
-                                                        active
-                                                            ? 'bg-[#4f5a3e] text-white shadow-sm'
-                                                            : 'text-earth-dusk hover:bg-olive-50'
-                                                    }`}
-                                                    aria-current={
-                                                        active
-                                                            ? 'page'
-                                                            : undefined
-                                                    }
-                                                >
-                                                    {n}
-                                                </button>
-                                            );
-                                        })}
+                                        )}
 
-                                        <div className="mx-0.5 h-5 w-px bg-olive-200" />
+                                        <div className="mx-0.5 hidden h-5 w-px shrink-0 bg-olive-200 sm:block" />
 
                                         <button
                                             type="button"
@@ -419,7 +438,7 @@ function ExploreContent({
                                                     ),
                                                 )
                                             }
-                                            className="inline-flex h-9 items-center gap-1 rounded-xl px-3 text-sm font-semibold text-olive-700 transition hover:bg-olive-50 disabled:cursor-not-allowed disabled:opacity-35"
+                                            className="inline-flex h-11 shrink-0 items-center gap-1 rounded-xl px-3 text-sm font-semibold text-olive-700 transition hover:bg-olive-50 disabled:cursor-not-allowed disabled:opacity-35"
                                             aria-label="Next page"
                                         >
                                             <span className="hidden sm:inline">

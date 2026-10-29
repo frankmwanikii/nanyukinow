@@ -2,11 +2,11 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 
 const FLIP_WORDS = [
-    'hotels',
-    'events',
-    'cafes',
-    'properties',
-    'shopping',
+    'Hotels',
+    'Events',
+    'Cafes',
+    'Properties',
+    'Shopping',
     'Restaurants',
 ];
 

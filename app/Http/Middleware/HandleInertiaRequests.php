@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Models\Conversation;
 use App\Models\ListingClaim;
+use App\Models\ListingReport;
 use App\Models\SiteSetting;
 use App\Support\MemberMessages;
 use App\Support\MemberNotifications;
@@ -86,6 +87,27 @@ class HandleInertiaRequests extends Middleware
 
                 return $value === 'leaflet' ? 'leaflet' : 'google';
             },
+            'siteContact' => function () {
+                try {
+                    $phone = trim((string) SiteSetting::getValue('contact_phone', ''));
+                    $email = trim((string) SiteSetting::getValue(
+                        'contact_email',
+                        (string) config('mail.from.address', 'hello@nanyukinow.co.ke'),
+                    ));
+
+                    return [
+                        'phone' => $phone !== '' && $phone !== '+254 700 000 000'
+                            ? $phone
+                            : null,
+                        'email' => $email !== '' ? $email : 'hello@nanyukinow.co.ke',
+                    ];
+                } catch (Throwable) {
+                    return [
+                        'phone' => null,
+                        'email' => 'hello@nanyukinow.co.ke',
+                    ];
+                }
+            },
             'pendingClaims' => function () use ($request) {
                 if (! $request->user()?->is_admin) {
                     return 0;
@@ -94,6 +116,19 @@ class HandleInertiaRequests extends Middleware
                 try {
                     return ListingClaim::query()
                         ->where('status', ListingClaim::STATUS_PENDING)
+                        ->count();
+                } catch (Throwable) {
+                    return 0;
+                }
+            },
+            'pendingReports' => function () use ($request) {
+                if (! $request->user()?->is_admin) {
+                    return 0;
+                }
+
+                try {
+                    return ListingReport::query()
+                        ->where('status', ListingReport::STATUS_PENDING)
                         ->count();
                 } catch (Throwable) {
                     return 0;

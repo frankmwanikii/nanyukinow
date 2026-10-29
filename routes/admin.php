@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\MessageController;
 use App\Http\Controllers\Admin\PageController;
 use App\Http\Controllers\Admin\PricingController;
 use App\Http\Controllers\Admin\ProfileController;
+use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\StoryController;
 use App\Http\Controllers\Admin\UserController;
@@ -49,6 +50,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('claims/{claim}/reject', [ClaimController::class, 'reject'])->name('claims.reject');
         Route::post('claims/{claim}/reopen', [ClaimController::class, 'reopen'])->name('claims.reopen');
         Route::delete('claims/{claim}', [ClaimController::class, 'destroy'])->name('claims.destroy');
+
+        Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
+        Route::get('reports/{report}', [ReportController::class, 'show'])->name('reports.show');
+        Route::post('reports/{report}/resolve', [ReportController::class, 'resolve'])->name('reports.resolve');
+        Route::delete('reports/{report}', [ReportController::class, 'destroy'])->name('reports.destroy');
 
         Route::get('categories', [CategoryController::class, 'index'])->name('categories.index');
         Route::get('categories/create', [CategoryController::class, 'create'])->name('categories.create');

@@ -173,6 +173,14 @@ export function StatusBadge({ status, className = '' }) {
             shell: 'bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300',
             label: 'Rejected',
         },
+        reviewed: {
+            shell: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200',
+            label: 'Reviewed',
+        },
+        dismissed: {
+            shell: 'bg-slate-100 text-slate-500 dark:bg-slate-800/60 dark:text-slate-400',
+            label: 'Dismissed',
+        },
         cancelled: {
             shell: 'bg-slate-100 text-slate-500 dark:bg-slate-800/60 dark:text-slate-400',
             label: 'Cancelled',

@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Listing;
 use App\Models\ListingClaim;
 use App\Models\User;
+use App\Notifications\ClaimReviewedNotification;
 use App\Support\AdminPagination;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -119,7 +121,9 @@ class ClaimController extends Controller
 
         $createAccount = $request->boolean('create_account', true);
 
-        DB::transaction(function () use ($request, $claim, $data, $createAccount): void {
+        $listing = null;
+
+        DB::transaction(function () use ($request, $claim, $data, $createAccount, &$listing): void {
             $listing = Listing::query()->lockForUpdate()->findOrFail($claim->listing_id);
 
             $ownerId = $data['assign_to_user_id'] ?? $claim->user_id;
@@ -154,6 +158,11 @@ class ClaimController extends Controller
                 ]);
         });
 
+        $claim->refresh();
+        if ($request->boolean('notify_claimant', true) && $listing) {
+            $this->notifyClaimant($claim, $listing, 'approved');
+        }
+
         return redirect()
             ->route('admin.claims.index', ['status' => 'pending'])
             ->with('success', 'Claim approved — listing marked as claimed.');
@@ -165,6 +174,7 @@ class ClaimController extends Controller
 
         $data = $request->validate([
             'admin_notes' => ['required', 'string', 'max:1000'],
+            'notify_claimant' => ['nullable', 'boolean'],
         ]);
 
         DB::transaction(function () use ($request, $claim, $data): void {
@@ -188,6 +198,12 @@ class ClaimController extends Controller
             }
         });
 
+        $claim->refresh();
+        $listing = Listing::query()->find($claim->listing_id);
+        if ($request->boolean('notify_claimant', true) && $listing) {
+            $this->notifyClaimant($claim, $listing, 'rejected');
+        }
+
         return redirect()
             ->route('admin.claims.index', ['status' => 'pending'])
             ->with('success', 'Claim rejected.');
@@ -200,7 +216,7 @@ class ClaimController extends Controller
             ListingClaim::STATUS_APPROVED,
         ], true), 422);
 
-        DB::transaction(function () use ($request, $claim): void {
+        DB::transaction(function () use ($claim): void {
             $claim->update([
                 'status' => ListingClaim::STATUS_PENDING,
                 'admin_notes' => trim(($claim->admin_notes ? $claim->admin_notes."\n" : '').'Reopened by admin.'),
@@ -260,6 +276,30 @@ class ClaimController extends Controller
             'approved' => (int) ($rows[ListingClaim::STATUS_APPROVED] ?? 0),
             'rejected' => (int) ($rows[ListingClaim::STATUS_REJECTED] ?? 0),
         ];
+    }
+
+    private function notifyClaimant(ListingClaim $claim, Listing $listing, string $outcome): void
+    {
+        $claim->loadMissing('user');
+
+        $notification = new ClaimReviewedNotification($claim, $listing, $outcome);
+
+        try {
+            if ($claim->user) {
+                $claim->user->notify($notification);
+
+                return;
+            }
+
+            $email = Str::lower(trim((string) $claim->email));
+            if ($email === '') {
+                return;
+            }
+
+            Notification::route('mail', $email)->notify($notification);
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 
     private function resolveOrCreateClaimantUser(ListingClaim $claim): ?User

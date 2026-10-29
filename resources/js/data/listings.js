@@ -771,7 +771,7 @@ const extras = [
         location: 'Naromoru',
         category: 'Eat & Drink',
         categoryKey: 'eatDrink',
-        subcategory: 'Bakery & Deserts',
+        subcategory: 'Bakery & Desserts',
         rating: 4.4,
         image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=900&q=80',
         logo: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=120&q=80',
@@ -1265,14 +1265,18 @@ function jitterCoord(base, index, spread = 0.018) {
     return Number((base + offset).toFixed(5));
 }
 
-export function listingSlug(title, id) {
-    const base = String(title || '')
+export function slugifyTitle(title) {
+    return String(title || '')
         .toLowerCase()
         .normalize('NFKD')
         .replace(/[\u0300-\u036f]/g, '')
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-+|-+$/g, '')
         .replace(/-{2,}/g, '-');
+}
+
+export function listingSlug(title, id) {
+    const base = slugifyTitle(title);
 
     if (base) return base;
     return `listing-${id ?? 'unknown'}`;

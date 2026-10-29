@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import ListingCard from '@/Components/site/ListingCard';
 import { subcategoryLabel } from '@/utils/listingSubcategories';
+import { plainText } from '@/utils/plainText';
 import {
     CATEGORY_DETAIL_FIELDS,
     PRICE_LEVELS,
@@ -22,14 +23,6 @@ function hasValue(value) {
         return value.some((v) => v != null && String(v).trim() !== '');
     }
     return String(value).trim() !== '';
-}
-
-function stripHtml(html) {
-    if (!html) return '';
-    return String(html)
-        .replace(/<[^>]+>/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
 }
 
 function Row({ label, value }) {
@@ -267,7 +260,7 @@ export default function ListingPreview({
                                             }}
                                         />
                                     ) : (
-                                        stripHtml(formData.description) || null
+                                        plainText(formData.description) || null
                                     )
                                 }
                             />
@@ -327,7 +320,7 @@ export default function ListingPreview({
                                     (typeof raw === 'string' &&
                                         /<[a-z][\s\S]*>/i.test(raw))
                                 ) {
-                                    const text = stripHtml(raw);
+                                    const text = plainText(raw);
                                     return (
                                         <Row
                                             key={field.key}

@@ -14,7 +14,7 @@ export const mainCategories = [
             'Pork Joint & BBQ',
             'Outdoor Dining',
             'Fast Food & Takeaways',
-            'Bakery & Deserts',
+            'Bakery & Desserts',
             'Garden Restaurant',
         ],
     },

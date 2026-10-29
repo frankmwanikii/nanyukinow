@@ -114,7 +114,7 @@ class ListingController extends Controller
 
         $listing->update([
             ...$payload,
-            'slug' => ListingSlug::make($title, $listing->id, $listing->slug),
+            'slug' => ListingSlug::resolve($title, $listing->id, $listing->slug, $listing->title),
             'tier' => $tier,
             'status' => 'draft',
             'is_published' => false,
@@ -191,12 +191,11 @@ class ListingController extends Controller
 
         $payload = $this->buildListingPayload($request, $data, $listing);
         $wasDraft = $listing->status === 'draft';
-        $nextSlug = ListingSlug::make(
+        $nextSlug = ListingSlug::resolve(
             $data['title'],
             $listing->id,
-            $wasDraft || ListingSlug::isPlaceholder($listing->slug)
-                ? null
-                : ($data['slug'] ?? $listing->slug),
+            $listing->slug,
+            $listing->title,
         );
 
         $listing->update([

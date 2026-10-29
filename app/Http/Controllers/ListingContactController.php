@@ -7,6 +7,7 @@ use App\Mail\ListingInquiryMail;
 use App\Models\Conversation;
 use App\Models\Listing;
 use App\Models\Message;
+use App\Support\Recaptcha;
 use App\Support\SafeHtml;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -46,6 +47,11 @@ class ListingContactController extends Controller
                 'mimes:jpg,jpeg,png,webp,gif,pdf,doc,docx',
             ],
         ]);
+
+        Recaptcha::validateRequest(
+            $data['g-recaptcha-response'] ?? null,
+            $request->ip(),
+        );
 
         $owner = $listing->user;
         if (! $owner) {

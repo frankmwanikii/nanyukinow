@@ -10,6 +10,7 @@ use App\Models\Listing;
 use App\Models\Message;
 use App\Models\User;
 use App\Notifications\WelcomeMemberNotification;
+use App\Support\Recaptcha;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Mail;
@@ -55,6 +56,7 @@ class MemberMessagesTest extends TestCase
                 'email' => 'jane@example.com',
                 'phone' => '0712345678',
                 'message' => 'Is this available next weekend?',
+                'g-recaptcha-response' => Recaptcha::FALLBACK_TOKEN,
             ])
             ->assertRedirect();
 
@@ -102,6 +104,7 @@ class MemberMessagesTest extends TestCase
                 'last_name' => 'Wanjiru',
                 'email' => 'jane@example.com',
                 'message' => 'Here is the floor plan.',
+                'g-recaptcha-response' => Recaptcha::FALLBACK_TOKEN,
                 'attachments' => [$file],
             ])
             ->assertRedirect();
@@ -135,6 +138,7 @@ class MemberMessagesTest extends TestCase
                 'last_name' => 'Wanjiru',
                 'email' => 'jane@example.com',
                 'message' => 'Hello again',
+                'g-recaptcha-response' => Recaptcha::FALLBACK_TOKEN,
             ])
             ->assertRedirect();
 

@@ -85,13 +85,11 @@ class ListingRequest extends FormRequest
      */
     public function rules(): array
     {
-        $listingId = $this->route('listing')?->id;
-
         return [
             'user_id' => ['nullable', 'exists:users,id'],
             'category_id' => ['nullable', 'exists:categories,id'],
             'title' => ['required', 'string', 'max:255'],
-            'slug' => ['nullable', 'string', 'max:255', Rule::unique('listings', 'slug')->ignore($listingId)],
+            'slug' => ['nullable', 'string', 'max:255'],
             'subcategory' => ['nullable', 'array', 'max:20'],
             'subcategory.*' => ['string', 'max:120'],
             'property_type' => ['nullable', 'string', 'max:80'],

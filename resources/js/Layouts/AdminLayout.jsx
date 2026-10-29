@@ -12,6 +12,7 @@ import {
     FileText,
     Images,
     BadgeCheck,
+    Flag,
     Menu,
     X,
     Search,
@@ -38,6 +39,7 @@ const nav = [
     { label: 'Pricing', href: 'admin.pricing.index', icon: CircleDollarSign },
     { label: 'Finance', href: 'admin.finance.index', icon: Wallet },
     { label: 'Claims', href: 'admin.claims.index', icon: BadgeCheck, badgeKey: 'pendingClaims' },
+    { label: 'Reports', href: 'admin.reports.index', icon: Flag, badgeKey: 'pendingReports' },
     { label: 'Settings', href: 'admin.settings.index', icon: Settings2 },
 ];
 
@@ -228,7 +230,12 @@ function BrandMark({ className = '' }) {
 }
 
 function AdminShell({ children }) {
-    const { auth, pendingClaims = 0, inboxMessages = 0 } = usePage().props;
+    const {
+        auth,
+        pendingClaims = 0,
+        pendingReports = 0,
+        inboxMessages = 0,
+    } = usePage().props;
     const [open, setOpen] = useState(false);
     const { isDark } = useAdminTheme();
     const user = auth?.user;
@@ -326,8 +333,10 @@ function AdminShell({ children }) {
                                 const badge =
                                     item.badgeKey === 'pendingClaims'
                                         ? Number(pendingClaims) || 0
-                                        : item.badgeKey === 'inboxMessages'
-                                          ? Number(inboxMessages) || 0
+                                        : item.badgeKey === 'pendingReports'
+                                          ? Number(pendingReports) || 0
+                                          : item.badgeKey === 'inboxMessages'
+                                            ? Number(inboxMessages) || 0
                                           : 0;
                                 const active =
                                     route().current(item.href) ||
@@ -335,6 +344,8 @@ function AdminShell({ children }) {
                                         route().current('admin.listings.*')) ||
                                     (item.href === 'admin.claims.index' &&
                                         route().current('admin.claims.*')) ||
+                                    (item.href === 'admin.reports.index' &&
+                                        route().current('admin.reports.*')) ||
                                     (item.href === 'admin.stories.index' &&
                                         route().current('admin.stories.*')) ||
                                     (item.href === 'admin.categories.index' &&

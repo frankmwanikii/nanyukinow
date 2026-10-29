@@ -1980,7 +1980,9 @@ function buildFactsFromDetails(listing) {
         if (d.cancellation_policy) {
             pairs.push({ label: 'Cancellation', value: String(d.cancellation_policy) });
         }
-        if (d.booking_url) pairs.push({ label: 'Booking', value: 'Available' });
+        if (d.booking_url) {
+            pairs.push({ label: 'Booking', value: 'Book online', href: d.booking_url });
+        }
     } else if (key === 'eatDrink') {
         const cuisine = Array.isArray(d.cuisine)
             ? d.cuisine.filter(Boolean).join(', ')
@@ -2003,7 +2005,9 @@ function buildFactsFromDetails(listing) {
             ? d.dress_code.filter(Boolean).join(', ')
             : d.dress_code;
         if (dressCode) pairs.push({ label: 'Dress code', value: String(dressCode) });
-        if (d.booking_url) pairs.push({ label: 'Booking', value: 'Available' });
+        if (d.booking_url) {
+            pairs.push({ label: 'Booking', value: 'Book online', href: d.booking_url });
+        }
     } else if (key === 'shopping') {
         if (d.specialty) pairs.push({ label: 'Specialty', value: String(d.specialty) });
         const brands = Array.isArray(d.brands)
@@ -2024,18 +2028,35 @@ function buildFactsFromDetails(listing) {
         if (d.made_to_order === 'Show made-to-order badge') {
             pairs.push({ label: 'Made to order', value: 'Available' });
         }
+        if (d.online_store_url) {
+            pairs.push({ label: 'Online store', value: 'Shop online', href: d.online_store_url });
+        }
+        if (d.whatsapp_catalog_url) {
+            pairs.push({
+                label: 'WhatsApp catalog',
+                value: 'View catalog',
+                href: d.whatsapp_catalog_url,
+            });
+        }
+        if (d.price_list_pdf) {
+            pairs.push({ label: 'Price list', value: 'Download PDF', href: d.price_list_pdf });
+        }
     } else if (key === 'thingsToDo') {
         if (d.duration) pairs.push({ label: 'Duration', value: String(d.duration) });
         if (d.difficulty) pairs.push({ label: 'Difficulty', value: String(d.difficulty) });
         if (d.price_from) pairs.push({ label: 'From', value: String(d.price_from) });
         if (d.min_age) pairs.push({ label: 'Min age', value: String(d.min_age) });
         if (d.group_size) pairs.push({ label: 'Group size', value: String(d.group_size) });
-        if (d.booking_url) pairs.push({ label: 'Booking', value: 'Available' });
+        if (d.booking_url) {
+            pairs.push({ label: 'Booking', value: 'Book online', href: d.booking_url });
+        }
     } else if (key === 'services') {
         if (d.service_area) pairs.push({ label: 'Service area', value: String(d.service_area) });
         if (d.pricing_from) pairs.push({ label: 'From', value: String(d.pricing_from) });
         if (d.response_time) pairs.push({ label: 'Response', value: String(d.response_time) });
-        if (d.booking_url) pairs.push({ label: 'Book', value: 'Available' });
+        if (d.booking_url) {
+            pairs.push({ label: 'Book', value: 'Book online', href: d.booking_url });
+        }
     } else if (key === 'properties') {
         if (d.bedrooms) pairs.push({ label: 'Bedrooms', value: String(d.bedrooms) });
         if (d.bathrooms) pairs.push({ label: 'Baths', value: String(d.bathrooms) });
@@ -2044,8 +2065,15 @@ function buildFactsFromDetails(listing) {
         if (d.furnished) pairs.push({ label: 'Furnishing', value: String(d.furnished) });
         if (d.parking_spaces) pairs.push({ label: 'Parking', value: String(d.parking_spaces) });
         if (d.year_built) pairs.push({ label: 'Year built', value: String(d.year_built) });
-        if (d.virtual_tour_url) pairs.push({ label: 'Virtual tour', value: 'Available' });
-        if (d.floor_plan_pdf) pairs.push({ label: 'Floor plan', value: 'Available' });
+        if (d.enquiry_url) {
+            pairs.push({ label: 'Enquire', value: 'Contact agent', href: d.enquiry_url });
+        }
+        if (d.virtual_tour_url) {
+            pairs.push({ label: 'Virtual tour', value: 'Open tour', href: d.virtual_tour_url });
+        }
+        if (d.floor_plan_pdf) {
+            pairs.push({ label: 'Floor plan', value: 'Download PDF', href: d.floor_plan_pdf });
+        }
     } else if (key === 'events') {
         if (listing.venue) pairs.push({ label: 'Venue', value: String(listing.venue) });
         if (d.organiser) pairs.push({ label: 'Organiser', value: String(d.organiser) });
@@ -2326,6 +2354,13 @@ export function getListingDetail(listing) {
         earlyBirdPrice: listing.earlyBirdPrice || null,
         gatePrice: listing.gatePrice || null,
         ticketUrl: listing.ticketUrl || null,
+        bookingUrl: listing.details?.booking_url || null,
+        enquiryUrl: listing.details?.enquiry_url || null,
+        onlineStoreUrl: listing.details?.online_store_url || null,
+        whatsappCatalogUrl: listing.details?.whatsapp_catalog_url || null,
+        priceListPdf: listing.details?.price_list_pdf || null,
+        doorsOpen: listing.details?.doors_open || null,
+        dressCode: listing.details?.dress_code || null,
         ageLimit: listing.ageLimit || listing.details?.age_limit || null,
         organiser: listing.organiser || listing.details?.organiser || null,
         agent: agentFromDetails,

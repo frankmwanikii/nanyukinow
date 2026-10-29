@@ -21,6 +21,7 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import { PROPERTY_TYPES, mainCategories } from '@/data/categories';
 import { countWords as eatDrinkCountWords } from '@/data/eatDrinkTierFeatures';
 import { resolveListingTier } from '@/data/listingTier';
+import { slugifyTitle } from '@/data/listings';
 import {
     STAY_GALLERY_SPACES,
     staySpaceLabel,
@@ -71,6 +72,46 @@ const categoryIcons = {
 
 function iconForSlug(slug) {
     return categoryIcons[slug] || Coffee;
+}
+
+function isPlaceholderSlug(slug) {
+    const value = String(slug || '').trim().toLowerCase();
+
+    if (!value || value === 'listing' || value === 'untitled') return true;
+    if (value.startsWith('untitled')) return true;
+    if (/(^|-)draft(-\d+)?$/.test(value)) return true;
+    if (/-draft-\d+/.test(value)) return true;
+
+    return false;
+}
+
+function isGenericSlug(slug) {
+    return /^listing(-\d+)?$/.test(String(slug || '').trim().toLowerCase());
+}
+
+function slugFollowsTitle(slug, title) {
+    const value = String(slug || '').trim().toLowerCase();
+    const base = slugifyTitle(title);
+
+    if (!value) return false;
+    if (!base) return isPlaceholderSlug(value) || isGenericSlug(value);
+
+    return (
+        value === base ||
+        new RegExp(`^${base.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}-\\d+$`).test(
+            value,
+        )
+    );
+}
+
+function listingSlugValue(slug, title) {
+    const value = String(slug || '').trim();
+
+    if (!value) return slugifyTitle(title);
+    if (isPlaceholderSlug(value) || isGenericSlug(value)) return slugifyTitle(title);
+    if (slugFollowsTitle(value, title)) return slugifyTitle(title);
+
+    return value;
 }
 
 function matchCategory(dbCategory, main) {
@@ -208,6 +249,12 @@ export default function Form({
     const draftSaving = useRef(false);
     const draftPending = useRef(false);
     const formDataRef = useRef(null);
+    const slugTouched = useRef(
+        Boolean(listing?.slug) &&
+            !slugFollowsTitle(listing?.slug, listing?.title) &&
+            !isPlaceholderSlug(listing?.slug) &&
+            !isGenericSlug(listing?.slug),
+    );
 
     const initialCategory = categories.find(
         (c) => String(c.id) === String(listing?.category_id),
@@ -273,7 +320,7 @@ export default function Form({
         gallery_urls: (listing?.gallery || []).filter(Boolean),
         // Admin-only fields
         user_id: listing?.user_id || '',
-        slug: listing?.slug || '',
+        slug: listingSlugValue(listing?.slug, listing?.title),
         status: listing?.status || 'published',
         claim_status: listing?.claim_status || 'unclaimed',
         priority: listing?.priority ?? 0,
@@ -844,6 +891,10 @@ export default function Form({
                                 claimStatuses={claimStatuses}
                                 allowedTiers={allowedTiers}
                                 listing={listing}
+                                onSlugChange={(value) => {
+                                    slugTouched.current = value.trim() !== '';
+                                    form.setData('slug', value);
+                                }}
                             />
                             <div className="flex flex-wrap items-center justify-end gap-2">
                                 <Link
@@ -1001,6 +1052,7 @@ export default function Form({
                                         isEdit={isEdit}
                                         categories={categories}
                                         patch={patch}
+                                        slugTouched={slugTouched}
                                         descriptionWordLimit={descriptionWordLimit}
                                         hideTagline={hideTagline}
                                         uploadUrl={editorMediaUploadUrl}
@@ -1484,7 +1536,15 @@ function AdminSectionTabs({ active, onChange }) {
     );
 }
 
-function AdminControls({ form, owners, statuses, claimStatuses, allowedTiers, listing }) {
+function AdminControls({
+    form,
+    owners,
+    statuses,
+    claimStatuses,
+    allowedTiers,
+    listing,
+    onSlugChange,
+}) {
     const { data, setData, errors } = form;
 
     return (
@@ -1520,7 +1580,11 @@ function AdminControls({ form, owners, statuses, claimStatuses, allowedTiers, li
                         id="slug"
                         className={field}
                         value={data.slug}
-                        onChange={(e) => setData('slug', e.target.value)}
+                        onChange={(e) =>
+                            onSlugChange
+                                ? onSlugChange(e.target.value)
+                                : setData('slug', e.target.value)
+                        }
                         placeholder="auto from title if empty"
                     />
                     {errors.slug ? (
@@ -1736,6 +1800,7 @@ function BasicsStep({
     isEdit,
     categories,
     patch,
+    slugTouched,
     descriptionWordLimit = null,
     hideTagline = false,
     uploadUrl = null,
@@ -1769,7 +1834,14 @@ function BasicsStep({
                     id="title"
                     className={field}
                     value={form.data.title}
-                    onChange={(e) => patch({ title: e.target.value })}
+                    onChange={(e) => {
+                        const value = e.target.value;
+                        patch(
+                            slugTouched.current
+                                ? { title: value }
+                                : { title: value, slug: slugifyTitle(value) },
+                        );
+                    }}
                     required
                 />
                 {form.errors.title ? (

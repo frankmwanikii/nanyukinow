@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Account;
 
 use App\Http\Controllers\Controller;
+use App\Mail\ListingOwnerReplyMail;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Support\MemberMessages;
@@ -11,6 +12,7 @@ use App\Support\UserAvatar;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -38,9 +40,11 @@ class MessageController extends Controller
             'body' => ['required', 'string', 'max:5000'],
         ]);
 
+        $body = trim($data['body']);
+
         $message = $conversation->messages()->create([
             'user_id' => $user->id,
-            'body' => trim($data['body']),
+            'body' => $body,
         ]);
 
         $conversation->forceFill(['last_message_at' => $message->created_at])->save();
@@ -48,6 +52,8 @@ class MessageController extends Controller
         $conversation->participants()->updateExistingPivot($user->id, [
             'last_read_at' => now(),
         ]);
+
+        $this->emailGuestReply($conversation, $user, $body);
 
         return redirect()
             ->route('account.messages.show', $conversation)
@@ -187,6 +193,33 @@ class MessageController extends Controller
                 'total' => $chatUnread + $alertUnread,
             ],
         ]);
+    }
+
+    private function emailGuestReply(Conversation $conversation, $owner, string $body): void
+    {
+        $conversation->loadMissing(['listing', 'messages']);
+
+        $guestMessage = $conversation->messages
+            ->first(fn (Message $m) => filled($m->guest_email));
+
+        $guestEmail = $guestMessage?->guest_email;
+        if (! filled($guestEmail) || ! $conversation->listing) {
+            return;
+        }
+
+        $guestName = $guestMessage?->guest_name ?: 'there';
+
+        try {
+            Mail::to($guestEmail, $guestName)->send(new ListingOwnerReplyMail(
+                listing: $conversation->listing,
+                ownerName: $owner->name,
+                ownerEmail: $owner->email,
+                guestName: $guestName,
+                messageBody: $body,
+            ));
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 
     /**

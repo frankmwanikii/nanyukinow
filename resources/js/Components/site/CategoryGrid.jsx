@@ -5,7 +5,6 @@ import {
     Camera,
     Coffee,
     Home,
-    MoreHorizontal,
     ShoppingCart,
 } from 'lucide-react';
 import { Link } from '@inertiajs/react';
@@ -24,20 +23,12 @@ const icons = {
     services: Briefcase,
 };
 
-const cards = [
-    ...mainCategories.map((cat) => ({
-        key: cat.key,
-        label: cat.label,
-        href: explorePath({ category: cat.key }),
-        Icon: icons[cat.key],
-    })),
-    {
-        key: 'more',
-        label: 'More',
-        href: '/explore',
-        Icon: MoreHorizontal,
-    },
-];
+const cards = mainCategories.map((cat) => ({
+    key: cat.key,
+    label: cat.label,
+    href: explorePath({ category: cat.key }),
+    Icon: icons[cat.key],
+}));
 
 export default function CategoryGrid() {
     return (

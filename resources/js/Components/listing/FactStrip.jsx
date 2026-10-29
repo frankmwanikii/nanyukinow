@@ -13,7 +13,18 @@ export default function FactStrip({ facts = [], title = 'At a glance' }) {
                             {fact.label}
                         </dt>
                         <dd className="mt-1 truncate font-display text-base font-semibold text-earth-dusk">
-                            {fact.value}
+                            {fact.href ? (
+                                <a
+                                    href={fact.href}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-olive-800 underline decoration-mustard/70 underline-offset-2 transition hover:text-mustard"
+                                >
+                                    {fact.value}
+                                </a>
+                            ) : (
+                                fact.value
+                            )}
                         </dd>
                     </div>
                 ))}

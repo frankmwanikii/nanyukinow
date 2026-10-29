@@ -35,23 +35,56 @@ class ListingSlug
     }
 
     /**
+     * Auto generated fallback slugs such as "listing" or "listing-2".
+     */
+    public static function isGeneric(?string $slug): bool
+    {
+        $slug = Str::lower(trim((string) $slug));
+
+        return preg_match('/^listing(-\d+)?$/', $slug) === 1;
+    }
+
+    /**
+     * Slugs that must always be replaced by the listing title.
+     */
+    public static function needsTitleSlug(?string $slug): bool
+    {
+        return self::isPlaceholder($slug) || self::isGeneric($slug);
+    }
+
+    /**
+     * Determine whether a slug was generated from the given listing title.
+     */
+    public static function followsTitle(?string $slug, ?string $title): bool
+    {
+        $slug = Str::lower(trim((string) $slug));
+        $titleSlug = Str::slug((string) $title);
+
+        if ($slug === '') {
+            return true;
+        }
+
+        if ($titleSlug === '') {
+            return self::needsTitleSlug($slug);
+        }
+
+        return $slug === $titleSlug
+            || preg_match('/^'.preg_quote($titleSlug, '/').'-\d+$/', $slug) === 1;
+    }
+
+    /**
      * Build a unique URL slug from the listing name.
      */
     public static function make(string $title, ?int $ignoreId = null, ?string $preferred = null): string
     {
-        $preferred = $preferred !== null ? trim($preferred) : null;
+        $titleSlug = Str::slug($title);
+        $preferredSlug = $preferred !== null ? Str::slug(trim($preferred)) : '';
 
-        if ($preferred !== null && $preferred !== '' && ! self::isPlaceholder(Str::slug($preferred))) {
-            $base = Str::slug($preferred) ?: 'listing';
+        if ($preferredSlug !== '' && ! self::needsTitleSlug($preferredSlug)) {
+            $base = $preferredSlug;
+        } elseif ($titleSlug !== '' && ! self::isPlaceholder($titleSlug)) {
+            $base = $titleSlug;
         } else {
-            $base = Str::slug($title) ?: 'listing';
-        }
-
-        if (self::isPlaceholder($base)) {
-            $base = Str::slug($title) ?: 'listing';
-        }
-
-        if ($base === '' || self::isPlaceholder($base)) {
             $base = 'listing';
         }
 
@@ -69,5 +102,34 @@ class ListingSlug
         }
 
         return $slug;
+    }
+
+    /**
+     * Resolve the slug to store when a listing is saved.
+     *
+     * A slug generated from the previous title follows the new title, while a
+     * slug that was customised by hand is preserved.
+     */
+    public static function resolve(
+        string $title,
+        ?int $listingId = null,
+        ?string $currentSlug = null,
+        ?string $currentTitle = null,
+        ?string $submittedSlug = null,
+    ): string {
+        $submitted = $submittedSlug !== null ? trim($submittedSlug) : '';
+        $current = $currentSlug !== null ? trim($currentSlug) : '';
+
+        if ($submitted !== '' && $submitted !== $current) {
+            return self::make($title, $listingId, $submitted);
+        }
+
+        if ($current !== ''
+            && $currentTitle !== null
+            && ! self::followsTitle($current, $currentTitle)) {
+            return self::make($title, $listingId, $current);
+        }
+
+        return self::make($title, $listingId, null);
     }
 }

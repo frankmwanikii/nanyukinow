@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { Mail, MapPin, Phone } from 'lucide-react';
 import Logo from './Logo';
 
@@ -53,6 +53,12 @@ const socialLinks = [
 
 export default function Footer() {
     const year = new Date().getFullYear();
+    const { siteContact } = usePage().props;
+    const contactPhone = siteContact?.phone || null;
+    const contactEmail = siteContact?.email || 'hello@nanyukinow.co.ke';
+    const telHref = contactPhone
+        ? `tel:${String(contactPhone).replace(/\s+/g, '')}`
+        : null;
 
     return (
         <footer className="relative z-10 bg-earth-dusk text-white">
@@ -151,19 +157,21 @@ export default function Footer() {
                             <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-mint" />
                             Nanyuki, Laikipia, Kenya
                         </li>
-                        <li className="flex gap-2">
-                            <Phone className="mt-0.5 h-4 w-4 shrink-0 text-mint" />
-                            <a href="tel:+254700000000" className="hover:text-mint">
-                                +254 700 000 000
-                            </a>
-                        </li>
+                        {contactPhone ? (
+                            <li className="flex gap-2">
+                                <Phone className="mt-0.5 h-4 w-4 shrink-0 text-mint" />
+                                <a href={telHref} className="hover:text-mint">
+                                    {contactPhone}
+                                </a>
+                            </li>
+                        ) : null}
                         <li className="flex gap-2">
                             <Mail className="mt-0.5 h-4 w-4 shrink-0 text-mint" />
                             <a
-                                href="mailto:hello@nanyukinow.co.ke"
+                                href={`mailto:${contactEmail}`}
                                 className="hover:text-mint"
                             >
-                                hello@nanyukinow.co.ke
+                                {contactEmail}
                             </a>
                         </li>
                     </ul>

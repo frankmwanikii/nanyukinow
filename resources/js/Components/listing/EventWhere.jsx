@@ -18,12 +18,16 @@ export default function EventWhere({ listing }) {
     const venue = listing.venue || null;
     const region = eventRegion(listing);
     const organiser = listing.organiser || null;
-    if (!venue && !region && !organiser) return null;
+    const doorsOpen = listing.doorsOpen || listing.details?.doors_open || null;
+    const dressCode = listing.dressCode || listing.details?.dress_code || null;
+    if (!venue && !region && !organiser && !doorsOpen && !dressCode) return null;
 
     const rows = [];
     if (venue) rows.push({ label: 'Venue', value: venue });
     if (region) rows.push({ label: 'Region', value: region });
     if (organiser) rows.push({ label: 'Organised by', value: organiser });
+    if (doorsOpen) rows.push({ label: 'Doors open', value: String(doorsOpen) });
+    if (dressCode) rows.push({ label: 'Dress code', value: String(dressCode) });
 
     return (
         <DetailSection

@@ -1,12 +1,23 @@
-import { Link } from '@inertiajs/react';
-import { MessageCircle, Phone, Star, Ticket } from 'lucide-react';
+import { ExternalLink, MessageCircle, Phone, Star, Ticket } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { listingSubcategories } from '@/utils/listingSubcategories';
+import { plainText } from '@/utils/plainText';
 
 const primaryBtn =
     'inline-flex items-center justify-center gap-1.5 rounded-full bg-mustard px-3.5 py-2.5 text-xs font-bold text-olive-950 shadow-lift transition hover:bg-white sm:gap-2 sm:px-4 sm:py-2.5 sm:text-sm';
 const secondaryBtn =
     'inline-flex items-center justify-center gap-1.5 rounded-full bg-white/15 px-3.5 py-2.5 text-xs font-semibold text-white ring-1 ring-white/35 backdrop-blur transition hover:bg-white hover:text-olive-950 sm:gap-2 sm:px-4 sm:py-2.5 sm:text-sm';
+
+function actionUrl(listing) {
+    return (
+        listing.bookingUrl ||
+        listing.enquiryUrl ||
+        listing.onlineStoreUrl ||
+        listing.whatsappCatalogUrl ||
+        listing.ticketUrl ||
+        null
+    );
+}
 
 export default function ListingHero({ listing, secondaryCta }) {
     const tel = listing.phone
@@ -14,20 +25,23 @@ export default function ListingHero({ listing, secondaryCta }) {
         : null;
     const isEvent = listing.categoryKey === 'events';
     const ticketUrl = listing.ticketUrl;
+    const bookUrl = actionUrl(listing);
+    const contactHref = `#contact`;
 
-    const subtitle = isEvent
-        ? [
-              listing.venue,
-              listing.location,
-              listing.earlyBirdPrice
-                  ? `Early bird ${listing.earlyBirdPrice}`
-                  : listing.ticketPrice,
-          ]
-              .filter(Boolean)
-              .join(' · ')
-        : [listing.tagline, listing.location || null]
-              .filter(Boolean)
-              .join(' · ');
+    const subtitle = (
+        isEvent
+            ? [
+                  listing.venue,
+                  listing.location,
+                  listing.earlyBirdPrice
+                      ? `Early bird ${listing.earlyBirdPrice}`
+                      : listing.ticketPrice,
+              ]
+            : [listing.tagline, listing.location || null]
+    )
+        .map((part) => plainText(part))
+        .filter(Boolean)
+        .join(' · ');
 
     return (
         <header className="relative flex min-h-[62svh] items-end overflow-hidden bg-olive-900 pt-24 sm:min-h-[78svh] sm:pt-28 lg:min-h-[82svh]">
@@ -91,22 +105,16 @@ export default function ListingHero({ listing, secondaryCta }) {
                                 {listing.title}
                             </h1>
                             {subtitle ? (
-                                <p className="mt-1 text-[13px] leading-snug text-white/80 sm:mt-2 sm:text-base sm:leading-normal">
+                                <p className="mt-1 line-clamp-2 text-[13px] leading-snug text-white/80 sm:mt-2 sm:text-base sm:leading-normal">
                                     {subtitle}
                                 </p>
                             ) : null}
-                            <p className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-white">
-                                <Star className="h-3.5 w-3.5 fill-mustard text-mustard sm:h-4 sm:w-4" />
-                                {Number(listing.rating ?? 0) > 0
-                                    ? Number(listing.rating).toFixed(1)
-                                    : '0'}
-                                {listing.reviewSummary?.count ? (
-                                    <span className="font-normal text-white/70">
-                                        · {listing.reviewSummary.count}{' '}
-                                        reviews
-                                    </span>
-                                ) : null}
-                            </p>
+                            {Number(listing.rating ?? 0) > 0 ? (
+                                <p className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-white">
+                                    <Star className="h-3.5 w-3.5 fill-mustard text-mustard sm:h-4 sm:w-4" />
+                                    {Number(listing.rating).toFixed(1)}
+                                </p>
+                            ) : null}
                         </div>
                     </div>
 
@@ -123,16 +131,33 @@ export default function ListingHero({ listing, secondaryCta }) {
                                 <span className="truncate">Buy tickets</span>
                             </a>
                         ) : null}
-                        {tel && !ticketUrl ? (
+                        {!ticketUrl && bookUrl ? (
+                            <a
+                                href={bookUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={`min-w-0 flex-1 sm:flex-none ${primaryBtn}`}
+                            >
+                                <ExternalLink className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
+                                <span className="truncate">
+                                    {secondaryCta || 'Book now'}
+                                </span>
+                            </a>
+                        ) : null}
+                        {tel && !ticketUrl && !bookUrl ? (
                             <a
                                 href={tel}
                                 className={`min-w-0 flex-1 sm:flex-none ${primaryBtn}`}
                             >
                                 <Phone className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
-                                <span className="truncate">Call now</span>
+                                <span className="truncate">
+                                    {secondaryCta === 'Call store'
+                                        ? 'Call store'
+                                        : 'Call now'}
+                                </span>
                             </a>
                         ) : null}
-                        {tel && ticketUrl ? (
+                        {tel && (ticketUrl || bookUrl) ? (
                             <a
                                 href={tel}
                                 className={`min-w-0 flex-1 sm:flex-none ${secondaryBtn}`}
@@ -141,17 +166,23 @@ export default function ListingHero({ listing, secondaryCta }) {
                                 Call
                             </a>
                         ) : null}
-                        <Link
-                            href="/explore"
+                        <a
+                            href={contactHref}
                             className={`min-w-0 flex-1 sm:flex-none ${secondaryBtn}`}
                         >
                             <MessageCircle className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
-                            <span className="truncate">Direct message</span>
-                        </Link>
-                        {secondaryCta && !ticketUrl ? (
-                            <span className="hidden items-center justify-center rounded-full bg-olive-800/80 px-3.5 py-2 text-[11px] font-semibold uppercase tracking-wide text-white/90 sm:inline-flex sm:text-xs">
+                            <span className="truncate">Message</span>
+                        </a>
+                        {secondaryCta &&
+                        !ticketUrl &&
+                        !bookUrl &&
+                        secondaryCta !== 'Call store' ? (
+                            <a
+                                href={contactHref}
+                                className="hidden min-h-11 items-center justify-center rounded-full bg-olive-800/80 px-3.5 py-2 text-[11px] font-semibold uppercase tracking-wide text-white/90 transition hover:bg-white hover:text-olive-950 sm:inline-flex sm:text-xs"
+                            >
                                 {secondaryCta}
-                            </span>
+                            </a>
                         ) : null}
                     </div>
                 </div>
