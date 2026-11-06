@@ -543,7 +543,9 @@ function PaymentCheckout({
                 return;
             }
             if (data?.ok) {
-                onClose();
+                const url = new URL(route('account.upgrade'), window.location.origin);
+                url.searchParams.set('stk', '1');
+                window.location.assign(url.toString());
                 return;
             }
             setPayError('Please try again.');
@@ -1047,6 +1049,45 @@ export default function Upgrade({
         return 'month';
     });
 
+    const [stkSent] = useState(() => {
+        if (typeof window === 'undefined') {
+            return false;
+        }
+
+        return new URLSearchParams(window.location.search).get('stk') === '1';
+    });
+
+    useEffect(() => {
+        if (!pendingUpgrade) {
+            return undefined;
+        }
+
+        let stopped = false;
+
+        const checkStatus = async () => {
+            try {
+                const { data } = await axios.get(route('account.upgrade.status'));
+                if (stopped || data?.status === 'pending' || data?.status === 'none') {
+                    return;
+                }
+
+                stopped = true;
+                const next =
+                    data.status === 'approved' ? route('account.billing') : route('account.upgrade');
+                window.location.assign(next);
+            } catch {
+                // The next interval retries. A failed status check must not replace the page.
+            }
+        };
+
+        const timer = window.setInterval(checkStatus, 8000);
+
+        return () => {
+            stopped = true;
+            window.clearInterval(timer);
+        };
+    }, [pendingUpgrade]);
+
     const breakdown = useMemo(
         () => getPricingCategoryBreakdown(categoryKey),
         [categoryKey],
@@ -1130,6 +1171,12 @@ export default function Upgrade({
                         </strong>{' '}
                         (ref {pendingUpgrade.payment_reference}). Cancel it from your dashboard if
                         you need to submit a new one.
+                        {stkSent && (
+                            <p className="mt-2">
+                                Check your phone and approve the M-Pesa prompt. Your plan activates
+                                as soon as the payment succeeds.
+                            </p>
+                        )}
                     </div>
                 )}
 

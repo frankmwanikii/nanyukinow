@@ -122,7 +122,7 @@ class SettingController extends Controller
                 'label' => 'M-Pesa checkout provider',
                 'type' => 'select',
                 'value' => 'mpesa',
-                'help' => 'Members still see M-Pesa. Choose whether STK runs through Safaricom Daraja or IntaSend.',
+                'help' => 'Members still see M-Pesa. Choose whether STK runs through Safaricom Daraja, IntaSend, or Palpluss.',
                 'sort_order' => 0,
             ],
             [
@@ -323,6 +323,60 @@ class SettingController extends Controller
                 'help' => 'ISSecretKey_live_… Keep private.',
                 'sort_order' => 24,
             ],
+            [
+                'group' => 'payments',
+                'key' => 'palpluss_mode',
+                'label' => 'Palpluss mode',
+                'type' => 'select',
+                'value' => 'sandbox',
+                'help' => 'Used when M-Pesa checkout provider is set to Palpluss.',
+                'sort_order' => 30,
+            ],
+            [
+                'group' => 'payments',
+                'key' => 'palpluss_sandbox_api_key',
+                'label' => 'Palpluss sandbox API key',
+                'type' => 'password',
+                'value' => '',
+                'help' => 'pp_test_… from Palpluss console → API Keys. Needs payments:write.',
+                'sort_order' => 31,
+            ],
+            [
+                'group' => 'payments',
+                'key' => 'palpluss_sandbox_channel_id',
+                'label' => 'Palpluss sandbox channel ID',
+                'type' => 'text',
+                'value' => '',
+                'help' => 'Optional. Leave blank to use the default payment channel on the sandbox account.',
+                'sort_order' => 32,
+            ],
+            [
+                'group' => 'payments',
+                'key' => 'palpluss_live_api_key',
+                'label' => 'Palpluss live API key',
+                'type' => 'password',
+                'value' => '',
+                'help' => 'pp_live_… Keep private. Needs payments:write.',
+                'sort_order' => 33,
+            ],
+            [
+                'group' => 'payments',
+                'key' => 'palpluss_live_channel_id',
+                'label' => 'Palpluss live channel ID',
+                'type' => 'text',
+                'value' => '',
+                'help' => 'Optional. Leave blank to use the default payment channel on the live account.',
+                'sort_order' => 34,
+            ],
+            [
+                'group' => 'payments',
+                'key' => 'palpluss_callback_url',
+                'label' => 'Palpluss callback URL',
+                'type' => 'text',
+                'value' => '',
+                'help' => 'Optional HTTPS URL. Leave blank to use /webhooks/palpluss on this site.',
+                'sort_order' => 35,
+            ],
         ];
 
         foreach ($payments as $row) {
@@ -331,6 +385,13 @@ class SettingController extends Controller
                 $row,
             );
         }
+
+        SiteSetting::query()
+            ->where('key', 'mobile_money_provider')
+            ->where('help', 'not like', '%Palpluss%')
+            ->update([
+                'help' => 'Members still see M-Pesa. Choose whether STK runs through Safaricom Daraja, IntaSend, or Palpluss.',
+            ]);
     }
 
     private function ensureSocialDefaults(): void
@@ -375,8 +436,9 @@ class SettingController extends Controller
             'mobile_money_provider' => [
                 ['value' => 'mpesa', 'label' => 'M-Pesa (Safaricom Daraja)'],
                 ['value' => 'intasend', 'label' => 'IntaSend'],
+                ['value' => 'palpluss', 'label' => 'Palpluss'],
             ],
-            'paypal_mode', 'mpesa_mode', 'intasend_mode' => [
+            'paypal_mode', 'mpesa_mode', 'intasend_mode', 'palpluss_mode' => [
                 ['value' => 'sandbox', 'label' => 'Sandbox (test)'],
                 ['value' => 'live', 'label' => 'Live (production)'],
             ],

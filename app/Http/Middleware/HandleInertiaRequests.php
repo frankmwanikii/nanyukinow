@@ -9,8 +9,11 @@ use App\Models\SiteSetting;
 use App\Support\MemberMessages;
 use App\Support\MemberNotifications;
 use App\Support\Membership;
+use Closure;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use Inertia\Support\Header;
+use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 class HandleInertiaRequests extends Middleware
@@ -21,6 +24,25 @@ class HandleInertiaRequests extends Middleware
      * @var string
      */
     protected $rootView = 'app';
+
+    /**
+     * Inertia JSON must not be stored. A cached copy of this response can be
+     * served as the document, so the browser shows raw JSON until a refresh.
+     */
+    public function handle(Request $request, Closure $next): Response
+    {
+        $response = parent::handle($request, $next);
+
+        // LiteSpeed's private cache does not vary on X-Inertia, so a cached
+        // Inertia payload is replayed when the browser refreshes the listing.
+        $response->headers->set('X-LiteSpeed-Cache-Control', 'no-cache');
+
+        if ($request->header(Header::INERTIA)) {
+            $response->headers->set('Cache-Control', 'no-store, private');
+        }
+
+        return $response;
+    }
 
     /**
      * Determine the current asset version.

@@ -24,6 +24,7 @@ class AdminPaymentSettingsTest extends TestCase
                 ->where('groupedSettings.payments.0.value', 'mpesa')
                 ->where('groupedSettings.payments.0.options.0.value', 'mpesa')
                 ->where('groupedSettings.payments.0.options.1.value', 'intasend')
+                ->where('groupedSettings.payments.0.options.2.value', 'palpluss')
                 ->etc());
     }
 
@@ -45,6 +46,32 @@ class AdminPaymentSettingsTest extends TestCase
         $this->assertDatabaseHas('site_settings', [
             'key' => 'mobile_money_provider',
             'value' => 'intasend',
+        ]);
+    }
+
+    public function test_admin_can_switch_mobile_money_provider_to_palpluss(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+
+        $this->actingAs($admin)->get(route('admin.settings.index'))->assertOk();
+
+        $this->actingAs($admin)
+            ->put(route('admin.settings.update'), [
+                'settings' => [
+                    ['key' => 'mobile_money_provider', 'value' => 'palpluss'],
+                    ['key' => 'palpluss_mode', 'value' => 'sandbox'],
+                    ['key' => 'palpluss_sandbox_api_key', 'value' => 'pk_test_xxx'],
+                ],
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('site_settings', [
+            'key' => 'mobile_money_provider',
+            'value' => 'palpluss',
+        ]);
+        $this->assertDatabaseHas('site_settings', [
+            'key' => 'palpluss_sandbox_api_key',
+            'value' => 'pk_test_xxx',
         ]);
     }
 

@@ -24,6 +24,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => EnsureUserIsAdmin::class,
         ]);
 
+        $middleware->preventRequestForgery(except: [
+            'webhooks/palpluss',
+            'webhooks/paypal',
+        ]);
+
         $middleware->redirectGuestsTo(function (Request $request) {
             return $request->is('admin') || $request->is('admin/*')
                 ? route('admin.login')

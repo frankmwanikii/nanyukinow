@@ -32,6 +32,8 @@ class PaymentGateway
 
     public const PROVIDER_INTASEND = 'intasend';
 
+    public const PROVIDER_PALPLUSS = 'palpluss';
+
     /** @var string Default PayPal sandbox client id (overridable in admin). */
     public const DEFAULT_PAYPAL_SANDBOX_CLIENT_ID = 'BAArAU7QuOwie6GylyZKkHtHBsUIvyjvKrJX-UPEurvQOic1-upqESJEfsT950Bc4YcpCz7mBdCw1-qO2Y';
 
@@ -42,7 +44,7 @@ class PaymentGateway
     public const FAILURE_MESSAGE = 'Payment failed. Please try again.';
 
     /**
-     * Member checkout still sends payment_method=mpesa; admin chooses Daraja vs IntaSend.
+     * Member checkout still sends payment_method=mpesa; admin chooses Daraja, IntaSend, or Palpluss.
      *
      * @param  array<string, mixed>  $payload
      * @return array{ok: bool, provider_ref?: string, checkout_url?: string, message?: string}
@@ -51,6 +53,7 @@ class PaymentGateway
     {
         return match (self::mobileMoneyProvider()) {
             self::PROVIDER_INTASEND => self::initiateIntasend($payload),
+            self::PROVIDER_PALPLUSS => self::initiatePalpluss($payload),
             default => self::initiateDaraja($payload),
         };
     }
@@ -248,6 +251,92 @@ class PaymentGateway
     }
 
     /**
+     * Palpluss M-Pesa STK push (same member UI; admin selects this provider).
+     *
+     * @param  array<string, mixed>  $payload
+     * @return array{ok: bool, provider_ref?: string, checkout_url?: string, message?: string}
+     */
+    public static function initiatePalpluss(array $payload): array
+    {
+        $creds = self::palplussCredentials();
+
+        if ($creds['api_key'] === '') {
+            return self::fail('Palpluss API key missing');
+        }
+
+        $phone = self::normalizeKenyanPhone((string) ($payload['phone'] ?? ''));
+        if ($phone === null) {
+            return [
+                'ok' => false,
+                'message' => 'Enter a valid M-Pesa phone number.',
+            ];
+        }
+
+        $amount = (int) round((float) ($payload['amount'] ?? 0));
+        if ($amount < 1) {
+            return [
+                'ok' => false,
+                'message' => 'Invalid payment amount.',
+            ];
+        }
+
+        $callback = trim((string) SiteSetting::getValue('palpluss_callback_url', ''));
+        if ($callback === '') {
+            $callback = url('/webhooks/palpluss');
+        }
+
+        $body = [
+            'amount' => $amount,
+            'phone' => $phone,
+            'accountReference' => self::palplussAccountReference(),
+            'transactionDesc' => 'Nanyuki Now',
+            'callbackUrl' => $callback,
+        ];
+
+        if ($creds['channel_id'] !== '') {
+            $body['channelId'] = $creds['channel_id'];
+        }
+
+        try {
+            $response = Http::withBasicAuth($creds['api_key'], '')
+                ->acceptJson()
+                ->asJson()
+                ->timeout(30)
+                ->post(self::palplussBaseUrl($creds['mode']).'/payments/stk', $body);
+
+            $json = $response->json() ?? [];
+            $data = is_array($json['data'] ?? null) ? $json['data'] : [];
+
+            if (! $response->successful() || ($json['success'] ?? false) !== true) {
+                return self::fail('Palpluss STK failed', [
+                    'status' => $response->status(),
+                    'body' => $json !== [] ? $json : $response->body(),
+                ]);
+            }
+
+            $transactionId = $data['transactionId'] ?? null;
+            if (! is_string($transactionId) || $transactionId === '') {
+                return self::fail('Palpluss STK response missing transaction id', [
+                    'body' => $json,
+                ]);
+            }
+
+            return [
+                'ok' => true,
+                'provider_ref' => $transactionId,
+                'message' => 'Check your phone and approve the M-Pesa prompt. Your plan activates as soon as the payment succeeds.',
+            ];
+        } catch (Throwable $e) {
+            Log::error('Palpluss initiate error', ['error' => $e->getMessage()]);
+
+            return [
+                'ok' => false,
+                'message' => self::FAILURE_MESSAGE,
+            ];
+        }
+    }
+
+    /**
      * @param  array<string, mixed>  $payload
      * @return array{ok: bool, provider_ref?: string, checkout_url?: string, message?: string}
      */
@@ -272,8 +361,8 @@ class PaymentGateway
             (string) ($payload['currency'] ?? 'KES'),
         );
 
-        $returnUrl = (string) ($payload['return_url'] ?? route('account.billing'));
-        $cancelUrl = (string) ($payload['cancel_url'] ?? route('account.upgrade'));
+        $returnUrl = route('account.upgrade.paypal.return');
+        $cancelUrl = route('account.upgrade');
 
         try {
             $token = self::paypalAccessToken($creds);
@@ -344,6 +433,112 @@ class PaymentGateway
                 'message' => self::FAILURE_MESSAGE,
             ];
         }
+    }
+
+    /**
+     * Capture an approved PayPal order. A second capture of the same order returns the completed order.
+     *
+     * @return array{retry: bool, order: array<string, mixed>|null}
+     */
+    public static function capturePaypalOrder(string $orderId): array
+    {
+        $creds = self::paypalCredentials();
+        if ($creds['client_id'] === '' || $creds['secret'] === '' || $orderId === '') {
+            return ['retry' => true, 'order' => null];
+        }
+
+        try {
+            $token = self::paypalAccessToken($creds);
+        } catch (Throwable $e) {
+            Log::warning('PayPal capture failed', ['error' => $e->getMessage()]);
+
+            return ['retry' => true, 'order' => null];
+        }
+
+        if ($token === null) {
+            return ['retry' => true, 'order' => null];
+        }
+
+        try {
+            $response = Http::withToken($token)
+                ->acceptJson()
+                ->withBody('{}', 'application/json')
+                ->timeout(30)
+                ->post(self::paypalBaseUrl($creds['mode']).'/v2/checkout/orders/'.$orderId.'/capture');
+        } catch (Throwable $e) {
+            Log::warning('PayPal capture failed', ['error' => $e->getMessage()]);
+
+            return ['retry' => true, 'order' => null];
+        }
+
+        $body = $response->json() ?? [];
+        $issue = is_array($body['details'][0] ?? null) ? (string) ($body['details'][0]['issue'] ?? '') : '';
+        if ($response->status() === 422 && $issue === 'ORDER_ALREADY_CAPTURED') {
+            $fetched = self::fetchPaypalOrder($orderId);
+
+            return ['retry' => $fetched['retry'], 'order' => $fetched['data']];
+        }
+
+        if ($response->serverError() || $response->status() === 429) {
+            return ['retry' => true, 'order' => null];
+        }
+
+        if (! $response->successful() || ! is_array($body) || $body === []) {
+            Log::warning('PayPal capture rejected', [
+                'status' => $response->status(),
+                'body' => $body !== [] ? $body : $response->body(),
+            ]);
+
+            return ['retry' => false, 'order' => null];
+        }
+
+        return ['retry' => false, 'order' => $body];
+    }
+
+    /**
+     * @return array{retry: bool, data: array<string, mixed>|null}
+     */
+    public static function fetchPaypalOrder(string $orderId): array
+    {
+        $creds = self::paypalCredentials();
+        if ($creds['client_id'] === '' || $creds['secret'] === '' || $orderId === '') {
+            return ['retry' => true, 'data' => null];
+        }
+
+        try {
+            $token = self::paypalAccessToken($creds);
+        } catch (Throwable $e) {
+            Log::warning('PayPal order lookup failed', ['error' => $e->getMessage()]);
+
+            return ['retry' => true, 'data' => null];
+        }
+
+        if ($token === null) {
+            return ['retry' => true, 'data' => null];
+        }
+
+        try {
+            $response = Http::withToken($token)
+                ->acceptJson()
+                ->connectTimeout(5)
+                ->timeout(15)
+                ->get(self::paypalBaseUrl($creds['mode']).'/v2/checkout/orders/'.$orderId);
+        } catch (Throwable $e) {
+            Log::warning('PayPal order lookup failed', ['error' => $e->getMessage()]);
+
+            return ['retry' => true, 'data' => null];
+        }
+
+        if ($response->serverError() || $response->status() === 429) {
+            return ['retry' => true, 'data' => null];
+        }
+
+        $data = $response->json();
+        if (! $response->successful() || ! is_array($data)) {
+            return ['retry' => false, 'data' => null];
+        }
+
+        return ['retry' => false, 'data' => $data];
     }
 
     /**
@@ -434,6 +629,63 @@ class PaymentGateway
         ];
     }
 
+    /**
+     * Confirm a transaction with Palpluss before activating a membership.
+     *
+     * @return array{retry: bool, data: array<string, mixed>|null}
+     */
+    public static function fetchPalplussTransaction(string $transactionId): array
+    {
+        $creds = self::palplussCredentials();
+
+        if ($creds['api_key'] === '' || $transactionId === '') {
+            return ['retry' => true, 'data' => null];
+        }
+
+        try {
+            $response = Http::withBasicAuth($creds['api_key'], '')
+                ->acceptJson()
+                ->connectTimeout(5)
+                ->timeout(15)
+                ->get(self::palplussBaseUrl($creds['mode']).'/transactions/'.$transactionId);
+        } catch (Throwable $e) {
+            Log::warning('Palpluss transaction lookup failed', ['error' => $e->getMessage()]);
+
+            return ['retry' => true, 'data' => null];
+        }
+
+        if ($response->serverError() || $response->status() === 429) {
+            Log::warning('Palpluss transaction lookup was not ready', [
+                'status' => $response->status(),
+                'transaction_id' => $transactionId,
+            ]);
+
+            return ['retry' => true, 'data' => null];
+        }
+
+        $data = $response->json('data');
+        if (! $response->successful() || ! is_array($data)) {
+            return ['retry' => false, 'data' => null];
+        }
+
+        return ['retry' => false, 'data' => $data];
+    }
+
+    /**
+     * @return array{mode: string, api_key: string, channel_id: string}
+     */
+    public static function palplussCredentials(): array
+    {
+        $mode = self::normalizeMode(SiteSetting::getValue('palpluss_mode', self::MODE_SANDBOX));
+        $prefix = $mode === self::MODE_LIVE ? 'palpluss_live_' : 'palpluss_sandbox_';
+
+        return [
+            'mode' => $mode,
+            'api_key' => trim((string) SiteSetting::getValue($prefix.'api_key', '')),
+            'channel_id' => trim((string) SiteSetting::getValue($prefix.'channel_id', '')),
+        ];
+    }
+
     public static function mobileMoneyProvider(): string
     {
         $provider = strtolower(trim((string) SiteSetting::getValue(
@@ -441,9 +693,11 @@ class PaymentGateway
             self::PROVIDER_MPESA,
         )));
 
-        return $provider === self::PROVIDER_INTASEND
-            ? self::PROVIDER_INTASEND
-            : self::PROVIDER_MPESA;
+        return match ($provider) {
+            self::PROVIDER_INTASEND => self::PROVIDER_INTASEND,
+            self::PROVIDER_PALPLUSS => self::PROVIDER_PALPLUSS,
+            default => self::PROVIDER_MPESA,
+        };
     }
 
     public static function normalizeMode(mixed $mode): string
@@ -525,6 +779,21 @@ class PaymentGateway
         return $mode === self::MODE_LIVE
             ? 'https://payment.intasend.com'
             : 'https://sandbox.intasend.com';
+    }
+
+    private static function palplussBaseUrl(string $mode): string
+    {
+        return $mode === self::MODE_LIVE
+            ? 'https://api.palpluss.com/v1'
+            : 'https://sandbox.palpluss.com/v1';
+    }
+
+    private static function palplussAccountReference(): string
+    {
+        $raw = (string) SiteSetting::getValue('upgrade_mpesa_account', 'NANYUKINOW');
+        $clean = substr(preg_replace('/[^A-Za-z0-9]/', '', $raw) ?? '', 0, 12);
+
+        return $clean !== '' ? $clean : 'NANYUKINOW';
     }
 
     private static function normalizeKenyanPhone(string $raw): ?string

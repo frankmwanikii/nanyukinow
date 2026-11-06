@@ -10,6 +10,7 @@ use App\Notifications\PlanUpgradeReviewedNotification;
 use App\Support\AdminPagination;
 use App\Support\Membership;
 use App\Support\PaymentMethods;
+use App\Support\PlanUpgradeApproval;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -114,32 +115,13 @@ class FinanceController extends Controller
         ]);
 
         $user = User::query()->findOrFail($upgrade->user_id);
-        $days = $data['duration_days']
-            ?? Membership::durationDaysForPeriod($upgrade->billing_period);
 
-        DB::transaction(function () use ($request, $upgrade, $user, $data, $days): void {
-            Membership::activate($user, $upgrade->to_plan, $days);
-
-            $upgrade->update([
-                'status' => PlanUpgrade::STATUS_APPROVED,
-                'admin_notes' => $data['admin_notes'] ?? null,
-                'reviewed_by' => $request->user()->id,
-                'reviewed_at' => now(),
-            ]);
-
-            PlanUpgrade::query()
-                ->where('user_id', $user->id)
-                ->where('id', '!=', $upgrade->id)
-                ->where('status', PlanUpgrade::STATUS_PENDING)
-                ->update([
-                    'status' => PlanUpgrade::STATUS_CANCELLED,
-                    'admin_notes' => 'Cancelled automatically when another payment was approved.',
-                    'reviewed_by' => $request->user()->id,
-                    'reviewed_at' => now(),
-                ]);
-        });
-
-        $user->notify(new PlanUpgradeReviewedNotification($upgrade->fresh()));
+        PlanUpgradeApproval::approve(
+            $upgrade,
+            $request->user()->id,
+            $data['admin_notes'] ?? null,
+            $data['duration_days'] ?? null,
+        );
 
         return back()->with(
             'success',

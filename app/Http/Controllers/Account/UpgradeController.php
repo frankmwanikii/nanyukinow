@@ -8,13 +8,16 @@ use App\Http\Requests\Account\StoreUpgradeRequest;
 use App\Models\PlanUpgrade;
 use App\Models\PricingPlan;
 use App\Models\SiteSetting;
+use App\Models\User;
 use App\Support\CategoryKey;
 use App\Support\Membership;
+use App\Support\PalplussFulfillment;
 use App\Support\PaymentGateway;
 use App\Support\PaymentMethods;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -66,6 +69,23 @@ class UpgradeController extends Controller
                     'Choose a plan, pick how you want to pay, then submit your payment reference. We activate your plan after verifying payment.',
                 ),
             ],
+        ]);
+    }
+
+    public function status(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        PalplussFulfillment::confirmForUser($user);
+        $user->refresh();
+
+        $latest = PlanUpgrade::query()
+            ->where('user_id', $user->id)
+            ->latest('id')
+            ->first();
+
+        return response()->json([
+            'status' => $latest?->status ?? 'none',
+            'plan' => $user->effectivePlan(),
         ]);
     }
 
@@ -130,12 +150,50 @@ class UpgradeController extends Controller
             ], 422);
         }
 
+        $providerRef = $result['provider_ref'] ?? null;
+        $currency = (string) ($data['currency'] ?? $pricing?->currency ?? 'KES');
+        if (is_string($providerRef) && $providerRef !== '') {
+            if ($method === PaymentMethods::MPESA && PaymentGateway::mobileMoneyProvider() === PaymentGateway::PROVIDER_PALPLUSS) {
+                $this->recordPendingUpgrade($user, $toPlan, $billingPeriod, (int) $amount, $currency, $providerRef, PaymentMethods::MPESA, 'Replaced by a new M-Pesa payment prompt.');
+            }
+
+            if ($method === PaymentMethods::PAYPAL) {
+                $this->recordPendingUpgrade($user, $toPlan, $billingPeriod, (int) $amount, $currency, $providerRef, PaymentMethods::PAYPAL, 'Replaced by a new PayPal checkout.');
+            }
+        }
+
         return response()->json([
             'ok' => true,
             'checkout_url' => $result['checkout_url'] ?? null,
             'provider_ref' => $result['provider_ref'] ?? null,
             'message' => $result['message'] ?? null,
         ]);
+    }
+
+    private function recordPendingUpgrade(User $user, string $toPlan, string $billingPeriod, int $amount, string $currency, string $reference, string $paymentMethod, string $replacedNote): void
+    {
+        DB::transaction(function () use ($user, $toPlan, $billingPeriod, $amount, $currency, $reference, $paymentMethod, $replacedNote): void {
+            PlanUpgrade::query()
+                ->where('user_id', $user->id)
+                ->where('status', PlanUpgrade::STATUS_PENDING)
+                ->update([
+                    'status' => PlanUpgrade::STATUS_CANCELLED,
+                    'admin_notes' => $replacedNote,
+                    'reviewed_at' => now(),
+                ]);
+
+            PlanUpgrade::query()->create([
+                'user_id' => $user->id,
+                'from_plan' => $user->effectivePlan(),
+                'to_plan' => $toPlan,
+                'amount' => $amount,
+                'currency' => $currency,
+                'billing_period' => $billingPeriod,
+                'status' => PlanUpgrade::STATUS_PENDING,
+                'payment_reference' => $reference,
+                'payment_method' => $paymentMethod,
+            ]);
+        });
     }
 
     public function store(StoreUpgradeRequest $request): RedirectResponse

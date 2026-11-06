@@ -8,6 +8,7 @@ use App\Models\SiteSetting;
 use App\Models\User;
 use App\Support\Membership;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
@@ -24,6 +25,7 @@ class AccountUpgradePageTest extends TestCase
         $this->actingAs($user)
             ->get(route('account.upgrade'))
             ->assertOk()
+            ->assertHeader('X-LiteSpeed-Cache-Control', 'no-cache')
             ->assertInertia(fn ($page) => $page
                 ->component('Account/Upgrade')
                 ->has('plans', 3)
@@ -33,6 +35,75 @@ class AccountUpgradePageTest extends TestCase
                 ->has('upgradeContact')
                 ->where('initialBilling', 'month')
                 ->has('plan'));
+    }
+
+    public function test_upgrade_status_returns_401_for_guests(): void
+    {
+        $this->getJson(route('account.upgrade.status'))
+            ->assertUnauthorized();
+    }
+
+    public function test_upgrade_status_ignores_another_members_payment(): void
+    {
+        $member = User::factory()->create();
+        $other = User::factory()->create();
+
+        PlanUpgrade::query()->create([
+            'user_id' => $other->id,
+            'from_plan' => Membership::FREE,
+            'to_plan' => Membership::PREMIUM,
+            'amount' => 5,
+            'currency' => 'KES',
+            'billing_period' => 'month',
+            'status' => PlanUpgrade::STATUS_PENDING,
+            'payment_reference' => 'OTHERMEMBER1',
+            'payment_method' => 'mpesa',
+        ]);
+
+        $this->actingAs($member)
+            ->getJson(route('account.upgrade.status'))
+            ->assertOk()
+            ->assertExactJson([
+                'status' => 'none',
+                'plan' => Membership::FREE,
+            ]);
+    }
+
+    public function test_upgrade_status_reports_the_signed_in_members_pending_payment(): void
+    {
+        $member = User::factory()->create();
+
+        PlanUpgrade::query()->create([
+            'user_id' => $member->id,
+            'from_plan' => Membership::FREE,
+            'to_plan' => Membership::PREMIUM,
+            'amount' => 5,
+            'currency' => 'KES',
+            'billing_period' => 'month',
+            'status' => PlanUpgrade::STATUS_PENDING,
+            'payment_reference' => 'MEMBERPAY1',
+            'payment_method' => 'mpesa',
+        ]);
+
+        $this->actingAs($member)
+            ->getJson(route('account.upgrade.status'))
+            ->assertOk()
+            ->assertExactJson([
+                'status' => PlanUpgrade::STATUS_PENDING,
+                'plan' => Membership::FREE,
+            ]);
+    }
+
+    public function test_inertia_upgrade_response_is_not_stored(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get(route('account.upgrade'), [
+                'X-Inertia' => 'true',
+            ])
+            ->assertHeader('Cache-Control', 'no-store, private')
+            ->assertHeader('X-LiteSpeed-Cache-Control', 'no-cache');
     }
 
     public function test_member_on_monthly_can_request_same_tier_yearly_upgrade(): void
@@ -278,6 +349,122 @@ class AccountUpgradePageTest extends TestCase
             ]);
     }
 
+    public function test_palpluss_provider_fails_until_api_key_is_configured(): void
+    {
+        PricingPlan::ensureDefaults();
+        $this->configurePalpluss(apiKey: '');
+
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->postJson(route('account.upgrade.pay'), [
+                'to_plan' => Membership::STANDARD,
+                'payment_method' => 'mpesa',
+                'phone' => '0712345678',
+                'amount' => 2500,
+                'currency' => 'KES',
+            ])
+            ->assertUnprocessable()
+            ->assertJson([
+                'ok' => false,
+                'message' => 'Payment failed. Please try again.',
+                'can_retry' => true,
+            ]);
+    }
+
+    public function test_palpluss_provider_initiates_stk_when_configured(): void
+    {
+        PricingPlan::ensureDefaults();
+        $this->configurePalpluss(channelId: '8b3f1a2c-0000-0000-0000-000000000000');
+
+        Http::preventStrayRequests();
+        Http::fake([
+            'sandbox.palpluss.com/v1/payments/stk' => Http::response([
+                'success' => true,
+                'data' => [
+                    'transactionId' => 'fa98a577-95ea-4a8f-8467-1fbe74f5d6f4',
+                    'status' => 'PENDING',
+                ],
+                'requestId' => 'c1b2a3d4-0000-0000-0000-000000000000',
+            ], 200),
+        ]);
+
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->postJson(route('account.upgrade.pay'), [
+                'to_plan' => Membership::STANDARD,
+                'payment_method' => 'mpesa',
+                'phone' => '0712345678',
+                'amount' => 2500,
+                'currency' => 'KES',
+            ])
+            ->assertOk()
+            ->assertJson([
+                'ok' => true,
+                'provider_ref' => 'fa98a577-95ea-4a8f-8467-1fbe74f5d6f4',
+                'message' => 'Check your phone and approve the M-Pesa prompt. Your plan activates as soon as the payment succeeds.',
+            ]);
+
+        $this->assertDatabaseHas('plan_upgrades', [
+            'user_id' => $user->id,
+            'status' => 'pending',
+            'payment_reference' => 'fa98a577-95ea-4a8f-8467-1fbe74f5d6f4',
+            'payment_method' => 'mpesa',
+            'to_plan' => Membership::STANDARD,
+        ]);
+
+        Http::assertSent(function (Request $request) {
+            $authorization = $request->header('Authorization')[0] ?? '';
+
+            return $request->url() === 'https://sandbox.palpluss.com/v1/payments/stk'
+                && $authorization === 'Basic '.base64_encode('pk_test_xxx:')
+                && $request['phone'] === '254712345678'
+                && $request['amount'] === 2500
+                && $request['channelId'] === '8b3f1a2c-0000-0000-0000-000000000000'
+                && $request['accountReference'] === 'NANYUKINOW'
+                && $request['transactionDesc'] === 'Nanyuki Now'
+                && str_ends_with((string) $request['callbackUrl'], '/webhooks/palpluss');
+        });
+    }
+
+    public function test_palpluss_live_provider_uses_live_api_and_hides_provider_errors(): void
+    {
+        PricingPlan::ensureDefaults();
+        $this->configurePalpluss(mode: 'live', apiKey: 'pk_live_xxx');
+
+        Http::preventStrayRequests();
+        Http::fake([
+            'api.palpluss.com/v1/payments/stk' => Http::response([
+                'success' => false,
+                'error' => [
+                    'message' => 'Invalid or revoked API key.',
+                    'code' => 'INVALID_API_KEY',
+                ],
+            ], 401),
+        ]);
+
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->postJson(route('account.upgrade.pay'), [
+                'to_plan' => Membership::STANDARD,
+                'payment_method' => 'mpesa',
+                'phone' => '0712345678',
+                'amount' => 2500,
+                'currency' => 'KES',
+            ])
+            ->assertUnprocessable()
+            ->assertJson([
+                'ok' => false,
+                'message' => 'Payment failed. Please try again.',
+                'can_retry' => true,
+            ]);
+
+        Http::assertSent(fn (Request $request) => $request->url() === 'https://api.palpluss.com/v1/payments/stk'
+            && ($request->header('Authorization')[0] ?? '') === 'Basic '.base64_encode('pk_live_xxx:'));
+    }
+
     public function test_live_paypal_pay_creates_sandbox_checkout(): void
     {
         PricingPlan::ensureDefaults();
@@ -416,5 +603,48 @@ class AccountUpgradePageTest extends TestCase
             ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['phone']);
+    }
+
+    private function configurePalpluss(string $mode = 'sandbox', string $apiKey = 'pk_test_xxx', ?string $channelId = null): void
+    {
+        $prefix = $mode === 'live' ? 'palpluss_live_' : 'palpluss_sandbox_';
+
+        SiteSetting::query()->create([
+            'group' => 'payments',
+            'key' => 'mobile_money_provider',
+            'label' => 'M-Pesa checkout provider',
+            'type' => 'select',
+            'value' => 'palpluss',
+            'sort_order' => 0,
+        ]);
+        SiteSetting::query()->create([
+            'group' => 'payments',
+            'key' => 'palpluss_mode',
+            'label' => 'Palpluss mode',
+            'type' => 'select',
+            'value' => $mode,
+            'sort_order' => 30,
+        ]);
+        SiteSetting::query()->create([
+            'group' => 'payments',
+            'key' => $prefix.'api_key',
+            'label' => 'Palpluss API key',
+            'type' => 'password',
+            'value' => $apiKey,
+            'sort_order' => 31,
+        ]);
+
+        if ($channelId !== null) {
+            SiteSetting::query()->create([
+                'group' => 'payments',
+                'key' => $prefix.'channel_id',
+                'label' => 'Palpluss channel ID',
+                'type' => 'text',
+                'value' => $channelId,
+                'sort_order' => 32,
+            ]);
+        }
+
+        SiteSetting::forgetCache();
     }
 }

@@ -205,6 +205,9 @@ function PaymentsFields({ items, valueFor, updateValue }) {
     const paypalMode = valueFor('paypal_mode') || 'sandbox';
     const mpesaMode = valueFor('mpesa_mode') || 'sandbox';
     const intasendMode = valueFor('intasend_mode') || 'sandbox';
+    const palplussMode = valueFor('palpluss_mode') || 'sandbox';
+    const providerBadge =
+        provider === 'intasend' ? 'IntaSend' : provider === 'palpluss' ? 'Palpluss' : 'Daraja';
 
     const field = (key, label, className) => {
         const item = map[key];
@@ -225,7 +228,7 @@ function PaymentsFields({ items, valueFor, updateValue }) {
         <div className="space-y-4">
             <NestedBlock
                 title="M-Pesa"
-                badge={provider === 'intasend' ? 'IntaSend' : 'Daraja'}
+                badge={providerBadge}
             >
                 {field('mobile_money_provider', 'Checkout provider', 'sm:col-span-2')}
 
@@ -269,6 +272,24 @@ function PaymentsFields({ items, valueFor, updateValue }) {
                                 {field('intasend_sandbox_secret_key', 'Secret key')}
                             </>
                         )}
+                    </>
+                ) : null}
+
+                {provider === 'palpluss' ? (
+                    <>
+                        {field('palpluss_mode', 'Environment', 'sm:col-span-2')}
+                        {palplussMode === 'live' ? (
+                            <>
+                                {field('palpluss_live_api_key', 'API key')}
+                                {field('palpluss_live_channel_id', 'Channel ID (optional)')}
+                            </>
+                        ) : (
+                            <>
+                                {field('palpluss_sandbox_api_key', 'API key')}
+                                {field('palpluss_sandbox_channel_id', 'Channel ID (optional)')}
+                            </>
+                        )}
+                        {field('palpluss_callback_url', 'Callback URL (optional)', 'sm:col-span-2')}
                     </>
                 ) : null}
             </NestedBlock>

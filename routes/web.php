@@ -8,6 +8,7 @@ use App\Http\Controllers\Account\EditorMediaController;
 use App\Http\Controllers\Account\ListingController as AccountListingController;
 use App\Http\Controllers\Account\MessageController;
 use App\Http\Controllers\Account\NotificationController;
+use App\Http\Controllers\Account\PaypalReturnController;
 use App\Http\Controllers\Account\PlaceSearchController;
 use App\Http\Controllers\Account\UpgradeController as AccountUpgradeController;
 use App\Http\Controllers\ListingClaimController;
@@ -17,9 +18,15 @@ use App\Http\Controllers\ListingReportController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\PricingPageController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Webhooks\PalplussWebhookController;
+use App\Http\Controllers\Webhooks\PaypalWebhookController;
 use App\Models\SitePage;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+
+Route::post('/webhooks/palpluss', PalplussWebhookController::class)->name('webhooks.palpluss');
+Route::post('/webhooks/paypal', PaypalWebhookController::class)->name('webhooks.paypal');
+Route::get('/account/upgrade/paypal/return', PaypalReturnController::class)->name('account.upgrade.paypal.return');
 
 Route::get('/', [ListingController::class, 'home'])->name('home');
 
@@ -117,6 +124,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/account/billing', AccountBillingController::class)->name('account.billing');
 
     Route::get('/account/upgrade', [AccountUpgradeController::class, 'create'])->name('account.upgrade');
+    Route::get('/account/upgrade/status', [AccountUpgradeController::class, 'status'])->name('account.upgrade.status');
     Route::post('/account/upgrade/pay', [AccountUpgradeController::class, 'initiate'])->name('account.upgrade.pay');
     Route::post('/account/upgrade', [AccountUpgradeController::class, 'store'])->name('account.upgrade.store');
     Route::post('/account/upgrade/{upgrade}/cancel', [AccountUpgradeController::class, 'cancel'])->name('account.upgrade.cancel');
