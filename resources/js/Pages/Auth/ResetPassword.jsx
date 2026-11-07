@@ -28,19 +28,16 @@ export default function ResetPassword({ token, email }) {
         data.email,
         validateEmail,
         errors.email,
-        'Valid email',
     );
     const passwordFeedback = fieldFeedback(
         data.password,
         validatePassword,
         errors.password,
-        'Strong enough',
     );
     const passwordConfirmFeedback = fieldFeedback(
         data.password_confirmation,
         (value) => validatePasswordConfirm(value, data.password),
         errors.password_confirmation,
-        'Passwords match',
     );
 
     const formValid =
@@ -88,14 +85,11 @@ export default function ResetPassword({ token, email }) {
                         setData('email', e.target.value);
                     }}
                     error={emailFeedback.error}
-                    success={emailFeedback.success}
-                    showSuccessMessage={false}
                     autoComplete="username"
                 />
                 <AuthField
                     id="password"
                     label="New password"
-                    hint="(min. 8 char)"
                     type={showPassword ? 'text' : 'password'}
                     tone="glass"
                     value={data.password}
@@ -104,8 +98,6 @@ export default function ResetPassword({ token, email }) {
                         setData('password', e.target.value);
                     }}
                     error={passwordFeedback.error}
-                    success={passwordFeedback.success}
-                    showSuccessMessage={false}
                     autoComplete="new-password"
                     trailing={
                         <PasswordToggle
@@ -126,8 +118,6 @@ export default function ResetPassword({ token, email }) {
                         setData('password_confirmation', e.target.value);
                     }}
                     error={passwordConfirmFeedback.error}
-                    success={passwordConfirmFeedback.success}
-                    showSuccessMessage={false}
                     autoComplete="new-password"
                     trailing={
                         <PasswordToggle

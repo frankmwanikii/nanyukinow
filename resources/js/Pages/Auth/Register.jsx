@@ -8,7 +8,6 @@ import {
 } from '@/Components/auth/AuthField';
 import {
     fieldFeedback,
-    MIN_PASSWORD,
     validateEmail,
     validateFirstName,
     validateLastName,
@@ -267,7 +266,6 @@ export default function Register() {
                     <AuthField
                         id="username"
                         label="Username"
-                        hint="(only letters, numbers and underscores)"
                         value={data.username}
                         onChange={(e) => {
                             clearErrors('username');
@@ -285,7 +283,6 @@ export default function Register() {
                     <AuthField
                         id="password"
                         label="Password"
-                        hint={`(min. ${MIN_PASSWORD} char)`}
                         type={showPassword ? 'text' : 'password'}
                         value={data.password}
                         onChange={(e) => {

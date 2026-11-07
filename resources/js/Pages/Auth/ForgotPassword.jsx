@@ -54,7 +54,6 @@ export default function ForgotPassword({ status }) {
                         label="Email address"
                         type="email"
                         tone="glass"
-                        placeholder="name@email.com"
                         value={data.email}
                         onChange={(e) => {
                             clearErrors('email');

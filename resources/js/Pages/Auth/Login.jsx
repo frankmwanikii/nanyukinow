@@ -35,13 +35,11 @@ export default function Login({ status, canResetPassword }) {
         data.login,
         validateLoginIdentifier,
         errors.login,
-        data.login.includes('@') ? 'Valid email' : 'Username looks good',
     );
     const loginPasswordFeedback = fieldFeedback(
         data.password,
         validateLoginPassword,
         errors.password,
-        'Password entered',
     );
 
     const loginValid =
@@ -97,7 +95,6 @@ export default function Login({ status, canResetPassword }) {
                     label="Email or username"
                     type="text"
                     tone="glass"
-                    placeholder="name@email.com"
                     value={data.login}
                     onChange={(e) => {
                         clearErrors('login', 'suggest_register');
@@ -108,12 +105,6 @@ export default function Login({ status, canResetPassword }) {
                             ? null
                             : loginIdFeedback.error
                     }
-                    success={
-                        errors.suggest_register
-                            ? null
-                            : loginIdFeedback.success
-                    }
-                    showSuccessMessage={false}
                     autoComplete="username"
                 />
                 <AuthField
@@ -121,15 +112,12 @@ export default function Login({ status, canResetPassword }) {
                     label="Password"
                     type={showPassword ? 'text' : 'password'}
                     tone="glass"
-                    placeholder="Enter your password"
                     value={data.password}
                     onChange={(e) => {
                         clearErrors('password');
                         setData('password', e.target.value);
                     }}
                     error={loginPasswordFeedback.error}
-                    success={loginPasswordFeedback.success}
-                    showSuccessMessage={false}
                     autoComplete="current-password"
                     trailing={
                         <PasswordToggle
