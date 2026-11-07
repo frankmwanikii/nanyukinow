@@ -10,6 +10,7 @@ import RichTextEditor from '@/Components/listing-form/RichTextEditor';
 import {
     emptyDetailsFor,
 } from '@/Components/listing-form/categoryFieldConfig';
+import FieldLabel from '@/Components/listing-form/FieldLabel';
 import {
     defaultHours,
     field,
@@ -987,17 +988,17 @@ export default function Form({
                         </div>
                     ) : null}
 
-                    <div className="rounded-2xl border border-olive-100 bg-white p-3 shadow-soft dark:border-olive-800 dark:bg-olive-900 dark:shadow-none">
-                        <div className="mb-2 flex items-center justify-between text-xs font-semibold text-olive-600 dark:text-olive-400">
+                    <div className="border border-olive-900/15 bg-white p-3 dark:border-olive-800 dark:bg-olive-900">
+                        <div className="mb-2 flex items-center justify-between text-xs font-semibold text-olive-700 dark:text-olive-400">
                             <span>
                                 Step {stepIndex + 1} of {STEPS.length} ·{' '}
                                 {step.title}
                             </span>
                             <span>{Math.round(progress)}%</span>
                         </div>
-                        <div className="h-2 overflow-hidden rounded-full bg-olive-100 dark:bg-olive-800">
+                        <div className="h-1.5 overflow-hidden bg-olive-100 dark:bg-olive-800">
                             <motion.div
-                                className="h-full rounded-full bg-mustard"
+                                className="h-full bg-mustard"
                                 animate={{ width: `${progress}%` }}
                                 transition={{ type: 'spring', stiffness: 120, damping: 20 }}
                             />
@@ -1019,11 +1020,11 @@ export default function Form({
                                             if (canJump) setStepIndex(i);
                                         }}
                                         disabled={!canJump}
-                                        className={`shrink-0 rounded-lg px-2 py-1.5 text-[11px] font-semibold transition sm:flex-1 sm:px-1 ${
+                                        className={`shrink-0 px-2 py-1.5 text-[11px] font-semibold transition sm:flex-1 sm:px-1 ${
                                             i === stepIndex
                                                 ? 'bg-olive-900 text-white dark:bg-mustard dark:text-earth-dusk'
                                                 : canJump
-                                                  ? 'bg-mustard/40 text-olive-900 hover:bg-mustard/55 dark:bg-olive-800 dark:text-olive-100 dark:hover:bg-olive-700'
+                                                  ? 'bg-olive-100 text-olive-900 hover:bg-olive-200 dark:bg-olive-800 dark:text-olive-100 dark:hover:bg-olive-700'
                                                   : 'cursor-not-allowed bg-olive-50 text-olive-400 dark:bg-olive-950 dark:text-olive-600'
                                         }`}
                                     >
@@ -1827,9 +1828,9 @@ function BasicsStep({
     return (
         <>
             <div>
-                <label className={label} htmlFor="title">
+                <FieldLabel htmlFor="title" required>
                     {categoryNameLabel(categoryKey)}
-                </label>
+                </FieldLabel>
                 <input
                     id="title"
                     className={field}
@@ -1854,9 +1855,9 @@ function BasicsStep({
             <div className="grid gap-4">
                 {isEdit ? (
                     <div>
-                        <label className={label} htmlFor="category_id">
+                        <FieldLabel htmlFor="category_id" required>
                             Category
-                        </label>
+                        </FieldLabel>
                         <select
                             id="category_id"
                             className={field}
@@ -1887,10 +1888,10 @@ function BasicsStep({
                 ) : null}
 
                 <div>
-                    <label className={label} htmlFor="subcategory">
+                    <FieldLabel htmlFor="subcategory" required>
                         Subcategory
-                    </label>
-                    <p className="mb-2 text-xs text-olive-500 dark:text-olive-400">
+                    </FieldLabel>
+                    <p className="mb-2 text-xs text-olive-600 dark:text-olive-400">
                         Choose one or more. Remove a chip to drop it.
                     </p>
                     <select
@@ -1902,6 +1903,7 @@ function BasicsStep({
                             e.target.value = '';
                         }}
                         disabled={availableSubs.length === 0}
+                        required={selectedSubs.length === 0}
                     >
                         <option value="">
                             {availableSubs.length
@@ -1919,13 +1921,13 @@ function BasicsStep({
                             {selectedSubs.map((s) => (
                                 <span
                                     key={s}
-                                    className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-olive-100 py-1.5 pl-3 pr-1.5 text-xs font-semibold text-olive-900 dark:bg-olive-800 dark:text-olive-100"
+                                    className="inline-flex max-w-full items-center gap-1.5 border border-olive-900/15 bg-olive-50 py-1.5 pl-3 pr-1 text-xs font-semibold text-olive-900 dark:border-olive-700 dark:bg-olive-800 dark:text-olive-100"
                                 >
                                     <span className="truncate">{s}</span>
                                     <button
                                         type="button"
                                         onClick={() => removeSubcategory(s)}
-                                        className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-olive-700 transition hover:bg-olive-200 hover:text-olive-950 dark:text-olive-200 dark:hover:bg-olive-700 dark:hover:text-white"
+                                        className="inline-flex h-7 w-7 shrink-0 items-center justify-center text-olive-700 transition hover:bg-olive-200 hover:text-olive-950 dark:text-olive-200 dark:hover:bg-olive-700 dark:hover:text-white"
                                         aria-label={`Remove ${s}`}
                                     >
                                         <X className="h-3.5 w-3.5" strokeWidth={2.5} />
@@ -1943,9 +1945,9 @@ function BasicsStep({
 
                 {categoryKey === 'properties' ? (
                     <div>
-                        <label className={label} htmlFor="property_type">
+                        <FieldLabel htmlFor="property_type" required>
                             Property type
-                        </label>
+                        </FieldLabel>
                         <select
                             id="property_type"
                             className={field}
@@ -1973,9 +1975,7 @@ function BasicsStep({
 
             {!hideTagline ? (
                 <div>
-                    <label className={label} htmlFor="tagline">
-                        Short tagline
-                    </label>
+                    <FieldLabel htmlFor="tagline">Short tagline</FieldLabel>
                     <input
                         id="tagline"
                         className={field}

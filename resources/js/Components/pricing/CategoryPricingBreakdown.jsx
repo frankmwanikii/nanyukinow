@@ -6,26 +6,26 @@ import {
     normalizePlanKey,
 } from '@/data/pricingCategoryBreakdown';
 import {
-    BedDouble,
-    Briefcase,
-    CalendarDays,
-    Camera,
-    Check,
-    Coffee,
-    Home,
-    ShoppingCart,
-    X,
-} from 'lucide-react';
+    CheckMark,
+    CloseMark,
+    EatMark,
+    EventMark,
+    ExploreMark,
+    PropertyMark,
+    ServicesMark,
+    ShopMark,
+    StayMark,
+} from '@/Components/site/Mark';
 import { useMemo, useState } from 'react';
 
 const CATEGORY_ICONS = {
-    eatDrink: Coffee,
-    stay: BedDouble,
-    thingsToDo: Camera,
-    services: Briefcase,
-    shopping: ShoppingCart,
-    properties: Home,
-    events: CalendarDays,
+    eatDrink: EatMark,
+    stay: StayMark,
+    thingsToDo: ExploreMark,
+    services: ServicesMark,
+    shopping: ShopMark,
+    properties: PropertyMark,
+    events: EventMark,
 };
 
 function planRank(plan) {
@@ -54,7 +54,7 @@ function MatrixCheck({ value }) {
                 className="inline-flex items-center justify-center text-olive-300 dark:text-olive-600"
                 aria-label="Not included"
             >
-                <X className="h-4 w-4" strokeWidth={2} />
+                <CloseMark className="h-4 w-4" />
             </span>
         );
     }
@@ -62,10 +62,10 @@ function MatrixCheck({ value }) {
     if (value === true) {
         return (
             <span
-                className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-mint/35 text-olive-900 dark:bg-mint/20 dark:text-mint"
+                className="inline-flex items-center justify-center text-olive-900 dark:text-mustard"
                 aria-label="Included"
             >
-                <Check className="h-3.5 w-3.5" strokeWidth={2.75} />
+                <CheckMark className="h-4 w-4" />
             </span>
         );
     }
@@ -92,7 +92,7 @@ export function CategoryPicker({
         <section>
             <div className="mx-auto max-w-2xl text-center sm:text-left">
                 {stepLabel ? (
-                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-olive-400 dark:text-olive-500">
+                    <p className="text-sm font-medium text-olive-500 dark:text-olive-400">
                         {stepLabel}
                     </p>
                 ) : null}
@@ -110,20 +110,18 @@ export function CategoryPicker({
                 ) : null}
             </div>
 
-            <div className="mx-auto mt-8 grid max-w-5xl grid-cols-2 gap-4 sm:gap-5 md:grid-cols-4">
+            <div className="mx-auto mt-8 grid max-w-4xl grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
                 {options.map((category) => {
-                    const Icon = CATEGORY_ICONS[category.key] || Coffee;
+                    const Icon = CATEGORY_ICONS[category.key] || EatMark;
                     return (
                         <button
                             key={category.key}
                             type="button"
                             onClick={() => onSelect(category.key)}
-                            className="group flex min-h-[9.5rem] flex-col items-center justify-center gap-4 rounded-2xl bg-white/70 px-4 py-8 text-center shadow-soft ring-1 ring-olive-200/60 transition hover:-translate-y-1 hover:bg-white hover:shadow-lift dark:bg-olive-900/80 dark:ring-olive-700 dark:hover:bg-olive-900 sm:min-h-[11.5rem] sm:px-5 sm:py-10"
+                            className="group flex min-h-[7.5rem] flex-col items-center justify-center gap-3.5 border border-olive-200/70 bg-white px-3 py-6 text-center transition hover:border-olive-500 hover:bg-olive-600 dark:border-olive-700 dark:bg-olive-900 dark:hover:border-mustard dark:hover:bg-olive-800 sm:py-8"
                         >
-                            <span className="flex h-14 w-14 items-center justify-center text-olive-700 transition group-hover:text-olive-950 dark:text-olive-200 dark:group-hover:text-mustard sm:h-16 sm:w-16">
-                                <Icon className="h-10 w-10 sm:h-11 sm:w-11" strokeWidth={1.5} />
-                            </span>
-                            <span className="font-display text-base font-semibold text-earth-dusk dark:text-olive-50 sm:text-lg">
+                            <Icon className="h-8 w-8 text-olive-700 transition group-hover:text-mustard dark:text-olive-200 sm:h-9 sm:w-9" />
+                            <span className="font-display text-sm font-semibold text-earth-dusk transition group-hover:text-white dark:text-olive-50 sm:text-base">
                                 {category.label}
                             </span>
                         </button>
@@ -146,10 +144,10 @@ export function CategoryInclusionMatrix({
     if (!breakdown || ordered.length === 0 || rows.length === 0) return null;
 
     return (
-        <div className="overflow-hidden rounded-2xl border border-olive-200/80 bg-white shadow-soft dark:border-olive-800 dark:bg-olive-900 dark:shadow-none">
-            <div className="border-b border-olive-100 px-5 py-5 sm:px-6 dark:border-olive-800">
+        <div className="overflow-hidden border border-olive-900/15 bg-white dark:border-olive-800 dark:bg-olive-900">
+            <div className="border-b border-olive-900/10 px-5 py-5 sm:px-6 dark:border-olive-800">
                 {stepLabel ? (
-                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-olive-400 dark:text-olive-500">
+                    <p className="text-sm font-medium text-olive-500 dark:text-olive-400">
                         {stepLabel}
                     </p>
                 ) : null}

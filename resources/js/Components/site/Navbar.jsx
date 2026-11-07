@@ -1,14 +1,11 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import {
-    Menu,
-    Plus,
-    Search,
-    User,
-    X,
-} from 'lucide-react';
-import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import {
+    CloseMark,
+    MenuMark,
+    SearchMark,
+} from '@/Components/site/Mark';
 import FlippingSearchHint from './FlippingSearchHint';
 import Logo from './Logo';
 import {
@@ -109,13 +106,9 @@ function MobileDrawerNav({
                                 <NavCaret open={isOpen} />
                             </button>
 
-                            <AnimatePresence initial={false}>
+                            
                                 {isOpen ? (
-                                    <motion.ul
-                                        initial={{ height: 0, opacity: 0 }}
-                                        animate={{ height: 'auto', opacity: 1 }}
-                                        exit={{ height: 0, opacity: 0 }}
-                                        transition={{ duration: 0.22 }}
+                                    <ul
                                         className="ml-3 overflow-hidden border-l-2 border-mustard/70"
                                     >
                                         {items.map((item) => {
@@ -181,26 +174,9 @@ function MobileDrawerNav({
                                                             open={childOpen}
                                                         />
                                                     </button>
-                                                    <AnimatePresence
-                                                        initial={false}
-                                                    >
+                                                    
                                                         {childOpen ? (
-                                                            <motion.ul
-                                                                initial={{
-                                                                    height: 0,
-                                                                    opacity: 0,
-                                                                }}
-                                                                animate={{
-                                                                    height: 'auto',
-                                                                    opacity: 1,
-                                                                }}
-                                                                exit={{
-                                                                    height: 0,
-                                                                    opacity: 0,
-                                                                }}
-                                                                transition={{
-                                                                    duration: 0.2,
-                                                                }}
+                                                            <ul
                                                                 className="overflow-hidden bg-black/15"
                                                             >
                                                                 <li>
@@ -245,15 +221,15 @@ function MobileDrawerNav({
                                                                         </li>
                                                                     ),
                                                                 )}
-                                                            </motion.ul>
+                                                            </ul>
                                                         ) : null}
-                                                    </AnimatePresence>
+                                                    
                                                 </li>
                                             );
                                         })}
-                                    </motion.ul>
+                                    </ul>
                                 ) : null}
-                            </AnimatePresence>
+                            
                         </li>
                     );
                 })}
@@ -363,31 +339,17 @@ export default function Navbar({ compact = false }) {
     };
 
     const mobileMenu =
-        typeof document !== 'undefined' ? (
-            <AnimatePresence>
-                {open ? (
+        typeof document !== 'undefined' && open ? (
                     <>
-                        <motion.button
+                        <button
                             type="button"
                             key="mobile-nav-backdrop"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 0.2 }}
                             className="fixed inset-0 z-[2000] bg-black/50 backdrop-blur-[2px] lg:hidden"
                             aria-label="Close menu"
                             onClick={() => setOpen(false)}
                         />
-                        <motion.aside
+                        <aside
                             key="mobile-nav-drawer"
-                            initial={{ x: '-100%' }}
-                            animate={{ x: 0 }}
-                            exit={{ x: '-100%' }}
-                            transition={{
-                                type: 'spring',
-                                stiffness: 380,
-                                damping: 34,
-                            }}
                             className="fixed inset-y-0 left-0 z-[2001] flex h-[100dvh] w-[min(20rem,86vw)] flex-col bg-[#4f5a3e] font-display shadow-lift lg:hidden"
                             role="dialog"
                             aria-modal="true"
@@ -401,7 +363,7 @@ export default function Navbar({ compact = false }) {
                                     className="inline-flex rounded-lg p-2 text-white transition hover:bg-white/10"
                                     aria-label="Close menu"
                                 >
-                                    <X className="h-5 w-5" strokeWidth={2} />
+                                    <CloseMark className="h-5 w-5" />
                                 </button>
                             </div>
 
@@ -433,47 +395,34 @@ export default function Navbar({ compact = false }) {
                                     </Link>
                                 ) : null}
                                 {user ? (
-                                    <Link
-                                        href={route('account.listings.create')}
-                                        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-mustard px-4 py-3.5 text-base font-bold text-olive-950 transition hover:bg-white hover:text-mustard"
-                                        onClick={() => setOpen(false)}
-                                    >
-                                        <Plus className="h-4 w-4 stroke-[2.5]" />
-                                        Add Business
-                                    </Link>
-                                ) : (
-                                    <Link
-                                        href={route('register')}
-                                        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-mustard px-4 py-3.5 text-base font-bold text-olive-950 transition hover:bg-white hover:text-mustard"
-                                        onClick={() => setOpen(false)}
-                                    >
-                                        <Plus className="h-4 w-4 stroke-[2.5]" />
-                                        Add Business
-                                    </Link>
-                                )}
-                                {user ? (
-                                    <div className="mt-2 grid grid-cols-2 gap-2">
+                                    <div className="grid grid-cols-2 gap-2">
                                         <Link
                                             href={route('account.index')}
-                                            className="inline-flex items-center justify-center rounded-xl px-3 py-2.5 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
+                                            className="inline-flex items-center justify-center border border-white/15 px-3 py-2.5 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
                                             onClick={() => setOpen(false)}
                                         >
                                             Dashboard
                                         </Link>
                                         <Link
                                             href={route('account.messages')}
-                                            className="inline-flex items-center justify-center rounded-xl px-3 py-2.5 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
+                                            className="inline-flex items-center justify-center border border-white/15 px-3 py-2.5 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
                                             onClick={() => setOpen(false)}
                                         >
                                             Messages
                                         </Link>
                                     </div>
-                                ) : null}
+                                ) : (
+                                    <Link
+                                        href={route('register')}
+                                        className="inline-flex w-full items-center justify-center border border-mustard bg-mustard px-4 py-3.5 text-base font-semibold text-earth-dusk transition hover:border-white hover:bg-white"
+                                        onClick={() => setOpen(false)}
+                                    >
+                                        Get started
+                                    </Link>
+                                )}
                             </div>
-                        </motion.aside>
+                        </aside>
                     </>
-                ) : null}
-            </AnimatePresence>
         ) : null;
 
     return (
@@ -498,7 +447,7 @@ export default function Navbar({ compact = false }) {
                             aria-expanded={open}
                             aria-label="Open menu"
                         >
-                            <Menu className="h-6 w-6" strokeWidth={1.85} />
+                            <MenuMark className="h-6 w-6" />
                         </button>
                         <Logo className="min-w-0" />
                     </div>
@@ -511,11 +460,10 @@ export default function Navbar({ compact = false }) {
                             </>
                         ) : (
                             <Link
-                                href={route('login')}
-                                className="inline-flex rounded-lg p-2 text-white transition hover:bg-white/10"
-                                aria-label="Sign in or register"
+                                href={route('register')}
+                                className="inline-flex items-center justify-center border border-mustard bg-mustard px-3 py-2 text-sm font-semibold text-earth-dusk transition hover:border-white hover:bg-white"
                             >
-                                <User className="h-5 w-5" strokeWidth={1.85} />
+                                Get started
                             </Link>
                         )}
                     </div>
@@ -530,7 +478,7 @@ export default function Navbar({ compact = false }) {
                     onSubmit={submitSearch}
                     role="search"
                 >
-                    <Search className="pointer-events-none absolute left-0 z-10 h-4 w-4 text-white/80" />
+                    <SearchMark className="pointer-events-none absolute left-0 z-10 h-4 w-4 text-white/80" />
                     <FlippingSearchHint visible={!query.trim() && !searchOpen} />
                     <input
                         type="search"
@@ -567,7 +515,7 @@ export default function Navbar({ compact = false }) {
                             className="absolute right-0 z-10 inline-flex h-7 w-7 items-center justify-center rounded-full text-white/75 transition hover:bg-white/10 hover:text-white"
                             aria-label="Clear search"
                         >
-                            <X className="h-4 w-4" strokeWidth={2.25} />
+                            <CloseMark className="h-4 w-4" />
                         </button>
                     ) : null}
                     {searchOpen ? (
@@ -611,6 +559,7 @@ export default function Navbar({ compact = false }) {
                             >
                                 <Link
                                     href={link.href}
+                                    prefetch
                                     className="inline-flex items-center gap-1 rounded-lg px-2.5 py-2 text-base font-semibold text-white/95 transition hover:bg-white/10 hover:text-white sm:text-[17px]"
                                 >
                                     {link.label}
@@ -620,14 +569,10 @@ export default function Navbar({ compact = false }) {
                                         />
                                     ) : null}
                                 </Link>
-                                <AnimatePresence>
+                                
                                     {link.menu &&
                                     activeMenu === link.menu ? (
-                                        <motion.div
-                                            initial={{ opacity: 0, y: 6 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0, y: 4 }}
-                                            transition={{ duration: 0.16 }}
+                                        <div
                                             className={`absolute top-full z-[60] mt-1 ${
                                                 isMore
                                                     ? 'right-0'
@@ -746,9 +691,9 @@ export default function Navbar({ compact = false }) {
                                                     </div>
                                                 ) : null}
                                             </div>
-                                        </motion.div>
+                                        </div>
                                     ) : null}
-                                </AnimatePresence>
+                                
                             </div>
                         );
                     })}
@@ -762,31 +707,10 @@ export default function Navbar({ compact = false }) {
                         </>
                     ) : (
                         <Link
-                            href={route('login')}
-                            className="inline-flex items-center gap-2 rounded-lg px-2.5 py-2 text-base font-semibold text-white/95 transition hover:bg-white/10 hover:text-white sm:text-[17px]"
-                        >
-                            <User className="h-4 w-4" strokeWidth={1.85} />
-                            <span className="max-w-[10rem] truncate">
-                                Sign in or register
-                            </span>
-                        </Link>
-                    )}
-
-                    {user ? (
-                        <Link
-                            href={route('account.listings.create')}
-                            className="inline-flex items-center gap-2 rounded-xl bg-mustard px-3.5 py-2.5 text-[15px] font-bold text-olive-950 shadow-[0_8px_20px_-8px_rgba(242,184,46,0.7)] transition hover:bg-white hover:text-mustard hover:shadow-md sm:px-4 sm:text-base"
-                        >
-                            <Plus className="h-4 w-4 stroke-[2.5]" />
-                            Add Business
-                        </Link>
-                    ) : (
-                        <Link
                             href={route('register')}
-                            className="inline-flex items-center gap-2 rounded-xl bg-mustard px-3.5 py-2.5 text-[15px] font-bold text-olive-950 shadow-[0_8px_20px_-8px_rgba(242,184,46,0.7)] transition hover:bg-white hover:text-mustard hover:shadow-md sm:px-4 sm:text-base"
+                            className="inline-flex items-center justify-center border border-mustard bg-mustard px-3.5 py-2.5 text-[15px] font-semibold text-earth-dusk transition hover:border-white hover:bg-white sm:px-4 sm:text-base"
                         >
-                            <Plus className="h-4 w-4 stroke-[2.5]" />
-                            Add Business
+                            Get started
                         </Link>
                     )}
                 </div>

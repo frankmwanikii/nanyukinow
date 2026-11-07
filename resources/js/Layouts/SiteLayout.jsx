@@ -1,8 +1,12 @@
 import { Head } from '@inertiajs/react';
+import { lazy, Suspense } from 'react';
 import Navbar from '@/Components/site/Navbar';
 import Footer from '@/Components/site/Footer';
-import MobileBottomNav from '@/Components/site/MobileBottomNav';
 import SuccessToastHost from '@/Components/site/SuccessToast';
+
+const MobileBottomNav = lazy(
+    () => import('@/Components/site/MobileBottomNav'),
+);
 
 export default function SiteLayout({
     title,
@@ -29,7 +33,9 @@ export default function SiteLayout({
                 <main>{children}</main>
                 {hideFooter ? null : <Footer />}
             </div>
-            <MobileBottomNav />
+            <Suspense fallback={null}>
+                <MobileBottomNav />
+            </Suspense>
             <SuccessToastHost />
         </>
     );

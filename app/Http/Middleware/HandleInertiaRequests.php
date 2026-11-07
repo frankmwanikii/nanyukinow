@@ -9,6 +9,7 @@ use App\Models\SiteSetting;
 use App\Support\MemberMessages;
 use App\Support\MemberNotifications;
 use App\Support\Membership;
+use App\Support\UserAvatar;
 use Closure;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -68,16 +69,7 @@ class HandleInertiaRequests extends Middleware
                         'name' => $request->user()->name,
                         'username' => $request->user()->username,
                         'email' => $request->user()->email,
-                        'avatar_url' => (function () use ($request) {
-                            $url = $request->user()->avatar_url;
-                            if (! $url) {
-                                return null;
-                            }
-                            $marker = '/storage/';
-                            $pos = strpos($url, $marker);
-
-                            return $pos === false ? $url : substr($url, $pos);
-                        })(),
+                        'avatar_url' => UserAvatar::publicUrl($request->user()->avatar_url),
                         'is_admin' => (bool) $request->user()->is_admin,
                         'plan' => $request->user()->effectivePlan(),
                         'plan_label' => Membership::label($request->user()->effectivePlan()),

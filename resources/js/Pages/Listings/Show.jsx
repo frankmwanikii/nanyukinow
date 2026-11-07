@@ -113,13 +113,13 @@ export default function ListingShow({
 
             <div className="bg-earth-sand pb-8 pt-4 sm:pt-6 lg:pb-14">
                 {tab === 'overview' ? (
-                    <div className="mx-auto grid max-w-[1400px] gap-4 px-4 sm:px-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(280px,1fr)] lg:items-start lg:gap-5">
-                        <div className="flex min-w-0 flex-col gap-4">
+                    <div className="mx-auto grid max-w-[1400px] gap-5 px-4 sm:px-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(280px,1fr)] lg:items-start">
+                        <div className="flex min-w-0 flex-col gap-5">
                             {layout.main.map((key) =>
                                 renderListingSection(key, listing),
                             )}
                         </div>
-                        <aside className="flex min-w-0 flex-col gap-4 lg:sticky lg:top-36">
+                        <aside className="flex min-w-0 flex-col gap-5 lg:sticky lg:top-36">
                             {layout.side.map((key) =>
                                 renderListingSection(key, listing),
                             )}

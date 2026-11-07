@@ -338,7 +338,7 @@ export default function Register() {
                 <button
                     type="submit"
                     disabled={processing || !registerValid}
-                    className="w-full rounded-lg bg-olive-900 px-4 py-3.5 text-[15px] font-semibold text-white transition hover:bg-olive-950 disabled:cursor-not-allowed disabled:opacity-55"
+                    className="w-full border border-olive-900 bg-olive-900 px-4 py-3.5 text-[15px] font-semibold text-white transition hover:bg-olive-950 disabled:cursor-not-allowed disabled:opacity-55"
                 >
                     {processing ? 'Creating account…' : 'Join'}
                 </button>

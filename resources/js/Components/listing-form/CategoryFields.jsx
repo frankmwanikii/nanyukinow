@@ -14,6 +14,7 @@ import {
 import CapacityAreasInput from './CapacityAreasInput';
 import CuisinePicker from './CuisinePicker';
 import SuggestTagsPicker from './SuggestTagsPicker';
+import FieldLabel from './FieldLabel';
 import { field, help, label } from './fieldStyles';
 import RichTextEditor from './RichTextEditor';
 import {
@@ -325,9 +326,9 @@ export default function CategoryFields({
             {categoryKey === 'events' && eventFields ? (
                 <div className="grid gap-4 sm:grid-cols-2">
                     <div>
-                        <label className={label} htmlFor="start_at">
+                        <FieldLabel htmlFor="start_at" required>
                             Starts
-                        </label>
+                        </FieldLabel>
                         <input
                             id="start_at"
                             type="datetime-local"
@@ -340,9 +341,7 @@ export default function CategoryFields({
                         />
                     </div>
                     <div>
-                        <label className={label} htmlFor="end_at">
-                            Ends
-                        </label>
+                        <FieldLabel htmlFor="end_at">Ends</FieldLabel>
                         <input
                             id="end_at"
                             type="datetime-local"
@@ -354,9 +353,9 @@ export default function CategoryFields({
                         />
                     </div>
                     <div className="sm:col-span-2">
-                        <label className={label} htmlFor="venue">
+                        <FieldLabel htmlFor="venue" required>
                             Venue name
-                        </label>
+                        </FieldLabel>
                         <input
                             id="venue"
                             className={field}

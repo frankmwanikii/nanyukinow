@@ -42,32 +42,7 @@ export default function AuthSplitLayout({
             <div className="relative min-h-svh overflow-hidden bg-olive-950 text-white lg:h-svh">
                 <Head title={title} />
 
-                {/* Brand wash — olive base + mustard horizon, no card frame */}
-                <div
-                    className="pointer-events-none absolute inset-0"
-                    style={{
-                        background: `
-                            radial-gradient(ellipse 95% 50% at 50% 108%, rgba(242,184,46,0.38), transparent 60%),
-                            radial-gradient(ellipse 70% 40% at 50% 92%, rgba(168,225,144,0.12), transparent 55%),
-                            radial-gradient(ellipse 55% 35% at 15% 20%, rgba(107,119,88,0.45), transparent 50%),
-                            radial-gradient(ellipse 45% 30% at 85% 15%, rgba(242,184,46,0.1), transparent 45%),
-                            linear-gradient(165deg, #1c2116 0%, #23281e 42%, #161911 100%)
-                        `,
-                    }}
-                    aria-hidden
-                />
-                <div
-                    className="pointer-events-none absolute inset-x-[-15%] bottom-[-22%] h-[48%] rounded-[100%] bg-mustard/25 blur-3xl"
-                    aria-hidden
-                />
-                <div
-                    className="pointer-events-none absolute -left-24 top-1/4 h-72 w-72 rounded-full bg-olive-600/25 blur-3xl"
-                    aria-hidden
-                />
-                <div
-                    className="pointer-events-none absolute inset-0 bg-grain opacity-35 mix-blend-overlay"
-                    aria-hidden
-                />
+                <BrandWash />
 
                 <main className="relative z-10 flex min-h-svh items-center justify-center px-4 py-6 sm:px-6 lg:h-svh lg:py-4">
                     <div className="w-full max-w-[24.5rem]">
@@ -79,7 +54,7 @@ export default function AuthSplitLayout({
                                 <img
                                     src="/images/logo.png"
                                     alt="Nanyuki Now"
-                                    className="h-12 w-auto object-contain drop-shadow-md sm:h-14"
+                                    className="h-12 w-auto object-contain sm:h-14"
                                 />
                             </Link>
                         ) : null}

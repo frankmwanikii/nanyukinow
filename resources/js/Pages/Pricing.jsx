@@ -1,4 +1,5 @@
 import { CategoryPicker } from '@/Components/pricing/CategoryPricingBreakdown';
+import { BackMark, CheckMark, DisclosureMark } from '@/Components/site/Mark';
 import SiteLayout from '@/Layouts/SiteLayout';
 import {
     categoryInclusionsForPlan,
@@ -6,7 +7,6 @@ import {
     normalizePlanKey,
 } from '@/data/pricingCategoryBreakdown';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { Check, ChevronDown, Zap } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 function amountForPeriod(plan, period) {
@@ -57,19 +57,18 @@ function PlanCardFeatures({
             : `${listingLimit} listing${listingLimit === 1 ? '' : 's'} included`;
 
     return (
-        <div className="mt-6 flex-1 border-t border-olive-100 pt-5">
+        <div className="mt-6 flex-1 border-t border-olive-900/10 pt-5">
             <button
                 type="button"
                 className="flex w-full items-center justify-between gap-3 py-1 text-left md:pointer-events-none md:hidden"
                 aria-expanded={open}
                 onClick={() => setOpen((value) => !value)}
             >
-                <span className="text-sm font-bold text-olive-950">Key features</span>
-                <ChevronDown
-                    className={`h-5 w-5 shrink-0 text-olive-400 transition ${
+                <span className="text-sm font-semibold text-olive-950">Key features</span>
+                <DisclosureMark
+                    className={`h-4 w-4 shrink-0 text-olive-500 transition ${
                         open ? 'rotate-180' : ''
                     }`}
-                    strokeWidth={2}
                 />
             </button>
 
@@ -93,16 +92,14 @@ function PlanCardFeatures({
                             return (
                                 <li
                                     key={item}
-                                    className={`flex gap-3 text-sm leading-snug ${
+                                    className={`flex gap-2.5 text-sm leading-snug ${
                                         isInherit
                                             ? 'font-semibold text-olive-900'
                                             : 'text-olive-700'
                                     }`}
                                 >
-                                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-olive-100 text-olive-800">
-                                        <Check className="h-3 w-3" strokeWidth={2.75} />
-                                    </span>
-                                    <span className="min-w-0 text-pretty pt-0.5">{item}</span>
+                                    <CheckMark className="mt-0.5 h-4 w-4 shrink-0 text-olive-800" />
+                                    <span className="min-w-0 text-pretty">{item}</span>
                                 </li>
                             );
                         })
@@ -157,42 +154,36 @@ function BillingSwitcher({ value, onChange, savingsPercent = 0 }) {
     const yearly = value === 'year';
 
     return (
-        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+        <div className="inline-flex border border-olive-900/15 bg-white">
             <button
                 type="button"
                 onClick={() => onChange('month')}
-                className={`text-sm font-semibold transition ${
-                    !yearly ? 'text-olive-950' : 'text-olive-400 hover:text-olive-700'
+                className={`px-4 py-2 text-sm font-semibold transition ${
+                    !yearly
+                        ? 'bg-olive-900 text-white'
+                        : 'text-olive-600 hover:bg-olive-50 hover:text-olive-950'
                 }`}
             >
                 Monthly
             </button>
             <button
                 type="button"
-                role="switch"
-                aria-checked={yearly}
-                aria-label="Billing period"
-                onClick={() => onChange(yearly ? 'month' : 'year')}
-                className={`relative h-8 w-14 shrink-0 rounded-full transition ${
-                    yearly ? 'bg-olive-800' : 'bg-olive-200'
-                }`}
-            >
-                <span
-                    className={`absolute top-1 left-1 h-6 w-6 rounded-full bg-white shadow-sm transition ${
-                        yearly ? 'translate-x-6' : 'translate-x-0'
-                    }`}
-                />
-            </button>
-            <button
-                type="button"
                 onClick={() => onChange('year')}
-                className={`inline-flex items-center gap-2 text-sm font-semibold transition ${
-                    yearly ? 'text-olive-950' : 'text-olive-400 hover:text-olive-700'
+                className={`inline-flex items-center gap-2 border-l border-olive-900/15 px-4 py-2 text-sm font-semibold transition ${
+                    yearly
+                        ? 'bg-olive-900 text-white'
+                        : 'text-olive-600 hover:bg-olive-50 hover:text-olive-950'
                 }`}
             >
                 Yearly
                 {savingsPercent > 0 ? (
-                    <span className="rounded-full bg-mint/40 px-2 py-0.5 text-xs font-bold text-olive-800">
+                    <span
+                        className={`border px-1.5 py-0.5 text-[11px] font-semibold ${
+                            yearly
+                                ? 'border-white/30 text-white'
+                                : 'border-olive-900/15 text-olive-700'
+                        }`}
+                    >
                         save {savingsPercent}%
                     </span>
                 ) : null}
@@ -281,227 +272,226 @@ export default function Pricing({
             </div>
 
             <div className="bg-earth-sand">
-            <div className="mx-auto max-w-5xl space-y-10 px-4 py-12 sm:px-6 sm:py-16">
-                {!breakdown ? (
-                    <CategoryPicker
-                        onSelect={selectCategory}
-                        title="Choose a listing category to see pricing"
-                        description={null}
-                    />
-                ) : (
-                    <>
-                        <div className="flex flex-wrap items-center justify-between gap-3">
-                            <button
-                                type="button"
-                                onClick={clearCategory}
-                                className="inline-flex items-center gap-1.5 text-sm font-semibold text-olive-700 transition hover:text-olive-950"
-                            >
-                                ← All categories
-                            </button>
-                        </div>
-
-                        <div id="pricing-plans" className="space-y-8">
-                            <div className="mx-auto max-w-2xl text-center">
-                                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-olive-400">
-                                    {breakdown.label}
-                                </p>
-                                <h2 className="mt-2 font-display text-3xl font-semibold tracking-tight text-olive-950 sm:text-4xl">
-                                    Plans & inclusions
-                                </h2>
-                                <p className="mt-2 text-sm leading-relaxed text-olive-600 sm:text-base">
-                                    Unlock advanced features and grow your visibility in
-                                    Nanyuki.
-                                </p>
-                                {showSwitcher ? (
-                                    <div className="mt-6">
-                                        <BillingSwitcher
-                                            value={billing}
-                                            onChange={setBilling}
-                                            savingsPercent={savings}
-                                        />
-                                    </div>
-                                ) : null}
+                <div className="mx-auto max-w-5xl space-y-10 px-4 py-12 sm:px-6 sm:py-16">
+                    {!breakdown ? (
+                        <CategoryPicker
+                            onSelect={selectCategory}
+                            title="Choose a listing category to see pricing"
+                            description={null}
+                        />
+                    ) : (
+                        <>
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                                <button
+                                    type="button"
+                                    onClick={clearCategory}
+                                    className="inline-flex items-center gap-1.5 text-sm font-semibold text-olive-700 transition hover:text-olive-950"
+                                >
+                                    <BackMark className="h-3.5 w-3.5" />
+                                    All categories
+                                </button>
                             </div>
 
-                            <div
-                                className={`mx-auto grid max-w-6xl gap-5 lg:items-stretch ${
-                                    categoryPlans.length === 3
-                                        ? 'lg:grid-cols-3'
-                                        : 'lg:grid-cols-2'
-                                }`}
-                            >
-                                {categoryPlans.map((plan) => {
-                                    const sameTier =
-                                        normalizePlanKey(currentPlan?.key) ===
-                                        normalizePlanKey(plan.key);
-                                    const featured = Boolean(plan.is_highlighted);
-                                    const period =
-                                        plan.billing_period === 'one_time'
-                                            ? 'one_time'
-                                            : billing;
-                                    const amount = amountForPeriod(plan, period);
-                                    const inclusions = categoryInclusionsForPlan(
-                                        breakdown.rows,
-                                        plan.key,
-                                    );
-                                    const currentRank = user
-                                        ? planRank(currentPlan?.key)
-                                        : -1;
-                                    const thisRank = planRank(plan.key);
-                                    const isLowerThanCurrent =
-                                        user && currentRank > thisRank;
-                                    const ownedPeriod = currentPlan?.billing_period;
-                                    const isFreeTier =
-                                        normalizePlanKey(plan.key) === 'free';
-                                    // Yearly covers monthly; monthly does not unlock yearly.
-                                    const ownsThisPeriod =
-                                        sameTier &&
-                                        (isFreeTier ||
-                                            ownedPeriod === 'year' ||
-                                            (ownedPeriod === 'month' &&
-                                                period === 'month'));
-                                    const needsYearlyUpgrade =
-                                        sameTier &&
-                                        !isFreeTier &&
-                                        ownedPeriod === 'month' &&
-                                        period === 'year';
-                                    const isCurrent = ownsThisPeriod;
+                            <div id="pricing-plans" className="space-y-8">
+                                <div className="mx-auto max-w-2xl text-center">
+                                    <p className="text-sm font-medium text-olive-500">
+                                        {breakdown.label}
+                                    </p>
+                                    <h2 className="mt-2 font-display text-3xl font-semibold tracking-tight text-olive-950 sm:text-4xl">
+                                        Plans & inclusions
+                                    </h2>
+                                    <p className="mt-2 text-sm leading-relaxed text-olive-600 sm:text-base">
+                                        Unlock advanced features and grow your visibility in
+                                        Nanyuki.
+                                    </p>
+                                    {showSwitcher ? (
+                                        <div className="mt-6">
+                                            <BillingSwitcher
+                                                value={billing}
+                                                onChange={setBilling}
+                                                savingsPercent={savings}
+                                            />
+                                        </div>
+                                    ) : null}
+                                </div>
 
-                                    let ctaHref = '/register';
-                                    let ctaLabel = plan.cta_label || 'Get started';
-                                    let ctaDisabled = false;
+                                <div
+                                    className={`mx-auto grid max-w-6xl gap-4 lg:items-stretch ${
+                                        categoryPlans.length === 3
+                                            ? 'lg:grid-cols-3'
+                                            : 'lg:grid-cols-2'
+                                    }`}
+                                >
+                                    {categoryPlans.map((plan) => {
+                                        const sameTier =
+                                            normalizePlanKey(currentPlan?.key) ===
+                                            normalizePlanKey(plan.key);
+                                        const featured = Boolean(plan.is_highlighted);
+                                        const period =
+                                            plan.billing_period === 'one_time'
+                                                ? 'one_time'
+                                                : billing;
+                                        const amount = amountForPeriod(plan, period);
+                                        const inclusions = categoryInclusionsForPlan(
+                                            breakdown.rows,
+                                            plan.key,
+                                        );
+                                        const currentRank = user
+                                            ? planRank(currentPlan?.key)
+                                            : -1;
+                                        const thisRank = planRank(plan.key);
+                                        const isLowerThanCurrent =
+                                            user && currentRank > thisRank;
+                                        const ownedPeriod = currentPlan?.billing_period;
+                                        const isFreeTier =
+                                            normalizePlanKey(plan.key) === 'free';
+                                        // Yearly covers monthly; monthly does not unlock yearly.
+                                        const ownsThisPeriod =
+                                            sameTier &&
+                                            (isFreeTier ||
+                                                ownedPeriod === 'year' ||
+                                                (ownedPeriod === 'month' &&
+                                                    period === 'month'));
+                                        const needsYearlyUpgrade =
+                                            sameTier &&
+                                            !isFreeTier &&
+                                            ownedPeriod === 'month' &&
+                                            period === 'year';
+                                        const isCurrent = ownsThisPeriod;
 
-                                    if (user) {
-                                        if (isLowerThanCurrent) {
-                                            ctaDisabled = true;
-                                            ctaHref = null;
-                                            ctaLabel = 'Add a listing';
-                                        } else if (needsYearlyUpgrade) {
-                                            ctaHref = route('account.upgrade', {
-                                                billing: 'year',
-                                                category: categoryKey,
-                                            });
-                                            ctaLabel = 'Switch to yearly';
-                                        } else if (isCurrent) {
-                                            ctaHref = route('account.listings.create');
-                                            ctaLabel = currentPlan?.can_create
-                                                ? 'Add a listing'
-                                                : 'Upgrade plan';
-                                            if (!currentPlan?.can_create) {
+                                        let ctaHref = '/register';
+                                        let ctaLabel = plan.cta_label || 'Get started';
+                                        let ctaDisabled = false;
+
+                                        if (user) {
+                                            if (isLowerThanCurrent) {
+                                                ctaDisabled = true;
+                                                ctaHref = null;
+                                                ctaLabel = 'Add a listing';
+                                            } else if (needsYearlyUpgrade) {
+                                                ctaHref = route('account.upgrade', {
+                                                    billing: 'year',
+                                                    category: categoryKey,
+                                                });
+                                                ctaLabel = 'Switch to yearly';
+                                            } else if (isCurrent) {
+                                                ctaHref = route('account.listings.create');
+                                                ctaLabel = currentPlan?.can_create
+                                                    ? 'Add a listing'
+                                                    : 'Upgrade plan';
+                                                if (!currentPlan?.can_create) {
+                                                    ctaHref = route('account.upgrade', {
+                                                        billing:
+                                                            period === 'year'
+                                                                ? 'year'
+                                                                : 'month',
+                                                        category: categoryKey,
+                                                    });
+                                                }
+                                            } else {
                                                 ctaHref = route('account.upgrade', {
                                                     billing:
                                                         period === 'year' ? 'year' : 'month',
                                                     category: categoryKey,
                                                 });
+                                                ctaLabel = plan.cta_label || 'Upgrade';
                                             }
-                                        } else {
-                                            ctaHref = route('account.upgrade', {
-                                                billing:
-                                                    period === 'year' ? 'year' : 'month',
-                                                category: categoryKey,
-                                            });
-                                            ctaLabel = plan.cta_label || 'Upgrade';
                                         }
-                                    }
 
-                                    const ctaClass = ctaDisabled
-                                        ? 'mt-6 inline-flex w-full cursor-not-allowed items-center justify-center rounded-full bg-olive-100/70 px-4 py-3 text-center text-sm font-bold text-olive-400'
-                                        : featured
-                                          ? 'mt-6 inline-flex w-full items-center justify-center rounded-full bg-olive-900 px-4 py-3 text-center text-sm font-bold text-white shadow-soft transition hover:bg-mustard hover:text-earth-dusk'
-                                          : 'mt-6 inline-flex w-full items-center justify-center rounded-full bg-olive-100 px-4 py-3 text-center text-sm font-bold text-olive-900 transition hover:bg-mustard hover:text-earth-dusk';
+                                        const ctaClass = ctaDisabled
+                                            ? 'mt-6 inline-flex w-full cursor-not-allowed items-center justify-center border border-olive-900/10 bg-olive-50 px-4 py-3 text-center text-sm font-semibold text-olive-400'
+                                            : featured
+                                              ? 'mt-6 inline-flex w-full items-center justify-center border border-olive-900 bg-olive-900 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-mustard hover:text-earth-dusk'
+                                              : 'mt-6 inline-flex w-full items-center justify-center border border-olive-900/15 bg-white px-4 py-3 text-center text-sm font-semibold text-olive-900 transition hover:border-olive-900 hover:bg-olive-900 hover:text-white';
 
-                                    return (
-                                        <article
-                                            key={plan.id}
-                                            className={`relative flex flex-col rounded-3xl bg-white p-6 shadow-soft sm:p-8 ${
-                                                featured
-                                                    ? 'ring-2 ring-olive-800 lg:scale-[1.02]'
-                                                    : 'ring-1 ring-olive-100'
-                                            }`}
-                                        >
-                                            {featured ? (
-                                                <span className="absolute right-5 top-5 inline-flex items-center gap-1 rounded-full bg-olive-800 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white">
-                                                    <Zap
-                                                        className="h-3 w-3 fill-mustard text-mustard"
-                                                        strokeWidth={0}
-                                                    />
-                                                    Popular
-                                                </span>
-                                            ) : null}
+                                        return (
+                                            <article
+                                                key={plan.id}
+                                                className={`relative flex flex-col border bg-white p-5 sm:p-6 ${
+                                                    featured
+                                                        ? 'border-olive-900'
+                                                        : 'border-olive-900/15'
+                                                }`}
+                                            >
+                                                {featured ? (
+                                                    <span className="absolute right-4 top-4 border border-olive-900 bg-olive-900 px-2 py-0.5 text-[11px] font-semibold text-white">
+                                                        Popular
+                                                    </span>
+                                                ) : null}
 
-                                            <div className="flex items-baseline justify-between gap-3">
-                                                <h3 className="font-display text-3xl font-bold tracking-tight text-olive-950">
-                                                    {plan.name}
-                                                </h3>
-                                            </div>
+                                                <div className="flex items-baseline justify-between gap-3 pr-16">
+                                                    <h3 className="font-display text-3xl font-semibold tracking-tight text-olive-950">
+                                                        {plan.name}
+                                                    </h3>
+                                                </div>
 
-                                            <div className="mt-4">
-                                                {(() => {
-                                                    const label = String(
-                                                        plan.price_label || '',
-                                                    ).trim();
-                                                    const showZero =
-                                                        amount === 0 ||
-                                                        /^free$/i.test(label);
-                                                    const customLabel =
-                                                        label && !/^free$/i.test(label)
-                                                            ? label
-                                                            : null;
+                                                <div className="mt-4">
+                                                    {(() => {
+                                                        const label = String(
+                                                            plan.price_label || '',
+                                                        ).trim();
+                                                        const showZero =
+                                                            amount === 0 ||
+                                                            /^free$/i.test(label);
+                                                        const customLabel =
+                                                            label && !/^free$/i.test(label)
+                                                                ? label
+                                                                : null;
 
-                                                    if (customLabel) {
+                                                        if (customLabel) {
+                                                            return (
+                                                                <p className="font-display text-4xl font-semibold tracking-tight text-olive-950">
+                                                                    {customLabel}
+                                                                </p>
+                                                            );
+                                                        }
+
                                                         return (
-                                                            <p className="font-display text-4xl font-bold tracking-tight text-olive-950">
-                                                                {customLabel}
+                                                            <p className="flex flex-wrap items-baseline gap-x-1.5 font-display tracking-tight text-olive-950">
+                                                                <span className="text-4xl font-semibold tabular-nums">
+                                                                    {plan.currency || 'KES'}{' '}
+                                                                    {showZero
+                                                                        ? '0'
+                                                                        : formatAmountOnly(
+                                                                              amount,
+                                                                          )}
+                                                                </span>
+                                                                <span className="text-base font-medium text-olive-500">
+                                                                    {periodShort(period)}
+                                                                </span>
                                                             </p>
                                                         );
-                                                    }
+                                                    })()}
+                                                </div>
 
-                                                    return (
-                                                        <p className="flex flex-wrap items-baseline gap-x-1.5 font-display tracking-tight text-olive-950">
-                                                            <span className="text-4xl font-bold tabular-nums">
-                                                                {plan.currency || 'KES'}{' '}
-                                                                {showZero
-                                                                    ? '0'
-                                                                    : formatAmountOnly(
-                                                                          amount,
-                                                                      )}
-                                                            </span>
-                                                            <span className="text-base font-medium text-olive-500">
-                                                                {periodShort(period)}
-                                                            </span>
-                                                        </p>
-                                                    );
-                                                })()}
-                                            </div>
+                                                {ctaDisabled ? (
+                                                    <button
+                                                        type="button"
+                                                        disabled
+                                                        className={ctaClass}
+                                                    >
+                                                        {ctaLabel}
+                                                    </button>
+                                                ) : (
+                                                    <Link href={ctaHref} className={ctaClass}>
+                                                        {ctaLabel}
+                                                    </Link>
+                                                )}
 
-                                            {ctaDisabled ? (
-                                                <button
-                                                    type="button"
-                                                    disabled
-                                                    className={ctaClass}
-                                                >
-                                                    {ctaLabel}
-                                                </button>
-                                            ) : (
-                                                <Link href={ctaHref} className={ctaClass}>
-                                                    {ctaLabel}
-                                                </Link>
-                                            )}
-
-                                            <PlanCardFeatures
-                                                planName={plan.name}
-                                                listingLimit={plan.listing_limit}
-                                                inclusions={inclusions}
-                                                categoryLabel={breakdown.label}
-                                            />
-                                        </article>
-                                    );
-                                })}
+                                                <PlanCardFeatures
+                                                    planName={plan.name}
+                                                    listingLimit={plan.listing_limit}
+                                                    inclusions={inclusions}
+                                                    categoryLabel={breakdown.label}
+                                                />
+                                            </article>
+                                        );
+                                    })}
+                                </div>
                             </div>
-                        </div>
-                    </>
-                )}
-            </div>
+                        </>
+                    )}
+                </div>
             </div>
         </SiteLayout>
     );

@@ -1357,10 +1357,9 @@ export function enrichListing(item, index = 0) {
         isOpen: item.isOpen ?? true,
         phone: item.phone ?? phones[index % phones.length],
         tagline:
-            item.tagline ??
-            item.subcategory ??
-            item.category ??
-            'Local favourite',
+            typeof item.tagline === 'string' && item.tagline.trim() !== ''
+                ? item.tagline.trim()
+                : null,
         priceLevel: item.priceLevel ?? item.price_range ?? prices[index % prices.length],
         verified: item.verified ?? true,
         score:

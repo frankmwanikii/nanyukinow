@@ -33,7 +33,7 @@ class ListingTaglineTest extends TestCase
         ], $overrides));
     }
 
-    public function test_tagline_falls_back_to_plain_text_description(): void
+    public function test_tagline_is_null_when_only_description_is_set(): void
     {
         $listing = $this->makeListing([
             'description' => '<p><span style="font-size: 16.8px;">Based in Nanyuki, we build brands.</span></p>',
@@ -43,8 +43,8 @@ class ListingTaglineTest extends TestCase
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->component('Listings/Show')
-                ->where('listing.tagline', 'Based in Nanyuki, we build brands.')
-                ->where('listing.description', '<p><span style="font-size: 16.8px;">Based in Nanyuki, we build brands.</span></p>')
+                ->where('listing.tagline', null)
+                ->where('listing.about', '<p><span style="font-size: 16.8px;">Based in Nanyuki, we build brands.</span></p>')
             );
     }
 
@@ -63,10 +63,10 @@ class ListingTaglineTest extends TestCase
             );
     }
 
-    public function test_tagline_is_null_when_description_has_no_readable_text(): void
+    public function test_tagline_is_null_when_neither_tagline_nor_description_is_set(): void
     {
         $listing = $this->makeListing([
-            'description' => '<p><br></p>',
+            'description' => null,
         ]);
 
         $this->get(route('listings.show', $listing->slug))

@@ -1,7 +1,7 @@
 import { Link } from '@inertiajs/react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { ForwardMark } from '@/Components/site/Mark';
 
 const ALL_SLIDES = [
     {
@@ -28,7 +28,8 @@ const ALL_SLIDES = [
     },
     {
         id: 3,
-        image: '/images/hero/bnb3.webp',
+        image: '/images/hero/slide-3.webp',
+        imageMobile: '/images/hero/bnb3.webp',
         alt: 'A-frame cabin stay in Nanyuki at dusk',
         layout: 'safari',
         overlay: 'from-black/65 via-black/45 to-black/55',
@@ -158,6 +159,8 @@ export default function HeroSlider() {
                                     : 'animate-ken-burns-slide'
                             }`}
                             fetchPriority={index === 0 ? 'high' : 'auto'}
+                            loading={index === 0 ? 'eager' : 'lazy'}
+                            decoding={index === 0 ? 'sync' : 'async'}
                         />
                     </picture>
                     <div
@@ -219,10 +222,10 @@ export default function HeroSlider() {
                                 initial={reduce ? false : { opacity: 0, y: 14 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.3, duration: 0.5 }}
-                                className="mt-3.5 inline-flex min-h-6 items-center gap-1.5 text-[0.78rem] font-bold uppercase tracking-[0.14em] text-mustard sm:hidden"
+                                className="mt-3.5 inline-flex min-h-6 items-center gap-1.5 text-sm font-semibold text-mustard sm:hidden"
                             >
                                 {slide.cta}
-                                <ArrowRight className="h-3.5 w-3.5" />
+                                <ForwardMark className="h-3.5 w-3.5" />
                             </motion.span>
                         </Link>
 
@@ -235,12 +238,11 @@ export default function HeroSlider() {
                         >
                             <Link
                                 href={slide.ctaHref}
-                                className="group inline-flex min-h-11 items-center gap-3 rounded-full bg-mustard px-8 py-3.5 text-base font-bold uppercase tracking-wide text-olive-950 shadow-lg transition hover:bg-white hover:text-mustard hover:shadow-md"
+                                prefetch
+                                className="group inline-flex min-h-11 items-center gap-3 rounded-md bg-mustard px-8 py-3.5 text-base font-semibold text-olive-950 transition hover:bg-white hover:text-mustard"
                             >
                                 {slide.cta}
-                                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-olive-950/10 transition group-hover:bg-mustard/15">
-                                    <ArrowRight className="h-4 w-4" />
-                                </span>
+                                <ForwardMark className="h-4 w-4" />
                             </Link>
                         </motion.div>
                     </>

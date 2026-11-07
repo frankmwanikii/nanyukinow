@@ -1,7 +1,7 @@
 import AuthSplitLayout from '@/Components/auth/AuthSplitLayout';
 import { AuthField } from '@/Components/auth/AuthField';
+import { BackMark } from '@/Components/site/Mark';
 import { Link, useForm, usePage } from '@inertiajs/react';
-import { ArrowLeft } from 'lucide-react';
 
 export default function ForgotPassword({ status }) {
     const { flash } = usePage().props;
@@ -17,43 +17,46 @@ export default function ForgotPassword({ status }) {
     };
 
     return (
-        <AuthSplitLayout title="Forgot password" variant="centered">
-            <Link
-                href={route('login')}
-                className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-white/85 transition hover:text-mustard"
-            >
-                <ArrowLeft className="h-4 w-4" />
-                Back to sign in
-            </Link>
-
-            <h2 className="mb-2 font-display text-2xl font-semibold tracking-tight text-white sm:text-[1.85rem]">
-                Forgot your password?
-            </h2>
-            <p className="mb-6 text-[15px] leading-relaxed text-white/80">
-                Enter your account email and we&apos;ll send a password reset
-                link.
-            </p>
+        <AuthSplitLayout
+            title="Forgot password"
+            variant="brand"
+            panelTitle="Reset your Nanyuki Now password"
+            panelBody="We’ll email you a secure link so you can choose a new password."
+        >
+            <div className="mb-7 text-center">
+                <Link
+                    href={route('login')}
+                    className="mb-5 inline-flex items-center gap-1.5 text-sm font-medium text-olive-700 transition hover:text-olive-950"
+                >
+                    <BackMark className="h-3.5 w-3.5" />
+                    Back to sign in
+                </Link>
+                <h2 className="font-display text-3xl font-semibold tracking-tight text-earth-dusk sm:text-4xl">
+                    Forgot your password?
+                </h2>
+                <p className="mt-2.5 text-[15px] leading-relaxed text-olive-600">
+                    Enter your account email and we&apos;ll send a password reset
+                    link.
+                </p>
+            </div>
 
             {successMessage ? (
-                <div className="rounded-xl border border-mint/40 bg-mint/15 px-4 py-4 text-sm leading-relaxed text-white">
-                    <p className="font-semibold text-mint-soft">
-                        Check your inbox
-                    </p>
-                    <p className="mt-1.5 text-white/85">{successMessage}</p>
+                <div className="border border-emerald-600/30 bg-emerald-50 px-4 py-4 text-sm leading-relaxed text-emerald-900">
+                    <p className="font-semibold">Check your inbox</p>
+                    <p className="mt-1.5 text-emerald-800/90">{successMessage}</p>
                     <Link
                         href={route('login')}
-                        className="mt-4 inline-block text-sm font-semibold text-mustard underline-offset-2 hover:underline"
+                        className="mt-4 inline-block text-sm font-semibold text-olive-900 underline underline-offset-2 hover:text-olive-950"
                     >
                         Return to sign in
                     </Link>
                 </div>
             ) : (
-                <form onSubmit={submit} className="space-y-4">
+                <form onSubmit={submit} className="mx-auto max-w-md space-y-4">
                     <AuthField
                         id="email"
                         label="Email address"
                         type="email"
-                        tone="glass"
                         value={data.email}
                         onChange={(e) => {
                             clearErrors('email');
@@ -65,7 +68,7 @@ export default function ForgotPassword({ status }) {
                     <button
                         type="submit"
                         disabled={processing}
-                        className="mt-1 w-full rounded-xl bg-mustard px-4 py-3.5 text-[15px] font-semibold text-earth-dusk transition hover:bg-mustard-soft disabled:cursor-not-allowed disabled:opacity-55"
+                        className="w-full border border-mustard bg-mustard px-4 py-3.5 text-[15px] font-semibold text-earth-dusk transition hover:border-olive-900 hover:bg-olive-900 hover:text-white disabled:cursor-not-allowed disabled:opacity-55"
                     >
                         {processing ? 'Sending link…' : 'Send reset link'}
                     </button>

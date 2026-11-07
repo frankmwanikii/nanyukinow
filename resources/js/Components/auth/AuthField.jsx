@@ -1,3 +1,4 @@
+import { CheckMark, EyeMark, EyeOffMark } from '@/Components/site/Mark';
 import { Link } from '@inertiajs/react';
 
 export function GoogleIcon({ className = '' }) {
@@ -37,33 +38,11 @@ export function PasswordToggle({ show, onToggle, tone = 'default' }) {
             onClick={onToggle}
             aria-label={show ? 'Hide password' : 'Show password'}
         >
-            <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
-                <path
-                    d="M3 12c2.2-3.8 5-5.6 9-5.6s6.8 1.8 9 5.6c-2.2 3.8-5 5.6-9 5.6s-6.8-1.8-9-5.6Z"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                />
-                <circle
-                    cx="12"
-                    cy="12"
-                    r="2.1"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                />
-                {show ? (
-                    <path
-                        d="M5 5.5 19 18.5"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                    />
-                ) : null}
-            </svg>
+            {show ? (
+                <EyeOffMark className="h-4 w-4" />
+            ) : (
+                <EyeMark className="h-4 w-4" />
+            )}
         </button>
     );
 }
@@ -91,24 +70,20 @@ export function AuthField({
     const borderClass = error
         ? isGlass
             ? 'border-red-400/70 focus:border-red-400'
-            : isSoft
-              ? 'border-red-300 bg-red-50/70 focus:border-red-400 focus:bg-white focus:ring-red-400/15'
-              : 'border-red-400 focus:border-red-500 focus:ring-red-500/15'
+            : 'border-rose-500 focus:border-rose-600'
         : isGlass
           ? 'border-white/18 focus:border-mustard'
           : success
-            ? isSoft
-                ? 'border-emerald-300 bg-emerald-50/50 focus:border-emerald-500 focus:bg-white focus:ring-emerald-500/15'
-                : 'border-emerald-500 focus:border-emerald-600 focus:ring-emerald-600/15'
+            ? 'border-emerald-600 focus:border-emerald-700'
             : isSoft
-              ? 'border-transparent bg-olive-50/90 focus:border-olive-800/20 focus:bg-white focus:ring-olive-800/10'
-              : 'border-olive-200/90 focus:border-olive-600 focus:ring-olive-600/15';
+              ? 'border-olive-900/15 bg-olive-50 focus:border-olive-900 focus:bg-white'
+              : 'border-olive-900/20 focus:border-olive-900';
 
     return (
         <div className="min-w-0">
             {!hideLabel || labelAside ? (
                 <div
-                    className={`flex items-baseline justify-between gap-3 ${dense ? 'mb-1.5' : 'mb-2'}`}
+                    className={`flex items-baseline justify-between gap-3 ${dense ? 'mb-1.5' : 'mb-1.5'}`}
                 >
                     <label
                         htmlFor={id}
@@ -116,12 +91,8 @@ export function AuthField({
                             hideLabel
                                 ? 'sr-only'
                                 : isGlass
-                                  ? 'block text-[13px] font-medium text-white/75'
-                                  : isSoft
-                                    ? 'block text-[13px] font-medium tracking-wide text-olive-800'
-                                    : dense
-                                      ? 'block text-xs font-semibold text-olive-900'
-                                      : 'block text-[15px] font-semibold text-olive-900'
+                                  ? 'block text-sm font-medium text-white/75'
+                                  : 'block text-sm font-semibold text-olive-800'
                         }
                     >
                         {label}
@@ -156,16 +127,12 @@ export function AuthField({
                             ? `${id}-feedback`
                             : undefined
                     }
-                    className={`w-full border transition focus:outline-none ${
+                    className={`w-full border bg-white px-3.5 py-3 text-base text-olive-900 outline-none transition placeholder:text-olive-400 focus:ring-0 ${
                         isGlass
-                            ? 'rounded-lg bg-olive-900 px-3.5 py-3 text-[15px] leading-normal text-white shadow-none placeholder:text-white/40 focus:ring-0 [&:-webkit-autofill]:[-webkit-text-fill-color:#fff] [&:-webkit-autofill]:shadow-[inset_0_0_0_1000px_#2a2e23]'
-                            : `focus:ring-2 ${
-                                  isSoft
-                                      ? 'rounded-2xl px-4 py-3 text-[15px] text-earth-dusk placeholder:text-olive-400/70 shadow-none'
-                                      : dense
-                                        ? 'rounded-xl bg-white px-3 py-2 text-sm text-earth-dusk shadow-sm placeholder:text-olive-400/70'
-                                        : 'rounded-lg bg-white px-3.5 py-3 text-[15px] text-earth-dusk shadow-sm placeholder:text-olive-400/70'
-                              }`
+                            ? 'border bg-olive-900 text-[15px] leading-normal text-white placeholder:text-white/40 [&:-webkit-autofill]:[-webkit-text-fill-color:#fff] [&:-webkit-autofill]:shadow-[inset_0_0_0_1000px_#2a2e23]'
+                            : dense
+                              ? 'px-3 py-2 text-sm'
+                              : ''
                     } ${trailing ? 'pr-11' : ''} ${borderClass}`}
                 />
                 {trailing}
@@ -173,7 +140,7 @@ export function AuthField({
             {error ? (
                 <div
                     id={`${id}-feedback`}
-                    className={`mt-1.5 text-xs ${isGlass ? 'text-red-300' : 'text-red-600'}`}
+                    className={`mt-1.5 text-xs ${isGlass ? 'text-red-300' : 'text-rose-600'}`}
                     role="alert"
                 >
                     {error}
@@ -185,20 +152,7 @@ export function AuthField({
                         isGlass ? 'text-emerald-300' : 'text-emerald-700'
                     }`}
                 >
-                    <svg
-                        viewBox="0 0 24 24"
-                        className="h-3.5 w-3.5 shrink-0"
-                        aria-hidden="true"
-                    >
-                        <path
-                            d="M6 12.5 10.2 16.5 18 8"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                        />
-                    </svg>
+                    <CheckMark className="h-3.5 w-3.5 shrink-0" />
                     {success}
                 </p>
             ) : null}
@@ -220,12 +174,12 @@ export function GoogleContinueButton({
             href={route('auth.google')}
             className={`flex w-full items-center justify-center gap-3 font-medium transition ${
                 isGlass
-                    ? 'rounded-xl border border-white/30 bg-olive-950/70 px-4 py-3.5 text-[15px] text-white hover:border-mustard/50 hover:bg-olive-950/85'
+                    ? 'border border-white/30 bg-olive-950/70 px-4 py-3.5 text-[15px] text-white hover:border-mustard hover:bg-mustard hover:text-earth-dusk'
                     : isSoft
-                      ? 'rounded-2xl border border-transparent bg-olive-50 px-4 py-3 text-[15px] text-earth-dusk hover:bg-olive-100/90'
+                      ? 'border border-olive-900/15 bg-olive-50 px-4 py-3 text-[15px] text-earth-dusk hover:border-mustard hover:bg-mustard'
                       : dense
-                        ? 'rounded-xl border border-olive-200 bg-white px-3 py-2 text-sm text-earth-dusk hover:border-mustard hover:bg-mustard'
-                        : 'rounded-lg border border-olive-200 bg-white px-4 py-3 text-[15px] text-earth-dusk hover:border-mustard hover:bg-mustard'
+                        ? 'border border-olive-900/20 bg-white px-3 py-2 text-sm text-earth-dusk hover:border-mustard hover:bg-mustard'
+                        : 'border border-olive-900/20 bg-white px-4 py-3 text-[15px] text-earth-dusk hover:border-mustard hover:bg-mustard'
             }`}
         >
             {showIcon ? (
@@ -250,17 +204,17 @@ export function AuthOrDivider({
             className={`flex items-center gap-3 ${dense ? 'my-4' : 'my-6 gap-4'}`}
         >
             <div
-                className={`h-px flex-1 ${isGlass ? 'bg-white/25' : 'bg-olive-100'}`}
+                className={`h-px flex-1 ${isGlass ? 'bg-white/25' : 'bg-olive-900/15'}`}
             />
             <span
-                className={`text-[10px] font-semibold uppercase tracking-[0.16em] ${
-                    isGlass ? 'text-mustard' : 'text-olive-400'
+                className={`text-sm font-medium ${
+                    isGlass ? 'text-mustard' : 'text-olive-500'
                 }`}
             >
                 {label}
             </span>
             <div
-                className={`h-px flex-1 ${isGlass ? 'bg-white/25' : 'bg-olive-100'}`}
+                className={`h-px flex-1 ${isGlass ? 'bg-white/25' : 'bg-olive-900/15'}`}
             />
         </div>
     );

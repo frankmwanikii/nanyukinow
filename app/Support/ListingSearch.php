@@ -110,7 +110,7 @@ class ListingSearch
     {
         return self::results($query, $limit)
             ->map(function (Listing $listing) {
-                $payload = ListingPayload::fromModel($listing);
+                $payload = ListingPayload::card($listing);
 
                 return [
                     'id' => $payload['id'],

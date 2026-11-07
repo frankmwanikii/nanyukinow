@@ -1,3 +1,4 @@
+import FieldLabel from './FieldLabel';
 import { field, help, label } from './fieldStyles';
 import { getMapsApiKey, loadGoogleMaps } from '@/utils/googleMaps';
 import {
@@ -690,9 +691,9 @@ export default function PlacesLocationInput({
     return (
         <div className="space-y-4">
             <div>
-                <span className={label} id="location-areas-label">
+                <FieldLabel as="span" id="location-areas-label" required>
                     Area / location
-                </span>
+                </FieldLabel>
                 <div className="relative mt-1.5">
                     <button
                         ref={areasTriggerRef}
@@ -725,7 +726,7 @@ export default function PlacesLocationInput({
                             role="listbox"
                             aria-multiselectable="true"
                             aria-labelledby="location-areas-label"
-                            className="absolute left-0 right-0 z-30 mt-1.5 overflow-hidden rounded-xl border border-olive-200 bg-white py-1 shadow-lift dark:border-olive-700 dark:bg-olive-900"
+                            className="absolute left-0 right-0 z-30 mt-1.5 overflow-hidden border border-olive-900/20 bg-white py-1 dark:border-olive-700 dark:bg-olive-900"
                         >
                             {areaChoices.map((area) => {
                                 const active = selectedAreas.includes(area);
@@ -827,7 +828,7 @@ export default function PlacesLocationInput({
                         <ul
                             id="places_suggestions"
                             role="listbox"
-                            className="absolute left-0 right-0 top-full z-30 mt-1.5 max-h-64 overflow-auto rounded-2xl border border-olive-200 bg-white py-1.5 shadow-lift dark:border-olive-700 dark:bg-olive-900"
+                            className="absolute left-0 right-0 top-full z-30 mt-1.5 max-h-64 overflow-auto border border-olive-900/20 bg-white py-1.5 dark:border-olive-700 dark:bg-olive-900"
                         >
                             {predictions.length ? (
                                 predictions.map((p, index) => (
@@ -896,7 +897,7 @@ export default function PlacesLocationInput({
                 </p>
             </div>
 
-            <div className="relative z-0 overflow-hidden rounded-2xl border border-olive-200 bg-olive-100 shadow-soft dark:border-olive-800 dark:bg-olive-900">
+            <div className="relative z-0 overflow-hidden border border-olive-900/20 bg-olive-100 dark:border-olive-800 dark:bg-olive-900">
                 <div
                     ref={mapElRef}
                     className="h-56 w-full sm:h-72"

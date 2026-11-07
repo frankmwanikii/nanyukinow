@@ -12,7 +12,9 @@ class UserAvatar
 {
     public static function normalize(?string $url): ?string
     {
-        if (! $url) {
+        $url = is_string($url) ? trim($url) : '';
+
+        if ($url === '') {
             return null;
         }
 
@@ -20,6 +22,29 @@ class UserAvatar
         $pos = strpos($url, $marker);
 
         return $pos === false ? $url : substr($url, $pos);
+    }
+
+    /**
+     * Public avatar URL for the UI. Missing local files become null so the
+     * client can show initials instead of a broken image.
+     */
+    public static function publicUrl(?string $url): ?string
+    {
+        $url = self::normalize($url);
+
+        if (! $url) {
+            return null;
+        }
+
+        if (str_starts_with($url, '/storage/')) {
+            $relative = substr($url, strlen('/storage/'));
+
+            if ($relative === '' || ! Storage::disk('public')->exists($relative)) {
+                return null;
+            }
+        }
+
+        return $url;
     }
 
     public static function delete(?string $url): void

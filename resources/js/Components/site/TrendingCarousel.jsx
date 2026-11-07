@@ -1,6 +1,6 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import ListingCard from '@/Components/site/ListingCard';
+import { BackMark, ForwardMark } from '@/Components/site/Mark';
 
 const DRAG_THRESHOLD = 8;
 
@@ -197,7 +197,7 @@ export default function TrendingCarousel({ items = [] }) {
                     className="flex h-11 w-11 items-center justify-center rounded-full border border-white/25 bg-white/10 text-white transition hover:border-mustard hover:bg-mustard hover:text-olive-950"
                     aria-label="Scroll trending left"
                 >
-                    <ChevronLeft className="h-5 w-5" />
+                    <BackMark className="h-5 w-5" />
                 </button>
                 <button
                     type="button"
@@ -205,7 +205,7 @@ export default function TrendingCarousel({ items = [] }) {
                     className="flex h-11 w-11 items-center justify-center rounded-full border border-white/25 bg-white/10 text-white transition hover:border-mustard hover:bg-mustard hover:text-olive-950"
                     aria-label="Scroll trending right"
                 >
-                    <ChevronRight className="h-5 w-5" />
+                    <ForwardMark className="h-5 w-5" />
                 </button>
             </div>
         </div>

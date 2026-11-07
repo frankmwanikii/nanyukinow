@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Mail, MapPin, Phone } from 'lucide-react';
+import { MailMark, PhoneMark, PinMark } from '@/Components/site/Mark';
 import Logo from './Logo';
 
 function InstagramIcon({ className = '' }) {
@@ -72,7 +72,7 @@ export default function Footer() {
                 </div>
 
                 <div>
-                    <h3 className="mb-4 font-display text-sm font-semibold uppercase tracking-wider text-mustard">
+                    <h3 className="mb-4 font-display text-sm font-semibold text-mustard">
                         Quick links
                     </h3>
                     <ul className="space-y-2.5 text-sm text-white/75">
@@ -84,6 +84,7 @@ export default function Footer() {
                         <li>
                             <Link
                                 href="/explore"
+                                prefetch
                                 className="transition hover:text-mint"
                             >
                                 Explore
@@ -100,6 +101,7 @@ export default function Footer() {
                         <li>
                             <Link
                                 href="/pricing"
+                                prefetch
                                 className="transition hover:text-mint"
                             >
                                 Pricing
@@ -109,7 +111,7 @@ export default function Footer() {
                 </div>
 
                 <div>
-                    <h3 className="mb-4 font-display text-sm font-semibold uppercase tracking-wider text-mustard">
+                    <h3 className="mb-4 font-display text-sm font-semibold text-mustard">
                         Categories
                     </h3>
                     <ul className="space-y-2.5 text-sm text-white/75">
@@ -149,24 +151,24 @@ export default function Footer() {
                 </div>
 
                 <div>
-                    <h3 className="mb-4 font-display text-sm font-semibold uppercase tracking-wider text-mustard">
+                    <h3 className="mb-4 font-display text-sm font-semibold text-mustard">
                         Contact
                     </h3>
                     <ul className="space-y-3 text-sm text-white/75">
                         <li className="flex gap-2">
-                            <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-mint" />
+                            <PinMark className="mt-0.5 h-4 w-4 shrink-0 text-mint" />
                             Nanyuki, Laikipia, Kenya
                         </li>
                         {contactPhone ? (
                             <li className="flex gap-2">
-                                <Phone className="mt-0.5 h-4 w-4 shrink-0 text-mint" />
+                                <PhoneMark className="mt-0.5 h-4 w-4 shrink-0 text-mint" />
                                 <a href={telHref} className="hover:text-mint">
                                     {contactPhone}
                                 </a>
                             </li>
                         ) : null}
                         <li className="flex gap-2">
-                            <Mail className="mt-0.5 h-4 w-4 shrink-0 text-mint" />
+                            <MailMark className="mt-0.5 h-4 w-4 shrink-0 text-mint" />
                             <a
                                 href={`mailto:${contactEmail}`}
                                 className="hover:text-mint"

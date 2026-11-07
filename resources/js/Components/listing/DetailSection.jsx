@@ -13,12 +13,12 @@ export default function DetailSection({
     return (
         <section
             id={id || undefined}
-            className={`min-w-0 overflow-hidden rounded-xl border border-olive-200/70 bg-white p-4 sm:p-5 ${className}`}
+            className={`min-w-0 border border-olive-900/15 bg-white ${className}`}
         >
             {(title || action) && (
-                <div className="mb-3 flex items-start justify-between gap-3">
+                <div className="flex items-start justify-between gap-3 border-b border-olive-900/10 px-4 py-3 sm:px-5 sm:py-3.5">
                     {title ? (
-                        <h2 className="font-display text-lg font-semibold text-earth-dusk sm:text-xl">
+                        <h2 className="font-display text-base font-semibold tracking-tight text-earth-dusk sm:text-lg">
                             {title}
                         </h2>
                     ) : (
@@ -27,7 +27,7 @@ export default function DetailSection({
                     {action}
                 </div>
             )}
-            {children}
+            <div className="px-4 py-4 sm:px-5 sm:py-5">{children}</div>
         </section>
     );
 }

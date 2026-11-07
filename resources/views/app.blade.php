@@ -13,15 +13,41 @@
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=4">
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=4">
 
-        <link rel="preconnect" href="https://fonts.bunny.net">
+        <link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
         <link href="https://fonts.bunny.net/css?family=dm-sans:400,500,600,700&display=swap" rel="stylesheet" />
 
         @routes
         @viteReactRefresh
         @vite(['resources/js/app.jsx', "resources/js/Pages/{$page['component']}.jsx"])
         @inertiaHead
+        <style>
+            html, body { margin: 0; background: #ebe4d6; color: #1c1712; }
+            #app { min-height: 100svh; }
+            .nn-firstpaint {
+                min-height: 100svh;
+                background: #ebe4d6;
+            }
+            .nn-firstpaint__bar {
+                height: 4.25rem;
+                background: #4f5a3e;
+            }
+            @media (min-width: 640px) {
+                .nn-firstpaint__bar { height: 4.75rem; }
+            }
+        </style>
     </head>
     <body class="font-sans antialiased">
         @inertia
+        <script>
+            (function () {
+                var root = document.getElementById('app');
+                if (!root || root.childElementCount) return;
+                var shell = document.createElement('div');
+                shell.className = 'nn-firstpaint';
+                shell.setAttribute('aria-hidden', 'true');
+                shell.innerHTML = '<div class="nn-firstpaint__bar"></div>';
+                root.appendChild(shell);
+            })();
+        </script>
     </body>
 </html>

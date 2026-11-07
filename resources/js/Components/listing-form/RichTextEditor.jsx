@@ -1,4 +1,4 @@
-import { label } from './fieldStyles';
+import FieldLabel from './FieldLabel';
 import { useAlert, usePrompt } from '@/Components/ConfirmDialog';
 import { uploadEditorMedia } from '@/utils/uploadEditorMedia';
 import { EditorContent, useEditor } from '@tiptap/react';
@@ -348,17 +348,15 @@ export default function RichTextEditor({
         <div>
             {alertDialog}
             {promptDialog}
-            <label className={label} htmlFor={id}>
-                {labelText}
-            </label>
+            <FieldLabel htmlFor={id}>{labelText}</FieldLabel>
             <div
-                className={`overflow-hidden rounded-xl border bg-white transition focus-within:border-mustard focus-within:ring-2 focus-within:ring-mustard/30 dark:bg-olive-950 dark:focus-within:border-mustard dark:focus-within:ring-mustard/30 ${
+                className={`overflow-hidden border bg-white transition focus-within:border-olive-900 dark:bg-olive-950 dark:focus-within:border-mustard ${
                     error
                         ? 'border-rose-400'
-                        : 'border-olive-200 dark:border-olive-700'
+                        : 'border-olive-900/20 dark:border-olive-700'
                 }`}
             >
-                <div className="flex flex-wrap items-center gap-0.5 border-b border-olive-100 bg-gradient-to-b from-olive-50 to-olive-50/40 px-2 py-1.5 dark:border-olive-800 dark:from-olive-900 dark:to-olive-900/80">
+                <div className="flex flex-wrap items-center gap-0.5 border-b border-olive-900/10 bg-olive-50 px-2 py-1.5 dark:border-olive-800 dark:bg-olive-900">
                     {!compact ? (
                         <>
                             <label className="sr-only" htmlFor={`${listId}-size`}>
@@ -370,7 +368,7 @@ export default function RichTextEditor({
                                     value={fontSize}
                                     title="Font size"
                                     onChange={(e) => applySize(e.target.value)}
-                                    className="nn-editor-size h-8 rounded-lg border-0 bg-white/80 py-0 pl-2.5 pr-7 text-xs font-semibold text-olive-800 shadow-sm ring-1 ring-olive-200 focus:ring-2 focus:ring-mustard/40 dark:bg-olive-950 dark:text-olive-100 dark:ring-olive-700"
+                                    className="nn-editor-size h-8 border border-olive-900/15 bg-white py-0 pl-2.5 pr-7 text-xs font-semibold text-olive-800 focus:border-olive-900 focus:outline-none focus:ring-0 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-100"
                                 >
                                     {FONT_SIZES.map((s) => (
                                         <option key={s.value} value={s.value}>
@@ -522,7 +520,7 @@ export default function RichTextEditor({
                     <BubbleMenu
                         editor={editor}
                         options={{ placement: 'top' }}
-                        className="flex items-center gap-0.5 rounded-xl border border-olive-200 bg-white p-1 shadow-soft dark:border-olive-700 dark:bg-olive-900"
+                        className="flex items-center gap-0.5 border border-olive-900/20 bg-white p-1 dark:border-olive-700 dark:bg-olive-900"
                     >
                         <BubbleBtn
                             title="Bold"

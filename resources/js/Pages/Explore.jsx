@@ -1,16 +1,16 @@
-import {
-    ChevronLeft,
-    ChevronRight,
-    List,
-    Map as MapIcon,
-    Meh,
-    SlidersHorizontal,
-} from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import ExploreCategoryTabs from '@/Components/site/ExploreCategoryTabs';
 import ExploreMap from '@/Components/site/ExploreMap';
 import ExploreSidebar from '@/Components/site/ExploreSidebar';
 import ListingCard from '@/Components/site/ListingCard';
+import {
+    BackMark,
+    EmptyListingsMark,
+    FiltersMark,
+    ForwardMark,
+    ListMark,
+    MapMark,
+} from '@/Components/site/Mark';
 import SiteLayout from '@/Layouts/SiteLayout';
 import { explorePath } from '@/data/categories';
 import {
@@ -212,7 +212,7 @@ function ExploreContent({
                             : 'bg-[#f3f1ec] text-olive-800'
                     }`}
                 >
-                    <SlidersHorizontal className="h-4 w-4" />
+                    <FiltersMark className="h-4 w-4" />
                     Filters
                 </button>
                 <button
@@ -227,7 +227,7 @@ function ExploreContent({
                             : 'bg-[#f3f1ec] text-olive-800'
                     }`}
                 >
-                    <List className="h-4 w-4" />
+                    <ListMark className="h-4 w-4" />
                     List
                 </button>
                 <button
@@ -239,7 +239,7 @@ function ExploreContent({
                             : 'bg-[#f3f1ec] text-olive-800'
                     }`}
                 >
-                    <MapIcon className="h-4 w-4" />
+                    <MapMark className="h-4 w-4" />
                     Map
                 </button>
             </div>
@@ -275,7 +275,7 @@ function ExploreContent({
                             aria-label="Previous page"
                             title="Previous page"
                         >
-                            <ChevronLeft className="h-5 w-5" />
+                            <BackMark className="h-5 w-5" />
                         </button>
 
                         <p className="pointer-events-none absolute inset-x-12 top-1/2 -translate-y-1/2 truncate text-center text-sm text-olive-700">
@@ -303,7 +303,7 @@ function ExploreContent({
                                 aria-label="Next page"
                                 title="Next page"
                             >
-                                <ChevronRight className="h-4 w-4" />
+                                <ForwardMark className="h-4 w-4" />
                             </button>
                             <button
                                 type="button"
@@ -324,19 +324,15 @@ function ExploreContent({
                                         : 'Show listings on map'
                                 }
                             >
-                                <MapIcon className="h-4 w-4" />
+                                <MapMark className="h-4 w-4" />
                             </button>
                         </div>
                     </div>
 
                     <div className="min-h-0 flex-1 overflow-y-auto px-3 py-4 sm:px-4">
                         {pageItems.length === 0 ? (
-                            <div className="flex h-full min-h-[240px] flex-col items-center justify-center rounded-2xl border border-dashed border-olive-300 bg-white/70 px-6 text-center">
-                                <Meh
-                                    className="mx-auto h-12 w-12 text-earth-dusk sm:h-14 sm:w-14"
-                                    strokeWidth={1.5}
-                                    aria-hidden
-                                />
+                            <div className="flex h-full min-h-[240px] flex-col items-center justify-center border border-dashed border-olive-300 bg-white/70 px-6 text-center">
+                                <EmptyListingsMark className="mx-auto h-12 w-12 text-earth-dusk sm:h-14 sm:w-14" />
                                 <p className="mt-3 font-display text-xl font-semibold tracking-tight text-earth-dusk sm:text-2xl">
                                     {sitePage?.content?.empty_title ||
                                         'Nothing here yet!'}
@@ -348,7 +344,7 @@ function ExploreContent({
                                 <button
                                     type="button"
                                     onClick={clearFilters}
-                                    className="mt-5 min-h-11 rounded-full bg-olive-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-mustard hover:text-olive-950"
+                                    className="mt-5 min-h-11 rounded-md bg-olive-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-mustard hover:text-olive-950"
                                 >
                                     Clear filters
                                 </button>
@@ -390,7 +386,7 @@ function ExploreContent({
                                             className="inline-flex h-11 shrink-0 items-center gap-1 rounded-xl px-3 text-sm font-semibold text-olive-700 transition hover:bg-olive-50 disabled:cursor-not-allowed disabled:opacity-35"
                                             aria-label="Previous page"
                                         >
-                                            <ChevronLeft className="h-4 w-4" />
+                                            <BackMark className="h-4 w-4" />
                                             <span className="hidden sm:inline">
                                                 Prev
                                             </span>
@@ -444,7 +440,7 @@ function ExploreContent({
                                             <span className="hidden sm:inline">
                                                 Next
                                             </span>
-                                            <ChevronRight className="h-4 w-4" />
+                                            <ForwardMark className="h-4 w-4" />
                                         </button>
                                     </nav>
 

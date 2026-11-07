@@ -11,12 +11,15 @@ import {
     validateLoginIdentifier,
     validateLoginPassword,
 } from '@/Components/auth/authHelpers';
+import RecaptchaField from '@/Components/listing/RecaptchaField';
 import { Link, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
 export default function Login({ status, canResetPassword }) {
     const { flash } = usePage().props;
     const [showPassword, setShowPassword] = useState(false);
+    const [captchaToken, setCaptchaToken] = useState('');
+    const [captchaError, setCaptchaError] = useState('');
     const {
         data,
         setData,
@@ -25,10 +28,12 @@ export default function Login({ status, canResetPassword }) {
         errors,
         clearErrors,
         reset,
+        transform,
     } = useForm({
         login: '',
         password: '',
         remember: true,
+        'g-recaptcha-response': '',
     });
 
     const loginIdFeedback = fieldFeedback(
@@ -44,57 +49,83 @@ export default function Login({ status, canResetPassword }) {
 
     const loginValid =
         validateLoginIdentifier(data.login) === true &&
-        validateLoginPassword(data.password) === true;
+        validateLoginPassword(data.password) === true &&
+        Boolean(captchaToken);
 
     const submit = (e) => {
         e.preventDefault();
+        if (!captchaToken) {
+            setCaptchaError('Please complete the security check.');
+            return;
+        }
         if (!loginValid) return;
+        setCaptchaError('');
+        transform((form) => ({
+            ...form,
+            'g-recaptcha-response': captchaToken,
+        }));
         post(route('login'), {
-            onFinish: () => reset('password'),
+            onFinish: () => {
+                transform((form) => form);
+                reset('password');
+            },
         });
     };
 
     return (
-        <AuthSplitLayout title="Login" variant="centered">
-            <div className="mb-6 text-center">
-                <h1 className="font-display text-[1.85rem] font-semibold tracking-tight text-white sm:text-3xl">
+        <AuthSplitLayout
+            title="Login"
+            variant="brand"
+            panelTitle="Welcome back to Nanyuki Now"
+            panelBody="Sign in to manage your listings, messages, and plan."
+        >
+            <div className="mb-7 text-center">
+                <h2 className="font-display text-3xl font-semibold tracking-tight text-earth-dusk sm:text-4xl">
                     Welcome back
-                </h1>
-                <p className="mt-2 text-[15px] text-white/80">
-                    Please enter your details.
+                </h2>
+                <p className="mt-2.5 text-[15px] text-olive-600">
+                    Don&apos;t have an account?{' '}
+                    <Link
+                        href={route('register')}
+                        className="font-semibold text-olive-800 underline underline-offset-2 hover:text-olive-950"
+                    >
+                        Get started
+                    </Link>
                 </p>
             </div>
 
             {(status || flash?.status) && (
-                <div className="mb-4 rounded-xl border border-mint/40 bg-mint/15 px-4 py-3 text-sm text-mint-soft">
+                <div className="mb-4 border border-emerald-600/30 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
                     {status || flash?.status}
                 </div>
             )}
 
             {errors.suggest_register ? (
                 <div
-                    className="mb-4 rounded-xl border border-mustard/40 bg-mustard/15 px-4 py-3 text-sm text-white"
+                    className="mb-4 border border-mustard/50 bg-mustard/10 px-4 py-3 text-sm text-earth-dusk"
                     role="alert"
                 >
                     <p className="font-semibold">No account found</p>
-                    <p className="mt-1 text-white/85">
+                    <p className="mt-1 text-olive-700">
                         {errors.suggest_register}{' '}
                         <Link
                             href={route('register')}
-                            className="font-semibold text-mustard underline underline-offset-2 transition hover:text-mustard-soft"
+                            className="font-semibold text-olive-900 underline underline-offset-2 hover:text-olive-950"
                         >
-                            Join now
+                            Get started
                         </Link>
                     </p>
                 </div>
             ) : null}
+
+            <GoogleContinueButton />
+            <AuthOrDivider label="or" />
 
             <form onSubmit={submit} className="space-y-4">
                 <AuthField
                     id="login"
                     label="Email or username"
                     type="text"
-                    tone="glass"
                     value={data.login}
                     onChange={(e) => {
                         clearErrors('login', 'suggest_register');
@@ -111,7 +142,6 @@ export default function Login({ status, canResetPassword }) {
                     id="password"
                     label="Password"
                     type={showPassword ? 'text' : 'password'}
-                    tone="glass"
                     value={data.password}
                     onChange={(e) => {
                         clearErrors('password');
@@ -121,7 +151,6 @@ export default function Login({ status, canResetPassword }) {
                     autoComplete="current-password"
                     trailing={
                         <PasswordToggle
-                            tone="glass"
                             show={showPassword}
                             onToggle={() => setShowPassword((v) => !v)}
                         />
@@ -129,51 +158,50 @@ export default function Login({ status, canResetPassword }) {
                 />
 
                 <div className="flex items-center justify-between gap-3 pt-0.5">
-                    <label className="inline-flex cursor-pointer items-center gap-2.5 text-sm text-white/85">
+                    <label className="inline-flex cursor-pointer items-center gap-2.5 text-sm text-olive-700">
                         <input
                             type="checkbox"
                             checked={data.remember}
                             onChange={(e) =>
                                 setData('remember', e.target.checked)
                             }
-                            className="h-4 w-4 rounded border-white/40 bg-olive-950/60 text-mustard focus:ring-mustard/50"
+                            className="h-4 w-4 border-olive-900/30 text-mustard focus:ring-0 focus:ring-offset-0"
                         />
                         Remember me
                     </label>
                     {canResetPassword ? (
                         <Link
                             href={route('password.request')}
-                            className="text-[13px] font-medium text-mustard/90 transition hover:text-mustard-soft"
+                            className="text-sm font-medium text-olive-700 underline underline-offset-2 hover:text-olive-950"
                         >
                             Forgot password?
                         </Link>
                     ) : null}
                 </div>
 
+                <RecaptchaField
+                    value={captchaToken}
+                    onChange={(token) => {
+                        setCaptchaToken(token);
+                        setCaptchaError('');
+                        clearErrors('g-recaptcha-response');
+                        setData('g-recaptcha-response', token);
+                    }}
+                    error={
+                        captchaError || errors['g-recaptcha-response'] || ''
+                    }
+                />
+
                 <button
                     type="submit"
                     disabled={processing || !loginValid}
-                    className="w-full rounded-xl bg-mustard px-4 py-3.5 text-[15px] font-semibold tracking-tight text-earth-dusk transition hover:bg-mustard-soft disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-mustard"
+                    className="w-full border border-mustard bg-mustard px-4 py-3.5 text-[15px] font-semibold text-earth-dusk transition hover:border-olive-900 hover:bg-olive-900 hover:text-white disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:border-mustard disabled:hover:bg-mustard disabled:hover:text-earth-dusk"
                 >
-                    {processing ? 'Signing in…' : 'Login'}
+                    {processing ? 'Signing in…' : 'Sign in'}
                 </button>
             </form>
 
-            <AuthOrDivider dense tone="glass" label="or sign in with" />
-
-            <GoogleContinueButton tone="glass" />
-
-            <p className="mt-5 text-center text-sm text-white/75">
-                Don&apos;t have an account?{' '}
-                <Link
-                    href={route('register')}
-                    className="font-semibold text-mustard underline decoration-mustard/40 underline-offset-4 transition hover:text-mustard-soft hover:decoration-mustard-soft"
-                >
-                    Join
-                </Link>
-            </p>
-
-            <AuthLegalNote dense tone="glass" />
+            <AuthLegalNote />
         </AuthSplitLayout>
     );
 }

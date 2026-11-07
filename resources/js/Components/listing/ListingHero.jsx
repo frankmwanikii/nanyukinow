@@ -37,11 +37,11 @@ export default function ListingHero({ listing, secondaryCta }) {
                       ? `Early bird ${listing.earlyBirdPrice}`
                       : listing.ticketPrice,
               ]
-            : [listing.tagline, listing.location || null]
-    )
-        .map((part) => plainText(part))
-        .filter(Boolean)
-        .join(' · ');
+                  .map((part) => plainText(part))
+                  .filter(Boolean)
+                  .join(' · ')
+            : plainText(listing.tagline) || null
+    );
 
     return (
         <header className="relative flex min-h-[62svh] items-end overflow-hidden bg-olive-900 pt-24 sm:min-h-[78svh] sm:pt-28 lg:min-h-[82svh]">

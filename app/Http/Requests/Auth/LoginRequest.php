@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Auth;
 
 use App\Models\User;
+use App\Support\Recaptcha;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -31,6 +32,17 @@ class LoginRequest extends FormRequest
         return [
             'login' => ['required', 'string'],
             'password' => ['required', 'string'],
+            'g-recaptcha-response' => ['required', 'string'],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'g-recaptcha-response.required' => 'Please complete the security check.',
         ];
     }
 
@@ -41,6 +53,11 @@ class LoginRequest extends FormRequest
      */
     public function authenticate(): void
     {
+        Recaptcha::validateRequest(
+            $this->string('g-recaptcha-response')->toString(),
+            $this->ip(),
+        );
+
         $this->ensureIsNotRateLimited();
 
         $login = (string) $this->string('login');

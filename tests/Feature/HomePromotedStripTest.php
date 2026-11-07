@@ -59,4 +59,19 @@ class HomePromotedStripTest extends TestCase
                 ->component('Home')
                 ->has('featured', 0));
     }
+
+    public function test_home_does_not_embed_full_listings_catalogue(): void
+    {
+        $this->makeListing('promoted-cafe', Membership::PROMOTED_PRIORITY);
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Home')
+                ->missing('listings')
+                ->has('featured', 1)
+                ->where('featured.0.slug', 'promoted-cafe')
+                ->missing('featured.0.description')
+                ->missing('featured.0.gallery'));
+    }
 }

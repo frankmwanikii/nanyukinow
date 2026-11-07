@@ -1,8 +1,13 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { AnimatePresence, motion } from 'framer-motion';
-import { Compass, Plus, Search, User, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import {
+    CloseMark,
+    CompassMark,
+    PlusMark,
+    SearchMark,
+    UserMark,
+} from '@/Components/site/Mark';
 import { explorePath } from '@/data/categories';
 import FlippingSearchHint, { FLIP_WORDS } from './FlippingSearchHint';
 import SearchSuggestions from './SearchSuggestions';
@@ -76,47 +81,38 @@ export default function MobileBottomNav() {
             key: 'explore',
             label: 'Explore',
             href: explorePath(),
-            icon: Compass,
+            icon: CompassMark,
+            prefetch: true,
         },
         {
             key: 'add',
             label: 'Add',
             href: user ? route('account.listings.create') : route('register'),
             onClick: null,
-            icon: Plus,
+            icon: PlusMark,
             circled: true,
         },
         {
             key: 'account',
             label: user ? 'Account' : 'Sign in',
-            href: user ? route('account.index') : '/login',
-            icon: User,
+            href: user ? route('account.index') : route('register'),
+            icon: UserMark,
         },
     ];
 
     const searchOverlay =
-        typeof document !== 'undefined' ? (
-            <AnimatePresence>
-                {searchOpen ? (
+        typeof document !== 'undefined' && searchOpen ? (
                     <>
-                        <motion.button
+                        <button
                             key="mobile-search-backdrop"
                             type="button"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 0.18 }}
                             className="fixed inset-0 z-[1096] bg-black/45 backdrop-blur-[1px] lg:hidden"
                             aria-label="Close search"
                             onClick={closeSearch}
                         />
-                        <motion.div
+                        <div
                             key="mobile-search-panel"
                             ref={searchPanelRef}
-                            initial={{ opacity: 0, y: -8 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -6 }}
-                            transition={{ duration: 0.2, ease: 'easeOut' }}
                             className="fixed inset-x-0 top-[4.25rem] z-[1098] border-b border-white/10 bg-[#4f5a3e]/98 px-3 py-2.5 shadow-lg backdrop-blur-md sm:top-[4.75rem] sm:px-5 lg:hidden"
                             role="search"
                         >
@@ -125,7 +121,7 @@ export default function MobileBottomNav() {
                                 onSubmit={submitSearch}
                                 className="relative mx-auto flex max-w-[1400px] items-center"
                             >
-                                <Search className="pointer-events-none absolute left-3 z-10 h-4 w-4 text-white/80" />
+                                <SearchMark className="pointer-events-none absolute left-3 z-10 h-4 w-4 text-white/80" />
                                 <FlippingSearchHint
                                     visible={!query.trim() && !suggestionsOpen}
                                     className="left-10"
@@ -156,7 +152,7 @@ export default function MobileBottomNav() {
                                     className="absolute right-2 z-10 inline-flex h-8 w-8 items-center justify-center rounded-full text-white/80 transition hover:bg-white/10 hover:text-white"
                                     aria-label="Close search"
                                 >
-                                    <X className="h-4 w-4" strokeWidth={2.25} />
+                                    <CloseMark className="h-4 w-4" />
                                 </button>
                             </form>
 
@@ -170,10 +166,8 @@ export default function MobileBottomNav() {
                                     id="mobile-nav-search-suggestions"
                                 />
                             ) : null}
-                        </motion.div>
+                        </div>
                     </>
-                ) : null}
-            </AnimatePresence>
         ) : null;
 
     return (
@@ -198,23 +192,16 @@ export default function MobileBottomNav() {
                             aria-expanded={searchOpen}
                             aria-controls="mobile-nav-search-suggestions"
                         >
-                            <Search className="h-6 w-6" strokeWidth={1.75} />
+                            <SearchMark className="h-6 w-6" />
                             <span className="relative block h-[1em] w-full max-w-[4.75rem] overflow-hidden text-center">
-                                <AnimatePresence mode="wait">
-                                    <motion.span
+                                
+                                    <span
                                         key={flipWord}
-                                        initial={{ y: 10, opacity: 0 }}
-                                        animate={{ y: 0, opacity: 1 }}
-                                        exit={{ y: -10, opacity: 0 }}
-                                        transition={{
-                                            duration: 0.28,
-                                            ease: 'easeOut',
-                                        }}
                                         className="absolute inset-x-0 top-0 truncate font-display text-[11px] font-semibold leading-none tracking-wide"
                                     >
                                         {flipWord}
-                                    </motion.span>
-                                </AnimatePresence>
+                                    </span>
+                                
                                 <span
                                     className="invisible font-display text-[11px] font-semibold leading-none tracking-wide"
                                     aria-hidden
@@ -246,16 +233,10 @@ export default function MobileBottomNav() {
                             <>
                                 {item.circled ? (
                                     <span className="flex h-7 w-7 items-center justify-center rounded-full border-[1.5px] border-white">
-                                        <Icon
-                                            className="h-4 w-4"
-                                            strokeWidth={2.25}
-                                        />
+                                        <Icon className="h-4 w-4" />
                                     </span>
                                 ) : (
-                                    <Icon
-                                        className="h-6 w-6"
-                                        strokeWidth={1.75}
-                                    />
+                                    <Icon className="h-6 w-6" />
                                 )}
                                 <span className="font-display text-[11px] font-semibold leading-none tracking-wide">
                                     {item.label}
@@ -274,7 +255,11 @@ export default function MobileBottomNav() {
                                         {content}
                                     </button>
                                 ) : (
-                                    <Link href={item.href} className={className}>
+                                    <Link
+                                        href={item.href}
+                                        prefetch={item.prefetch || false}
+                                        className={className}
+                                    >
                                         {content}
                                     </Link>
                                 )}

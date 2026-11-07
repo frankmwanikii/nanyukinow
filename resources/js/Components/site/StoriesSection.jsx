@@ -27,24 +27,21 @@ export default function StoriesSection() {
                 <Reveal>
                     <SectionHeading
                         light
-                        eyebrow="Stories"
-                        title="Make the most of your visit!"
+                        title="Make the most of your visit"
                         subtitle="Travel tips and local know-how to plan a better stay around Nanyuki."
                     />
                 </Reveal>
 
                 <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                    {stories.map((article, i) => (
-                        <Reveal key={article.id} delay={i * 0.06}>
-                            <StoryCard article={article} />
-                        </Reveal>
+                    {stories.map((article) => (
+                        <StoryCard key={article.id} article={article} />
                     ))}
                 </div>
 
                 <div className="mt-10 flex justify-center">
                     <Link
                         href="/stories"
-                        className="inline-flex rounded-full border border-white/25 bg-white/10 px-7 py-3 text-sm font-semibold text-white shadow-soft transition hover:border-mustard hover:bg-mustard hover:text-olive-950 sm:px-8"
+                        className="inline-flex min-h-11 items-center rounded-md border border-white/25 bg-white/10 px-7 py-3 text-sm font-semibold text-white transition hover:border-mustard hover:bg-mustard hover:text-olive-950 sm:px-8"
                     >
                         Browse all stories
                     </Link>

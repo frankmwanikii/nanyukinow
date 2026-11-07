@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Category;
 use App\Models\Listing;
 use App\Models\User;
+use App\Support\PublishedListingsCatalogue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -61,6 +62,8 @@ class ListingSearchTest extends TestCase
 
     public function test_explore_includes_published_admin_listings(): void
     {
+        PublishedListingsCatalogue::forget();
+
         $category = Category::query()->create([
             'name' => 'Stay',
             'slug' => 'stay',

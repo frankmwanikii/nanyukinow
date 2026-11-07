@@ -252,3 +252,32 @@
     pointer-events: none;
 }
 
+/* Inertia visit progress — quiet top hairline, no spinner */
+#nprogress {
+    pointer-events: none;
+}
+
+#nprogress .bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1031;
+    width: 100%;
+    height: 2px;
+    background: #f2b82e;
+}
+
+#nprogress .peg {
+    display: none;
+}
+
+#nprogress .spinner {
+    display: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #nprogress .bar {
+        transition: none !important;
+    }
+}
+

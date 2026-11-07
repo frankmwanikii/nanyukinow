@@ -76,13 +76,19 @@ function FlashBanner() {
 
 function UserAvatar({ user, size = 'md' }) {
     const initials = useMemo(() => userInitials(user?.name), [user?.name]);
+    const [failed, setFailed] = useState(false);
     const sizeClass = size === 'sm' ? 'h-8 w-8 text-xs' : 'h-9 w-9 text-sm';
 
-    if (user?.avatar_url) {
+    useEffect(() => {
+        setFailed(false);
+    }, [user?.avatar_url]);
+
+    if (user?.avatar_url && !failed) {
         return (
             <img
                 src={user.avatar_url}
                 alt=""
+                onError={() => setFailed(true)}
                 className={`${sizeClass} rounded-full object-cover`}
             />
         );

@@ -1,5 +1,5 @@
-import { MapPin, Navigation } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { ForwardMark, PinMark } from '@/Components/site/Mark';
 import { getMapsApiKey, loadGoogleMaps } from '@/utils/googleMaps';
 import { L, createOsmMap, leafletPinIcon } from '@/utils/leafletMaps';
 import { directionsUrlFor, useMapProvider } from '@/utils/mapProvider';
@@ -195,15 +195,15 @@ export default function DirectionsMap({ listing }) {
     return (
         <section
             id="contact"
-            className="relative z-0 overflow-hidden rounded-xl border border-olive-200/70 bg-white isolate"
+            className="relative z-0 isolate overflow-hidden border border-olive-900/15 bg-white"
         >
-            <div className="px-4 pt-4 sm:px-5 sm:pt-5">
-                <h2 className="font-display text-lg font-semibold text-earth-dusk sm:text-xl">
+            <div className="border-b border-olive-900/10 px-4 py-3 sm:px-5 sm:py-3.5">
+                <h2 className="font-display text-base font-semibold tracking-tight text-earth-dusk sm:text-lg">
                     Directions
                 </h2>
             </div>
 
-            <div className="nn-directions-map-frame relative z-0 mt-3 h-56 overflow-hidden bg-olive-100 sm:mt-4 sm:h-64">
+            <div className="nn-directions-map-frame relative z-0 h-56 overflow-hidden border-b border-olive-900/10 bg-olive-100 sm:h-64">
                 {showMap ? (
                     <div ref={containerRef} className="h-full w-full" />
                 ) : (
@@ -224,18 +224,18 @@ export default function DirectionsMap({ listing }) {
             </div>
 
             <div className="space-y-3 px-4 py-4 sm:px-5 sm:py-5">
-                <p className="flex items-start gap-2 text-sm font-medium text-olive-800">
-                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-mustard" />
+                <p className="flex items-start gap-2 text-sm text-olive-800">
+                    <PinMark className="mt-0.5 h-4 w-4 shrink-0 text-mustard" />
                     <span>{listing.address || listing.location}</span>
                 </p>
                 <a
                     href={directionsUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-olive-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-mustard hover:text-olive-950"
+                    className="inline-flex min-h-11 w-full items-center justify-center gap-2 bg-olive-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-mustard hover:text-olive-950"
                 >
-                    <Navigation className="h-4 w-4" />
                     Get directions
+                    <ForwardMark className="h-4 w-4" />
                 </a>
             </div>
         </section>

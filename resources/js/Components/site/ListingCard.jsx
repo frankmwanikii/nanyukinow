@@ -1,20 +1,17 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import {
-    BedDouble,
-    Bookmark,
-    Briefcase,
-    CalendarDays,
-    Camera,
-    Coffee,
-    Heart,
-    Home,
-    MapPin,
-    ShoppingCart,
-    Star,
-} from 'lucide-react';
-import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
-import ListingTierBadge from '@/Components/site/ListingTierBadge';
+import {
+    BookmarkMark,
+    EatMark,
+    EventMark,
+    ExploreMark,
+    HeartMark,
+    PinMark,
+    PropertyMark,
+    ServicesMark,
+    ShopMark,
+    StayMark,
+} from '@/Components/site/Mark';
 import { explorePath } from '@/data/categories';
 import { listingHref } from '@/data/listings';
 import { eventDateRangeLabel } from '@/Components/listing/eventDates';
@@ -24,14 +21,14 @@ import {
     subcategoryLabel,
 } from '@/utils/listingSubcategories';
 
-const CATEGORY_ICONS = {
-    eatDrink: Coffee,
-    stay: BedDouble,
-    thingsToDo: Camera,
-    services: Briefcase,
-    shopping: ShoppingCart,
-    properties: Home,
-    events: CalendarDays,
+const CATEGORY_MARKS = {
+    eatDrink: EatMark,
+    stay: StayMark,
+    shopping: ShopMark,
+    thingsToDo: ExploreMark,
+    events: EventMark,
+    properties: PropertyMark,
+    services: ServicesMark,
 };
 
 function csrfToken() {
@@ -43,6 +40,11 @@ function csrfToken() {
         .join('=');
     return raw ? decodeURIComponent(raw) : null;
 }
+
+const TIER_LABEL = {
+    premium: 'Premium',
+    featured: 'Standard',
+};
 
 export default function ListingCard({
     listing,
@@ -66,7 +68,6 @@ export default function ListingCard({
         () => Number(listing.likesCount ?? listing.likes_count ?? 0) || 0,
     );
     const [likeBusy, setLikeBusy] = useState(false);
-    const rating = Number(listing.rating ?? 0) || 0;
     const href = listingHref(listing);
     const isEvent = listing.categoryKey === 'events';
     const cover = isEvent
@@ -75,14 +76,11 @@ export default function ListingCard({
     const dateLabel = isEvent
         ? eventDateRangeLabel(listing.startDate, listing.endDate)
         : null;
-    const CategoryIcon = CATEGORY_ICONS[listing.categoryKey] || Home;
     const categoryLabel =
         listing.categoryKey === 'properties' && listing.propertyType
             ? listing.propertyType
             : subcategoryLabel(listing) || listing.category || 'Listing';
-    const regionLabel = listing.location
-        ? `${listing.location} Area`
-        : null;
+    const regionLabel = listing.location || listing.city || null;
     const priceLabel =
         listing.categoryKey === 'properties'
             ? listing.details?.price || listing.price || null
@@ -104,11 +102,8 @@ export default function ListingCard({
           )
         : null;
     const oliveFooter = footerTone === 'olive';
-    const footerText = oliveFooter ? 'text-white' : 'text-black';
-    const footerMuted = oliveFooter ? 'text-white/90' : 'text-black';
     const tier = listing.tier || 'free';
-    const hasTierBadge = tier === 'premium' || tier === 'featured';
-    const leftBadgeOffset = hasTierBadge ? 'left-14 sm:left-[3.75rem]' : 'left-3';
+    const tierLabel = TIER_LABEL[tier] || null;
 
     useEffect(() => {
         const ids = bookmarkKey
@@ -184,16 +179,21 @@ export default function ListingCard({
         }
     };
 
+    const stop = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+    };
+
     return (
-        <motion.article
-            whileHover={inert ? undefined : { y: -6 }}
-            transition={{ type: 'spring', stiffness: 320, damping: 24 }}
-            className={`group overflow-hidden rounded-2xl bg-white shadow-soft ring-1 ring-olive-900/10 ${className}`}
+        <article
+            className={`group flex h-full flex-col border border-olive-900/15 bg-white ${
+                featured ? 'border-olive-900/25' : ''
+            } ${className}`}
             aria-hidden={inert ? true : undefined}
         >
             <Link
                 href={href}
-                className="block focus:outline-none"
+                className="flex min-h-0 flex-1 flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-mustard"
                 tabIndex={inert ? -1 : undefined}
                 draggable={false}
                 onClick={(e) => {
@@ -203,167 +203,172 @@ export default function ListingCard({
                     }
                 }}
             >
-                <div className="relative aspect-[4/3] overflow-hidden">
-                    <img
-                        src={cover}
-                        alt={listing.title}
-                        className="h-full w-full object-cover transition duration-700 ease-out group-hover:scale-105"
-                        loading="lazy"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
-                    <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/55 to-transparent" />
-
-                    {hasTierBadge ? (
-                        <ListingTierBadge
-                            tier={tier}
-                            className="absolute left-3 top-3 z-[1] drop-shadow-sm"
+                <div className="relative aspect-[4/3] overflow-hidden bg-olive-200">
+                    {cover ? (
+                        <img
+                            src={cover}
+                            alt=""
+                            className="h-full w-full object-cover"
+                            loading="lazy"
+                            decoding="async"
+                            width={640}
+                            height={480}
                         />
-                    ) : null}
-                    {isEvent && dateLabel ? (
-                        <span
-                            className={`absolute top-3 inline-flex max-w-[70%] items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-bold text-olive-900 shadow-sm ${leftBadgeOffset}`}
-                        >
-                            <CalendarDays className="h-3 w-3 shrink-0 text-mustard-deep" />
-                            <span className="truncate font-semibold">
-                                {dateLabel}
-                            </span>
-                        </span>
-                    ) : null}
-                    {priceLabel ? (
-                        <span
-                            className={`absolute top-3 max-w-[40%] truncate rounded-full bg-mustard px-2.5 py-1 text-[11px] font-bold text-earth-dusk shadow-sm ${
-                                isEvent && dateLabel
-                                    ? 'right-14'
-                                    : leftBadgeOffset
-                            }`}
-                        >
-                            {priceLabel}
-                        </span>
-                    ) : null}
-
-                    <button
-                        type="button"
-                        disabled={likeBusy || inert || !listing.slug}
-                        onClick={toggleLike}
-                        className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-olive-800 shadow-sm backdrop-blur transition hover:bg-white disabled:opacity-60"
-                        aria-label={liked ? 'Unlike listing' : 'Like listing'}
-                    >
-                        <Heart
-                            className={`h-4 w-4 ${liked ? 'fill-mustard text-mustard' : ''}`}
-                        />
-                    </button>
-
-                    <div className="absolute inset-x-0 bottom-0 p-3 sm:p-4">
-                        <div className="flex items-end gap-3">
-                            {listing.logo ? (
-                                <img
-                                    src={listing.logo}
-                                    alt=""
-                                    className="h-14 w-14 shrink-0 rounded-full border-2 border-white object-cover shadow-md sm:h-[3.75rem] sm:w-[3.75rem]"
-                                    loading="lazy"
-                                />
-                            ) : null}
-                            <div className="min-w-0 flex-1 pb-0.5">
-                                <h3 className="font-display text-base font-semibold leading-snug text-white sm:text-lg">
-                                    <span className="line-clamp-2">
-                                        {listing.title}
-                                    </span>
-                                </h3>
-                                {regionLabel ? (
-                                    <p className="mt-1 flex items-center gap-1.5 text-sm text-white">
-                                        <MapPin
-                                            className="h-3.5 w-3.5 shrink-0 text-white"
-                                            strokeWidth={2}
-                                        />
-                                        <span className="truncate">
-                                            {regionLabel}
-                                        </span>
-                                    </p>
-                                ) : null}
-                            </div>
+                    ) : (
+                        <div className="flex h-full w-full items-center justify-center bg-olive-100 text-sm font-medium text-olive-600">
+                            No photo
                         </div>
-                    </div>
+                    )}
+
+                    {(tierLabel || dateLabel || priceLabel) && (
+                        <div className="absolute left-0 top-0 flex max-w-[85%] flex-wrap gap-px">
+                            {tierLabel ? (
+                                <span className="bg-earth-dusk px-2.5 py-1 text-[11px] font-semibold text-mustard">
+                                    {tierLabel}
+                                </span>
+                            ) : null}
+                            {dateLabel ? (
+                                <span className="bg-white px-2.5 py-1 text-[11px] font-semibold text-earth-dusk">
+                                    {dateLabel}
+                                </span>
+                            ) : null}
+                            {priceLabel ? (
+                                <span className="bg-mustard px-2.5 py-1 text-[11px] font-semibold text-earth-dusk">
+                                    {priceLabel}
+                                </span>
+                            ) : null}
+                        </div>
+                    )}
                 </div>
 
                 <div
-                    className={`flex items-center justify-between gap-3 px-3.5 py-4 sm:px-5 sm:py-5 ${
-                        oliveFooter ? 'bg-olive-600' : 'bg-white'
+                    className={`flex flex-1 flex-col gap-3 px-3.5 py-3.5 sm:px-4 sm:py-4 ${
+                        oliveFooter ? 'bg-olive-700 text-white' : 'bg-white text-earth-dusk'
                     }`}
                 >
-                    {categoryHref ? (
-                        <button
-                            type="button"
-                            onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                router.visit(categoryHref);
-                            }}
-                            className={`flex min-w-0 items-center gap-2 text-left text-sm font-medium transition hover:underline ${footerText}`}
-                        >
-                            <CategoryIcon
-                                className={`h-5 w-5 shrink-0 ${footerMuted}`}
-                                strokeWidth={1.75}
+                    <div className="flex min-w-0 items-start gap-3">
+                        {listing.logo ? (
+                            <img
+                                src={listing.logo}
+                                alt=""
+                                className="mt-0.5 h-10 w-10 shrink-0 object-cover"
+                                loading="lazy"
+                                decoding="async"
+                                width={40}
+                                height={40}
                             />
-                            <span className="truncate">{categoryLabel}</span>
-                        </button>
-                    ) : (
-                        <p
-                            className={`flex min-w-0 items-center gap-2 text-sm font-medium ${footerText}`}
-                        >
-                            <CategoryIcon
-                                className={`h-5 w-5 shrink-0 ${footerMuted}`}
-                                strokeWidth={1.75}
-                            />
-                            <span className="truncate">{categoryLabel}</span>
-                        </p>
-                    )}
+                        ) : null}
+                        <div className="min-w-0 flex-1">
+                            <h3 className="font-display text-[1.05rem] font-semibold leading-snug tracking-tight sm:text-lg">
+                                <span className="line-clamp-2">
+                                    {listing.title}
+                                </span>
+                            </h3>
+                            {regionLabel ? (
+                                <p
+                                    className={`mt-1 flex min-w-0 items-center gap-1 truncate text-sm ${
+                                        oliveFooter
+                                            ? 'text-white/75'
+                                            : 'text-olive-700'
+                                    }`}
+                                >
+                                    <PinMark className="h-4 w-4 shrink-0" />
+                                    <span className="truncate">{regionLabel}</span>
+                                </p>
+                            ) : null}
+                        </div>
+                    </div>
+
                     <div
-                        className={`flex shrink-0 items-center gap-3 ${footerText}`}
+                        className={`mt-auto flex items-center justify-between gap-2 border-t pt-3 ${
+                            oliveFooter
+                                ? 'border-white/15'
+                                : 'border-olive-900/10'
+                        }`}
                     >
-                        <span
-                            className={`inline-flex items-center gap-1 text-sm font-medium ${footerText}`}
-                            title="Rating"
-                        >
-                            <Star className="h-4 w-4 fill-mustard text-mustard" />
-                            {rating > 0 ? rating.toFixed(1) : '0'}
-                        </span>
-                        <button
-                            type="button"
-                            disabled={bookmarkBusy || inert || !listing.slug}
-                            onClick={toggleBookmark}
-                            className={`inline-flex items-center justify-center transition hover:opacity-70 disabled:opacity-60 ${footerText}`}
-                            title="Bookmark"
-                            aria-label={
-                                bookmarked
-                                    ? 'Remove bookmark'
-                                    : 'Bookmark listing'
+                        {(() => {
+                            const CategoryIcon =
+                                CATEGORY_MARKS[listing.categoryKey] || null;
+                            const categoryClass = `inline-flex min-h-11 min-w-0 max-w-full items-center gap-2 text-left text-sm font-medium ${
+                                oliveFooter ? 'text-white/90' : 'text-olive-800'
+                            }`;
+
+                            if (categoryHref) {
+                                return (
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            stop(e);
+                                            router.visit(categoryHref);
+                                        }}
+                                        className={`${categoryClass} underline-offset-2 hover:underline`}
+                                    >
+                                        {CategoryIcon ? (
+                                            <CategoryIcon className="h-4 w-4 shrink-0" />
+                                        ) : null}
+                                        <span className="truncate">
+                                            {categoryLabel}
+                                        </span>
+                                    </button>
+                                );
                             }
+
+                            return (
+                                <p className={categoryClass}>
+                                    {CategoryIcon ? (
+                                        <CategoryIcon className="h-4 w-4 shrink-0" />
+                                    ) : null}
+                                    <span className="truncate">
+                                        {categoryLabel}
+                                    </span>
+                                </p>
+                            );
+                        })()}
+
+                        <div
+                            className={`flex shrink-0 items-center ${
+                                oliveFooter ? 'text-white' : 'text-earth-dusk'
+                            }`}
                         >
-                            <Bookmark
-                                className={`h-[1.15rem] w-[1.15rem] ${bookmarked ? 'fill-mustard text-mustard' : ''}`}
-                                strokeWidth={1.75}
-                            />
-                        </button>
-                        <button
-                            type="button"
-                            disabled={likeBusy || inert || !listing.slug}
-                            onClick={toggleLike}
-                            className={`inline-flex items-center gap-1 text-sm font-medium transition hover:opacity-70 disabled:opacity-60 ${footerText}`}
-                            title="Likes"
-                            aria-label={
-                                liked
-                                    ? `Unlike listing, ${likeCount} likes`
-                                    : `Like listing, ${likeCount} likes`
-                            }
-                        >
-                            <Heart
-                                className={`h-4 w-4 ${liked ? 'fill-mustard text-mustard' : ''}`}
-                            />
-                            {likeCount}
-                        </button>
+                            <button
+                                type="button"
+                                disabled={bookmarkBusy || inert || !listing.slug}
+                                onClick={toggleBookmark}
+                                className="inline-flex h-11 w-11 items-center justify-center transition hover:opacity-70 disabled:opacity-60"
+                                title="Bookmark"
+                                aria-label={
+                                    bookmarked
+                                        ? 'Remove bookmark'
+                                        : 'Bookmark listing'
+                                }
+                            >
+                                <BookmarkMark
+                                    className={`h-5 w-5 ${bookmarked ? 'text-mustard' : ''}`}
+                                    filled={bookmarked}
+                                />
+                            </button>
+                            <button
+                                type="button"
+                                disabled={likeBusy || inert || !listing.slug}
+                                onClick={toggleLike}
+                                className="inline-flex h-11 items-center gap-1.5 px-1.5 text-sm tabular-nums transition hover:opacity-70 disabled:opacity-60"
+                                title="Likes"
+                                aria-label={
+                                    liked
+                                        ? `Unlike listing, ${likeCount} likes`
+                                        : `Like listing, ${likeCount} likes`
+                                }
+                            >
+                                <HeartMark
+                                    className={`h-5 w-5 ${liked ? 'text-mustard' : ''}`}
+                                    filled={liked}
+                                />
+                                {likeCount}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </Link>
-        </motion.article>
+        </article>
     );
 }

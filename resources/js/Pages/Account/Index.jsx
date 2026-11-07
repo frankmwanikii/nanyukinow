@@ -8,13 +8,13 @@ import {
     Th,
 } from '@/Components/Admin/ui';
 import { useConfirm } from '@/Components/ConfirmDialog';
-import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
-    Bookmark,
-    LayoutList,
-    Plus,
-    Sparkles,
-} from 'lucide-react';
+    BookmarkMark,
+    ListMark,
+    PlusMark,
+    UpgradePlansMark,
+} from '@/Components/site/Mark';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 
 function formatDate(iso) {
     if (!iso) return '—';
@@ -28,29 +28,28 @@ function formatDate(iso) {
 function MetricCard({ label, children, href }) {
     const inner = (
         <>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-olive-400 dark:text-olive-500">
+            <p className="text-sm font-medium text-olive-600 dark:text-olive-400">
                 {label}
             </p>
             <div className="mt-2">{children}</div>
         </>
     );
 
+    const shell =
+        'border border-olive-900/15 bg-white p-4 transition dark:border-olive-800 dark:bg-olive-900 sm:p-5';
+
     if (href) {
         return (
             <Link
                 href={href}
-                className="rounded-2xl border border-olive-200/80 bg-white p-4 shadow-soft transition hover:border-olive-300 hover:shadow-lift dark:border-olive-800 dark:bg-olive-900 dark:shadow-none dark:hover:border-olive-700 sm:p-5"
+                className={`${shell} hover:border-olive-900/35 dark:hover:border-olive-600`}
             >
                 {inner}
             </Link>
         );
     }
 
-    return (
-        <div className="rounded-2xl border border-olive-200/80 bg-white p-4 shadow-soft dark:border-olive-800 dark:bg-olive-900 dark:shadow-none sm:p-5">
-            {inner}
-        </div>
-    );
+    return <div className={shell}>{inner}</div>;
 }
 
 export default function Index({
@@ -84,17 +83,16 @@ export default function Index({
             <div className="space-y-5">
                 {(flash?.success || flash?.error) && (
                     <div
-                        className={`rounded-2xl border px-4 py-3 text-sm ${
+                        className={`border px-4 py-3 text-sm ${
                             flash.error
-                                ? 'border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300'
-                                : 'border-olive-200 bg-white text-olive-900 dark:border-olive-800 dark:bg-olive-900 dark:text-olive-100'
+                                ? 'border-rose-300 bg-rose-50 text-rose-800 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300'
+                                : 'border-olive-900/15 bg-white text-olive-900 dark:border-olive-800 dark:bg-olive-900 dark:text-olive-100'
                         }`}
                     >
                         {flash.error || flash.success}
                     </div>
                 )}
 
-                {/* Metric cards */}
                 <section className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
                     <MetricCard label="Plan">
                         <p className="font-display text-2xl font-semibold text-olive-950 dark:text-olive-50">
@@ -104,63 +102,57 @@ export default function Index({
                     <MetricCard label="Listings">
                         <p className="font-display text-2xl font-semibold tabular-nums text-olive-950 dark:text-olive-50">
                             {plan.listings_used}
-                            <span className="text-base font-normal text-olive-400 dark:text-olive-500">
+                            <span className="text-base font-normal text-olive-500 dark:text-olive-500">
                                 /{plan.listing_limit}
                             </span>
                         </p>
                     </MetricCard>
                     <MetricCard label="Bookmarks" href={route('account.bookmarks')}>
                         <p className="inline-flex items-center gap-2 font-display text-2xl font-semibold tabular-nums text-olive-950 dark:text-olive-50">
-                            <Bookmark
-                                className="h-5 w-5 text-olive-500 dark:text-olive-400"
-                                strokeWidth={1.85}
+                            <BookmarkMark
+                                className="h-5 w-5 text-olive-700 dark:text-olive-300"
+                                filled
                             />
                             {bookmarksCount}
                         </p>
                     </MetricCard>
                 </section>
 
-                {/* Plan usage */}
-                <section className="overflow-hidden rounded-2xl border border-olive-200/80 bg-white shadow-soft dark:border-olive-800 dark:bg-olive-900 dark:shadow-none">
-                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-olive-100 px-4 py-4 sm:px-5 dark:border-olive-800">
-                        <div className="flex min-w-0 items-start gap-3">
-                            <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-olive-50 text-olive-700 dark:bg-olive-950 dark:text-olive-300">
-                                <Sparkles className="h-4 w-4" strokeWidth={1.85} />
-                            </span>
-                            <div>
-                                <h2 className="text-sm font-semibold text-olive-950 dark:text-olive-50">
-                                    Plan usage
-                                </h2>
-                                <p className="mt-0.5 text-xs text-olive-500 dark:text-olive-400">
-                                    {plan.is_expired
-                                        ? 'Plan expired — you’re on Free until renewed.'
-                                        : plan.expires_at
-                                          ? `Renews ${new Date(plan.expires_at).toLocaleDateString()}`
-                                          : 'Free plan limits apply'}
-                                </p>
-                            </div>
+                <section className="border border-olive-900/15 bg-white dark:border-olive-800 dark:bg-olive-900">
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-olive-900/10 px-4 py-4 sm:px-5 dark:border-olive-800">
+                        <div>
+                            <h2 className="font-display text-base font-semibold text-olive-950 dark:text-olive-50">
+                                Plan usage
+                            </h2>
+                            <p className="mt-0.5 text-sm text-olive-600 dark:text-olive-400">
+                                {plan.is_expired
+                                    ? 'Plan expired — you’re on Free until renewed.'
+                                    : plan.expires_at
+                                      ? `Renews ${new Date(plan.expires_at).toLocaleDateString()}`
+                                      : 'Free plan limits apply'}
+                            </p>
                         </div>
                         <div className="flex flex-wrap gap-2">
                             {plan.key !== 'premium' && !pendingUpgrade ? (
                                 <Link
                                     href={route('account.upgrade')}
-                                    className="nn-upgrade-glow inline-flex items-center gap-1.5 rounded-full border border-mustard/70 bg-mustard px-4 py-2 text-sm font-semibold text-earth-dusk transition hover:bg-olive-900 hover:text-white dark:border-mustard dark:bg-mustard dark:text-earth-dusk dark:hover:bg-olive-100"
+                                    className="inline-flex items-center gap-1.5 border border-mustard bg-mustard px-4 py-2 text-sm font-semibold text-earth-dusk transition hover:bg-olive-900 hover:text-white dark:hover:bg-olive-100 dark:hover:text-earth-dusk"
                                 >
-                                    <Sparkles className="h-4 w-4" strokeWidth={1.85} />
+                                    <UpgradePlansMark className="h-4 w-4" />
                                     Upgrade plan
                                 </Link>
                             ) : null}
                         </div>
                     </div>
                     <div className="px-4 py-4 sm:px-5">
-                        <div className="h-2 overflow-hidden rounded-full bg-olive-100 dark:bg-olive-800">
+                        <div className="h-1.5 overflow-hidden bg-olive-100 dark:bg-olive-800">
                             <div
-                                className="h-full rounded-full bg-olive-800 transition-all dark:bg-mustard"
+                                className="h-full bg-olive-900 transition-all dark:bg-mustard"
                                 style={{ width: `${usedPct}%` }}
                             />
                         </div>
                         {pendingUpgrade && (
-                            <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-olive-100 bg-earth-sand px-3 py-2.5 text-sm text-olive-800 dark:border-olive-800 dark:bg-olive-950 dark:text-olive-200">
+                            <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border border-olive-900/10 bg-earth-sand px-3 py-2.5 text-sm text-olive-800 dark:border-olive-800 dark:bg-olive-950 dark:text-olive-200">
                                 <span>
                                     Pending upgrade to <strong>{pendingUpgrade.to_label}</strong>
                                     {pendingUpgrade.payment_reference
@@ -174,7 +166,7 @@ export default function Index({
                                             route('account.upgrade.cancel', pendingUpgrade.id),
                                         )
                                     }
-                                    className="font-semibold text-rose-600 hover:underline dark:text-rose-400"
+                                    className="font-semibold text-rose-700 hover:underline dark:text-rose-400"
                                 >
                                     Cancel
                                 </button>
@@ -183,31 +175,28 @@ export default function Index({
                     </div>
                 </section>
 
-                {/* Listings */}
-                <section className="overflow-hidden rounded-2xl border border-olive-200/80 bg-white shadow-soft dark:border-olive-800 dark:bg-olive-900 dark:shadow-none">
-                    <div className="flex items-center justify-between gap-3 border-b border-olive-100 px-4 py-4 sm:px-5 dark:border-olive-800">
+                <section className="border border-olive-900/15 bg-white dark:border-olive-800 dark:bg-olive-900">
+                    <div className="flex items-center justify-between gap-3 border-b border-olive-900/10 px-4 py-4 sm:px-5 dark:border-olive-800">
                         <div className="flex items-center gap-2.5">
-                            <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-olive-50 text-olive-700 dark:bg-olive-950 dark:text-olive-300">
-                                <LayoutList className="h-4 w-4" strokeWidth={1.85} />
-                            </span>
-                            <h2 className="text-sm font-semibold text-olive-950 dark:text-olive-50">
+                            <ListMark className="h-5 w-5 text-olive-800 dark:text-olive-200" />
+                            <h2 className="font-display text-base font-semibold text-olive-950 dark:text-olive-50">
                                 Your listings
                             </h2>
                         </div>
                         {plan.can_create ? (
                             <Link
                                 href={route('account.listings.create')}
-                                className="inline-flex items-center gap-1.5 rounded-xl bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-mustard hover:text-earth-dusk dark:bg-mustard dark:text-earth-dusk dark:hover:bg-olive-100"
+                                className="inline-flex items-center gap-1.5 bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-mustard hover:text-earth-dusk dark:bg-mustard dark:text-earth-dusk dark:hover:bg-olive-100"
                             >
-                                <Plus className="h-4 w-4" />
+                                <PlusMark className="h-4 w-4" />
                                 Add listing
                             </Link>
                         ) : plan.key !== 'premium' ? (
                             <Link
                                 href={route('account.upgrade')}
-                                className="nn-upgrade-glow inline-flex items-center gap-1.5 rounded-full border border-mustard/70 bg-mustard px-4 py-2 text-sm font-semibold text-earth-dusk transition hover:bg-olive-900 hover:text-white"
+                                className="inline-flex items-center gap-1.5 border border-mustard bg-mustard px-4 py-2 text-sm font-semibold text-earth-dusk transition hover:bg-olive-900 hover:text-white"
                             >
-                                <Sparkles className="h-4 w-4" strokeWidth={1.85} />
+                                <UpgradePlansMark className="h-4 w-4" />
                                 Upgrade plan
                             </Link>
                         ) : null}
@@ -218,7 +207,7 @@ export default function Index({
                             <p className="text-sm font-semibold text-olive-900 dark:text-olive-100">
                                 No listings yet
                             </p>
-                            <p className="mx-auto mt-1 max-w-sm text-sm text-olive-500 dark:text-olive-400">
+                            <p className="mx-auto mt-1 max-w-sm text-sm text-olive-600 dark:text-olive-400">
                                 Your plan includes {plan.listing_limit} listing
                                 {plan.listing_limit === 1 ? '' : 's'}. Submit one for review to go
                                 live.
@@ -226,9 +215,9 @@ export default function Index({
                             {plan.can_create && (
                                 <Link
                                     href={route('account.listings.create')}
-                                    className="mt-5 inline-flex items-center gap-1.5 rounded-xl bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-mustard hover:text-earth-dusk dark:bg-mustard dark:text-earth-dusk"
+                                    className="mt-5 inline-flex items-center gap-1.5 bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-mustard hover:text-earth-dusk dark:bg-mustard dark:text-earth-dusk"
                                 >
-                                    <Plus className="h-4 w-4" />
+                                    <PlusMark className="h-4 w-4" />
                                     Create listing
                                 </Link>
                             )}
@@ -258,9 +247,9 @@ export default function Index({
                                                     'account.listings.edit',
                                                     listing.slug || listing.id,
                                                 )}
-                                                className="flex min-w-[12rem] items-center gap-3 rounded-lg outline-none transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-mustard/60"
+                                                className="flex min-w-[12rem] items-center gap-3 outline-none transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-mustard"
                                             >
-                                                <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-olive-100 dark:bg-olive-800">
+                                                <div className="h-10 w-10 shrink-0 overflow-hidden bg-olive-100 dark:bg-olive-800">
                                                     {listing.image_url ? (
                                                         <img
                                                             src={listing.image_url}

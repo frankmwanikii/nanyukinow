@@ -13,6 +13,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 function Avatar({ src, initials, size = 'md', tone = 'mustard' }) {
+    const [failed, setFailed] = useState(false);
     const box = size === 'sm' ? 'h-8 w-8 text-[11px]' : 'h-11 w-11 text-sm';
     const tones = {
         mustard: 'bg-mustard/20 text-earth-dusk dark:bg-mustard/25 dark:text-earth-dusk',
@@ -20,11 +21,16 @@ function Avatar({ src, initials, size = 'md', tone = 'mustard' }) {
         mint: 'bg-mint/25 text-olive-800 dark:bg-mint/20 dark:text-olive-200',
     };
 
-    if (src) {
+    useEffect(() => {
+        setFailed(false);
+    }, [src]);
+
+    if (src && !failed) {
         return (
             <img
                 src={src}
                 alt=""
+                onError={() => setFailed(true)}
                 className={`${box} shrink-0 rounded-full object-cover ring-1 ring-olive-100 dark:ring-olive-700`}
             />
         );

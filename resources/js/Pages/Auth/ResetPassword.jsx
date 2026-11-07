@@ -9,8 +9,8 @@ import {
     validatePassword,
     validatePasswordConfirm,
 } from '@/Components/auth/authHelpers';
+import { BackMark } from '@/Components/site/Mark';
 import { Link, useForm } from '@inertiajs/react';
-import { ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
 
 export default function ResetPassword({ token, email }) {
@@ -55,30 +55,33 @@ export default function ResetPassword({ token, email }) {
     };
 
     return (
-        <AuthSplitLayout title="Reset password" variant="centered">
-            <Link
-                href={route('login')}
-                className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-white/85 transition hover:text-mustard"
-            >
-                <ArrowLeft className="h-4 w-4" />
-                Back to sign in
-            </Link>
-
-            <div className="mb-6">
-                <h1 className="font-display text-[1.85rem] font-semibold tracking-tight text-white sm:text-3xl">
+        <AuthSplitLayout
+            title="Reset password"
+            variant="brand"
+            panelTitle="Choose a new password"
+            panelBody="Pick something strong and unique for your Nanyuki Now account."
+        >
+            <div className="mb-7 text-center">
+                <Link
+                    href={route('login')}
+                    className="mb-5 inline-flex items-center gap-1.5 text-sm font-medium text-olive-700 transition hover:text-olive-950"
+                >
+                    <BackMark className="h-3.5 w-3.5" />
+                    Back to sign in
+                </Link>
+                <h2 className="font-display text-3xl font-semibold tracking-tight text-earth-dusk sm:text-4xl">
                     Reset password
-                </h1>
-                <p className="mt-1.5 text-[15px] text-white/80">
+                </h2>
+                <p className="mt-2.5 text-[15px] text-olive-600">
                     Choose a new password for your account.
                 </p>
             </div>
 
-            <form onSubmit={submit} className="space-y-4">
+            <form onSubmit={submit} className="mx-auto max-w-md space-y-4">
                 <AuthField
                     id="email"
                     label="Email"
                     type="email"
-                    tone="glass"
                     value={data.email}
                     onChange={(e) => {
                         clearErrors('email');
@@ -91,7 +94,6 @@ export default function ResetPassword({ token, email }) {
                     id="password"
                     label="New password"
                     type={showPassword ? 'text' : 'password'}
-                    tone="glass"
                     value={data.password}
                     onChange={(e) => {
                         clearErrors('password', 'password_confirmation');
@@ -101,7 +103,6 @@ export default function ResetPassword({ token, email }) {
                     autoComplete="new-password"
                     trailing={
                         <PasswordToggle
-                            tone="glass"
                             show={showPassword}
                             onToggle={() => setShowPassword((v) => !v)}
                         />
@@ -111,7 +112,6 @@ export default function ResetPassword({ token, email }) {
                     id="password_confirmation"
                     label="Confirm password"
                     type={showConfirmPassword ? 'text' : 'password'}
-                    tone="glass"
                     value={data.password_confirmation}
                     onChange={(e) => {
                         clearErrors('password_confirmation');
@@ -121,7 +121,6 @@ export default function ResetPassword({ token, email }) {
                     autoComplete="new-password"
                     trailing={
                         <PasswordToggle
-                            tone="glass"
                             show={showConfirmPassword}
                             onToggle={() =>
                                 setShowConfirmPassword((v) => !v)
@@ -133,7 +132,7 @@ export default function ResetPassword({ token, email }) {
                 <button
                     type="submit"
                     disabled={processing || !formValid}
-                    className="mt-1 w-full rounded-xl bg-mustard px-4 py-3.5 text-[15px] font-semibold text-earth-dusk transition hover:bg-mustard-soft disabled:cursor-not-allowed disabled:opacity-55"
+                    className="w-full border border-mustard bg-mustard px-4 py-3.5 text-[15px] font-semibold text-earth-dusk transition hover:border-olive-900 hover:bg-olive-900 hover:text-white disabled:cursor-not-allowed disabled:opacity-55"
                 >
                     {processing ? 'Updating…' : 'Reset password'}
                 </button>

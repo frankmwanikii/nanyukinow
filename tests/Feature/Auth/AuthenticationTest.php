@@ -3,6 +3,7 @@
 namespace Tests\Feature\Auth;
 
 use App\Models\User;
+use App\Support\Recaptcha;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -24,10 +25,24 @@ class AuthenticationTest extends TestCase
         $response = $this->post('/login', [
             'login' => $user->email,
             'password' => 'password',
+            'g-recaptcha-response' => Recaptcha::FALLBACK_TOKEN,
         ]);
 
         $this->assertAuthenticated();
         $response->assertRedirect(route('account.index', absolute: false));
+    }
+
+    public function test_login_requires_recaptcha(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->from('/login')->post('/login', [
+            'login' => $user->email,
+            'password' => 'password',
+        ]);
+
+        $this->assertGuest();
+        $response->assertSessionHasErrors('g-recaptcha-response');
     }
 
     public function test_users_can_not_authenticate_with_invalid_password(): void
@@ -37,6 +52,7 @@ class AuthenticationTest extends TestCase
         $this->post('/login', [
             'login' => $user->email,
             'password' => 'wrong-password',
+            'g-recaptcha-response' => Recaptcha::FALLBACK_TOKEN,
         ]);
 
         $this->assertGuest();
@@ -47,6 +63,7 @@ class AuthenticationTest extends TestCase
         $response = $this->from('/login')->post('/login', [
             'login' => 'nobody@example.com',
             'password' => 'Password1!',
+            'g-recaptcha-response' => Recaptcha::FALLBACK_TOKEN,
         ]);
 
         $this->assertGuest();

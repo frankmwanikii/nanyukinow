@@ -1,9 +1,14 @@
-export default function SectionHeading({ eyebrow, title, subtitle, light = false }) {
+export default function SectionHeading({
+    eyebrow,
+    title,
+    subtitle,
+    light = false,
+}) {
     return (
         <div className="mx-auto mb-8 max-w-2xl text-center sm:mb-12">
             {eyebrow ? (
                 <p
-                    className={`mb-2 text-xs font-semibold uppercase tracking-[0.2em] sm:text-sm ${
+                    className={`mb-2 text-sm font-medium ${
                         light ? 'text-mint' : 'text-olive-600'
                     }`}
                 >

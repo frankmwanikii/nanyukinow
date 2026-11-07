@@ -1,6 +1,7 @@
 import ListingImageCropModal from './ListingImageCropModal';
 import MediaAddDialog from './MediaAddDialog';
 import MediaLightbox from './MediaLightbox';
+import FieldLabel from './FieldLabel';
 import { field, help, label } from './fieldStyles';
 import { srcToDataUrl } from '@/utils/cropImage';
 import {
@@ -153,25 +154,23 @@ function CoverLogoStage({
 }) {
     return (
         <div className="space-y-5">
-            <div className="rounded-2xl bg-olive-50/70 p-4 ring-1 ring-olive-100 dark:bg-olive-950/50 dark:ring-olive-800 sm:p-5">
+            <div className="border border-olive-900/15 bg-olive-50/70 p-4 dark:border-olive-800 dark:bg-olive-950/50 sm:p-5">
                 <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                     <div className="flex flex-wrap items-center gap-2">
-                        <p className={label}>Cover image</p>
+                        <FieldLabel as="p" required>
+                            Cover image
+                        </FieldLabel>
                         {coverPreview ? (
-                            <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-800 ring-1 ring-emerald-100">
+                            <span className="bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">
                                 Set
                             </span>
-                        ) : (
-                            <span className="rounded-full bg-olive-100 px-2 py-0.5 text-[10px] font-semibold text-olive-700">
-                                Required
-                            </span>
-                        )}
+                        ) : null}
                     </div>
                     {onOpenLibraryCover ? (
                         <button
                             type="button"
                             onClick={onOpenLibraryCover}
-                            className="inline-flex items-center gap-1.5 rounded-full bg-olive-900 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-olive-800 sm:text-sm"
+                            className="inline-flex items-center gap-1.5 bg-olive-900 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-olive-800 sm:text-sm"
                         >
                             <Images className="h-4 w-4" />
                             Open gallery

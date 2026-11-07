@@ -1,16 +1,8 @@
-import DangerButton from '@/Components/DangerButton';
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
+import { field, label as labelCls } from '@/Components/listing-form/fieldStyles';
+import { CloseMark, EyeMark, EyeOffMark } from '@/Components/site/Mark';
 import Modal from '@/Components/Modal';
-import SecondaryButton from '@/Components/SecondaryButton';
-import TextInput from '@/Components/TextInput';
 import { useForm } from '@inertiajs/react';
-import { Eye, EyeOff, X } from 'lucide-react';
 import { useRef, useState } from 'react';
-
-const inputCls =
-    'block w-full rounded-xl border border-olive-200 bg-white pr-11 text-olive-900 shadow-sm focus:border-mustard focus:ring-mustard/30 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-50 dark:placeholder:text-olive-500';
-const labelCls = 'text-olive-600 dark:text-olive-400';
 
 export default function DeleteUserForm({ className = '' }) {
     const [confirmingUserDeletion, setConfirmingUserDeletion] = useState(false);
@@ -53,10 +45,10 @@ export default function DeleteUserForm({ className = '' }) {
     };
 
     return (
-        <section className={`space-y-6 ${className}`}>
+        <section className={`space-y-5 ${className}`}>
             <header>
-                <h2 className="font-display text-lg font-bold text-olive-950 dark:text-olive-50">
-                    Delete Account
+                <h2 className="font-display text-lg font-semibold text-olive-950 dark:text-olive-50">
+                    Delete account
                 </h2>
 
                 <p className="mt-1 text-sm text-olive-600 dark:text-olive-400">
@@ -67,9 +59,13 @@ export default function DeleteUserForm({ className = '' }) {
                 </p>
             </header>
 
-            <DangerButton type="button" onClick={confirmUserDeletion}>
-                Delete Account
-            </DangerButton>
+            <button
+                type="button"
+                onClick={confirmUserDeletion}
+                className="inline-flex items-center justify-center border border-rose-700 bg-rose-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-800"
+            >
+                Delete account
+            </button>
 
             <Modal show={confirmingUserDeletion} onClose={closeModal} maxWidth="md">
                 <form onSubmit={deleteUser} className="relative p-6">
@@ -77,12 +73,12 @@ export default function DeleteUserForm({ className = '' }) {
                         type="button"
                         onClick={closeModal}
                         aria-label="Close"
-                        className="absolute right-4 top-4 rounded-full p-1.5 text-olive-500 transition hover:bg-olive-100 hover:text-olive-900 dark:hover:bg-olive-800 dark:hover:text-olive-100"
+                        className="absolute right-4 top-4 p-1.5 text-olive-500 transition hover:bg-olive-100 hover:text-olive-900 dark:hover:bg-olive-800 dark:hover:text-olive-100"
                     >
-                        <X className="h-5 w-5" />
+                        <CloseMark className="h-5 w-5" />
                     </button>
 
-                    <h2 className="pr-10 text-lg font-semibold text-olive-950 dark:text-olive-50">
+                    <h2 className="pr-10 font-display text-lg font-semibold text-olive-950 dark:text-olive-50">
                         Delete your account?
                     </h2>
 
@@ -93,14 +89,12 @@ export default function DeleteUserForm({ className = '' }) {
                     </p>
 
                     <div className="mt-6">
-                        <InputLabel
-                            htmlFor="password"
-                            value="Password"
-                            className={labelCls}
-                        />
+                        <label className={labelCls} htmlFor="password">
+                            Password
+                        </label>
 
-                        <div className="relative mt-1">
-                            <TextInput
+                        <div className="relative">
+                            <input
                                 id="password"
                                 type={showPassword ? 'text' : 'password'}
                                 name="password"
@@ -109,8 +103,8 @@ export default function DeleteUserForm({ className = '' }) {
                                 onChange={(e) =>
                                     setData('password', e.target.value)
                                 }
-                                className={inputCls}
-                                isFocused
+                                className={`${field} pr-11`}
+                                autoFocus
                                 placeholder="Enter your password"
                                 autoComplete="current-password"
                                 required
@@ -123,34 +117,39 @@ export default function DeleteUserForm({ className = '' }) {
                                         ? 'Hide password'
                                         : 'Show password'
                                 }
-                                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-olive-500 transition hover:bg-olive-50 hover:text-olive-800 dark:hover:bg-olive-800 dark:hover:text-olive-200"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-olive-500 transition hover:text-olive-800 dark:hover:text-olive-200"
                             >
                                 {showPassword ? (
-                                    <EyeOff className="h-4 w-4" />
+                                    <EyeOffMark className="h-4 w-4" />
                                 ) : (
-                                    <Eye className="h-4 w-4" />
+                                    <EyeMark className="h-4 w-4" />
                                 )}
                             </button>
                         </div>
 
-                        <InputError
-                            message={errors.password}
-                            className="mt-2"
-                        />
+                        {errors.password ? (
+                            <p className="mt-1.5 text-sm text-rose-600">
+                                {errors.password}
+                            </p>
+                        ) : null}
                     </div>
 
                     <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                        <SecondaryButton
+                        <button
                             type="button"
                             onClick={closeModal}
-                            className="rounded-xl border-olive-200 bg-white normal-case tracking-normal text-olive-800 hover:bg-olive-50 dark:border-olive-700 dark:bg-transparent dark:text-olive-200 dark:hover:bg-olive-800"
+                            className="inline-flex items-center justify-center border border-olive-900/15 bg-white px-4 py-2.5 text-sm font-semibold text-olive-800 transition hover:border-olive-900 hover:bg-olive-50 dark:border-olive-700 dark:bg-transparent dark:text-olive-200 dark:hover:bg-olive-800"
                         >
                             Cancel
-                        </SecondaryButton>
+                        </button>
 
-                        <DangerButton type="submit" disabled={processing}>
+                        <button
+                            type="submit"
+                            disabled={processing}
+                            className="inline-flex items-center justify-center border border-rose-700 bg-rose-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-800 disabled:opacity-50"
+                        >
                             {processing ? 'Deleting…' : 'Yes, delete my account'}
-                        </DangerButton>
+                        </button>
                     </div>
                 </form>
             </Modal>

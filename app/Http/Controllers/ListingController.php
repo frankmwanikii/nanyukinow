@@ -5,12 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\Listing;
 use App\Models\Location;
 use App\Models\SitePage;
+use App\Support\CategoryKey;
 use App\Support\ListingOutbound;
 use App\Support\ListingPayload;
 use App\Support\ListingSearch;
-use App\Support\Membership;
+use App\Support\PublishedListingsCatalogue;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -18,36 +20,15 @@ class ListingController extends Controller
 {
     public function home(): Response
     {
-        $published = ListingSearch::publishedQuery()
-            ->orderByDesc('priority')
-            ->orderByDesc('rating')
-            ->orderByDesc('id')
-            ->get();
-
-        $payload = ListingPayload::collection($published);
-
-        // Below-hero strip: priority 4 (Promoted) only — empty when none exist.
-        $featured = ListingPayload::collection(
-            $published
-                ->filter(fn ($listing) => Membership::isPromotedPriority($listing->priority))
-                ->take(12)
-                ->values()
-        );
-
-        $trending = ListingPayload::collection(
-            $published->where('is_trending', true)->take(12)->values()
-        );
-
-        if ($trending === []) {
-            $trending = array_slice($payload, 0, 8);
-        }
+        $page = SitePage::findBySlug('home')?->toPublicArray();
 
         return Inertia::render('Home', [
-            'listings' => $payload,
-            'featured' => $featured,
-            'trending' => $trending,
-            'goldList' => array_slice($payload, 0, 24),
-            'page' => SitePage::findBySlug('home')?->toPublicArray(),
+            'featured' => $this->featuredCards(),
+            'trending' => Inertia::defer(fn () => $this->trendingCards(), 'below'),
+            'goldList' => Inertia::defer(fn () => $this->goldListCards(), 'below'),
+            'airbnbs' => Inertia::defer(fn () => $this->airbnbCards(), 'below'),
+            'wildlifeSafaris' => Inertia::defer(fn () => $this->wildlifeCards(), 'below'),
+            'page' => $page,
         ]);
     }
 
@@ -64,14 +45,8 @@ class ListingController extends Controller
             $allowed = ['Nanyuki', 'Timau', 'Naromoru'];
         }
 
-        $listings = ListingSearch::publishedQuery()
-            ->orderByDesc('priority')
-            ->orderByDesc('rating')
-            ->orderByDesc('id')
-            ->get();
-
         return Inertia::render('Explore', [
-            'listings' => ListingPayload::collection($listings),
+            'listings' => PublishedListingsCatalogue::cards(),
             'locations' => $allowed,
             'category' => $request->string('category')->toString() ?: null,
             'subcategory' => $request->string('subcategory')->toString() ?: null,
@@ -103,14 +78,21 @@ class ListingController extends Controller
             ]);
         }
 
-        $results = ListingSearch::suggestions($q, $limit);
+        $cacheKey = 'listings.search.'.md5(mb_strtolower($q).'|'.$limit);
 
-        return response()->json([
-            'q' => $q,
-            'results' => $results,
-            'count' => count($results),
-            'explore_href' => route('explore', ['q' => $q]),
-        ]);
+        /** @var array{q: string, results: list<array<string, mixed>>, count: int, explore_href: string} $payload */
+        $payload = Cache::remember($cacheKey, 30, function () use ($q, $limit) {
+            $results = ListingSearch::suggestions($q, $limit);
+
+            return [
+                'q' => $q,
+                'results' => $results,
+                'count' => count($results),
+                'explore_href' => route('explore', ['q' => $q]),
+            ];
+        });
+
+        return response()->json($payload);
     }
 
     public function show(Request $request, string $slug): Response
@@ -132,21 +114,39 @@ class ListingController extends Controller
             abort(404);
         }
 
-        $related = ListingSearch::publishedQuery()
-            ->where('id', '!=', $listing->id)
-            ->when(
-                $listing->category_id,
-                fn ($query) => $query->where('category_id', $listing->category_id),
-            )
-            ->orderByDesc('priority')
-            ->orderByDesc('rating')
-            ->limit(6)
-            ->get();
+        $categoryKey = CategoryKey::fromSlug($listing->category?->slug);
+
+        $related = collect(PublishedListingsCatalogue::cards())
+            ->filter(function (array $card) use ($listing, $categoryKey) {
+                if ((int) $card['id'] === (int) $listing->id) {
+                    return false;
+                }
+
+                return ($card['categoryKey'] ?? null) === $categoryKey;
+            })
+            ->take(6)
+            ->values()
+            ->all();
+
+        if ($related === []) {
+            $relatedModels = ListingSearch::publishedQuery()
+                ->where('id', '!=', $listing->id)
+                ->when(
+                    $listing->category_id,
+                    fn ($query) => $query->where('category_id', $listing->category_id),
+                )
+                ->orderByDesc('priority')
+                ->orderByDesc('rating')
+                ->limit(6)
+                ->get();
+
+            $related = ListingPayload::cards($relatedModels);
+        }
 
         return Inertia::render('Listings/Show', [
             'slug' => $listing->slug,
             'listing' => ListingPayload::fromModel($listing),
-            'related' => ListingPayload::collection($related),
+            'related' => $related,
             'preview' => ! $listing->is_published,
             'previewStatus' => $listing->status,
         ]);
@@ -264,5 +264,64 @@ class ListingController extends Controller
             'bookmarked' => $bookmarked,
             'listingId' => (int) $listing->id,
         ]);
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function featuredCards(): array
+    {
+        return PublishedListingsCatalogue::featuredCards(12);
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function trendingCards(): array
+    {
+        $cards = collect(PublishedListingsCatalogue::cards());
+        $trending = $cards
+            ->filter(fn (array $card) => (bool) ($card['is_trending'] ?? false))
+            ->take(12)
+            ->values()
+            ->all();
+
+        if ($trending === []) {
+            return $cards->take(8)->values()->all();
+        }
+
+        return $trending;
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function goldListCards(): array
+    {
+        return array_slice(PublishedListingsCatalogue::cards(), 0, 24);
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function airbnbCards(): array
+    {
+        return collect(PublishedListingsCatalogue::cards())
+            ->filter(fn (array $card) => in_array($card['categoryKey'] ?? null, ['stay', 'properties'], true))
+            ->take(12)
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function wildlifeCards(): array
+    {
+        return collect(PublishedListingsCatalogue::cards())
+            ->filter(fn (array $card) => ($card['categoryKey'] ?? null) === 'thingsToDo')
+            ->take(12)
+            ->values()
+            ->all();
     }
 }
