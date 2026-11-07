@@ -481,12 +481,12 @@ export default function Navbar({ compact = false }) {
                         <Logo className="min-w-0" />
                     </div>
 
-                    <div className="flex shrink-0 items-center gap-1.5">
+                    <div className="flex shrink-0 items-center">
                         {user ? (
-                            <>
+                            <div className="flex items-center gap-2.5">
                                 <MemberNotificationsBell />
                                 <MemberUserMenu user={user} compact />
-                            </>
+                            </div>
                         ) : (
                             <Link
                                 href={route('register')}
@@ -728,12 +728,12 @@ export default function Navbar({ compact = false }) {
                     })}
                 </nav>
 
-                <div className="relative z-10 ml-auto hidden shrink-0 items-center gap-1.5 font-display sm:gap-2 lg:flex">
+                <div className="relative z-10 ml-auto hidden shrink-0 items-center font-display lg:flex">
                     {user ? (
-                        <>
+                        <div className="flex items-center gap-3">
                             <MemberNotificationsBell />
                             <MemberUserMenu user={user} />
-                        </>
+                        </div>
                     ) : (
                         <Link
                             href={route('register')}

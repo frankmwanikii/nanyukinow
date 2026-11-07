@@ -3,8 +3,10 @@
 namespace App\Support;
 
 use App\Models\Conversation;
+use App\Models\Message;
 use App\Models\User;
-use App\Support\UserAvatar;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Str;
 
 class MemberMessages
 {
@@ -43,7 +45,7 @@ class MemberMessages
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Builder<\App\Models\Conversation>
+     * @return Builder<Conversation>
      */
     public static function conversationsQuery(User $user)
     {
@@ -83,7 +85,10 @@ class MemberMessages
             ?: ($conversation->subject ?: 'Message');
 
         $preview = $latest?->body
-            ? \Illuminate\Support\Str::limit(trim(preg_replace('/\s+/', ' ', $latest->body) ?? ''), 110)
+            ? Str::limit(
+                trim(preg_replace('/\s+/', ' ', strip_tags(html_entity_decode($latest->body, ENT_QUOTES | ENT_HTML5, 'UTF-8'))) ?? ''),
+                110,
+            )
             : '';
 
         $from = $latest?->senderName() ?? 'Someone';
@@ -109,7 +114,7 @@ class MemberMessages
     /**
      * @return array<string, mixed>
      */
-    public static function transformMessage(\App\Models\Message $message, User $viewer): array
+    public static function transformMessage(Message $message, User $viewer): array
     {
         $name = $message->senderName();
 
