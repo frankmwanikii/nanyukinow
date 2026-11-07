@@ -1,10 +1,21 @@
-import { Check, CloudUpload, FileText, Mail, Phone, Send, X } from 'lucide-react';
 import { usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import DetailSection from './DetailSection';
 import RecaptchaField from './RecaptchaField';
 import RichTextEditor from '@/Components/listing-form/RichTextEditor';
+import {
+    field as fieldClass,
+    label as labelClass,
+} from '@/Components/listing-form/fieldStyles';
+import {
+    CheckMark,
+    CloseMark,
+    MailMark,
+    MessageMark,
+    PhoneMark,
+    UploadMark,
+} from '@/Components/site/Mark';
 import { showSuccessToast } from '@/Components/site/SuccessToast';
 
 const MAX_FILES = 5;
@@ -94,15 +105,9 @@ function YouTubeIcon({ className = '' }) {
     );
 }
 
-const fieldBaseClass =
-    'w-full rounded-xl border-0 px-4 py-3.5 text-sm text-earth-dusk placeholder:text-olive-400 transition focus:bg-white focus:ring-2';
-
-const fieldIdleClass = `${fieldBaseClass} bg-olive-50 ring-1 ring-olive-200/80 focus:ring-mustard`;
-const fieldErrorClass = `${fieldBaseClass} bg-red-50/80 ring-1 ring-red-400 focus:ring-red-500`;
-const fieldOkClass = `${fieldBaseClass} bg-white ring-1 ring-olive-300 focus:ring-mustard`;
-
-const labelClass =
-    'mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.08em] text-olive-500';
+const fieldIdleClass = fieldClass;
+const fieldErrorClass = `${fieldClass} border-rose-500 focus:border-rose-600`;
+const fieldOkClass = `${fieldClass} border-emerald-600 focus:border-emerald-700`;
 
 /** Requires local-part@domain.tld with a real TLD (2+ letters). */
 const EMAIL_RE =
@@ -182,10 +187,8 @@ function FieldStatus({ error, ok }) {
     }
     if (ok) {
         return (
-            <p className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-olive-700">
-                <span className="flex h-4 w-4 items-center justify-center rounded-full bg-olive-700 text-white">
-                    <Check className="h-2.5 w-2.5" strokeWidth={3} />
-                </span>
+            <p className="mt-1.5 inline-flex items-center gap-1.5 text-xs font-medium text-olive-700">
+                <CheckMark className="h-3.5 w-3.5 text-olive-700" />
                 Looks good
             </p>
         );
@@ -200,16 +203,16 @@ function ContactMethod({ href, icon: Icon, label, value, external = false }) {
             {...(external
                 ? { target: '_blank', rel: 'noreferrer' }
                 : {})}
-            className="group flex min-h-14 min-w-0 items-center gap-3.5 rounded-2xl bg-olive-50/80 px-3.5 py-3 ring-1 ring-olive-200/60 transition hover:bg-mustard/15 hover:ring-mustard/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard"
+            className="group flex min-h-14 min-w-0 items-center gap-3 border border-olive-900/15 bg-white px-3.5 py-3 transition hover:border-mustard hover:bg-mustard/10 focus:outline-none focus-visible:border-mustard"
         >
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-mustard shadow-soft ring-1 ring-olive-100 transition group-hover:bg-mustard group-hover:text-olive-950 group-hover:ring-mustard">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center border border-olive-900/15 text-olive-800 transition group-hover:border-mustard group-hover:bg-mustard group-hover:text-olive-950">
                 <Icon className="h-[18px] w-[18px]" />
             </span>
             <span className="min-w-0 flex-1">
-                <span className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-olive-500">
+                <span className="block text-sm font-semibold text-olive-800">
                     {label}
                 </span>
-                <span className="mt-0.5 block truncate text-sm font-semibold text-earth-dusk">
+                <span className="mt-0.5 block truncate text-sm text-olive-600">
                     {value}
                 </span>
             </span>
@@ -480,7 +483,7 @@ function ContactMessageForm({ listing }) {
                                 )
                             }
                             onBlur={() => markTouched('firstName')}
-                            placeholder="Jane"
+                            placeholder="Your first name"
                             autoComplete="given-name"
                             aria-invalid={Boolean(showError('firstName'))}
                             className={inputClass('firstName')}
@@ -506,7 +509,7 @@ function ContactMessageForm({ listing }) {
                                 )
                             }
                             onBlur={() => markTouched('lastName')}
-                            placeholder="Wanjiru"
+                            placeholder="Your last name"
                             autoComplete="family-name"
                             aria-invalid={Boolean(showError('lastName'))}
                             className={inputClass('lastName')}
@@ -534,7 +537,7 @@ function ContactMessageForm({ listing }) {
                                 updateField('email', e.target.value, setEmail)
                             }
                             onBlur={() => markTouched('email')}
-                            placeholder="you@email.com"
+                            placeholder="name@example.com"
                             autoComplete="email"
                             aria-invalid={Boolean(showError('email'))}
                             className={inputClass('email')}
@@ -556,7 +559,7 @@ function ContactMessageForm({ listing }) {
                                 updateField('phone', e.target.value, setPhone)
                             }
                             onBlur={() => markTouched('phone')}
-                            placeholder="+254 …"
+                            placeholder="+254 7XX XXX XXX"
                             autoComplete="tel"
                             aria-invalid={Boolean(showError('phone'))}
                             className={inputClass('phone')}
@@ -594,12 +597,9 @@ function ContactMessageForm({ listing }) {
                             e.stopPropagation();
                         }}
                         onDrop={onDrop}
-                        className="flex w-full flex-col items-center justify-center rounded-2xl border border-dashed border-mustard/60 bg-olive-50/40 px-4 py-7 text-center transition hover:border-mustard hover:bg-mustard/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard"
+                        className="flex w-full flex-col items-center justify-center border border-dashed border-olive-900/25 bg-olive-50/40 px-4 py-7 text-center transition hover:border-mustard hover:bg-mustard/10 focus:outline-none focus-visible:border-mustard"
                     >
-                        <CloudUpload
-                            className="h-9 w-9 text-mustard"
-                            strokeWidth={1.5}
-                        />
+                        <UploadMark className="h-8 w-8 text-olive-700" />
                         <span className="mt-2.5 text-sm font-semibold text-earth-dusk">
                             Drop files here or click to upload
                         </span>
@@ -622,7 +622,7 @@ function ContactMessageForm({ listing }) {
                             {docs.map((doc) => (
                                 <li
                                     key={doc.id}
-                                    className="relative overflow-hidden rounded-xl border border-olive-200/80 bg-olive-50"
+                                    className="relative overflow-hidden border border-olive-900/15 bg-olive-50"
                                 >
                                     <div className="relative aspect-[4/3] bg-olive-100">
                                         {doc.previewUrl ? (
@@ -633,8 +633,7 @@ function ContactMessageForm({ listing }) {
                                             />
                                         ) : (
                                             <div className="flex h-full flex-col items-center justify-center gap-2 px-3 text-olive-600">
-                                                <FileText className="h-8 w-8 text-mustard" />
-                                                <span className="line-clamp-2 text-center text-[11px] font-semibold">
+                                                <span className="line-clamp-3 text-center text-xs font-semibold">
                                                     {doc.file.name}
                                                 </span>
                                             </div>
@@ -646,9 +645,9 @@ function ContactMessageForm({ listing }) {
                                                     <span>Uploading…</span>
                                                     <span>{doc.progress}%</span>
                                                 </div>
-                                                <div className="h-1.5 overflow-hidden rounded-full bg-white/30">
+                                                <div className="h-1.5 overflow-hidden bg-white/30">
                                                     <div
-                                                        className="h-full rounded-full bg-mustard transition-[width] duration-150"
+                                                        className="h-full bg-mustard transition-[width] duration-150"
                                                         style={{
                                                             width: `${doc.progress}%`,
                                                         }}
@@ -672,10 +671,10 @@ function ContactMessageForm({ listing }) {
                                         <button
                                             type="button"
                                             onClick={() => removeFile(doc.id)}
-                                            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-olive-700 ring-1 ring-olive-200 transition hover:bg-mustard"
+                                            className="flex h-7 w-7 shrink-0 items-center justify-center border border-olive-900/20 bg-white text-olive-700 transition hover:border-mustard hover:bg-mustard"
                                             aria-label={`Remove ${doc.file.name}`}
                                         >
-                                            <X className="h-3.5 w-3.5" />
+                                            <CloseMark className="h-3.5 w-3.5" />
                                         </button>
                                     </div>
                                 </li>
@@ -699,13 +698,13 @@ function ContactMessageForm({ listing }) {
                     error={captchaError}
                 />
 
-                <div className="flex flex-wrap items-center gap-3 border-t border-olive-100 pt-5">
+                <div className="flex flex-wrap items-center gap-3 border-t border-olive-900/10 pt-5">
                     <button
                         type="submit"
                         disabled={uploading || sending || (submitted && !formIsValid)}
-                        className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-olive-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-mustard hover:text-olive-950 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+                        className="inline-flex min-h-11 w-full items-center justify-center gap-2 border border-olive-900 bg-olive-900 px-6 py-3 text-sm font-semibold text-white transition hover:border-mustard hover:bg-mustard hover:text-olive-950 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
                     >
-                        <Send className="h-4 w-4" />
+                        <MessageMark className="h-4 w-4" />
                         {uploading
                             ? 'Uploading…'
                             : sending
@@ -722,12 +721,10 @@ function ContactMessageForm({ listing }) {
                 <div
                     role="status"
                     aria-live="polite"
-                    className="mt-5 flex items-start gap-3 rounded-2xl bg-olive-50 px-4 py-3.5 ring-1 ring-olive-200/80"
+                    className="mt-5 flex items-start gap-3 border border-olive-900/15 bg-olive-50 px-4 py-3.5"
                 >
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-olive-700 text-white">
-                        <Check className="h-5 w-5" strokeWidth={2.5} />
-                    </span>
-                    <div className="min-w-0 pt-0.5">
+                    <CheckMark className="mt-0.5 h-5 w-5 shrink-0 text-olive-800" />
+                    <div className="min-w-0">
                         <p className="text-sm font-semibold text-earth-dusk">
                             Message sent successfully
                         </p>
@@ -774,7 +771,7 @@ export default function ContactInfoPage({ listing }) {
                 {tel ? (
                     <ContactMethod
                         href={tel}
-                        icon={Phone}
+                        icon={PhoneMark}
                         label="Phone"
                         value={listing.phone}
                     />
@@ -782,7 +779,7 @@ export default function ContactInfoPage({ listing }) {
                 {email ? (
                     <ContactMethod
                         href={`mailto:${email}`}
-                        icon={Mail}
+                        icon={MailMark}
                         label="Email"
                         value={email}
                     />

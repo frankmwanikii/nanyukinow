@@ -239,8 +239,11 @@ function MobileDrawerNav({
 }
 
 export default function Navbar({ compact = false }) {
-    const { auth } = usePage().props;
+    const page = usePage();
+    const { auth } = page.props;
     const user = auth?.user;
+    const isHomeHeroSearch =
+        page.component === 'Home' || page.url === '/' || page.url.startsWith('/?');
     const [open, setOpen] = useState(false);
     const [scrolled, setScrolled] = useState(compact);
     const [activeMenu, setActiveMenu] = useState(null);
@@ -252,6 +255,32 @@ export default function Navbar({ compact = false }) {
     const searchRef = useRef(null);
     const headerRef = useRef(null);
     const suggestionsRef = useRef(null);
+    const menuCloseTimerRef = useRef(null);
+
+    const clearMenuCloseTimer = () => {
+        if (menuCloseTimerRef.current) {
+            window.clearTimeout(menuCloseTimerRef.current);
+            menuCloseTimerRef.current = null;
+        }
+    };
+
+    const openDesktopMenu = (menu) => {
+        clearMenuCloseTimer();
+        setActiveMenu(menu);
+        setActiveFlyout(null);
+    };
+
+    const scheduleCloseDesktopMenu = () => {
+        clearMenuCloseTimer();
+        menuCloseTimerRef.current = window.setTimeout(() => {
+            setActiveMenu(null);
+            setActiveFlyout(null);
+            menuCloseTimerRef.current = null;
+        }, 220);
+    };
+
+    useEffect(() => () => clearMenuCloseTimer(), []);
+
     useEffect(() => {
         if (!searchOpen) return undefined;
         const onPointerDown = (e) => {
@@ -436,7 +465,7 @@ export default function Navbar({ compact = false }) {
                     : 'bg-[#4f5a3e] lg:bg-transparent'
             }`}
         >
-            <div className="mx-auto flex max-w-[1400px] items-center gap-3 px-3 py-3.5 sm:px-5 sm:py-5 lg:px-6 xl:gap-5">
+            <div className="relative mx-auto flex max-w-[1400px] items-center gap-3 px-3 py-3.5 sm:px-5 sm:py-5 lg:px-6 xl:gap-5">
                 {/* Mobile: menu + logo · account/cart */}
                 <div className="flex w-full items-center justify-between lg:hidden">
                     <div className="flex min-w-0 items-center gap-1.5">
@@ -470,11 +499,13 @@ export default function Navbar({ compact = false }) {
                 </div>
 
                 {/* Desktop / tablet bar */}
-                <Logo className="hidden shrink-0 lg:inline-flex" />
+                <Logo className="relative z-10 hidden shrink-0 lg:inline-flex" />
 
                 <form
                     ref={searchRef}
-                    className="relative ml-1 hidden min-w-0 flex-1 items-center lg:flex"
+                    className={`relative z-10 ml-1 hidden min-w-0 max-w-xs flex-1 items-center xl:max-w-sm ${
+                        isHomeHeroSearch ? 'lg:hidden' : 'lg:flex'
+                    }`}
                     onSubmit={submitSearch}
                     role="search"
                 >
@@ -530,7 +561,7 @@ export default function Navbar({ compact = false }) {
                     ) : null}
                 </form>
 
-                <nav className="hidden items-center gap-1 font-display lg:flex xl:gap-2">
+                <nav className="absolute left-1/2 top-1/2 z-20 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-1 font-display lg:flex xl:gap-2">
                     {navLinks.map((link) => {
                         const isMore = link.menu === 'more';
                         const items = link.menu
@@ -543,18 +574,26 @@ export default function Navbar({ compact = false }) {
                                       item.label === activeFlyout,
                               )
                             : null;
+                        const menuOpen =
+                            Boolean(link.menu) && activeMenu === link.menu;
 
                         return (
                             <div
                                 key={link.key}
-                                className="relative"
+                                className={`relative ${menuOpen ? 'z-30' : ''}`}
                                 onMouseEnter={() => {
-                                    setActiveMenu(link.menu);
-                                    setActiveFlyout(null);
+                                    if (link.menu) {
+                                        openDesktopMenu(link.menu);
+                                    } else {
+                                        clearMenuCloseTimer();
+                                        setActiveMenu(null);
+                                        setActiveFlyout(null);
+                                    }
                                 }}
                                 onMouseLeave={() => {
-                                    setActiveMenu(null);
-                                    setActiveFlyout(null);
+                                    if (link.menu) {
+                                        scheduleCloseDesktopMenu();
+                                    }
                                 }}
                             >
                                 <Link
@@ -569,107 +608,97 @@ export default function Navbar({ compact = false }) {
                                         />
                                     ) : null}
                                 </Link>
-                                
-                                    {link.menu &&
-                                    activeMenu === link.menu ? (
-                                        <div
-                                            className={`absolute top-full z-[60] mt-1 ${
-                                                isMore
-                                                    ? 'right-0'
-                                                    : 'left-0'
-                                            }`}
-                                        >
-                                            <div className="relative min-w-[220px] border-t-[3px] border-mustard bg-white font-display shadow-lift">
-                                                {items.map((item) => {
-                                                    const label =
-                                                        typeof item ===
-                                                        'string'
-                                                            ? item
-                                                            : item.label;
-                                                    const children =
-                                                        typeof item ===
-                                                        'string'
-                                                            ? null
-                                                            : item.children;
-                                                    const hasFlyout =
-                                                        Boolean(
-                                                            children?.length,
-                                                        );
-                                                    const flyoutOpen =
-                                                        hasFlyout &&
-                                                        activeFlyout ===
-                                                            label;
-                                                    const itemHref =
-                                                        typeof item ===
-                                                        'string'
-                                                            ? explorePath({
-                                                                  category:
-                                                                      link.menu,
-                                                                  subcategory:
-                                                                      item,
-                                                              })
-                                                            : explorePath({
-                                                                  category:
-                                                                      item.key ||
-                                                                      moreLabelToKey[
-                                                                          label
-                                                                      ],
-                                                              });
 
-                                                    return (
-                                                        <div
-                                                            key={label}
-                                                            onMouseEnter={() => {
-                                                                if (
-                                                                    hasFlyout
-                                                                ) {
-                                                                    setActiveFlyout(
-                                                                        label,
-                                                                    );
-                                                                }
-                                                            }}
+                                {menuOpen ? (
+                                    <div
+                                        className={`absolute top-full z-40 pt-2 ${
+                                            isMore ? 'right-0' : 'left-0'
+                                        }`}
+                                    >
+                                        <div className="relative min-w-[220px] border-t-[3px] border-mustard bg-white font-display shadow-lift">
+                                            {items.map((item) => {
+                                                const label =
+                                                    typeof item === 'string'
+                                                        ? item
+                                                        : item.label;
+                                                const children =
+                                                    typeof item === 'string'
+                                                        ? null
+                                                        : item.children;
+                                                const hasFlyout = Boolean(
+                                                    children?.length,
+                                                );
+                                                const flyoutOpen =
+                                                    hasFlyout &&
+                                                    activeFlyout === label;
+                                                const itemHref =
+                                                    typeof item === 'string'
+                                                        ? explorePath({
+                                                              category:
+                                                                  link.menu,
+                                                              subcategory: item,
+                                                          })
+                                                        : explorePath({
+                                                              category:
+                                                                  item.key ||
+                                                                  moreLabelToKey[
+                                                                      label
+                                                                  ],
+                                                          });
+
+                                                return (
+                                                    <div
+                                                        key={label}
+                                                        onMouseEnter={() => {
+                                                            if (hasFlyout) {
+                                                                setActiveFlyout(
+                                                                    label,
+                                                                );
+                                                            } else {
+                                                                setActiveFlyout(
+                                                                    null,
+                                                                );
+                                                            }
+                                                        }}
+                                                    >
+                                                        <Link
+                                                            href={itemHref}
+                                                            className={`flex items-center justify-between border-b border-olive-100/80 px-5 py-3.5 text-base font-semibold text-earth-dusk transition last:border-b-0 hover:bg-olive-50 hover:text-olive-800 ${
+                                                                flyoutOpen
+                                                                    ? 'bg-olive-50 text-olive-800'
+                                                                    : ''
+                                                            }`}
                                                         >
-                                                            <Link
-                                                                href={itemHref}
-                                                                className={`flex items-center justify-between border-b border-olive-100/80 px-5 py-3.5 text-base font-semibold text-earth-dusk transition last:border-b-0 hover:bg-olive-50 hover:text-olive-800 ${
-                                                                    flyoutOpen
-                                                                        ? 'bg-olive-50 text-olive-800'
-                                                                        : ''
-                                                                }`}
-                                                            >
-                                                                <span>
-                                                                    {label}
-                                                                </span>
-                                                                {hasFlyout ? (
-                                                                    <svg
-                                                                        viewBox="0 0 8 12"
-                                                                        className="ml-3 h-3 w-2.5 shrink-0 text-earth-dusk/50"
-                                                                        aria-hidden
-                                                                    >
-                                                                        <path
-                                                                            d="M1.4 1.2 L6.2 6 L1.4 10.8"
-                                                                            fill="none"
-                                                                            stroke="currentColor"
-                                                                            strokeWidth="2.4"
-                                                                            strokeLinecap="round"
-                                                                            strokeLinejoin="round"
-                                                                        />
-                                                                    </svg>
-                                                                ) : null}
-                                                            </Link>
-                                                        </div>
-                                                    );
-                                                })}
+                                                            <span>{label}</span>
+                                                            {hasFlyout ? (
+                                                                <svg
+                                                                    viewBox="0 0 8 12"
+                                                                    className="ml-3 h-3 w-2.5 shrink-0 text-earth-dusk/50"
+                                                                    aria-hidden
+                                                                >
+                                                                    <path
+                                                                        d="M1.4 1.2 L6.2 6 L1.4 10.8"
+                                                                        fill="none"
+                                                                        stroke="currentColor"
+                                                                        strokeWidth="2.4"
+                                                                        strokeLinecap="round"
+                                                                        strokeLinejoin="round"
+                                                                    />
+                                                                </svg>
+                                                            ) : null}
+                                                        </Link>
+                                                    </div>
+                                                );
+                                            })}
 
-                                                {isMore &&
-                                                flyoutItem?.children ? (
-                                                    <div className="absolute left-full top-0 z-[70] min-w-[240px] border-t-[3px] border-mustard bg-white font-display shadow-lift">
+                                            {isMore &&
+                                            flyoutItem?.children ? (
+                                                <div className="absolute right-full top-0 z-50 flex pr-1.5">
+                                                    <div className="min-w-[240px] border-t-[3px] border-mustard bg-white font-display shadow-lift">
                                                         {flyoutItem.children.map(
                                                             (child) => (
                                                                 <Link
-                                                                    key={
-                                                                        child
-                                                                    }
+                                                                    key={child}
                                                                     href={explorePath(
                                                                         {
                                                                             category:
@@ -689,17 +718,17 @@ export default function Navbar({ compact = false }) {
                                                             ),
                                                         )}
                                                     </div>
-                                                ) : null}
-                                            </div>
+                                                </div>
+                                            ) : null}
                                         </div>
-                                    ) : null}
-                                
+                                    </div>
+                                ) : null}
                             </div>
                         );
                     })}
                 </nav>
 
-                <div className="ml-auto hidden shrink-0 items-center gap-1.5 font-display sm:gap-2 lg:flex">
+                <div className="relative z-10 ml-auto hidden shrink-0 items-center gap-1.5 font-display sm:gap-2 lg:flex">
                     {user ? (
                         <>
                             <MemberNotificationsBell />

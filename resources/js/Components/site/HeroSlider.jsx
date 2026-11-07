@@ -1,299 +1,440 @@
-import { Link } from '@inertiajs/react';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { ForwardMark } from '@/Components/site/Mark';
+import { Link, router } from '@inertiajs/react';
+import { useEffect, useRef, useState } from 'react';
+import {
+    EatMark,
+    ExploreMark,
+    MoreMark,
+    SearchMark,
+    ShopMark,
+    StayMark,
+} from '@/Components/site/Mark';
+import SearchSuggestions from '@/Components/site/SearchSuggestions';
+import { explorePath } from '@/data/categories';
 
-const ALL_SLIDES = [
+const HERO_PHOTOS = [
     {
-        id: 1,
-        image: '/images/hero/slide_1.webp',
-        imageMobile: '/images/hero/slide_1_mobile.webp',
-        alt: 'Nanyuki Now — Mount Kenya, wildlife, and town life',
-        layout: 'brand',
-        overlay: 'from-earth-dusk/15 via-transparent to-earth-dusk/40',
-        kicker: 'Nanyuki Now',
-    },
-    {
-        id: 2,
+        id: 'wildlife',
         image: '/images/hero/slide-2.webp',
         imageMobile: '/images/hero/slide_2_mobile.webp',
         alt: 'Black rhinos on the Laikipia plains near Nanyuki',
-        layout: 'safari',
-        overlay: 'from-black/65 via-black/45 to-black/55',
-        kicker: 'Things to do',
-        titleLead: "Discover Nanyuki's",
-        titleAccent: 'Wild side',
-        cta: 'Start exploring',
-        ctaHref: '/explore?category=thingsToDo',
+        title: 'Laikipia plains',
+        credit: 'Black rhinos near Nanyuki',
     },
     {
-        id: 3,
-        image: '/images/hero/slide-3.webp',
-        imageMobile: '/images/hero/bnb3.webp',
-        alt: 'A-frame cabin stay in Nanyuki at dusk',
-        layout: 'safari',
-        overlay: 'from-black/65 via-black/45 to-black/55',
-        kicker: 'Stay',
-        titleLead: 'Unwind in the Heart Of Nanyuki',
-        titleAccent: 'Stay. Relax. Explore',
-        cta: 'Check in',
-        ctaHref: '/explore?category=stay',
+        id: 'stay',
+        image: '/images/hero/bnb3.webp',
+        alt: 'Warm stone-walled stay interior in Nanyuki',
+        title: 'Stay in town',
+        credit: 'Stone-walled guest interior',
     },
     {
-        id: 4,
+        id: 'dining',
         image: '/images/hero/slide_4.webp',
         alt: 'Dining with a view of Mount Kenya at dusk',
-        layout: 'safari',
-        overlay: 'from-black/65 via-black/45 to-black/60',
-        kicker: 'Eat & Drink',
-        titleLead: "Nanyuki's Finest Flavors",
-        titleAccent: 'Redefined',
-        cta: 'See more',
-        ctaHref: '/explore?category=eatDrink',
+        title: 'Mount Kenya at dusk',
+        credit: 'Dining with a highland view',
     },
 ];
 
-const INTERVAL_MS = 6500;
-const REVEAL_MS = 0.95;
-const SWIPE_THRESHOLD = 48;
+const PHOTO_INTERVAL_MS = 9000;
+
+const HERO_PLACES = ['Nanyuki', 'Timau', 'Naromoru', 'Laikipia'];
+const PLACE_INTERVAL_MS = 3200;
+/** Longest place name — keeps the headline width stable while rotating. */
+const HERO_PLACE_SIZER = 'Naromoru';
+
+const CATEGORY_CHIPS = [
+    {
+        key: 'eatDrink',
+        label: 'Eat & Drink',
+        href: explorePath({ category: 'eatDrink' }),
+        Icon: EatMark,
+    },
+    {
+        key: 'stay',
+        label: 'Stay',
+        href: explorePath({ category: 'stay' }),
+        Icon: StayMark,
+    },
+    {
+        key: 'thingsToDo',
+        label: 'Things to do',
+        href: explorePath({ category: 'thingsToDo' }),
+        Icon: ExploreMark,
+    },
+    {
+        key: 'shopping',
+        label: 'Shopping',
+        href: explorePath({ category: 'shopping' }),
+        Icon: ShopMark,
+    },
+    {
+        key: 'more',
+        label: 'More',
+        href: explorePath(),
+        Icon: MoreMark,
+    },
+];
 
 export default function HeroSlider() {
-    const reduce = useReducedMotion();
-    const slides = ALL_SLIDES;
-    const [index, setIndex] = useState(0);
-    const [paused, setPaused] = useState(false);
-    const directionRef = useRef(1);
-    const touchStartX = useRef(null);
-
-    const step = useCallback(
-        (delta) => {
-            directionRef.current = delta >= 0 ? 1 : -1;
-            setIndex((prev) => (prev + delta + slides.length) % slides.length);
-        },
-        [slides.length],
+    const [photoIndex, setPhotoIndex] = useState(0);
+    const [progressKey, setProgressKey] = useState(0);
+    const [placeIndex, setPlaceIndex] = useState(0);
+    const [query, setQuery] = useState('');
+    const [searchOpen, setSearchOpen] = useState(false);
+    const [searchFieldVisible, setSearchFieldVisible] = useState(false);
+    const [desktopLayout, setDesktopLayout] = useState(() =>
+        typeof window !== 'undefined'
+            ? window.matchMedia('(min-width: 1024px)').matches
+            : false,
     );
+    const [reduceMotion, setReduceMotion] = useState(false);
+    const searchRef = useRef(null);
+    const suggestionsRef = useRef(null);
+    const searchInputRef = useRef(null);
+    const searchToggleRef = useRef(null);
 
     useEffect(() => {
-        if (reduce || paused || slides.length < 2) return undefined;
-        const id = window.setInterval(() => step(1), INTERVAL_MS);
+        const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+        const desktop = window.matchMedia('(min-width: 1024px)');
+        const syncMotion = () => setReduceMotion(motion.matches);
+        const syncDesktop = () => {
+            const isDesktop = desktop.matches;
+            setDesktopLayout(isDesktop);
+            if (!isDesktop) {
+                setSearchFieldVisible(false);
+                setSearchOpen(false);
+            }
+        };
+        syncMotion();
+        syncDesktop();
+        motion.addEventListener?.('change', syncMotion);
+        desktop.addEventListener?.('change', syncDesktop);
+        return () => {
+            motion.removeEventListener?.('change', syncMotion);
+            desktop.removeEventListener?.('change', syncDesktop);
+        };
+    }, []);
+
+    useEffect(() => {
+        if (reduceMotion || HERO_PHOTOS.length < 2) {
+            return undefined;
+        }
+        const id = window.setInterval(() => {
+            setPhotoIndex((prev) => (prev + 1) % HERO_PHOTOS.length);
+            setProgressKey((key) => key + 1);
+        }, PHOTO_INTERVAL_MS);
         return () => window.clearInterval(id);
-    }, [step, paused, reduce, index, slides.length]);
+    }, [reduceMotion, progressKey]);
 
-    const slide = slides[index] ?? slides[0];
-    const isBrand = slide?.layout === 'brand';
+    useEffect(() => {
+        if (reduceMotion || HERO_PLACES.length < 2) {
+            return undefined;
+        }
+        const id = window.setInterval(() => {
+            setPlaceIndex((prev) => (prev + 1) % HERO_PLACES.length);
+        }, PLACE_INTERVAL_MS);
+        return () => window.clearInterval(id);
+    }, [reduceMotion]);
 
-    const onTouchStart = (event) => {
-        touchStartX.current = event.changedTouches[0]?.clientX ?? null;
+    useEffect(() => {
+        if (!searchOpen && !searchFieldVisible) {
+            return undefined;
+        }
+        const onPointerDown = (event) => {
+            const target = event.target;
+            if (
+                searchRef.current?.contains(target) ||
+                suggestionsRef.current?.contains(target) ||
+                searchToggleRef.current?.contains(target)
+            ) {
+                return;
+            }
+            setSearchOpen(false);
+            if (desktopLayout) {
+                setSearchFieldVisible(false);
+            }
+        };
+        document.addEventListener('pointerdown', onPointerDown);
+        return () => document.removeEventListener('pointerdown', onPointerDown);
+    }, [searchOpen, searchFieldVisible, desktopLayout]);
+
+    const closeSearch = () => {
+        setSearchOpen(false);
+        if (desktopLayout) {
+            setSearchFieldVisible(false);
+        }
     };
 
-    const onTouchEnd = (event) => {
-        if (touchStartX.current == null) return;
-        const endX = event.changedTouches[0]?.clientX ?? touchStartX.current;
-        const delta = endX - touchStartX.current;
-        touchStartX.current = null;
-        if (Math.abs(delta) < SWIPE_THRESHOLD) return;
-        step(delta < 0 ? 1 : -1);
+    const revealSearch = () => {
+        setSearchFieldVisible(true);
+        setSearchOpen(false);
     };
 
-    if (!slide) return null;
+    const goToPhoto = (index) => {
+        setPhotoIndex(index);
+        setProgressKey((key) => key + 1);
+    };
+
+    const submitSearch = (event) => {
+        event.preventDefault();
+        closeSearch();
+        router.get(
+            '/explore',
+            query.trim() ? { q: query.trim() } : {},
+            { preserveState: false },
+        );
+    };
+
+    const activePhoto = HERO_PHOTOS[photoIndex] ?? HERO_PHOTOS[0];
+
+    const searchForm = (placement) => (
+        <form
+            ref={searchRef}
+            role="search"
+            onSubmit={submitSearch}
+            className="relative w-full"
+        >
+            <label htmlFor="hero-search" className="sr-only">
+                Search Nanyuki Now
+            </label>
+            <div className="flex min-h-12 border border-white/25 bg-white focus-within:border-mustard sm:min-h-[3.25rem] lg:min-h-14 lg:shadow-[0_8px_28px_-12px_rgba(0,0,0,0.55)]">
+                <span className="flex items-center pl-3.5 text-olive-700 sm:pl-4 lg:pl-5">
+                    <SearchMark className="h-4 w-4 sm:h-[1.125rem] sm:w-[1.125rem]" />
+                </span>
+                <input
+                    ref={searchInputRef}
+                    id="hero-search"
+                    type="search"
+                    value={query}
+                    onChange={(e) => {
+                        setQuery(e.target.value);
+                        setSearchOpen(true);
+                    }}
+                    onFocus={() => setSearchOpen(true)}
+                    placeholder="Search places, stays, events…"
+                    autoComplete="off"
+                    aria-expanded={searchOpen}
+                    aria-controls="hero-search-suggestions"
+                    className="min-w-0 flex-1 border-0 bg-transparent px-3 py-3 text-base text-olive-950 placeholder:text-olive-400 focus:outline-none focus:ring-0 sm:px-3.5 sm:text-[1.05rem] lg:text-lg"
+                />
+                <button
+                    type="submit"
+                    aria-label="Search"
+                    className="shrink-0 border-l border-olive-900/10 bg-mustard px-4 text-sm font-semibold text-olive-950 transition hover:bg-olive-900 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-olive-900 sm:px-5 sm:text-base lg:px-7 lg:text-[1.05rem]"
+                >
+                    <span className="sm:hidden" aria-hidden="true">
+                        Go
+                    </span>
+                    <span className="hidden sm:inline">Search</span>
+                </button>
+            </div>
+
+            {searchOpen ? (
+                <SearchSuggestions
+                    query={query}
+                    onSelect={closeSearch}
+                    anchorRef={searchRef}
+                    panelRef={suggestionsRef}
+                    id="hero-search-suggestions"
+                    placement={placement}
+                />
+            ) : null}
+        </form>
+    );
 
     return (
         <section
-            className="relative flex min-h-[78svh] items-end justify-center overflow-hidden bg-[#1c1712] pt-[4.5rem] sm:min-h-[90svh] sm:pt-16 lg:min-h-[100svh]"
-            onMouseEnter={() => setPaused(true)}
-            onMouseLeave={() => setPaused(false)}
-            onTouchStart={onTouchStart}
-            onTouchEnd={onTouchEnd}
-            aria-roledescription="carousel"
-            aria-label="Nanyuki Now highlights"
+            className="relative flex min-h-[72svh] flex-col overflow-hidden bg-earth-dusk pt-[4.75rem] sm:min-h-[78svh] sm:pt-20 lg:min-h-[100svh] lg:pt-[5.75rem]"
+            aria-label="Find places in Nanyuki"
         >
-            <AnimatePresence initial={false} mode="sync">
-                <motion.div
-                    key={slide.id}
-                    className="absolute -inset-px overflow-hidden bg-[#1c1712] [backface-visibility:hidden]"
-                    initial={
-                        reduce
-                            ? false
-                            : {
-                                  opacity: 0,
-                                  scale: 1.04,
-                              }
-                    }
-                    animate={{
-                        opacity: 1,
-                        scale: 1,
-                    }}
-                    exit={{
-                        opacity: 0,
-                        scale: 1,
-                    }}
-                    transition={
-                        reduce
-                            ? { duration: 0 }
-                            : {
-                                  opacity: {
-                                      duration: REVEAL_MS,
-                                      ease: [0.22, 1, 0.36, 1],
-                                  },
-                                  scale: {
-                                      duration: REVEAL_MS,
-                                      ease: [0.22, 1, 0.36, 1],
-                                  },
-                              }
-                    }
-                    style={{ zIndex: 1 }}
-                >
-                    <picture>
-                        {slide.imageMobile ? (
-                            <source
-                                media="(max-width: 639px)"
-                                srcSet={slide.imageMobile}
+            <div className="absolute inset-0" aria-hidden="true">
+                {HERO_PHOTOS.map((photo, i) => {
+                    const visible = i === photoIndex;
+                    const kenBurnsClass =
+                        i % 2 === 0
+                            ? 'animate-ken-burns-slide'
+                            : 'animate-ken-burns-slide-alt';
+                    return (
+                        <picture
+                            key={photo.id}
+                            className={`absolute inset-0 overflow-hidden transition-opacity duration-[1200ms] ease-out ${
+                                visible ? 'opacity-100' : 'opacity-0'
+                            } ${reduceMotion ? 'duration-0' : ''}`}
+                        >
+                            {photo.imageMobile ? (
+                                <source
+                                    media="(max-width: 639px)"
+                                    srcSet={photo.imageMobile}
+                                />
+                            ) : null}
+                            <img
+                                src={photo.image}
+                                alt=""
+                                className={`h-full w-full object-cover object-center will-change-transform ${
+                                    visible && !reduceMotion
+                                        ? kenBurnsClass
+                                        : 'scale-100'
+                                }`}
+                                fetchPriority={i === 0 ? 'high' : 'auto'}
+                                loading={i === 0 ? 'eager' : 'lazy'}
+                                decoding={i === 0 ? 'sync' : 'async'}
                             />
-                        ) : null}
-                        <img
-                            src={slide.image}
-                            alt={slide.alt}
-                            className={`h-full w-full object-cover object-center will-change-transform ${
-                                reduce || isBrand
-                                    ? ''
-                                    : 'animate-ken-burns-slide'
-                            }`}
-                            fetchPriority={index === 0 ? 'high' : 'auto'}
-                            loading={index === 0 ? 'eager' : 'lazy'}
-                            decoding={index === 0 ? 'sync' : 'async'}
-                        />
-                    </picture>
+                        </picture>
+                    );
+                })}
+                <div className="absolute inset-0 bg-earth-dusk/30 lg:bg-earth-dusk/25" />
+                <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-earth-dusk/75 to-transparent lg:h-40" />
+                <div className="absolute inset-x-0 bottom-0 h-[78%] bg-gradient-to-t from-earth-dusk via-earth-dusk/70 to-transparent sm:h-[68%] lg:h-[55%] lg:via-earth-dusk/55" />
+            </div>
+
+            <span className="sr-only">{activePhoto.alt}</span>
+
+            {/* Desktop: equal-length vertical progress + slide caption */}
+            <div className="pointer-events-none absolute inset-y-0 left-8 z-20 hidden lg:flex lg:flex-col lg:justify-between lg:py-28 xl:left-10 xl:py-32">
+                <div
+                    className="pointer-events-auto flex flex-col items-center gap-2"
+                    role="tablist"
+                    aria-label="Hero photos"
+                >
+                    {HERO_PHOTOS.map((photo, i) => {
+                        const active = i === photoIndex;
+                        const completed = i < photoIndex;
+                        return (
+                            <button
+                                key={photo.id}
+                                type="button"
+                                role="tab"
+                                aria-selected={active}
+                                aria-label={`Show ${photo.title}`}
+                                onClick={() => goToPhoto(i)}
+                                className="relative block h-14 w-[3px] overflow-visible bg-white/35 transition hover:bg-white/55 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mustard"
+                            >
+                                {completed ? (
+                                    <span className="absolute inset-0 bg-white" />
+                                ) : null}
+                                {active ? (
+                                    <span
+                                        key={progressKey}
+                                        className={`absolute inset-x-0 top-0 w-full bg-white ${
+                                            reduceMotion
+                                                ? 'h-full'
+                                                : 'animate-hero-progress-y'
+                                        }`}
+                                    >
+                                        <span
+                                            aria-hidden="true"
+                                            className="absolute bottom-0 left-1/2 h-2 w-2 -translate-x-1/2 translate-y-1/2 rounded-full bg-white"
+                                        />
+                                    </span>
+                                ) : null}
+                            </button>
+                        );
+                    })}
+                </div>
+
+                <div className="max-w-[14rem] text-white">
+                    <p className="text-[15px] font-semibold leading-snug">
+                        {activePhoto.title}
+                    </p>
+                    <p className="mt-1 text-sm leading-snug text-white/70">
+                        {activePhoto.credit}
+                    </p>
+                </div>
+            </div>
+
+            {/*
+              Mobile: headline → search → chips.
+              Desktop: search reveals at top; big white icon beside headline.
+            */}
+            <div className="relative z-10 mx-auto flex w-full max-w-[1400px] flex-1 flex-col justify-end px-4 pb-8 pt-10 sm:px-6 sm:pb-12 sm:pt-14 lg:justify-start lg:px-8 lg:pb-16 lg:pt-6 xl:px-10">
+                {desktopLayout && searchFieldVisible ? (
                     <div
-                        className={`absolute inset-0 bg-gradient-to-b ${slide.overlay}`}
-                    />
-                    {slide.layout !== 'brand' ? (
-                        <>
-                            <div className="absolute inset-0 bg-black/40" />
-                            <div className="absolute inset-x-0 bottom-0 h-[70%] bg-gradient-to-t from-black/80 via-black/40 to-transparent sm:h-[55%]" />
-                        </>
-                    ) : null}
-                </motion.div>
-            </AnimatePresence>
-
-            {slide.layout === 'safari' ? (
-                <Link
-                    href={slide.ctaHref}
-                    className="absolute inset-0 z-[2]"
-                    tabIndex={-1}
-                    aria-hidden="true"
-                />
-            ) : null}
-
-            <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col px-5 pb-6 pt-6 text-left sm:px-8 sm:pb-24 lg:px-10">
-                {slide.layout === 'safari' ? (
-                    <>
-                        <Link
-                            href={slide.ctaHref}
-                            className="block"
-                            aria-label={`${slide.cta} — ${slide.titleLead} ${slide.titleAccent}`}
-                        >
-                            <motion.p
-                                key={`kicker-${slide.id}`}
-                                initial={reduce ? false : { opacity: 0, y: 18 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.55, delay: 0.1 }}
-                                className="text-[0.95rem] font-bold leading-snug text-white sm:text-lg"
-                            >
-                                {slide.kicker}
-                            </motion.p>
-
-                            <motion.h1
-                                key={`title-${slide.id}`}
-                                initial={reduce ? false : { opacity: 0, y: 22 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.18, duration: 0.65 }}
-                                className="mt-2 w-full max-w-[22rem] font-display font-bold tracking-tight text-white sm:mt-3 sm:max-w-3xl"
-                            >
-                                <span className="block text-balance text-[clamp(1.7rem,8vw,2.3rem)] leading-[1.08] sm:text-5xl sm:leading-[1.05] lg:text-6xl">
-                                    {slide.titleLead}
-                                </span>
-                                <span className="mt-1 block text-balance text-[clamp(1.7rem,8vw,2.3rem)] leading-[1.08] text-mint sm:mt-2 sm:text-5xl sm:leading-[1.05] lg:text-6xl">
-                                    {slide.titleAccent}
-                                </span>
-                            </motion.h1>
-
-                            <motion.span
-                                key={`cta-${slide.id}`}
-                                initial={reduce ? false : { opacity: 0, y: 14 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.3, duration: 0.5 }}
-                                className="mt-3.5 inline-flex min-h-6 items-center gap-1.5 text-sm font-semibold text-mustard sm:hidden"
-                            >
-                                {slide.cta}
-                                <ForwardMark className="h-3.5 w-3.5" />
-                            </motion.span>
-                        </Link>
-
-                        <motion.div
-                            key={`cta-pill-${slide.id}`}
-                            initial={reduce ? false : { opacity: 0, y: 16 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.3, duration: 0.55 }}
-                            className="hidden sm:mt-7 sm:block"
-                        >
-                            <Link
-                                href={slide.ctaHref}
-                                prefetch
-                                className="group inline-flex min-h-11 items-center gap-3 rounded-md bg-mustard px-8 py-3.5 text-base font-semibold text-olive-950 transition hover:bg-white hover:text-mustard"
-                            >
-                                {slide.cta}
-                                <ForwardMark className="h-4 w-4" />
-                            </Link>
-                        </motion.div>
-                    </>
+                        className={`relative order-1 mx-auto w-full max-w-3xl xl:max-w-4xl ${
+                            reduceMotion ? '' : 'animate-hero-search-in'
+                        }`}
+                    >
+                        {searchForm('below')}
+                    </div>
                 ) : null}
 
-                <div
-                    className="mt-4 flex items-start gap-2.5 sm:mt-9 sm:gap-6"
-                    aria-label="Hero slides"
-                >
-                    {slides.map((item, i) => (
+                <div className="order-2 mt-auto max-w-xl lg:mx-auto lg:w-full lg:max-w-3xl lg:pb-10 lg:text-center xl:max-w-4xl xl:pb-14">
+                    <div className="flex items-center gap-3 sm:gap-4 lg:justify-center lg:gap-5">
+                        <h1 className="font-display text-[clamp(2.25rem,9vw,3.75rem)] font-semibold leading-[1.05] tracking-tight text-white lg:text-[clamp(3rem,5vw,4.5rem)]">
+                            <span className="inline-flex items-baseline gap-[0.28em]">
+                                <span>Find</span>
+                                <span className="relative inline-grid overflow-hidden align-baseline">
+                                    <span
+                                        className="invisible col-start-1 row-start-1 whitespace-nowrap"
+                                        aria-hidden="true"
+                                    >
+                                        {HERO_PLACE_SIZER}
+                                    </span>
+                                    <span
+                                        key={HERO_PLACES[placeIndex]}
+                                        className={`col-start-1 row-start-1 whitespace-nowrap ${
+                                            reduceMotion
+                                                ? ''
+                                                : 'animate-hero-place-in'
+                                        }`}
+                                        aria-live="polite"
+                                    >
+                                        {HERO_PLACES[placeIndex]}
+                                    </span>
+                                </span>
+                            </span>
+                        </h1>
                         <button
-                            key={item.id}
+                            ref={searchToggleRef}
                             type="button"
-                            onClick={() => {
-                                directionRef.current = i > index ? 1 : -1;
-                                setIndex(i);
-                            }}
-                            aria-label={`Go to slide ${i + 1}: ${item.kicker}`}
-                            aria-current={i === index ? 'true' : undefined}
-                            className="group flex h-8 flex-1 flex-col justify-center gap-2.5 sm:h-auto sm:justify-start"
+                            onClick={() =>
+                                searchFieldVisible
+                                    ? closeSearch()
+                                    : revealSearch()
+                            }
+                            aria-label={
+                                searchFieldVisible
+                                    ? 'Close search'
+                                    : 'Open search'
+                            }
+                            aria-expanded={searchFieldVisible}
+                            title="Search"
+                            className={`group hidden shrink-0 cursor-pointer text-white transition duration-200 hover:text-mustard focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-mustard lg:inline-flex ${
+                                !searchFieldVisible && !reduceMotion
+                                    ? 'animate-search-cue'
+                                    : ''
+                            } hover:animate-none`}
                         >
-                            <span className="h-[3px] w-full overflow-hidden rounded-full bg-white/30 transition group-hover:bg-white/50">
-                                {i === index ? (
-                                    <motion.span
-                                        key={`progress-${slide.id}`}
-                                        className="block h-full w-full origin-left rounded-full bg-mustard"
-                                        initial={{
-                                            scaleX: reduce || paused ? 1 : 0,
-                                        }}
-                                        animate={{ scaleX: 1 }}
-                                        transition={{
-                                            duration:
-                                                reduce || paused
-                                                    ? 0
-                                                    : INTERVAL_MS / 1000,
-                                            ease: 'linear',
-                                        }}
-                                    />
-                                ) : null}
-                            </span>
-                            <span
-                                className={`hidden text-left text-sm font-semibold leading-snug transition sm:block ${
-                                    i === index
-                                        ? 'text-white'
-                                        : 'text-white/65 group-hover:text-white/90'
-                                }`}
-                            >
-                                {item.kicker}
-                            </span>
+                            <SearchMark className="h-10 w-10 transition duration-200 group-hover:scale-110 lg:h-12 lg:w-12 xl:h-14 xl:w-14" />
                         </button>
-                    ))}
+                    </div>
+                    <p className="mt-3 max-w-md text-base leading-relaxed text-white/85 sm:mt-4 sm:text-lg lg:mx-auto lg:mt-5 lg:max-w-xl lg:text-xl lg:text-white/90">
+                        Stay, eat, explore, and get things done right now.
+                    </p>
+                </div>
+
+                {!desktopLayout ? (
+                    <div className="relative order-3 mt-6 w-full max-w-xl sm:mt-8">
+                        {searchForm('above')}
+                    </div>
+                ) : null}
+
+                <div className="order-4 mt-5 sm:mt-6 lg:hidden">
+                    <p className="sr-only">Browse by category</p>
+                    <ul className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] sm:flex-wrap sm:overflow-visible [&::-webkit-scrollbar]:hidden">
+                        {CATEGORY_CHIPS.map(({ key, label, href, Icon }) => (
+                            <li key={key} className="shrink-0">
+                                <Link
+                                    href={href}
+                                    prefetch
+                                    className="inline-flex min-h-10 items-center gap-2 border border-white/30 bg-white/10 px-3.5 py-2 text-sm font-semibold text-white backdrop-blur-[2px] transition hover:border-mustard hover:bg-mustard hover:text-olive-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mustard"
+                                >
+                                    <Icon className="h-4 w-4 shrink-0" />
+                                    {label}
+                                </Link>
+                            </li>
+                        ))}
+                    </ul>
                 </div>
             </div>
         </section>

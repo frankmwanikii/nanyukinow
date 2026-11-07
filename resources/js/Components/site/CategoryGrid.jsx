@@ -4,6 +4,7 @@ import {
     EatMark,
     EventMark,
     ExploreMark,
+    MoreMark,
     PropertyMark,
     ServicesMark,
     ShopMark,
@@ -22,12 +23,20 @@ const icons = {
     services: ServicesMark,
 };
 
-const cards = mainCategories.map((cat) => ({
-    key: cat.key,
-    label: cat.label,
-    href: explorePath({ category: cat.key }),
-    Icon: icons[cat.key],
-}));
+const cards = [
+    ...mainCategories.map((cat) => ({
+        key: cat.key,
+        label: cat.label,
+        href: explorePath({ category: cat.key }),
+        Icon: icons[cat.key],
+    })),
+    {
+        key: 'more',
+        label: 'More',
+        href: explorePath(),
+        Icon: MoreMark,
+    },
+];
 
 export default function CategoryGrid() {
     return (

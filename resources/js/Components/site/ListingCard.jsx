@@ -12,6 +12,7 @@ import {
     ShopMark,
     StayMark,
 } from '@/Components/site/Mark';
+import ListingTierBadge from '@/Components/site/ListingTierBadge';
 import { explorePath } from '@/data/categories';
 import { listingHref } from '@/data/listings';
 import { eventDateRangeLabel } from '@/Components/listing/eventDates';
@@ -40,11 +41,6 @@ function csrfToken() {
         .join('=');
     return raw ? decodeURIComponent(raw) : null;
 }
-
-const TIER_LABEL = {
-    premium: 'Premium',
-    featured: 'Standard',
-};
 
 export default function ListingCard({
     listing,
@@ -103,7 +99,7 @@ export default function ListingCard({
         : null;
     const oliveFooter = footerTone === 'olive';
     const tier = listing.tier || 'free';
-    const tierLabel = TIER_LABEL[tier] || null;
+    const showTierBadge = tier === 'premium' || tier === 'featured';
 
     useEffect(() => {
         const ids = bookmarkKey
@@ -220,12 +216,10 @@ export default function ListingCard({
                         </div>
                     )}
 
-                    {(tierLabel || dateLabel || priceLabel) && (
+                    {(showTierBadge || dateLabel || priceLabel) && (
                         <div className="absolute left-0 top-0 flex max-w-[85%] flex-wrap gap-px">
-                            {tierLabel ? (
-                                <span className="bg-earth-dusk px-2.5 py-1 text-[11px] font-semibold text-mustard">
-                                    {tierLabel}
-                                </span>
+                            {showTierBadge ? (
+                                <ListingTierBadge tier={tier} />
                             ) : null}
                             {dateLabel ? (
                                 <span className="bg-white px-2.5 py-1 text-[11px] font-semibold text-earth-dusk">

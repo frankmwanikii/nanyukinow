@@ -254,6 +254,17 @@ export function PlusMark({ className = 'h-4 w-4' }) {
     );
 }
 
+/** Three dots — More / overflow */
+export function MoreMark({ className = 'h-4 w-4' }) {
+    return (
+        <Mark className={className}>
+            <circle cx="5" cy="12" r="2" />
+            <circle cx="12" cy="12" r="2" />
+            <circle cx="19" cy="12" r="2" />
+        </Mark>
+    );
+}
+
 export function UserMark({ className = 'h-4 w-4' }) {
     return (
         <Mark className={className}>
@@ -430,6 +441,20 @@ export function MoonMark({ className = 'h-4 w-4' }) {
     return (
         <Mark className={className}>
             <path d="M14.35 3.4a.9.9 0 0 1 1.05 1.2 7.5 7.5 0 1 0 4 7.95.9.9 0 0 1 1.65.7A9.25 9.25 0 1 1 13.2 3.15a.9.9 0 0 1 1.15.25z" />
+        </Mark>
+    );
+}
+
+/** Star — Standard / featured listing tier */
+export function StandardTierMark({ className = 'h-4 w-4' }) {
+    return <StarMark className={className} filled />;
+}
+
+/** Bolt — Premium listing tier */
+export function PremiumTierMark({ className = 'h-4 w-4' }) {
+    return (
+        <Mark className={className}>
+            <path d="M13.4 2.6a.9.9 0 0 1 .55 1.55L10.9 8.4h4.85a.9.9 0 0 1 .7 1.48l-6.6 8.7a.9.9 0 0 1-1.6-.85L10.1 12H5.35a.9.9 0 0 1-.72-1.45l6.75-7.55a.9.9 0 0 1 1.02-.4z" />
         </Mark>
     );
 }

@@ -111,6 +111,7 @@ export default function SearchSuggestions({
     headerRef,
     panelRef,
     id,
+    placement = 'below',
 }) {
     const q = query.trim().toLowerCase();
     const rawQ = query.trim();
@@ -129,10 +130,21 @@ export default function SearchSuggestions({
             const headerBottom = headerEl
                 ? headerEl.getBoundingClientRect().bottom
                 : searchRect.bottom;
+            const width = Math.max(searchRect.width, 280);
+            if (placement === 'above') {
+                setCoords({
+                    bottom: window.innerHeight - searchRect.top + 4,
+                    left: searchRect.left,
+                    width,
+                    maxHeight: Math.max(160, searchRect.top - 16),
+                });
+                return;
+            }
             setCoords({
                 top: headerBottom,
                 left: searchRect.left,
-                width: Math.max(searchRect.width, 280),
+                width,
+                maxHeight: null,
             });
         };
         update();
@@ -142,7 +154,7 @@ export default function SearchSuggestions({
             window.removeEventListener('resize', update);
             window.removeEventListener('scroll', update, true);
         };
-    }, [anchorRef, headerRef]);
+    }, [anchorRef, headerRef, placement]);
 
     useEffect(() => {
         if (abortRef.current) {
@@ -213,11 +225,18 @@ export default function SearchSuggestions({
             style={{
                 position: 'fixed',
                 top: coords.top,
+                bottom: coords.bottom,
                 left: coords.left,
                 width: Math.min(coords.width, window.innerWidth - 24),
                 maxWidth: '28rem',
+                maxHeight: coords.maxHeight ?? undefined,
+                overflowY: coords.maxHeight ? 'auto' : undefined,
             }}
-            className="z-[1200] border-t-[3px] border-mustard bg-white font-display shadow-lift"
+            className={`z-[1200] bg-white font-display shadow-lift ${
+                placement === 'above'
+                    ? 'border-b-[3px] border-mustard'
+                    : 'border-t-[3px] border-mustard'
+            }`}
             role="listbox"
             aria-label="Search suggestions"
         >

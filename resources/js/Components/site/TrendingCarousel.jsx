@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import ListingCard from '@/Components/site/ListingCard';
 import { BackMark, ForwardMark } from '@/Components/site/Mark';
 
 const DRAG_THRESHOLD = 8;
+/** Need enough unique cards before seamless looping looks like content, not duplication. */
+const MIN_LOOP_ITEMS = 3;
 
 export default function TrendingCarousel({ items = [] }) {
     const trackRef = useRef(null);
@@ -18,10 +20,24 @@ export default function TrendingCarousel({ items = [] }) {
     });
     const [paused, setPaused] = useState(false);
     const [allowClick, setAllowClick] = useState(true);
-    const loop = [...items, ...items];
+
+    const uniqueItems = useMemo(() => {
+        const seen = new Set();
+        return items.filter((listing) => {
+            const key = listing?.id ?? listing?.slug;
+            if (key == null || seen.has(key)) {
+                return false;
+            }
+            seen.add(key);
+            return true;
+        });
+    }, [items]);
+
+    const canLoop = uniqueItems.length >= MIN_LOOP_ITEMS;
+    const loop = canLoop ? [...uniqueItems, ...uniqueItems] : uniqueItems;
 
     const wrapScroll = (track, drag = null) => {
-        if (wrappingRef.current) return;
+        if (!canLoop || wrappingRef.current) return;
         const half = track.scrollWidth / 2;
         if (half <= 0) return;
 
@@ -44,7 +60,7 @@ export default function TrendingCarousel({ items = [] }) {
 
     useEffect(() => {
         const track = trackRef.current;
-        if (!track || items.length === 0) return undefined;
+        if (!track || uniqueItems.length === 0 || !canLoop) return undefined;
 
         // Start away from the wrap edges so the loop never oscillates at 0/half.
         const half = track.scrollWidth / 2;
@@ -70,7 +86,7 @@ export default function TrendingCarousel({ items = [] }) {
 
         rafId = window.requestAnimationFrame(tick);
         return () => window.cancelAnimationFrame(rafId);
-    }, [paused, items.length]);
+    }, [paused, uniqueItems.length, canLoop]);
 
     const scrollByCard = (direction) => {
         const track = trackRef.current;
@@ -148,7 +164,9 @@ export default function TrendingCarousel({ items = [] }) {
         }
     };
 
-    if (items.length === 0) return null;
+    if (uniqueItems.length === 0) return null;
+
+    const showControls = uniqueItems.length > 1;
 
     return (
         <div
@@ -167,47 +185,57 @@ export default function TrendingCarousel({ items = [] }) {
         >
             <div
                 ref={trackRef}
-                className="flex cursor-grab gap-5 overflow-x-auto pb-2 select-none active:cursor-grabbing [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-                onPointerDown={onPointerDown}
-                onPointerMove={onPointerMove}
-                onPointerUp={endDrag}
-                onPointerCancel={endDrag}
+                className={`flex gap-5 overflow-x-auto pb-2 select-none [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
+                    canLoop
+                        ? 'cursor-grab active:cursor-grabbing'
+                        : ''
+                }`}
+                onPointerDown={canLoop ? onPointerDown : undefined}
+                onPointerMove={canLoop ? onPointerMove : undefined}
+                onPointerUp={canLoop ? endDrag : undefined}
+                onPointerCancel={canLoop ? endDrag : undefined}
             >
                 {loop.map((listing, i) => (
                     <div
                         key={`${listing.id}-${i}`}
                         data-trending-card
                         className="w-[min(85vw,22rem)] shrink-0 sm:w-[24rem]"
-                        aria-hidden={i >= items.length ? true : undefined}
+                        aria-hidden={
+                            canLoop && i >= uniqueItems.length
+                                ? true
+                                : undefined
+                        }
                     >
                         <ListingCard
                             listing={listing}
                             featured
                             allowClick={allowClick}
-                            inert={i >= items.length}
+                            inert={canLoop && i >= uniqueItems.length}
                         />
                     </div>
                 ))}
             </div>
 
-            <div className="mt-6 flex items-center justify-center gap-3">
-                <button
-                    type="button"
-                    onClick={() => scrollByCard(-1)}
-                    className="flex h-11 w-11 items-center justify-center rounded-full border border-white/25 bg-white/10 text-white transition hover:border-mustard hover:bg-mustard hover:text-olive-950"
-                    aria-label="Scroll trending left"
-                >
-                    <BackMark className="h-5 w-5" />
-                </button>
-                <button
-                    type="button"
-                    onClick={() => scrollByCard(1)}
-                    className="flex h-11 w-11 items-center justify-center rounded-full border border-white/25 bg-white/10 text-white transition hover:border-mustard hover:bg-mustard hover:text-olive-950"
-                    aria-label="Scroll trending right"
-                >
-                    <ForwardMark className="h-5 w-5" />
-                </button>
-            </div>
+            {showControls ? (
+                <div className="mt-6 flex items-center justify-center gap-3">
+                    <button
+                        type="button"
+                        onClick={() => scrollByCard(-1)}
+                        className="flex h-11 w-11 items-center justify-center rounded-full border border-white/25 bg-white/10 text-white transition hover:border-mustard hover:bg-mustard hover:text-olive-950"
+                        aria-label="Scroll trending left"
+                    >
+                        <BackMark className="h-5 w-5" />
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => scrollByCard(1)}
+                        className="flex h-11 w-11 items-center justify-center rounded-full border border-white/25 bg-white/10 text-white transition hover:border-mustard hover:bg-mustard hover:text-olive-950"
+                        aria-label="Scroll trending right"
+                    >
+                        <ForwardMark className="h-5 w-5" />
+                    </button>
+                </div>
+            ) : null}
         </div>
     );
 }

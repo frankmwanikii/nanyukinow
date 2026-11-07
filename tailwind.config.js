@@ -67,10 +67,17 @@ export default {
             animation: {
                 'fade-up': 'fadeUp 0.7s ease-out both',
                 'ken-burns': 'kenBurns 28s ease-out infinite alternate',
-                'ken-burns-slide': 'kenBurnsSlide 7.5s ease-out both',
+                'ken-burns-slide': 'kenBurnsSlide 9s ease-out both',
+                'ken-burns-slide-alt': 'kenBurnsSlideAlt 9s ease-out both',
+                'hero-progress': 'heroProgress 9s linear forwards',
+                'hero-progress-y': 'heroProgressY 9s linear forwards',
+                'hero-search-in': 'heroSearchIn 0.35s ease-out both',
+                'search-cue': 'searchCue 2.4s ease-in-out infinite',
+                'hero-place-in': 'heroPlaceIn 0.55s ease-out both',
                 marquee: 'marquee 28s linear infinite',
             },
             keyframes: {
+
                 fadeUp: {
                     '0%': { opacity: '0', transform: 'translateY(24px)' },
                     '100%': { opacity: '1', transform: 'translateY(0)' },
@@ -81,7 +88,31 @@ export default {
                 },
                 kenBurnsSlide: {
                     '0%': { transform: 'scale(1) translate(0%, 0%)' },
-                    '100%': { transform: 'scale(1.14) translate(-1.5%, -1%)' },
+                    '100%': { transform: 'scale(1.12) translate(-1.5%, -1%)' },
+                },
+                kenBurnsSlideAlt: {
+                    '0%': { transform: 'scale(1.08) translate(-1%, 0.5%)' },
+                    '100%': { transform: 'scale(1) translate(0.5%, -0.5%)' },
+                },
+                heroProgress: {
+                    '0%': { transform: 'scaleX(0)' },
+                    '100%': { transform: 'scaleX(1)' },
+                },
+                heroProgressY: {
+                    '0%': { height: '0%' },
+                    '100%': { height: '100%' },
+                },
+                heroSearchIn: {
+                    '0%': { opacity: '0', transform: 'translateY(-14px)' },
+                    '100%': { opacity: '1', transform: 'translateY(0)' },
+                },
+                searchCue: {
+                    '0%, 100%': { opacity: '0.82', transform: 'scale(1)' },
+                    '50%': { opacity: '1', transform: 'scale(1.08)' },
+                },
+                heroPlaceIn: {
+                    '0%': { opacity: '0', transform: 'translateY(45%)' },
+                    '100%': { opacity: '1', transform: 'translateY(0)' },
                 },
                 marquee: {
                     '0%': { transform: 'translateX(0)' },

@@ -279,7 +279,10 @@ class ListingController extends Controller
      */
     private function trendingCards(): array
     {
-        $cards = collect(PublishedListingsCatalogue::cards());
+        $cards = collect(PublishedListingsCatalogue::cards())
+            ->unique(fn (array $card) => $card['id'] ?? $card['slug'] ?? null)
+            ->values();
+
         $trending = $cards
             ->filter(fn (array $card) => (bool) ($card['is_trending'] ?? false))
             ->take(12)
