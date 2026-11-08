@@ -71,6 +71,11 @@ class User extends Authenticatable
         return $this->hasMany(Listing::class);
     }
 
+    public function listingReviews(): HasMany
+    {
+        return $this->hasMany(ListingReview::class);
+    }
+
     public function bookmarkedListings(): BelongsToMany
     {
         return $this->belongsToMany(Listing::class, 'listing_bookmarks')

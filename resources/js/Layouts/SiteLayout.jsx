@@ -12,11 +12,15 @@ export default function SiteLayout({
     title,
     children,
     hideFooter = false,
+    hideNav = false,
+    hideBottomNav = false,
     compactNav = false,
     /** Explore-style map shell: fixed viewport, no page scroll */
     lockViewport = false,
     shellClassName = 'bg-earth-sand text-earth-dusk',
 }) {
+    const padForBottomNav = !hideBottomNav && !lockViewport;
+
     return (
         <>
             <Head title={title} />
@@ -24,18 +28,24 @@ export default function SiteLayout({
                 className={`overflow-x-clip font-sans antialiased ${shellClassName} ${
                     lockViewport
                         ? 'h-svh overflow-hidden'
-                        : hideFooter
-                          ? 'min-h-svh pb-[calc(4.75rem+env(safe-area-inset-bottom,0px))] lg:pb-0'
-                          : 'min-h-screen pb-[calc(4.75rem+env(safe-area-inset-bottom,0px))] lg:pb-0'
+                        : padForBottomNav
+                          ? hideFooter
+                            ? 'min-h-svh pb-[calc(5.25rem+env(safe-area-inset-bottom,0px))] lg:pb-0'
+                            : 'min-h-screen pb-[calc(5.25rem+env(safe-area-inset-bottom,0px))] lg:pb-0'
+                          : hideFooter
+                            ? 'min-h-svh'
+                            : 'min-h-screen'
                 }`}
             >
-                <Navbar compact={compactNav} />
+                {hideNav ? null : <Navbar compact={compactNav} />}
                 <main>{children}</main>
                 {hideFooter ? null : <Footer />}
             </div>
-            <Suspense fallback={null}>
-                <MobileBottomNav />
-            </Suspense>
+            {hideBottomNav ? null : (
+                <Suspense fallback={null}>
+                    <MobileBottomNav />
+                </Suspense>
+            )}
             <SuccessToastHost />
         </>
     );

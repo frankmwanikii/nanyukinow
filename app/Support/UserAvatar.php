@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -45,6 +46,30 @@ class UserAvatar
         }
 
         return $url;
+    }
+
+    /**
+     * Whether the stored value still resolves to a displayable image.
+     */
+    public static function isUsable(?string $url): bool
+    {
+        return self::publicUrl($url) !== null;
+    }
+
+    /**
+     * Drop broken avatar paths (e.g. "/storage/" or missing files) so Google
+     * import and profile display stay in sync for the same account.
+     */
+    public static function clearUnusable(User $user): bool
+    {
+        if (! filled($user->avatar_url) || self::isUsable($user->avatar_url)) {
+            return false;
+        }
+
+        self::delete($user->avatar_url);
+        $user->forceFill(['avatar_url' => null])->save();
+
+        return true;
     }
 
     public static function delete(?string $url): void
@@ -117,10 +142,13 @@ class UserAvatar
         }
 
         $path = 'avatars/'.Str::uuid().'.'.$ext;
-        Storage::disk('public')->put($path, $body);
+        if (! Storage::disk('public')->put($path, $body)) {
+            return null;
+        }
 
         $converted = WebpConverter::convertStored($path);
+        $relative = is_string($converted) && $converted !== '' ? $converted : $path;
 
-        return '/storage/'.($converted ?? $path);
+        return '/storage/'.$relative;
     }
 }

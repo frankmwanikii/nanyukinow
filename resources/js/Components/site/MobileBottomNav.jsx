@@ -4,13 +4,15 @@ import { createPortal } from 'react-dom';
 import {
     CloseMark,
     CompassMark,
+    NyukiMark,
     PlusMark,
     SearchMark,
-    UserMark,
 } from '@/Components/site/Mark';
 import { explorePath } from '@/data/categories';
 import FlippingSearchHint, { FLIP_WORDS } from './FlippingSearchHint';
 import SearchSuggestions from './SearchSuggestions';
+
+const ICON = 'h-10 w-10';
 
 export default function MobileBottomNav() {
     const page = usePage();
@@ -46,6 +48,13 @@ export default function MobileBottomNav() {
         setSearchOpen(true);
         setSuggestionsOpen(true);
     };
+
+    useEffect(() => {
+        const onOpen = () => openSearch();
+        window.addEventListener('nn:open-mobile-search', onOpen);
+        return () =>
+            window.removeEventListener('nn:open-mobile-search', onOpen);
+    }, []);
 
     useEffect(() => {
         if (!searchOpen) return undefined;
@@ -88,86 +97,91 @@ export default function MobileBottomNav() {
             key: 'add',
             label: 'Add',
             href: user ? route('account.listings.create') : route('register'),
-            onClick: null,
             icon: PlusMark,
-            circled: true,
+            accent: true,
         },
         {
-            key: 'account',
-            label: user ? 'Account' : 'Sign in',
-            href: user ? route('account.index') : route('register'),
-            icon: UserMark,
+            key: 'nyuki',
+            label: 'Nyuki AI',
+            href: route('nyuki'),
+            icon: NyukiMark,
+            prefetch: true,
         },
     ];
 
+    const itemClass = (active) =>
+        `relative flex min-h-[4.5rem] w-full flex-col items-center justify-center gap-1 px-1 py-1 text-[11px] font-medium leading-none tracking-[0.04em] transition-colors ${
+            active ? 'text-mustard' : 'text-white/80 hover:text-white'
+        }`;
+
     const searchOverlay =
         typeof document !== 'undefined' && searchOpen ? (
-                    <>
-                        <button
-                            key="mobile-search-backdrop"
-                            type="button"
-                            className="fixed inset-0 z-[1096] bg-black/45 backdrop-blur-[1px] lg:hidden"
-                            aria-label="Close search"
-                            onClick={closeSearch}
+            <>
+                <button
+                    key="mobile-search-backdrop"
+                    type="button"
+                    className="fixed inset-0 z-[1096] bg-black/45 backdrop-blur-[1px] lg:hidden"
+                    aria-label="Close search"
+                    onClick={closeSearch}
+                />
+                <div
+                    key="mobile-search-panel"
+                    ref={searchPanelRef}
+                    className="fixed inset-x-0 top-[4.25rem] z-[1098] border-b border-white/10 bg-olive-900/98 px-3 py-2.5 shadow-lg backdrop-blur-md sm:top-[4.75rem] sm:px-5 lg:hidden"
+                    role="search"
+                >
+                    <form
+                        ref={searchFormRef}
+                        onSubmit={submitSearch}
+                        className="relative mx-auto flex max-w-[1400px] items-center"
+                    >
+                        <SearchMark className="pointer-events-none absolute left-3.5 z-10 h-4 w-4 text-white/75" />
+                        <FlippingSearchHint
+                            visible={!query.trim() && !suggestionsOpen}
+                            className="left-10"
                         />
-                        <div
-                            key="mobile-search-panel"
-                            ref={searchPanelRef}
-                            className="fixed inset-x-0 top-[4.25rem] z-[1098] border-b border-white/10 bg-[#4f5a3e]/98 px-3 py-2.5 shadow-lg backdrop-blur-md sm:top-[4.75rem] sm:px-5 lg:hidden"
-                            role="search"
+                        <input
+                            ref={inputRef}
+                            type="search"
+                            value={query}
+                            onChange={(e) => {
+                                setQuery(e.target.value);
+                                setSuggestionsOpen(true);
+                            }}
+                            onFocus={() => setSuggestionsOpen(true)}
+                            placeholder={
+                                query.trim() || suggestionsOpen
+                                    ? 'What are you looking for?'
+                                    : ''
+                            }
+                            aria-label="Search"
+                            aria-expanded={suggestionsOpen}
+                            aria-controls="mobile-nav-search-suggestions"
+                            autoComplete="off"
+                            className="site-nav-search w-full rounded-full border-0 bg-white/10 py-2.5 pl-10 pr-12 text-[15px] text-white placeholder:text-white/65 ring-1 ring-white/20 focus:outline-none focus:ring-2 focus:ring-mustard"
+                        />
+                        <button
+                            type="button"
+                            onClick={closeSearch}
+                            className="absolute right-2 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full text-white/80 transition hover:bg-white/10 hover:text-white"
+                            aria-label="Close search"
                         >
-                            <form
-                                ref={searchFormRef}
-                                onSubmit={submitSearch}
-                                className="relative mx-auto flex max-w-[1400px] items-center"
-                            >
-                                <SearchMark className="pointer-events-none absolute left-3 z-10 h-4 w-4 text-white/80" />
-                                <FlippingSearchHint
-                                    visible={!query.trim() && !suggestionsOpen}
-                                    className="left-10"
-                                />
-                                <input
-                                    ref={inputRef}
-                                    type="search"
-                                    value={query}
-                                    onChange={(e) => {
-                                        setQuery(e.target.value);
-                                        setSuggestionsOpen(true);
-                                    }}
-                                    onFocus={() => setSuggestionsOpen(true)}
-                                    placeholder={
-                                        query.trim() || suggestionsOpen
-                                            ? 'What are you looking for?'
-                                            : ''
-                                    }
-                                    aria-label="Search"
-                                    aria-expanded={suggestionsOpen}
-                                    aria-controls="mobile-nav-search-suggestions"
-                                    autoComplete="off"
-                                    className="site-nav-search w-full rounded-full border-0 bg-white/10 py-2.5 pl-10 pr-12 text-[15px] text-white placeholder:text-white/65 ring-1 ring-white/20 focus:outline-none focus:ring-2 focus:ring-mustard"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={closeSearch}
-                                    className="absolute right-2 z-10 inline-flex h-8 w-8 items-center justify-center rounded-full text-white/80 transition hover:bg-white/10 hover:text-white"
-                                    aria-label="Close search"
-                                >
-                                    <CloseMark className="h-4 w-4" />
-                                </button>
-                            </form>
+                            <CloseMark className="h-4 w-4" />
+                        </button>
+                    </form>
 
-                            {suggestionsOpen ? (
-                                <SearchSuggestions
-                                    query={query}
-                                    onSelect={closeSearch}
-                                    anchorRef={searchFormRef}
-                                    headerRef={searchPanelRef}
-                                    panelRef={suggestionsRef}
-                                    id="mobile-nav-search-suggestions"
-                                />
-                            ) : null}
-                        </div>
-                    </>
+                    {suggestionsOpen ? (
+                        <SearchSuggestions
+                            query={query}
+                            onSelect={closeSearch}
+                            anchorRef={searchFormRef}
+                            headerRef={searchPanelRef}
+                            panelRef={suggestionsRef}
+                            id="mobile-nav-search-suggestions"
+                        />
+                    ) : null}
+                </div>
+            </>
         ) : null;
 
     return (
@@ -177,35 +191,34 @@ export default function MobileBottomNav() {
                 : null}
 
             <nav
-                className="fixed inset-x-0 bottom-0 z-[1095] border-t border-white/10 bg-gradient-to-b from-[#5a6648] to-[#3f4734] pb-[env(safe-area-inset-bottom)] lg:hidden"
+                className="fixed inset-x-0 bottom-0 z-[1095] border-t border-white/10 bg-olive-900 pb-[env(safe-area-inset-bottom)] lg:hidden"
                 aria-label="Mobile toolbar"
             >
-                <ul className="mx-auto grid max-w-lg grid-cols-4 px-1 pt-2 pb-2.5">
-                    <li>
+                <ul className="mx-auto grid h-[5.25rem] max-w-lg grid-cols-4 px-1 sm:h-[5.5rem]">
+                    <li className="min-w-0">
                         <button
                             type="button"
                             onClick={openSearch}
-                            className={`flex w-full flex-col items-center gap-1 px-1 py-1 text-white transition ${
-                                searchActive ? 'opacity-100' : 'opacity-90'
-                            }`}
+                            className={itemClass(searchActive)}
                             aria-label={`Search ${flipWord}`}
                             aria-expanded={searchOpen}
                             aria-controls="mobile-nav-search-suggestions"
                         >
-                            <SearchMark className="h-6 w-6" />
-                            <span className="relative block h-[1em] w-full max-w-[4.75rem] overflow-hidden text-center">
-                                
-                                    <span
-                                        key={flipWord}
-                                        className="absolute inset-x-0 top-0 truncate font-display text-[11px] font-semibold leading-none tracking-wide"
-                                    >
-                                        {flipWord}
-                                    </span>
-                                
+                            {searchActive ? (
                                 <span
-                                    className="invisible font-display text-[11px] font-semibold leading-none tracking-wide"
+                                    className="absolute inset-x-4 top-0 h-0.5 rounded-full bg-mustard"
                                     aria-hidden
+                                />
+                            ) : null}
+                            <SearchMark className={ICON} />
+                            <span className="relative block h-[1em] w-full max-w-[4.5rem] overflow-hidden text-center">
+                                <span
+                                    key={flipWord}
+                                    className="absolute inset-x-0 top-0 animate-[nn-flip-in_320ms_ease-out] truncate"
                                 >
+                                    {flipWord}
+                                </span>
+                                <span className="invisible" aria-hidden>
                                     Restaurants
                                 </span>
                             </span>
@@ -220,37 +233,36 @@ export default function MobileBottomNav() {
                                 : item.key === 'add'
                                   ? path.startsWith('/account/listings') ||
                                     path.startsWith('/register')
-                                  : item.key === 'account'
-                                    ? path.startsWith('/account') ||
-                                      path.startsWith('/login')
+                                  : item.key === 'nyuki'
+                                    ? path.startsWith('/nyuki')
                                     : false;
-
-                        const className = `flex w-full flex-col items-center gap-1 px-1 py-1 text-white transition ${
-                            active ? 'opacity-100' : 'opacity-90'
-                        }`;
 
                         const content = (
                             <>
-                                {item.circled ? (
-                                    <span className="flex h-7 w-7 items-center justify-center rounded-full border-[1.5px] border-white">
-                                        <Icon className="h-4 w-4" />
+                                {active ? (
+                                    <span
+                                        className="absolute inset-x-4 top-0 h-0.5 rounded-full bg-mustard"
+                                        aria-hidden
+                                    />
+                                ) : null}
+                                {item.accent ? (
+                                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-mustard text-olive-950 shadow-sm">
+                                        <Icon className="h-5 w-5" />
                                     </span>
                                 ) : (
-                                    <Icon className="h-6 w-6" />
+                                    <Icon className={ICON} />
                                 )}
-                                <span className="font-display text-[11px] font-semibold leading-none tracking-wide">
-                                    {item.label}
-                                </span>
+                                <span className="truncate">{item.label}</span>
                             </>
                         );
 
                         return (
-                            <li key={item.key}>
+                            <li key={item.key} className="min-w-0">
                                 {item.onClick ? (
                                     <button
                                         type="button"
                                         onClick={item.onClick}
-                                        className={className}
+                                        className={itemClass(active)}
                                     >
                                         {content}
                                     </button>
@@ -258,7 +270,7 @@ export default function MobileBottomNav() {
                                     <Link
                                         href={item.href}
                                         prefetch={item.prefetch || false}
-                                        className={className}
+                                        className={itemClass(active)}
                                     >
                                         {content}
                                     </Link>

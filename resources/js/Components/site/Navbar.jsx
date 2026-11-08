@@ -443,7 +443,7 @@ export default function Navbar({ compact = false }) {
                                 ) : (
                                     <Link
                                         href={route('register')}
-                                        className="inline-flex w-full items-center justify-center border border-mustard bg-mustard px-4 py-3.5 text-base font-semibold text-earth-dusk transition hover:border-white hover:bg-white"
+                                        className="inline-flex w-full items-center justify-center rounded-md border border-mustard bg-mustard px-4 py-3.5 text-base font-semibold text-earth-dusk transition hover:border-white hover:bg-white"
                                         onClick={() => setOpen(false)}
                                     >
                                         Get started
@@ -490,7 +490,7 @@ export default function Navbar({ compact = false }) {
                         ) : (
                             <Link
                                 href={route('register')}
-                                className="inline-flex items-center justify-center border border-mustard bg-mustard px-3 py-2 text-sm font-semibold text-earth-dusk transition hover:border-white hover:bg-white"
+                                className="inline-flex items-center justify-center rounded-md border border-mustard bg-mustard px-3 py-2 text-sm font-semibold text-earth-dusk transition hover:border-white hover:bg-white"
                             >
                                 Get started
                             </Link>
@@ -737,7 +737,7 @@ export default function Navbar({ compact = false }) {
                     ) : (
                         <Link
                             href={route('register')}
-                            className="inline-flex items-center justify-center border border-mustard bg-mustard px-3.5 py-2.5 text-[15px] font-semibold text-earth-dusk transition hover:border-white hover:bg-white sm:px-4 sm:text-base"
+                            className="inline-flex items-center justify-center rounded-md border border-mustard bg-mustard px-3.5 py-2.5 text-[15px] font-semibold text-earth-dusk transition hover:border-white hover:bg-white sm:px-4 sm:text-base"
                         >
                             Get started
                         </Link>

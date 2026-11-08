@@ -9,7 +9,7 @@ import {
     MenuMark,
     MessageMark,
     PlusMark,
-    PropertyMark,
+    SignOutMark,
     UpgradePlansMark,
 } from '@/Components/site/Mark';
 import ThemeToggle from '@/Components/ThemeToggle';
@@ -197,11 +197,13 @@ function AccountShell({ title = 'Account', children }) {
 
             <div className="shrink-0 border-t border-olive-900/15 px-2 py-3 dark:border-olive-800">
                 <Link
-                    href={route('home')}
-                    className="flex items-center gap-3 px-3 py-2.5 text-[15px] font-semibold text-olive-800 transition hover:bg-olive-100 hover:text-olive-950 dark:text-olive-200 dark:hover:bg-olive-900 dark:hover:text-white"
+                    href={route('logout')}
+                    method="post"
+                    as="button"
+                    className="flex w-full items-center gap-3 px-3 py-2.5 text-[15px] font-semibold text-rose-700 transition hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/40 dark:hover:text-rose-300"
                 >
-                    <PropertyMark className="h-5 w-5 shrink-0" />
-                    Browse site
+                    <SignOutMark className="h-5 w-5 shrink-0" />
+                    Sign out
                 </Link>
             </div>
         </div>
@@ -264,20 +266,16 @@ function AccountShell({ title = 'Account', children }) {
                               ))}
                           </nav>
 
-                          <div className="shrink-0 space-y-2 border-t border-olive-900/15 px-2 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] dark:border-olive-800">
-                              <div className="flex items-center justify-between px-3 py-1">
-                                  <span className="text-sm font-semibold text-olive-600 dark:text-olive-400">
-                                      Appearance
-                                  </span>
-                                  <ThemeToggle isDark={isDark} setTheme={setTheme} />
-                              </div>
+                          <div className="shrink-0 border-t border-olive-900/15 px-2 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] dark:border-olive-800">
                               <Link
-                                  href={route('home')}
+                                  href={route('logout')}
+                                  method="post"
+                                  as="button"
                                   onClick={() => setMobileOpen(false)}
-                                  className="flex items-center gap-3 px-3 py-2.5 text-[15px] font-semibold text-olive-800 transition hover:bg-olive-100 hover:text-olive-950 dark:text-olive-200 dark:hover:bg-olive-900 dark:hover:text-white"
+                                  className="flex w-full items-center gap-3 px-3 py-2.5 text-[15px] font-semibold text-rose-700 transition hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/40 dark:hover:text-rose-300"
                               >
-                                  <PropertyMark className="h-5 w-5 shrink-0" />
-                                  Browse site
+                                  <SignOutMark className="h-5 w-5 shrink-0" />
+                                  Sign out
                               </Link>
                           </div>
                       </aside>

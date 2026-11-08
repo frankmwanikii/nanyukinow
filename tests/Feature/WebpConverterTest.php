@@ -64,4 +64,44 @@ class WebpConverterTest extends TestCase
         $this->assertStringEndsWith('.webp', $url);
         Storage::disk('public')->assertExists(str_replace('/storage/', '', $url));
     }
+
+    public function test_normalize_public_url_rejects_incomplete_and_browser_urls(): void
+    {
+        $this->assertNull(ListingMedia::normalizePublicUrl(null));
+        $this->assertNull(ListingMedia::normalizePublicUrl(''));
+        $this->assertNull(ListingMedia::normalizePublicUrl('/storage'));
+        $this->assertNull(ListingMedia::normalizePublicUrl('/storage/'));
+        $this->assertNull(ListingMedia::normalizePublicUrl('blob:https://example.test/abc'));
+        $this->assertNull(ListingMedia::normalizePublicUrl('data:image/png;base64,xxx'));
+        $this->assertSame(
+            '/storage/listings/logos/a.webp',
+            ListingMedia::normalizePublicUrl('/storage/listings/logos/a.webp'),
+        );
+    }
+
+    public function test_store_rejects_invalid_upload_instead_of_returning_storage_root(): void
+    {
+        Storage::fake('public');
+
+        $tmp = tempnam(sys_get_temp_dir(), 'badimg');
+        $this->assertNotFalse($tmp);
+        file_put_contents($tmp, 'not-an-image');
+
+        $file = new UploadedFile(
+            $tmp,
+            'broken.jpg',
+            'image/jpeg',
+            UPLOAD_ERR_NO_FILE,
+            true,
+        );
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('invalid or incomplete');
+
+        try {
+            ListingMedia::store($file, 'listings/logos');
+        } finally {
+            @unlink($tmp);
+        }
+    }
 }

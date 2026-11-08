@@ -41,7 +41,7 @@ class GoogleAuthController extends Controller
                 ->with('status', 'Google sign-in failed. Please try again or use email.');
         }
 
-        $email = $googleUser->getEmail();
+        $email = Str::lower((string) $googleUser->getEmail());
 
         if (! filled($email)) {
             return redirect()
@@ -49,6 +49,8 @@ class GoogleAuthController extends Controller
                 ->with('status', 'Google did not return an email address.');
         }
 
+        // Match password login: always resolve by normalized email so one account
+        // (and one avatar) is shared across Google and email sign-in.
         $user = User::query()->where('email', $email)->first();
 
         if (! $user) {
@@ -75,8 +77,13 @@ class GoogleAuthController extends Controller
             $user->forceFill(['email_verified_at' => now()])->save();
         }
 
-        // Pull Google photo when the member has none yet (never overwrite a custom upload).
-        if (! filled($user->avatar_url)) {
+        // Drop broken "/storage/" (or missing) paths so they don't block import
+        // and don't diverge from what password login shows.
+        UserAvatar::clearUnusable($user);
+
+        // Pull Google photo only when there is no usable avatar yet.
+        // Never overwrite a custom upload (or any existing usable photo).
+        if (! UserAvatar::isUsable($user->avatar_url)) {
             $imported = UserAvatar::importFromUrl($googleUser->getAvatar());
             if ($imported) {
                 $user->forceFill(['avatar_url' => $imported])->save();

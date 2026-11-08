@@ -1,0 +1,4883 @@
+[
+  {
+    "category_slug": "shopping",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "Quickmart Nanyuki",
+    "tagline": "Everyday groceries on the Nyeri–Nanyuki road",
+    "subcategory": [
+      "Supermarkets"
+    ],
+    "phone": "+254 719 225 566",
+    "whatsapp": "+254719225566",
+    "email": "info@quickmart.co.ke",
+    "website": "https://corporate.quickmart.co.ke/",
+    "address": "Nyeri–Nanyuki Road, Nanyuki",
+    "latitude": 0.0102,
+    "longitude": 37.0748,
+    "price_range": "$$",
+    "image_url": "https://corporate.quickmart.co.ke/wp-content/uploads/2026/07/QM-Fresh-Slide-Hero-1920x900.png",
+    "logo_url": "https://corporate.quickmart.co.ke/wp-content/uploads/2026/08/quickmart-logo.png",
+    "gallery": [
+      "https://corporate.quickmart.co.ke/wp-content/uploads/2026/07/QM-Fresh-Slide-Hero-1920x900.png",
+      "https://corporate.quickmart.co.ke/wp-content/uploads/2026/08/QM-Heroslide-Basket-1920x900.png",
+      "https://corporate.quickmart.co.ke/wp-content/uploads/2026/08/QM-Story-Home.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "07:30",
+        "close": "21:30",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "07:30",
+        "close": "21:30",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "07:30",
+        "close": "21:30",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "07:30",
+        "close": "21:30",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "07:30",
+        "close": "21:30",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "07:30",
+        "close": "21:30",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "08:30",
+        "close": "21:30",
+        "closed": false
+      }
+    ],
+    "amenities": [
+      "parking",
+      "cards",
+      "family",
+      "wifi"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>Quickmart Nanyuki is the town's go-to supermarket on the Nyeri–Nanyuki road for fresh produce, household staples, and daily essentials. Locals use it for full grocery runs and quick top-ups before heading into town or out on the highway.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Open early for weekday and weekend shopping</p></li><li><p>Fresh produce and household staples under one roof</p></li><li><p>Convenient highway access with parking</p></li><li><p>Card and M-Pesa friendly checkout</p></li><li><p>Branch contact 0719 225 566</p></li></ul><p></p>",
+    "details": {
+      "specialty": "Supermarket groceries and household essentials",
+      "brands": [
+        "Quickmart"
+      ],
+      "delivery_options": [
+        "In-store pickup"
+      ],
+      "return_policy": "<p>Store policy applies. Keep your receipt for exchanges where offered.</p>",
+      "wholesale_retail": [
+        "Retail"
+      ],
+      "whatsapp_catalog_url": "",
+      "online_store_url": "https://corporate.quickmart.co.ke/",
+      "price_list_pdf": "",
+      "made_to_order": "",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card"
+      ],
+      "products": [
+        {
+          "name": "Fresh produce",
+          "price": "Market rates",
+          "image": "https://corporate.quickmart.co.ke/wp-content/uploads/2026/07/QM-Fresh-Slide-Hero-1920x900.png"
+        }
+      ],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "portfolio": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "shopping",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "Cedar Mall Nanyuki",
+    "tagline": "Nanyuki's modern one-stop shopping centre on Laikipia Road",
+    "subcategory": [
+      "Local Shops",
+      "Supermarkets"
+    ],
+    "phone": "+254 746 607 791",
+    "whatsapp": "+254746607791",
+    "email": "info@cedarmallnanyuki.co.ke",
+    "website": "https://cedarmallnanyuki.co.ke/",
+    "address": "Cedar Mall, Laikipia Road, Nanyuki",
+    "latitude": 0.0148,
+    "longitude": 37.0722,
+    "price_range": "$$",
+    "image_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Image-009.jpg",
+    "logo_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Cedar-Mall-Icon.png",
+    "gallery": [
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Image-009.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/concept-03.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2022/11/315643633_5813123865418216_2596231016373196611_n.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2022/11/313987174_5791075867623016_2943535789008558554_n.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2022/11/314401584_5790563414340928_805002706993970850_n.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "08:00",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "08:00",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "08:00",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "08:00",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "08:00",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "08:00",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "08:00",
+        "close": "20:00",
+        "closed": false
+      }
+    ],
+    "amenities": [
+      "parking",
+      "wifi",
+      "family",
+      "cards",
+      "accessible"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": "https://www.facebook.com/cedarmallnanyuki",
+      "instagram": "https://www.instagram.com/cedarmallnanyuki"
+    },
+    "description": "<p>Cedar Mall is Nanyuki's modern shopping centre on Laikipia Road, bringing groceries, fashion, pharmacy, banking, dining, and services under one roof. Free parking and highland breezes make it an easy stop for residents and travellers.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Anchor tenants include Chandarana Foodplus and Goodlife Pharmacy</p></li><li><p>Fashion, books, tech, and dining under one roof</p></li><li><p>Banks, forex, and NHIF desks on site</p></li><li><p>Open daily including public holidays</p></li><li><p>Managed with Knight Frank Kenya</p></li></ul><p></p>",
+    "details": {
+      "specialty": "Shopping centre with grocery, fashion, dining, and services",
+      "brands": [
+        "Cedar Mall"
+      ],
+      "delivery_options": [
+        "In-store pickup"
+      ],
+      "return_policy": "<p>Store policy applies. Keep your receipt for exchanges where offered.</p>",
+      "wholesale_retail": [
+        "Retail"
+      ],
+      "whatsapp_catalog_url": "",
+      "online_store_url": "https://cedarmallnanyuki.co.ke/shops/",
+      "price_list_pdf": "",
+      "made_to_order": "",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card"
+      ],
+      "products": [
+        {
+          "name": "Mall directory",
+          "price": "Free entry",
+          "image": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Image-009.jpg"
+        }
+      ],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "portfolio": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "shopping",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "Chandarana Foodplus",
+    "tagline": "Full grocery and household range",
+    "subcategory": [
+      "Supermarkets"
+    ],
+    "phone": "+254796088339",
+    "whatsapp": "+254796088339",
+    "email": "managernanyuki@chandaranasupermarkets.co.ke",
+    "website": "https://cedarmallnanyuki.co.ke/portfolio-item/chandarana-foodplus/",
+    "address": "Ground floor, Cedar Mall",
+    "latitude": 0.0148,
+    "longitude": 37.0722,
+    "price_range": "$$",
+    "image_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Chandarana.jpg",
+    "logo_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Chandarana.jpg",
+    "gallery": [
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Chandarana.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Image-009.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/concept-03.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2022/11/315643633_5813123865418216_2596231016373196611_n.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "08:00",
+        "close": "21:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "08:00",
+        "close": "21:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "08:00",
+        "close": "21:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "08:00",
+        "close": "21:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "08:00",
+        "close": "21:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "08:00",
+        "close": "21:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "08:00",
+        "close": "21:00",
+        "closed": false
+      }
+    ],
+    "amenities": [
+      "parking",
+      "cards",
+      "family"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>Chandarana Foodplus anchors Cedar Mall with a full supermarket of groceries, household goods, and daily offers. It is one of Kenya's longest-running supermarket chains and the main grocery stop inside the mall.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Full grocery and household range</p></li><li><p>Ground floor at Cedar Mall</p></li><li><p>Daily offers across hundreds of items</p></li><li><p>Open 8am to 9pm every day</p></li><li><p>Email the Nanyuki store manager for queries</p></li></ul><p></p>",
+    "details": {
+      "specialty": "Supermarket groceries and household products",
+      "brands": [
+        "Chandarana Foodplus"
+      ],
+      "delivery_options": [
+        "In-store pickup"
+      ],
+      "return_policy": "<p>Store policy applies. Keep your receipt for exchanges where offered.</p>",
+      "wholesale_retail": [
+        "Retail"
+      ],
+      "whatsapp_catalog_url": "",
+      "online_store_url": "",
+      "price_list_pdf": "",
+      "made_to_order": "",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card"
+      ],
+      "products": [
+        {
+          "name": "Chandarana Foodplus",
+          "price": "In store",
+          "image": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Chandarana.jpg"
+        }
+      ],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "portfolio": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "shopping",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "Beyond Fruits",
+    "tagline": "Fresh fruit and veg delivered daily",
+    "subcategory": [
+      "Local Shops",
+      "Supermarkets"
+    ],
+    "phone": "+254799499282",
+    "whatsapp": "+254799499282",
+    "email": "info@beyondfruits.co.ke",
+    "website": "https://cedarmallnanyuki.co.ke/portfolio-item/beyond-fruits/",
+    "address": "Ground floor, Cedar Mall",
+    "latitude": 0.0148,
+    "longitude": 37.0722,
+    "price_range": "$$",
+    "image_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Untitled-design-77.png",
+    "logo_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Untitled-design-77.png",
+    "gallery": [
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Untitled-design-77.png",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Image-009.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/concept-03.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2022/11/315643633_5813123865418216_2596231016373196611_n.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "07:45",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "07:45",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "07:45",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "07:45",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "07:45",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "07:45",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "07:45",
+        "close": "20:00",
+        "closed": false
+      }
+    ],
+    "amenities": [
+      "parking",
+      "cards",
+      "family"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>Beyond Fruits stocks local and imported fruit, vegetables, juices, and smoothies with fresh deliveries every day. It is the specialty produce counter inside Cedar Mall for highland and exotic picks.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Fresh fruit and veg delivered daily</p></li><li><p>Juices and smoothies on site</p></li><li><p>Local and imported produce</p></li><li><p>Ground floor Cedar Mall</p></li><li><p>Open from early morning</p></li></ul><p></p>",
+    "details": {
+      "specialty": "Fresh fruit, vegetables, juices, and smoothies",
+      "brands": [
+        "Beyond Fruits"
+      ],
+      "delivery_options": [
+        "In-store pickup"
+      ],
+      "return_policy": "<p>Store policy applies. Keep your receipt for exchanges where offered.</p>",
+      "wholesale_retail": [
+        "Retail"
+      ],
+      "whatsapp_catalog_url": "",
+      "online_store_url": "",
+      "price_list_pdf": "",
+      "made_to_order": "",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card"
+      ],
+      "products": [
+        {
+          "name": "Beyond Fruits",
+          "price": "In store",
+          "image": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Untitled-design-77.png"
+        }
+      ],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "portfolio": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "shopping",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "Bata Cedar Mall",
+    "tagline": "School and everyday footwear",
+    "subcategory": [
+      "Boutique & Apparel"
+    ],
+    "phone": "+254723609020",
+    "whatsapp": "+254723609020",
+    "email": "bata.cedarmall@bata.com",
+    "website": "https://cedarmallnanyuki.co.ke/portfolio-item/bata/",
+    "address": "Ground floor, Cedar Mall",
+    "latitude": 0.0148,
+    "longitude": 37.0722,
+    "price_range": "$$",
+    "image_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Bata-Logo.jpg",
+    "logo_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Bata-Logo.jpg",
+    "gallery": [
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Bata-Logo.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Image-009.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/concept-03.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2022/11/315643633_5813123865418216_2596231016373196611_n.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "08:00",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "08:00",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "08:00",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "08:00",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "08:00",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "08:00",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "08:00",
+        "close": "20:00",
+        "closed": false
+      }
+    ],
+    "amenities": [
+      "parking",
+      "cards",
+      "family"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>Bata at Cedar Mall is the trusted footwear stop for school shoes, everyday sneakers, and family pairs. Kenya's leading footwear retailer keeps a full range on the ground floor.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>School and everyday footwear</p></li><li><p>Family sizes in store</p></li><li><p>Ground floor Cedar Mall</p></li><li><p>Open daily 8am to 8pm</p></li><li><p>Email the Cedar Mall shop for stock checks</p></li></ul><p></p>",
+    "details": {
+      "specialty": "Footwear for school, work, and everyday wear",
+      "brands": [
+        "Bata"
+      ],
+      "delivery_options": [
+        "In-store pickup"
+      ],
+      "return_policy": "<p>Store policy applies. Keep your receipt for exchanges where offered.</p>",
+      "wholesale_retail": [
+        "Retail"
+      ],
+      "whatsapp_catalog_url": "",
+      "online_store_url": "",
+      "price_list_pdf": "",
+      "made_to_order": "",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card"
+      ],
+      "products": [
+        {
+          "name": "Bata Cedar Mall",
+          "price": "In store",
+          "image": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Bata-Logo.jpg"
+        }
+      ],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "portfolio": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "shopping",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "Alladin World of Brands",
+    "tagline": "Multi-brand fashion floorspace",
+    "subcategory": [
+      "Boutique & Apparel"
+    ],
+    "phone": "+254791888880",
+    "whatsapp": "+254791888880",
+    "email": "customercare@alladin.co.ke",
+    "website": "https://cedarmallnanyuki.co.ke/portfolio-item/alladin-world-of-brands/",
+    "address": "First floor, Cedar Mall",
+    "latitude": 0.0148,
+    "longitude": 37.0722,
+    "price_range": "$$",
+    "image_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/11/Alladin-Logoforweb.png",
+    "logo_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/11/Alladin-Logoforweb.png",
+    "gallery": [
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/11/Alladin-Logoforweb.png",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Image-009.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/concept-03.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2022/11/315643633_5813123865418216_2596231016373196611_n.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "09:00",
+        "close": "21:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "09:00",
+        "close": "21:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "09:00",
+        "close": "21:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "09:00",
+        "close": "21:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "09:00",
+        "close": "21:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "09:00",
+        "close": "21:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "09:00",
+        "close": "21:00",
+        "closed": false
+      }
+    ],
+    "amenities": [
+      "parking",
+      "cards",
+      "family"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>Alladin World of Brands brings fashion labels and statement pieces to Cedar Mall's first floor. Shop latest trends and elevate everyday style without leaving Nanyuki.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Multi-brand fashion floorspace</p></li><li><p>First floor Cedar Mall</p></li><li><p>Open daily until 9pm</p></li><li><p>Customer care email available</p></li><li><p>Cards and M-Pesa welcome</p></li></ul><p></p>",
+    "details": {
+      "specialty": "Multi-brand fashion and statement pieces",
+      "brands": [
+        "Alladin"
+      ],
+      "delivery_options": [
+        "In-store pickup"
+      ],
+      "return_policy": "<p>Store policy applies. Keep your receipt for exchanges where offered.</p>",
+      "wholesale_retail": [
+        "Retail"
+      ],
+      "whatsapp_catalog_url": "",
+      "online_store_url": "",
+      "price_list_pdf": "",
+      "made_to_order": "",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card"
+      ],
+      "products": [
+        {
+          "name": "Alladin World of Brands",
+          "price": "In store",
+          "image": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/11/Alladin-Logoforweb.png"
+        }
+      ],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "portfolio": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "shopping",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "Arim Designs",
+    "tagline": "Ankara and African fashion",
+    "subcategory": [
+      "African Fashions",
+      "Boutique & Apparel"
+    ],
+    "phone": "+254799174548",
+    "whatsapp": "+254799174548",
+    "email": "info@arimdeisgns.com",
+    "website": "https://cedarmallnanyuki.co.ke/portfolio-item/arim-designs/",
+    "address": "First floor, Cedar Mall",
+    "latitude": 0.0148,
+    "longitude": 37.0722,
+    "price_range": "$$",
+    "image_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2024/09/Arim-Designs-Logo-Web1.jpg",
+    "logo_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2024/09/Arim-Designs-Logo-Web1.jpg",
+    "gallery": [
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2024/09/Arim-Designs-Logo-Web1.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Image-009.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/concept-03.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2022/11/315643633_5813123865418216_2596231016373196611_n.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "09:00",
+        "close": "19:30",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "09:00",
+        "close": "19:30",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "09:00",
+        "close": "19:30",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "09:00",
+        "close": "19:30",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "09:00",
+        "close": "19:30",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "09:00",
+        "close": "19:30",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "09:00",
+        "close": "19:30",
+        "closed": false
+      }
+    ],
+    "amenities": [
+      "parking",
+      "cards",
+      "family"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>Arim Designs specialises in authentic African fashion and handmade crafts, with bold Ankara outfits that celebrate heritage. Find ready-to-wear and statement pieces on Cedar Mall's first floor.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Ankara and African fashion</p></li><li><p>Handmade crafts alongside apparel</p></li><li><p>First floor Cedar Mall</p></li><li><p>Open daily into the evening</p></li><li><p>Call ahead for custom pieces</p></li></ul><p></p>",
+    "details": {
+      "specialty": "African fashion and handmade crafts",
+      "brands": [
+        "Arim Designs"
+      ],
+      "delivery_options": [
+        "In-store pickup"
+      ],
+      "return_policy": "<p>Store policy applies. Keep your receipt for exchanges where offered.</p>",
+      "wholesale_retail": [
+        "Retail"
+      ],
+      "whatsapp_catalog_url": "",
+      "online_store_url": "",
+      "price_list_pdf": "",
+      "made_to_order": "",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card"
+      ],
+      "products": [
+        {
+          "name": "Arim Designs",
+          "price": "In store",
+          "image": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2024/09/Arim-Designs-Logo-Web1.jpg"
+        }
+      ],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "portfolio": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "shopping",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "Kitu Kali Cedar Mall",
+    "tagline": "Kenyan fashion brand with bold prints",
+    "subcategory": [
+      "African Fashions",
+      "Boutique & Apparel"
+    ],
+    "phone": "+254754168468",
+    "whatsapp": "+254754168468",
+    "email": "support@kitukali.com",
+    "website": "https://cedarmallnanyuki.co.ke/portfolio-item/kitu-kali/",
+    "address": "Ground floor atrium, Cedar Mall",
+    "latitude": 0.0148,
+    "longitude": 37.0722,
+    "price_range": "$$",
+    "image_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2024/07/Kitu-Kali-Fashion-Logo.jpg",
+    "logo_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2024/07/Kitu-Kali-Fashion-Logo.jpg",
+    "gallery": [
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2024/07/Kitu-Kali-Fashion-Logo.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Image-009.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/concept-03.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2022/11/315643633_5813123865418216_2596231016373196611_n.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "08:30",
+        "close": "21:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "08:30",
+        "close": "21:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "08:30",
+        "close": "21:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "08:30",
+        "close": "21:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "08:30",
+        "close": "21:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "08:30",
+        "close": "21:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "08:30",
+        "close": "21:00",
+        "closed": false
+      }
+    ],
+    "amenities": [
+      "parking",
+      "cards",
+      "family"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>Kitu Kali celebrates African culture through vibrant footwear and apparel with bold prints and premium fabrics. The Cedar Mall atrium store sits opposite Chandarana for easy fashion finds.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Kenyan fashion brand with bold prints</p></li><li><p>Footwear and apparel collections</p></li><li><p>Atrium opposite Chandarana</p></li><li><p>Open daily until 9pm</p></li><li><p>Support email for stock queries</p></li></ul><p></p>",
+    "details": {
+      "specialty": "African-inspired footwear and apparel",
+      "brands": [
+        "Kitu Kali"
+      ],
+      "delivery_options": [
+        "In-store pickup"
+      ],
+      "return_policy": "<p>Store policy applies. Keep your receipt for exchanges where offered.</p>",
+      "wholesale_retail": [
+        "Retail"
+      ],
+      "whatsapp_catalog_url": "",
+      "online_store_url": "",
+      "price_list_pdf": "",
+      "made_to_order": "",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card"
+      ],
+      "products": [
+        {
+          "name": "Kitu Kali Cedar Mall",
+          "price": "In store",
+          "image": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2024/07/Kitu-Kali-Fashion-Logo.jpg"
+        }
+      ],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "portfolio": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "shopping",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "Royal Diva Fashion",
+    "tagline": "Event and everyday women's wear",
+    "subcategory": [
+      "Boutique & Apparel"
+    ],
+    "phone": "+254742914118",
+    "whatsapp": "+254742914118",
+    "email": "Royaldivafashion2022@gmail.com",
+    "website": "https://cedarmallnanyuki.co.ke/portfolio-item/royal-diva-fashion/",
+    "address": "Cedar Mall, Laikipia Road, Nanyuki",
+    "latitude": 0.0148,
+    "longitude": 37.0722,
+    "price_range": "$$",
+    "image_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Royal-Diva-Fashion-Logo.jpg",
+    "logo_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Royal-Diva-Fashion-Logo.jpg",
+    "gallery": [
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Royal-Diva-Fashion-Logo.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Image-009.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/concept-03.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2022/11/315643633_5813123865418216_2596231016373196611_n.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "09:00",
+        "close": "20:30",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "09:00",
+        "close": "20:30",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "09:00",
+        "close": "20:30",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "09:00",
+        "close": "20:30",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "09:00",
+        "close": "20:30",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "09:00",
+        "close": "20:30",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "11:00",
+        "close": "20:00",
+        "closed": false
+      }
+    ],
+    "amenities": [
+      "parking",
+      "cards",
+      "family"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>Royal Diva Fashion stocks event dresses, blouses, trousers, handbags, shoes, and jewellery with a Turkey-wear focus. It is a go-to Cedar Mall boutique for occasion and everyday women's fashion.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Event and everyday women's wear</p></li><li><p>Handbags, shoes, and jewellery</p></li><li><p>Open into the evening daily</p></li><li><p>Sunday hours from 11am</p></li><li><p>Message the shop for new arrivals</p></li></ul><p></p>",
+    "details": {
+      "specialty": "Women's fashion, handbags, and accessories",
+      "brands": [
+        "Royal Diva"
+      ],
+      "delivery_options": [
+        "In-store pickup"
+      ],
+      "return_policy": "<p>Store policy applies. Keep your receipt for exchanges where offered.</p>",
+      "wholesale_retail": [
+        "Retail"
+      ],
+      "whatsapp_catalog_url": "",
+      "online_store_url": "",
+      "price_list_pdf": "",
+      "made_to_order": "",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card"
+      ],
+      "products": [
+        {
+          "name": "Royal Diva Fashion",
+          "price": "In store",
+          "image": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Royal-Diva-Fashion-Logo.jpg"
+        }
+      ],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "portfolio": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "shopping",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "Royal Favor Menswear",
+    "tagline": "Casual and formal menswear",
+    "subcategory": [
+      "Boutique & Apparel"
+    ],
+    "phone": "+254722295717",
+    "whatsapp": "+254722295717",
+    "email": "pelajiakiragu@yahoo.com",
+    "website": "https://cedarmallnanyuki.co.ke/portfolio-item/royal-favor-menswear/",
+    "address": "Cedar Mall, Laikipia Road, Nanyuki",
+    "latitude": 0.0148,
+    "longitude": 37.0722,
+    "price_range": "$$",
+    "image_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/ROYAL-MENS-WEAR-ACCESSORIES.png",
+    "logo_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/ROYAL-MENS-WEAR-ACCESSORIES.png",
+    "gallery": [
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/ROYAL-MENS-WEAR-ACCESSORIES.png",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Image-009.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/concept-03.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2022/11/315643633_5813123865418216_2596231016373196611_n.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "09:00",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "09:00",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "09:00",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "09:00",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "09:00",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "09:00",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "14:00",
+        "close": "19:30",
+        "closed": false
+      }
+    ],
+    "amenities": [
+      "parking",
+      "cards",
+      "family"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>Royal Favor Menswear covers casual and official wear plus shoes, belts, wallets, watches, and ties. Men can kit out for work or weekends without leaving Cedar Mall.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Casual and formal menswear</p></li><li><p>Shoes, belts, watches, and ties</p></li><li><p>Evening shopping hours</p></li><li><p>Sunday afternoon opening</p></li><li><p>Call for size availability</p></li></ul><p></p>",
+    "details": {
+      "specialty": "Menswear and accessories",
+      "brands": [
+        "Royal Favor"
+      ],
+      "delivery_options": [
+        "In-store pickup"
+      ],
+      "return_policy": "<p>Store policy applies. Keep your receipt for exchanges where offered.</p>",
+      "wholesale_retail": [
+        "Retail"
+      ],
+      "whatsapp_catalog_url": "",
+      "online_store_url": "",
+      "price_list_pdf": "",
+      "made_to_order": "",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card"
+      ],
+      "products": [
+        {
+          "name": "Royal Favor Menswear",
+          "price": "In store",
+          "image": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/ROYAL-MENS-WEAR-ACCESSORIES.png"
+        }
+      ],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "portfolio": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "shopping",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "Juttsons Books & Stationery",
+    "tagline": "School books and general reading",
+    "subcategory": [
+      "Local Shops",
+      "Gifts & Souvenirs"
+    ],
+    "phone": "+254726968080",
+    "whatsapp": "+254726968080",
+    "email": "info@juttsons.com",
+    "website": "https://cedarmallnanyuki.co.ke/portfolio-item/juttsons-books-stationery/",
+    "address": "Cedar Mall, Laikipia Road, Nanyuki",
+    "latitude": 0.0148,
+    "longitude": 37.0722,
+    "price_range": "$$",
+    "image_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Juttson-Ltd.jpg",
+    "logo_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Juttson-Ltd.jpg",
+    "gallery": [
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Juttson-Ltd.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Image-009.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/concept-03.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2022/11/315643633_5813123865418216_2596231016373196611_n.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "09:00",
+        "close": "18:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "09:00",
+        "close": "18:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "09:00",
+        "close": "18:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "09:00",
+        "close": "18:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "09:00",
+        "close": "18:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "09:00",
+        "close": "18:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "11:00",
+        "close": "16:30",
+        "closed": false
+      }
+    ],
+    "amenities": [
+      "parking",
+      "cards",
+      "family"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>Juttsons is a self-service bookstore stocking school books, novels, Africana, maps, stationery, sports goods, and IT supplies. Families and students use it as Cedar Mall's go-to books and stationery stop.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>School books and general reading</p></li><li><p>Stationery and maps in store</p></li><li><p>IT goods and printing supplies</p></li><li><p>Open Sundays 11am to 4.30pm</p></li><li><p>Email info@juttsons.com</p></li></ul><p></p>",
+    "details": {
+      "specialty": "Books, stationery, and school supplies",
+      "brands": [
+        "Juttsons"
+      ],
+      "delivery_options": [
+        "In-store pickup"
+      ],
+      "return_policy": "<p>Store policy applies. Keep your receipt for exchanges where offered.</p>",
+      "wholesale_retail": [
+        "Retail"
+      ],
+      "whatsapp_catalog_url": "",
+      "online_store_url": "",
+      "price_list_pdf": "",
+      "made_to_order": "",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card"
+      ],
+      "products": [
+        {
+          "name": "Juttsons Books & Stationery",
+          "price": "In store",
+          "image": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Juttson-Ltd.jpg"
+        }
+      ],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "portfolio": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "shopping",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "Liquor Max Cedar Mall",
+    "tagline": "Wide wine and spirits selection",
+    "subcategory": [
+      "Local Shops"
+    ],
+    "phone": "+254706496675",
+    "whatsapp": "+254706496675",
+    "email": "liquormaxinfo@gmail.com",
+    "website": "https://cedarmallnanyuki.co.ke/portfolio-item/liquor-max/",
+    "address": "Ground floor, Cedar Mall",
+    "latitude": 0.0148,
+    "longitude": 37.0722,
+    "price_range": "$$",
+    "image_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Liquor-Max-Logo-1.jpg",
+    "logo_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Liquor-Max-Logo-1.jpg",
+    "gallery": [
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Liquor-Max-Logo-1.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Image-009.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/concept-03.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2022/11/315643633_5813123865418216_2596231016373196611_n.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "08:30",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "08:30",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "08:30",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "08:30",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "08:30",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "08:30",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "08:30",
+        "close": "22:00",
+        "closed": false
+      }
+    ],
+    "amenities": [
+      "parking",
+      "cards",
+      "family"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>Liquor Max offers a wide range of wines and spirits with a focus on quality, value, and responsible drinking. Home delivery is available for larger purchases from the Cedar Mall shop.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Wide wine and spirits selection</p></li><li><p>Ground floor Cedar Mall</p></li><li><p>Open daily until 10pm</p></li><li><p>Home delivery on large orders</p></li><li><p>Email for stock and delivery queries</p></li></ul><p></p>",
+    "details": {
+      "specialty": "Wines, spirits, and confectionery",
+      "brands": [
+        "Liquor Max"
+      ],
+      "delivery_options": [
+        "In-store pickup"
+      ],
+      "return_policy": "<p>Store policy applies. Keep your receipt for exchanges where offered.</p>",
+      "wholesale_retail": [
+        "Retail"
+      ],
+      "whatsapp_catalog_url": "",
+      "online_store_url": "",
+      "price_list_pdf": "",
+      "made_to_order": "",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card"
+      ],
+      "products": [
+        {
+          "name": "Liquor Max Cedar Mall",
+          "price": "In store",
+          "image": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Liquor-Max-Logo-1.jpg"
+        }
+      ],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "portfolio": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "shopping",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "Orchards Communication",
+    "tagline": "Official Safaricom dealer",
+    "subcategory": [
+      "Mobile Phones & Gadgets",
+      "Electronics"
+    ],
+    "phone": "+254700269692",
+    "whatsapp": "+254700269692",
+    "email": "eswairimuk@gmail.com",
+    "website": "https://cedarmallnanyuki.co.ke/portfolio-item/orchards-communication/",
+    "address": "Ground floor, Cedar Mall",
+    "latitude": 0.0148,
+    "longitude": 37.0722,
+    "price_range": "$$",
+    "image_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Ochards-Logo.jpg",
+    "logo_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Ochards-Logo.jpg",
+    "gallery": [
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Ochards-Logo.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Image-009.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/concept-03.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2022/11/315643633_5813123865418216_2596231016373196611_n.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "07:30",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "07:30",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "07:30",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "07:30",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "07:30",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "07:30",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "10:00",
+        "close": "19:30",
+        "closed": false
+      }
+    ],
+    "amenities": [
+      "parking",
+      "cards",
+      "family"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>Orchards Communication is an official Safaricom dealer selling phones, tablets, and accessories across brands and colours. It is Cedar Mall's handy mobile and gadget counter.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Official Safaricom dealer</p></li><li><p>Phones, tablets, and accessories</p></li><li><p>Early weekday opening</p></li><li><p>Sunday hours from 10am</p></li><li><p>Ask in store for device deals</p></li></ul><p></p>",
+    "details": {
+      "specialty": "Mobile phones, tablets, and accessories",
+      "brands": [
+        "Orchards Communication",
+        "Safaricom"
+      ],
+      "delivery_options": [
+        "In-store pickup"
+      ],
+      "return_policy": "<p>Store policy applies. Keep your receipt for exchanges where offered.</p>",
+      "wholesale_retail": [
+        "Retail"
+      ],
+      "whatsapp_catalog_url": "",
+      "online_store_url": "",
+      "price_list_pdf": "",
+      "made_to_order": "",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card"
+      ],
+      "products": [
+        {
+          "name": "Orchards Communication",
+          "price": "In store",
+          "image": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Ochards-Logo.jpg"
+        }
+      ],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "portfolio": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "shopping",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "Airtel Cedar Mall",
+    "tagline": "SIM, data, and device support",
+    "subcategory": [
+      "Mobile Phones & Gadgets"
+    ],
+    "phone": "+254751771705",
+    "whatsapp": "+254751771705",
+    "email": "juliet.Muthoni@ke.airtel.com",
+    "website": "https://cedarmallnanyuki.co.ke/portfolio-item/airtel/",
+    "address": "Ground floor, Cedar Mall",
+    "latitude": 0.0148,
+    "longitude": 37.0722,
+    "price_range": "$$",
+    "image_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Airtel.jpg",
+    "logo_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Airtel.jpg",
+    "gallery": [
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Airtel.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Image-009.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/concept-03.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2022/11/315643633_5813123865418216_2596231016373196611_n.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "09:00",
+        "close": "18:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "09:00",
+        "close": "18:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "09:00",
+        "close": "18:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "09:00",
+        "close": "18:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "09:00",
+        "close": "18:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "09:00",
+        "close": "18:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "",
+        "close": "",
+        "closed": true
+      }
+    ],
+    "amenities": [
+      "parking",
+      "cards",
+      "family"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>The Airtel shop at Cedar Mall helps customers with SIMs, data, devices, and account support. It is a convenient telecom desk inside the mall for value-for-money mobile services.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>SIM, data, and device support</p></li><li><p>Ground floor Cedar Mall</p></li><li><p>Monday to Saturday 9am to 6pm</p></li><li><p>Email the shop contact for help</p></li><li><p>Airtel Kenya products and offers</p></li></ul><p></p>",
+    "details": {
+      "specialty": "Airtel mobile products and support",
+      "brands": [
+        "Airtel"
+      ],
+      "delivery_options": [
+        "In-store pickup"
+      ],
+      "return_policy": "<p>Store policy applies. Keep your receipt for exchanges where offered.</p>",
+      "wholesale_retail": [
+        "Retail"
+      ],
+      "whatsapp_catalog_url": "",
+      "online_store_url": "",
+      "price_list_pdf": "",
+      "made_to_order": "",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card"
+      ],
+      "products": [
+        {
+          "name": "Airtel Cedar Mall",
+          "price": "In store",
+          "image": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Airtel.jpg"
+        }
+      ],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "portfolio": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "services",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "I&M Bank Nanyuki",
+    "tagline": "Hussein Building ground floor",
+    "subcategory": [
+      "Finance & Banking"
+    ],
+    "phone": "+254732100035",
+    "whatsapp": "+254732100035",
+    "email": "customercare@imbank.co.ke",
+    "website": "https://www.imbankgroup.com/ke/",
+    "address": "Hussein Building, Ground Floor, Nyeri–Nanyuki Road, Nanyuki",
+    "latitude": 0.0125,
+    "longitude": 37.0755,
+    "price_range": "",
+    "image_url": "https://ke.kcbgroup.com/imgs/general-personal-banking.jpg",
+    "logo_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Generic.jpg",
+    "gallery": [
+      "https://ke.kcbgroup.com/imgs/general-personal-banking.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Image-009.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "08:30",
+        "close": "16:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "08:30",
+        "close": "16:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "08:30",
+        "close": "16:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "08:30",
+        "close": "16:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "08:30",
+        "close": "16:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "09:00",
+        "close": "12:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "",
+        "close": "",
+        "closed": true
+      }
+    ],
+    "amenities": [
+      "parking",
+      "cards",
+      "accessible"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>I&M Bank's Nanyuki branch sits in Hussein Building on the Nyeri–Nanyuki road, serving personal and business clients across Laikipia. Drop in for accounts, loans, and day-to-day banking with Saturday morning hours.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Hussein Building ground floor</p></li><li><p>Weekdays 8.30am to 4pm</p></li><li><p>Saturday banking until noon</p></li><li><p>Cell 0732 100 035 / 0719 088 000</p></li><li><p>Branch tel 020 322 1035</p></li></ul><p></p>",
+    "details": {
+      "service_area": "Nanyuki and Laikipia",
+      "pricing_from": "Personal and business banking",
+      "offerings": [
+        "Accounts",
+        "Loans",
+        "Transfers",
+        "ATM services"
+      ],
+      "response_time": "Branch hours",
+      "credentials": [
+        "Licensed financial services"
+      ],
+      "booking_url": "",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card",
+        "Bank transfer"
+      ],
+      "portfolio": [],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "products": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "services",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "Equity Bank Nanyuki",
+    "tagline": "Central Nanyuki–Nyeri Road location",
+    "subcategory": [
+      "Finance & Banking"
+    ],
+    "phone": "+254202744000",
+    "whatsapp": "+254202744000",
+    "email": "info@equitybank.co.ke",
+    "website": "https://equitygroupholdings.com/",
+    "address": "Nanyuki–Nyeri Road, Nanyuki",
+    "latitude": 0.0122,
+    "longitude": 37.0767,
+    "price_range": "",
+    "image_url": "https://ke.kcbgroup.com/imgs/general-personal-banking.jpg",
+    "logo_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Generic.jpg",
+    "gallery": [
+      "https://ke.kcbgroup.com/imgs/general-personal-banking.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Image-009.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "09:00",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "09:00",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "09:00",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "09:00",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "09:00",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "08:00",
+        "close": "12:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "",
+        "close": "",
+        "closed": true
+      }
+    ],
+    "amenities": [
+      "parking",
+      "cards",
+      "accessible"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>Equity Bank Nanyuki serves town and county clients from the Nyeri road corridor with everyday banking, agency support, and Saturday morning hours. It is one of the most visited bank branches in Nanyuki centre.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Central Nanyuki–Nyeri Road location</p></li><li><p>Weekdays 9am to 5pm</p></li><li><p>Saturday 8am to noon</p></li><li><p>Wheelchair-accessible entrance</p></li><li><p>Contact +254 20 2744000</p></li></ul><p></p>",
+    "details": {
+      "service_area": "Nanyuki and Laikipia",
+      "pricing_from": "Retail and SME banking",
+      "offerings": [
+        "Accounts",
+        "Loans",
+        "Agency banking",
+        "ATM"
+      ],
+      "response_time": "Branch hours",
+      "credentials": [
+        "Licensed financial services"
+      ],
+      "booking_url": "",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card",
+        "Bank transfer"
+      ],
+      "portfolio": [],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "products": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "services",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "KCB Bank Nanyuki",
+    "tagline": "Full-service KCB branch",
+    "subcategory": [
+      "Finance & Banking"
+    ],
+    "phone": "+254711087000",
+    "whatsapp": "+254711087000",
+    "email": "contactcentre@kcbgroup.com",
+    "website": "https://ke.kcbgroup.com/",
+    "address": "Nyeri–Nanyuki Road, Nanyuki",
+    "latitude": 0.012,
+    "longitude": 37.076,
+    "price_range": "",
+    "image_url": "https://ke.kcbgroup.com/imgs/general-personal-banking.jpg",
+    "logo_url": "https://ke.kcbgroup.com/imgs/kcb-bank.png",
+    "gallery": [
+      "https://ke.kcbgroup.com/imgs/general-personal-banking.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Image-009.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/concept-03.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "08:30",
+        "close": "16:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "08:30",
+        "close": "16:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "08:30",
+        "close": "16:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "08:30",
+        "close": "16:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "08:30",
+        "close": "16:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "09:00",
+        "close": "12:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "",
+        "close": "",
+        "closed": true
+      }
+    ],
+    "amenities": [
+      "parking",
+      "cards",
+      "accessible"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>KCB Bank Nanyuki anchors the Nyeri–Nanyuki road banking strip with full-service personal and business banking. Use the branch for accounts, loans, and ATM access during standard weekday and Saturday hours.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Full-service KCB branch</p></li><li><p>Weekdays 8.30am to 4pm</p></li><li><p>Saturday morning banking</p></li><li><p>Contact centre 0711 087 000</p></li><li><p>ATM access on the corridor</p></li></ul><p></p>",
+    "details": {
+      "service_area": "Nanyuki and Laikipia",
+      "pricing_from": "Personal and business banking",
+      "offerings": [
+        "Accounts",
+        "Loans",
+        "Mobile banking support",
+        "ATM"
+      ],
+      "response_time": "Branch hours",
+      "credentials": [
+        "Licensed financial services"
+      ],
+      "booking_url": "",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card",
+        "Bank transfer"
+      ],
+      "portfolio": [],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "products": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "services",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "Co-operative Bank Nanyuki",
+    "tagline": "Branch code 11068",
+    "subcategory": [
+      "Finance & Banking"
+    ],
+    "phone": "+254714052554",
+    "whatsapp": "+254714052554",
+    "email": "nanyukibr@co-opbank.co.ke",
+    "website": "https://www.co-opbank.co.ke/locations/nanyuki-branch/",
+    "address": "Nyeri–Nanyuki Road, Nanyuki",
+    "latitude": 0.0118,
+    "longitude": 37.0758,
+    "price_range": "",
+    "image_url": "https://www.co-opbank.co.ke/wp-content/uploads/2026/05/Coop-Logo-02-1.png",
+    "logo_url": "https://www.co-opbank.co.ke/wp-content/uploads/2026/05/Coop-Logo-02-1.png",
+    "gallery": [
+      "https://www.co-opbank.co.ke/wp-content/uploads/2026/05/Coop-Logo-02-1.png",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Image-009.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/concept-03.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "08:30",
+        "close": "16:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "08:30",
+        "close": "16:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "08:30",
+        "close": "16:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "08:30",
+        "close": "16:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "08:30",
+        "close": "16:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "09:00",
+        "close": "12:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "",
+        "close": "",
+        "closed": true
+      }
+    ],
+    "amenities": [
+      "parking",
+      "cards",
+      "accessible"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>Co-operative Bank Nanyuki (branch code 11068) serves members and the public along the Nyeri–Nanyuki road. Call the branch lines for account support, loans, and Saturday morning banking.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Branch code 11068</p></li><li><p>Tel 0714 052 554 and 0110 586 684</p></li><li><p>Email nanyukibr@co-opbank.co.ke</p></li><li><p>Weekdays 8.30am to 4pm</p></li><li><p>Saturday until noon</p></li></ul><p></p>",
+    "details": {
+      "service_area": "Nanyuki and Laikipia",
+      "pricing_from": "Co-operative and retail banking",
+      "offerings": [
+        "Accounts",
+        "Loans",
+        "M-Pesa linked services",
+        "ATM"
+      ],
+      "response_time": "Branch hours",
+      "credentials": [
+        "Licensed financial services"
+      ],
+      "booking_url": "",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card",
+        "Bank transfer"
+      ],
+      "portfolio": [],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "products": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "services",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "Standard Chartered Nanyuki",
+    "tagline": "Lifestyle banking hub with Artcaffé",
+    "subcategory": [
+      "Finance & Banking"
+    ],
+    "phone": "+254 62 203 1173",
+    "whatsapp": "+254622031173",
+    "email": "",
+    "website": "https://www.sc.com/ke/",
+    "address": "Kenyatta Highway / Artcaffé hub, Nanyuki",
+    "latitude": 0.0061,
+    "longitude": 37.0729,
+    "price_range": "",
+    "image_url": "https://av.sc.com/ke/content/images/content/images/cropped-512x512-1-300x300.png",
+    "logo_url": "https://av.sc.com/ke/content/images/content/images/cropped-512x512-1-300x300.png",
+    "gallery": [
+      "https://av.sc.com/ke/content/images/content/images/cropped-512x512-1-300x300.png",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Image-009.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/concept-03.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "08:30",
+        "close": "16:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "08:30",
+        "close": "16:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "08:30",
+        "close": "16:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "08:30",
+        "close": "16:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "08:30",
+        "close": "16:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "09:00",
+        "close": "12:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "",
+        "close": "",
+        "closed": true
+      }
+    ],
+    "amenities": [
+      "parking",
+      "cards",
+      "accessible"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>Standard Chartered's Nanyuki presence combines a Kenyatta Highway branch tradition with a lifestyle banking hub inside Artcaffé. Clients get advisory support, self-service machines, and digital-first banking in a café setting.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Lifestyle banking hub with Artcaffé</p></li><li><p>ATM and self-service machines</p></li><li><p>Wealth and relationship advisory</p></li><li><p>Kenyatta Highway Nanyuki Town</p></li><li><p>Phone 062 203 1173</p></li></ul><p></p>",
+    "details": {
+      "service_area": "Nanyuki and Laikipia",
+      "pricing_from": "Lifestyle and advisory banking",
+      "offerings": [
+        "Accounts",
+        "Wealth advisory",
+        "ATM & CDM",
+        "Digital banking"
+      ],
+      "response_time": "Branch hours",
+      "credentials": [
+        "Licensed financial services"
+      ],
+      "booking_url": "",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card",
+        "Bank transfer"
+      ],
+      "portfolio": [],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "products": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "services",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "SBM Bank Nanyuki",
+    "tagline": "Peak Place Building location",
+    "subcategory": [
+      "Finance & Banking"
+    ],
+    "phone": "+254703074953",
+    "whatsapp": "+254703074953",
+    "email": "",
+    "website": "https://www.sbmbank.co.ke/",
+    "address": "Peak Place Building, Nanyuki",
+    "latitude": 0.014,
+    "longitude": 37.0735,
+    "price_range": "",
+    "image_url": "https://www.sbmbank.co.ke/templates/sbm/images/logo.png",
+    "logo_url": "https://www.sbmbank.co.ke/templates/sbm/images/logo.png",
+    "gallery": [
+      "https://www.sbmbank.co.ke/templates/sbm/images/logo.png",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Image-009.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/concept-03.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "08:30",
+        "close": "16:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "08:30",
+        "close": "16:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "08:30",
+        "close": "16:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "08:30",
+        "close": "16:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "08:30",
+        "close": "16:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "09:00",
+        "close": "12:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "",
+        "close": "",
+        "closed": true
+      }
+    ],
+    "amenities": [
+      "parking",
+      "cards",
+      "accessible"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>SBM Bank's Nanyuki branch at Peak Place is the lender's 34th Kenya outlet, targeting tourism, agribusiness, and SME clients across Laikipia. Visit for personal and business banking with Saturday morning hours.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Peak Place Building location</p></li><li><p>34th SBM branch in Kenya</p></li><li><p>Serves Laikipia and surrounding areas</p></li><li><p>Branch line +254 703 074 953</p></li><li><p>Personal, business, and institutional banking</p></li></ul><p></p>",
+    "details": {
+      "service_area": "Nanyuki and Laikipia",
+      "pricing_from": "Personal and business banking",
+      "offerings": [
+        "Accounts",
+        "Business banking",
+        "Transfers",
+        "ATM"
+      ],
+      "response_time": "Branch hours",
+      "credentials": [
+        "Licensed financial services"
+      ],
+      "booking_url": "",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card",
+        "Bank transfer"
+      ],
+      "portfolio": [],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "products": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "services",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "NCBA Cedar Mall",
+    "tagline": "Ground floor Cedar Mall",
+    "subcategory": [
+      "Finance & Banking"
+    ],
+    "phone": "+254711056444",
+    "whatsapp": "+254711056444",
+    "email": "",
+    "website": "https://ke.ncbagroup.com/",
+    "address": "Ground floor, Cedar Mall, Nanyuki",
+    "latitude": 0.0148,
+    "longitude": 37.0722,
+    "price_range": "",
+    "image_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/NCBA-Logo.jpg",
+    "logo_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/NCBA-Logo.jpg",
+    "gallery": [
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/NCBA-Logo.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Image-009.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/concept-03.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "08:30",
+        "close": "16:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "08:30",
+        "close": "16:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "08:30",
+        "close": "16:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "08:30",
+        "close": "16:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "08:30",
+        "close": "16:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "09:00",
+        "close": "16:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "",
+        "close": "",
+        "closed": true
+      }
+    ],
+    "amenities": [
+      "parking",
+      "cards",
+      "accessible"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>NCBA's Cedar Mall desk brings commercial banking into the shopping centre for personal and business clients. Weekday and Saturday hours make it easy to bank while you shop.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Ground floor Cedar Mall</p></li><li><p>Weekdays 8.30am to 4pm</p></li><li><p>Saturday 9am to 4pm</p></li><li><p>Mall parking on site</p></li><li><p>Commercial and retail banking</p></li></ul><p></p>",
+    "details": {
+      "service_area": "Nanyuki and Laikipia",
+      "pricing_from": "Retail and commercial banking",
+      "offerings": [
+        "Accounts",
+        "Loans",
+        "Card services"
+      ],
+      "response_time": "Branch hours",
+      "credentials": [
+        "Licensed financial services"
+      ],
+      "booking_url": "",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card",
+        "Bank transfer"
+      ],
+      "portfolio": [],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "products": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "services",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "Junction Forex Cedar Mall",
+    "tagline": "CBK-authorised forex dealer",
+    "subcategory": [
+      "Finance & Banking"
+    ],
+    "phone": "+254708015010",
+    "whatsapp": "+254708015010",
+    "email": "nanyuki@junctionforex.co.ke",
+    "website": "https://cedarmallnanyuki.co.ke/portfolio-item/junction-forex-money-remittance-ltd/",
+    "address": "Ground floor, Cedar Mall, Nanyuki",
+    "latitude": 0.0148,
+    "longitude": 37.0722,
+    "price_range": "",
+    "image_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2024/10/Junction-Forex-Logo960by625.jpg",
+    "logo_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2024/10/Junction-Forex-Logo960by625.jpg",
+    "gallery": [
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2024/10/Junction-Forex-Logo960by625.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Image-009.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/concept-03.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "09:00",
+        "close": "19:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "09:00",
+        "close": "19:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "09:00",
+        "close": "19:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "09:00",
+        "close": "19:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "09:00",
+        "close": "19:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "09:00",
+        "close": "19:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "09:00",
+        "close": "19:00",
+        "closed": false
+      }
+    ],
+    "amenities": [
+      "parking",
+      "cards",
+      "accessible"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>Junction Forex & Money Remittance is a CBK-authorised dealer offering competitive forex rates with no commission, plus Western Union and Ria transfers. Find them on Cedar Mall's ground floor seven days a week.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>CBK-authorised forex dealer</p></li><li><p>No commission on competitive rates</p></li><li><p>Western Union and Ria partners</p></li><li><p>Open daily including holidays</p></li><li><p>Email nanyuki@junctionforex.co.ke</p></li></ul><p></p>",
+    "details": {
+      "service_area": "Nanyuki and Laikipia",
+      "pricing_from": "Foreign exchange and remittances",
+      "offerings": [
+        "Forex",
+        "Western Union",
+        "Ria",
+        "Money remittance"
+      ],
+      "response_time": "Branch hours",
+      "credentials": [
+        "Licensed financial services"
+      ],
+      "booking_url": "",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card",
+        "Bank transfer"
+      ],
+      "portfolio": [],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "products": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "services",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "ICEA LION Cedar Mall",
+    "tagline": "Insurance, pensions, and investments",
+    "subcategory": [
+      "Finance & Banking"
+    ],
+    "phone": "+2547190711432",
+    "whatsapp": "+2547190711432",
+    "email": "contactcentre@icealion.com",
+    "website": "https://cedarmallnanyuki.co.ke/portfolio-item/icea-lion/",
+    "address": "First floor, Cedar Mall, Nanyuki",
+    "latitude": 0.0148,
+    "longitude": 37.0722,
+    "price_range": "",
+    "image_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2023/02/ICEA-LION-GROUP-WEB-LOGO.jpg",
+    "logo_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2023/02/ICEA-LION-GROUP-WEB-LOGO.jpg",
+    "gallery": [
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2023/02/ICEA-LION-GROUP-WEB-LOGO.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Image-009.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/concept-03.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "08:00",
+        "close": "16:30",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "08:00",
+        "close": "16:30",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "08:00",
+        "close": "16:30",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "08:00",
+        "close": "16:30",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "08:00",
+        "close": "16:30",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "08:00",
+        "close": "16:30",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "08:00",
+        "close": "16:30",
+        "closed": false
+      }
+    ],
+    "amenities": [
+      "parking",
+      "cards",
+      "accessible"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>ICEA LION Group offers insurance, pensions, investments, and trusts from its Cedar Mall first-floor desk. It is a one-stop financial services counter for Nanyuki residents and businesses.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Insurance, pensions, and investments</p></li><li><p>First floor Cedar Mall</p></li><li><p>Open daily 8am to 4.30pm</p></li><li><p>Contact centre email available</p></li><li><p>One-stop financial services</p></li></ul><p></p>",
+    "details": {
+      "service_area": "Nanyuki and Laikipia",
+      "pricing_from": "Insurance and investment services",
+      "offerings": [
+        "Insurance",
+        "Pensions",
+        "Investments",
+        "Trusts"
+      ],
+      "response_time": "Branch hours",
+      "credentials": [
+        "Licensed financial services"
+      ],
+      "booking_url": "",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card",
+        "Bank transfer"
+      ],
+      "portfolio": [],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "products": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "services",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "Medione Pharmacy",
+    "tagline": "Peak Place ground floor on Irura Road",
+    "subcategory": [
+      "Health & Medical"
+    ],
+    "phone": "+254728079401",
+    "whatsapp": "+254728079401",
+    "email": "medionenanyuki@gmail.com",
+    "website": "https://medi0ne.netlify.app/",
+    "address": "Peak Place, A-6 Ground Floor, Irura Road, Nanyuki",
+    "latitude": 0.014,
+    "longitude": 37.0735,
+    "price_range": "$$",
+    "image_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Generic.jpg",
+    "logo_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Goodlife-Logo.jpg",
+    "gallery": [
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Generic.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Goodlife-Logo.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Image-009.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/concept-03.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "08:00",
+        "close": "21:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "08:00",
+        "close": "21:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "08:00",
+        "close": "21:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "08:00",
+        "close": "21:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "08:00",
+        "close": "21:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "08:00",
+        "close": "21:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "10:00",
+        "close": "19:00",
+        "closed": false
+      }
+    ],
+    "amenities": [
+      "parking",
+      "cards",
+      "family"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>Medione Pharmacy serves Nanyuki from Peak Place on Irura Road with prescription medicines, over-the-counter care, and friendly pharmacist advice. Locals rate it highly for convenient town-centre pharmacy runs.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Peak Place ground floor on Irura Road</p></li><li><p>Open weekdays and Saturdays until 9pm</p></li><li><p>Sunday hours 10am to 7pm</p></li><li><p>Phone +254 728 079 401</p></li><li><p>Email medionenanyuki@gmail.com</p></li></ul><p></p>",
+    "details": {
+      "service_area": "Nanyuki town",
+      "pricing_from": "Community pharmacy",
+      "offerings": [
+        "Prescriptions",
+        "OTC medicines",
+        "Health advice",
+        "Personal care"
+      ],
+      "response_time": "Branch hours",
+      "credentials": [
+        "Licensed health services"
+      ],
+      "booking_url": "",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card",
+        "Bank transfer"
+      ],
+      "portfolio": [],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "products": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "services",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "Goodlife Pharmacy Cedar Mall",
+    "tagline": "Ground floor Cedar Mall",
+    "subcategory": [
+      "Health & Medical"
+    ],
+    "phone": "+254796548738",
+    "whatsapp": "+254796548738",
+    "email": "cedarmall@goodlife.africa.com",
+    "website": "https://goodlife.co.ke/",
+    "address": "Ground floor, Cedar Mall, Nanyuki",
+    "latitude": 0.0148,
+    "longitude": 37.0722,
+    "price_range": "$$",
+    "image_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Goodlife-Logo.jpg",
+    "logo_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Goodlife-Logo.jpg",
+    "gallery": [
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Goodlife-Logo.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Image-009.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/concept-03.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "08:30",
+        "close": "20:30",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "08:30",
+        "close": "20:30",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "08:30",
+        "close": "20:30",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "08:30",
+        "close": "20:30",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "08:30",
+        "close": "20:30",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "08:30",
+        "close": "20:30",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "10:00",
+        "close": "20:00",
+        "closed": false
+      }
+    ],
+    "amenities": [
+      "parking",
+      "cards",
+      "family"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>Goodlife Pharmacy at Cedar Mall is more than a pharmacy counter. Shop medicines, wellness products, and everyday health essentials while you grocery shop at the mall.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Ground floor Cedar Mall</p></li><li><p>Monday to Saturday 8.30am to 8.30pm</p></li><li><p>Sunday 10am to 8pm</p></li><li><p>Part of the Goodlife Kenya network</p></li><li><p>Email the Cedar Mall store</p></li></ul><p></p>",
+    "details": {
+      "service_area": "Nanyuki town",
+      "pricing_from": "Pharmacy and wellness retail",
+      "offerings": [
+        "Prescriptions",
+        "Wellness",
+        "Personal care",
+        "OTC"
+      ],
+      "response_time": "Branch hours",
+      "credentials": [
+        "Licensed health services"
+      ],
+      "booking_url": "",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card",
+        "Bank transfer"
+      ],
+      "portfolio": [],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "products": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "services",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "Healthy U Cedar Mall",
+    "tagline": "Health and lifestyle products",
+    "subcategory": [
+      "Health & Medical"
+    ],
+    "phone": "+254706768289",
+    "whatsapp": "+254706768289",
+    "email": "nanyuki@healthy-u2000.com",
+    "website": "https://cedarmallnanyuki.co.ke/portfolio-item/healthy-u/",
+    "address": "Ground floor, Cedar Mall, Nanyuki",
+    "latitude": 0.0148,
+    "longitude": 37.0722,
+    "price_range": "$$",
+    "image_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Healthy-U.jpg",
+    "logo_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Healthy-U.jpg",
+    "gallery": [
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Healthy-U.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Image-009.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/concept-03.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "09:00",
+        "close": "19:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "09:00",
+        "close": "19:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "09:00",
+        "close": "19:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "09:00",
+        "close": "19:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "09:00",
+        "close": "19:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "09:00",
+        "close": "19:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "",
+        "close": "",
+        "closed": true
+      }
+    ],
+    "amenities": [
+      "parking",
+      "cards",
+      "family"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>Healthy U stocks health and lifestyle products for retail and wholesale customers aiming for better everyday wellness. Find vitamins, supplements, and healthy living goods on Cedar Mall's ground floor.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Health and lifestyle products</p></li><li><p>Retail and wholesale options</p></li><li><p>Ground floor Cedar Mall</p></li><li><p>Monday to Saturday 9am to 7pm</p></li><li><p>Email nanyuki@healthy-u2000.com</p></li></ul><p></p>",
+    "details": {
+      "service_area": "Nanyuki town",
+      "pricing_from": "Health products retail and wholesale",
+      "offerings": [
+        "Supplements",
+        "Wellness goods",
+        "Healthy lifestyle products"
+      ],
+      "response_time": "Branch hours",
+      "credentials": [
+        "Licensed health services"
+      ],
+      "booking_url": "",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card",
+        "Bank transfer"
+      ],
+      "portfolio": [],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "products": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "services",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "Optica Cedar Mall",
+    "tagline": "Eye exams and optical retail",
+    "subcategory": [
+      "Health & Medical"
+    ],
+    "phone": "+254790205332",
+    "whatsapp": "+254790205332",
+    "email": "nanyuki@optica.co.ke",
+    "website": "https://www.optica.africa/",
+    "address": "Ground floor, Cedar Mall, Nanyuki",
+    "latitude": 0.0148,
+    "longitude": 37.0722,
+    "price_range": "$$",
+    "image_url": "https://optica.africa/cdn/shop/files/WEB_BANNER_Large_6bca2a62-af5d-4e36-9576-c35d2c87bbd3.jpg?v=1792137483",
+    "logo_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Optica-Logo.jpg",
+    "gallery": [
+      "https://optica.africa/cdn/shop/files/WEB_BANNER_Large_6bca2a62-af5d-4e36-9576-c35d2c87bbd3.jpg?v=1792137483",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Optica-Logo.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Image-009.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/concept-03.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "09:30",
+        "close": "18:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "09:30",
+        "close": "18:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "09:30",
+        "close": "18:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "09:30",
+        "close": "18:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "09:30",
+        "close": "18:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "09:30",
+        "close": "18:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "",
+        "close": "",
+        "closed": true
+      }
+    ],
+    "amenities": [
+      "parking",
+      "cards",
+      "family"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>Optica is Kenya's largest wholly Kenyan-owned optical company, with eye exams, frames, and lenses at Cedar Mall. Book a check and pick frames without leaving the shopping centre.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Eye exams and optical retail</p></li><li><p>Ground floor Cedar Mall</p></li><li><p>Monday to Saturday 9.30am to 6pm</p></li><li><p>Email nanyuki@optica.co.ke</p></li><li><p>National Optica network quality</p></li></ul><p></p>",
+    "details": {
+      "service_area": "Nanyuki town",
+      "pricing_from": "Optical care and eyewear",
+      "offerings": [
+        "Eye exams",
+        "Frames",
+        "Lenses",
+        "Contact lenses"
+      ],
+      "response_time": "Branch hours",
+      "credentials": [
+        "Licensed health services"
+      ],
+      "booking_url": "",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card",
+        "Bank transfer"
+      ],
+      "portfolio": [],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "products": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "services",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "NHIF Cedar Mall",
+    "tagline": "In-mall NHIF services",
+    "subcategory": [
+      "Health & Medical"
+    ],
+    "phone": "+254771338176",
+    "whatsapp": "+254771338176",
+    "email": "nanyuki@nhif.or.ke",
+    "website": "https://cedarmallnanyuki.co.ke/portfolio-item/nhif/",
+    "address": "Cedar Mall, Laikipia Road, Nanyuki",
+    "latitude": 0.0148,
+    "longitude": 37.0722,
+    "price_range": "$$",
+    "image_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/NHIF-Logo.jpg",
+    "logo_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/NHIF-Logo.jpg",
+    "gallery": [
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/NHIF-Logo.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Image-009.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/concept-03.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "08:00",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "08:00",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "08:00",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "08:00",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "08:00",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "08:00",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "",
+        "close": "",
+        "closed": true
+      }
+    ],
+    "amenities": [
+      "parking",
+      "cards",
+      "family"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>The NHIF desk at Cedar Mall helps residents with national health insurance registrations, contributions, and queries. It is a convenient in-mall public health finance touchpoint for Nanyuki.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>In-mall NHIF services</p></li><li><p>Monday to Friday 8am to 5pm</p></li><li><p>Email nanyuki@nhif.or.ke</p></li><li><p>Phone +254 771 338 176</p></li><li><p>Registration and contribution support</p></li></ul><p></p>",
+    "details": {
+      "service_area": "Nanyuki town",
+      "pricing_from": "National health insurance services",
+      "offerings": [
+        "Registrations",
+        "Contributions",
+        "Member queries"
+      ],
+      "response_time": "Branch hours",
+      "credentials": [
+        "Licensed health services"
+      ],
+      "booking_url": "",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card",
+        "Bank transfer"
+      ],
+      "portfolio": [],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "products": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "services",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "Pharmsel Pharmacy",
+    "tagline": "Lumumba Road location",
+    "subcategory": [
+      "Health & Medical"
+    ],
+    "phone": "+254777411316",
+    "whatsapp": "+254777411316",
+    "email": "",
+    "website": "",
+    "address": "266 Lumumba Road, Nanyuki",
+    "latitude": 0.0135,
+    "longitude": 37.074,
+    "price_range": "$$",
+    "image_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Generic.jpg",
+    "logo_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Generic.jpg",
+    "gallery": [
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Generic.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Image-009.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/concept-03.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "08:00",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "08:00",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "08:00",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "08:00",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "08:00",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "08:00",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "",
+        "close": "",
+        "closed": true
+      }
+    ],
+    "amenities": [
+      "parking",
+      "cards",
+      "family"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>Pharmsel Pharmacy on Lumumba Road is a long-hour community pharmacy for prescriptions and everyday medicines. Convenient for evening pharmacy runs when many counters have closed.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Lumumba Road location</p></li><li><p>Open Monday to Saturday until 10pm</p></li><li><p>Closed Sundays</p></li><li><p>Phone +254 777 411 316</p></li><li><p>Prescription and OTC support</p></li></ul><p></p>",
+    "details": {
+      "service_area": "Nanyuki town",
+      "pricing_from": "Community pharmacy",
+      "offerings": [
+        "Prescriptions",
+        "OTC medicines",
+        "Evening hours"
+      ],
+      "response_time": "Branch hours",
+      "credentials": [
+        "Licensed health services"
+      ],
+      "booking_url": "",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card",
+        "Bank transfer"
+      ],
+      "portfolio": [],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "products": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "eat-drink",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "Artcaffé Nanyuki",
+    "tagline": "First Artcaffé branch in Nanyuki",
+    "subcategory": [
+      "Cafes",
+      "Restaurants"
+    ],
+    "phone": "+254709828282",
+    "whatsapp": "+254709828282",
+    "email": "",
+    "website": "https://artcaffe.co.ke/",
+    "address": "Nyeri–Nanyuki Road (with Standard Chartered hub), Nanyuki",
+    "latitude": 0.0061,
+    "longitude": 37.0729,
+    "price_range": "$$$",
+    "image_url": "https://artcaffe.co.ke/cdn/shop/files/artcaffe-1440x530px-02.webp?v=1753890128",
+    "logo_url": "https://artcaffe.co.ke/cdn/shop/files/Untitled_design__10_-removebg-preview_1.png?crop=center&height=32&v=1756993383&width=32",
+    "gallery": [
+      "https://artcaffe.co.ke/cdn/shop/files/artcaffe-1440x530px-02.webp?v=1753890128",
+      "https://artcaffe.co.ke/cdn/shop/files/Beef_Doner.webp?v=1782419958",
+      "https://artcaffe.co.ke/cdn/shop/files/Turkish_Eggs.webp?v=1782416755",
+      "https://artcaffe.co.ke/cdn/shop/files/Medina_Beef_Arayes.webp?v=1782416758"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "06:30",
+        "close": "00:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "06:30",
+        "close": "00:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "06:30",
+        "close": "00:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "06:30",
+        "close": "00:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "06:30",
+        "close": "00:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "06:30",
+        "close": "00:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "06:30",
+        "close": "00:00",
+        "closed": false
+      }
+    ],
+    "amenities": [
+      "parking",
+      "wifi",
+      "family",
+      "cards"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>Artcaffé Nanyuki is the brand's first highland café, sharing a lifestyle space with Standard Chartered. Expect specialty coffee, bakery, Mediterranean plates, and a market corner with local farm produce.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>First Artcaffé branch in Nanyuki</p></li><li><p>Co-located with Standard Chartered lifestyle banking</p></li><li><p>Coffee, bakery, and Mediterranean menu</p></li><li><p>Open from 6.30am into late evening</p></li><li><p>Phone 0709 828 282</p></li></ul><p></p>",
+    "details": {
+      "cuisine": [
+        "Café",
+        "Mediterranean",
+        "Bakery"
+      ],
+      "specialty": "Specialty coffee, bakery, and Mediterranean dining",
+      "dietary": [],
+      "reservations": "",
+      "dress_code": "",
+      "parking_notes": "",
+      "menus": [
+        {
+          "title": "Mediterranean favourites",
+          "images": [
+            "https://artcaffe.co.ke/cdn/shop/files/Beef_Doner.webp?v=1782419958",
+            "https://artcaffe.co.ke/cdn/shop/files/Beef_Kebab_Tabbouleh.webp?v=1782416755",
+            "https://artcaffe.co.ke/cdn/shop/files/Medina_Beef_Arayes.webp?v=1782416758",
+            "https://artcaffe.co.ke/cdn/shop/files/Casablanca_Chicken_Tagine.webp?v=1782416755",
+            "https://artcaffe.co.ke/cdn/shop/files/Mediterranean_Snapper.webp?v=1782416755"
+          ],
+          "pdf": ""
+        },
+        {
+          "title": "Salads & bowls",
+          "images": [
+            "https://artcaffe.co.ke/cdn/shop/files/Arabic_Bulgur_Salad.webp?v=1782416760",
+            "https://artcaffe.co.ke/cdn/shop/files/Persian_Chicken_Bowl.webp?v=1782416755",
+            "https://artcaffe.co.ke/cdn/shop/files/Turkish_Eggs.webp?v=1782416755",
+            "https://artcaffe.co.ke/cdn/shop/files/Adas_falafel.webp?v=1782419958"
+          ],
+          "pdf": ""
+        }
+      ],
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card"
+      ],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "products": [],
+      "portfolio": [],
+      "host_photo": "",
+      "delivery_options": [
+        "Dine-in"
+      ],
+      "booking_url": "",
+      "avg_meal": null,
+      "capacity": {}
+    }
+  },
+  {
+    "category_slug": "eat-drink",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "Shades Restaurant and Coffee Lounge",
+    "tagline": "Shaded outdoor seating",
+    "subcategory": [
+      "Cafes",
+      "Restaurants",
+      "Outdoor Dining"
+    ],
+    "phone": "+254750968045",
+    "whatsapp": "+254750968045",
+    "email": "shadescoffeelounge@gmail.com",
+    "website": "https://www.findmecoffee254.com/amazing-cafes/shades-restaurant-and-coffeee",
+    "address": "22 Kiganjo / Kanu Street area, Nanyuki",
+    "latitude": 0.0142,
+    "longitude": 37.0728,
+    "price_range": "$$",
+    "image_url": "https://static.wixstatic.com/media/65594d_918631f0ffa842f3b3f3d5a27ef3fcb9~mv2.jpg",
+    "logo_url": "https://static.wixstatic.com/media/65594d_918631f0ffa842f3b3f3d5a27ef3fcb9~mv2.jpg",
+    "gallery": [
+      "https://static.wixstatic.com/media/65594d_918631f0ffa842f3b3f3d5a27ef3fcb9~mv2.jpg",
+      "https://static.wixstatic.com/media/65594d_28668e7481af4dea9b17ffb04a3bfba5~mv2.jpg",
+      "https://static.wixstatic.com/media/65594d_175d0b737e12463b820286c2bb0a1f05~mv2.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "07:00",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "07:00",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "07:00",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "07:00",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "07:00",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "07:00",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "07:00",
+        "close": "22:00",
+        "closed": false
+      }
+    ],
+    "amenities": [
+      "parking",
+      "wifi",
+      "family",
+      "cards"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>Shades Restaurant and Coffee Lounge is a shaded café favourite near Nanyuki Park for Kenyan and continental plates, grilled tilapia, nyama choma, and coffee. Outdoor seating keeps you off the main road noise.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Shaded outdoor seating</p></li><li><p>Kenyan and continental dishes</p></li><li><p>Coffee lounge atmosphere</p></li><li><p>Open 7am to 10pm daily</p></li><li><p>Call 0750 968 045 or email shadescoffeelounge@gmail.com</p></li></ul><p></p>",
+    "details": {
+      "cuisine": [
+        "Kenyan",
+        "Continental",
+        "Café"
+      ],
+      "specialty": "Café meals, grills, and coffee",
+      "dietary": [],
+      "reservations": "",
+      "dress_code": "",
+      "parking_notes": "",
+      "menus": [
+        {
+          "title": "Cafe & lounge favourites",
+          "images": [
+            "https://static.wixstatic.com/media/65594d_918631f0ffa842f3b3f3d5a27ef3fcb9~mv2.jpg",
+            "https://static.wixstatic.com/media/65594d_28668e7481af4dea9b17ffb04a3bfba5~mv2.jpg",
+            "https://static.wixstatic.com/media/65594d_175d0b737e12463b820286c2bb0a1f05~mv2.jpg",
+            "https://static.wixstatic.com/media/65594d_ef212ed3a9e5402b809d3600891bcbe1~mv2.jpg"
+          ],
+          "pdf": ""
+        }
+      ],
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card"
+      ],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "products": [],
+      "portfolio": [],
+      "host_photo": "",
+      "delivery_options": [
+        "Dine-in"
+      ],
+      "booking_url": "",
+      "avg_meal": null,
+      "capacity": {}
+    }
+  },
+  {
+    "category_slug": "eat-drink",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "V&V Gelato",
+    "tagline": "First floor Nanyuki Mall above Quickmart",
+    "subcategory": [
+      "Bakery & Desserts",
+      "Cafes"
+    ],
+    "phone": "+254 741 593 922",
+    "whatsapp": "+254741593922",
+    "email": "itsvanverona@gmail.com",
+    "website": "https://www.vvgelato.com/",
+    "address": "Nanyuki Mall, First Floor F9 & F10, Kenyatta Highway (above Quickmart)",
+    "latitude": 0.0105,
+    "longitude": 37.0745,
+    "price_range": "$",
+    "image_url": "https://static.wixstatic.com/media/1ee158_d59886679ad8410fa17e74605d39e578~mv2.jpg",
+    "logo_url": "https://static.wixstatic.com/media/1ee158_7baab3d1eb5b488494f3b2722e6b5fb3~mv2.png",
+    "gallery": [
+      "https://static.wixstatic.com/media/1ee158_d59886679ad8410fa17e74605d39e578~mv2.jpg",
+      "https://static.wixstatic.com/media/1ee158_c52f9cfd31a34b91af1c80ff2d4bf89e~mv2.jpg",
+      "https://static.wixstatic.com/media/1ee158_44a1d5ae1bc14049b3fb91c9f27b1739~mv2.jpg",
+      "https://static.wixstatic.com/media/1ee158_bb7ff7ac507c411f9799b704476b1b3a~mv2.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "09:00",
+        "close": "21:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "09:00",
+        "close": "21:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "09:00",
+        "close": "21:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "09:00",
+        "close": "21:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "09:00",
+        "close": "21:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "09:00",
+        "close": "21:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "09:00",
+        "close": "21:00",
+        "closed": false
+      }
+    ],
+    "amenities": [
+      "parking",
+      "wifi",
+      "family",
+      "cards"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>V&V Gelato scoops artisan gelato above Quickmart at Nanyuki Mall on Kenyatta Highway. It is the sweet stop for families and travellers looking for Italian-style ice cream in town.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>First floor Nanyuki Mall above Quickmart</p></li><li><p>Artisan gelato scoops and café treats</p></li><li><p>Open daily 9am to 9pm</p></li><li><p>WhatsApp-friendly orders</p></li><li><p>Email itsvanverona@gmail.com</p></li></ul><p></p>",
+    "details": {
+      "cuisine": [
+        "Gelato",
+        "Desserts",
+        "Café"
+      ],
+      "specialty": "Artisan gelato and dessert café",
+      "dietary": [],
+      "reservations": "",
+      "dress_code": "",
+      "parking_notes": "",
+      "menus": [
+        {
+          "title": "Gelato & scoops",
+          "images": [
+            "https://static.wixstatic.com/media/1ee158_d59886679ad8410fa17e74605d39e578~mv2.jpg",
+            "https://static.wixstatic.com/media/1ee158_c52f9cfd31a34b91af1c80ff2d4bf89e~mv2.jpg",
+            "https://static.wixstatic.com/media/1ee158_e67fffb0516e4093994a5c478f05a897~mv2.jpg",
+            "https://static.wixstatic.com/media/1ee158_a119876c0e784728871d11f28a413c6c~mv2.jpg"
+          ],
+          "pdf": ""
+        },
+        {
+          "title": "Cafe treats",
+          "images": [
+            "https://static.wixstatic.com/media/1ee158_44a1d5ae1bc14049b3fb91c9f27b1739~mv2.jpg",
+            "https://static.wixstatic.com/media/1ee158_bb7ff7ac507c411f9799b704476b1b3a~mv2.jpg"
+          ],
+          "pdf": ""
+        }
+      ],
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card"
+      ],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "products": [],
+      "portfolio": [],
+      "host_photo": "",
+      "delivery_options": [
+        "Dine-in"
+      ],
+      "booking_url": "",
+      "avg_meal": null,
+      "capacity": {}
+    }
+  },
+  {
+    "category_slug": "eat-drink",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "Shop 14 Restaurant",
+    "tagline": "Garden and open-air seating",
+    "subcategory": [
+      "Restaurants",
+      "Outdoor Dining",
+      "Garden Restaurant"
+    ],
+    "phone": "+254700238465",
+    "whatsapp": "+254700238465",
+    "email": "bookings@shop14nanyuki.com",
+    "website": "https://shop14nanyuki.com/",
+    "address": "Old House Road / Shop 14 Restaurant, Nanyuki",
+    "latitude": 0.0155,
+    "longitude": 37.071,
+    "price_range": "$$$",
+    "image_url": "https://shop14nanyuki.com/wp-content/uploads/2026/10/hero-food.webp",
+    "logo_url": "https://shop14nanyuki.com/wp-content/uploads/2026/10/shop_14_black_logo-removebg-preview.png",
+    "gallery": [
+      "https://shop14nanyuki.com/wp-content/uploads/2026/10/hero-food.webp",
+      "https://shop14nanyuki.com/wp-content/uploads/2026/10/hero-gathering.webp",
+      "https://shop14nanyuki.com/wp-content/uploads/2026/10/story-platter.webp",
+      "https://shop14nanyuki.com/wp-content/uploads/2026/10/story-garden.webp",
+      "https://shop14nanyuki.com/wp-content/uploads/2026/10/story-table.webp"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "09:00",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "09:00",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "09:00",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "09:00",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "09:00",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "09:00",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "09:00",
+        "close": "22:00",
+        "closed": false
+      }
+    ],
+    "amenities": [
+      "parking",
+      "wifi",
+      "family",
+      "cards"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>Shop 14 is a Nanyuki gathering place for BBQ, plated meals, and open-air tables with garden energy. Book for food, company, and events that turn ordinary days into shared occasions.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Garden and open-air seating</p></li><li><p>BBQ and plated restaurant dining</p></li><li><p>Events and ticketed gatherings</p></li><li><p>Bookings +254 700 238 465</p></li><li><p>bookings@shop14nanyuki.com</p></li></ul><p></p>",
+    "details": {
+      "cuisine": [
+        "BBQ",
+        "Contemporary",
+        "Garden dining"
+      ],
+      "specialty": "BBQ, garden dining, and gatherings",
+      "dietary": [],
+      "reservations": "",
+      "dress_code": "",
+      "parking_notes": "",
+      "menus": [
+        {
+          "title": "Plates & platters",
+          "images": [
+            "https://shop14nanyuki.com/wp-content/uploads/2026/10/hero-food.webp",
+            "https://shop14nanyuki.com/wp-content/uploads/2026/10/story-platter.webp",
+            "https://shop14nanyuki.com/wp-content/uploads/2026/10/story-plated.webp"
+          ],
+          "pdf": ""
+        },
+        {
+          "title": "Garden table",
+          "images": [
+            "https://shop14nanyuki.com/wp-content/uploads/2026/10/story-table.webp",
+            "https://shop14nanyuki.com/wp-content/uploads/2026/10/story-garden.webp",
+            "https://shop14nanyuki.com/wp-content/uploads/2026/10/story-evening.webp"
+          ],
+          "pdf": ""
+        }
+      ],
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card"
+      ],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "products": [],
+      "portfolio": [],
+      "host_photo": "",
+      "delivery_options": [
+        "Dine-in"
+      ],
+      "booking_url": "",
+      "avg_meal": null,
+      "capacity": {}
+    }
+  },
+  {
+    "category_slug": "eat-drink",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "Al-Nusra Restaurant",
+    "tagline": "Swahili halal and Ethiopian dishes",
+    "subcategory": [
+      "Restaurants"
+    ],
+    "phone": "+254795813989",
+    "whatsapp": "+254795813989",
+    "email": "",
+    "website": "https://menu.or.ke/Alnusra_Nanyuki/Alnusra_Nanyuki_Menu2.html",
+    "address": "Nanyuki town centre (237H+C6Q)",
+    "latitude": 0.0162,
+    "longitude": 37.0725,
+    "price_range": "$$",
+    "image_url": "https://menu.or.ke/Alnusra_Nanyuki/Menu/Alnusra_banner.jpg",
+    "logo_url": "https://menu.or.ke/Alnusra_Nanyuki/Menu/Alnusra_banner.jpg",
+    "gallery": [
+      "https://menu.or.ke/Alnusra_Nanyuki/Menu/Alnusra_banner.jpg",
+      "https://menu.or.ke/Alnusra_Nanyuki/Menu/Menus/Al_Nusra_Maindishes-07.jpg",
+      "https://menu.or.ke/Alnusra_Nanyuki/Menu/Menus/Al_Nusra_Maindishes-03.jpg",
+      "https://menu.or.ke/Alnusra_Nanyuki/Menu/Menus/Alnusra%20Drinks-01.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "07:00",
+        "close": "23:30",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "07:00",
+        "close": "23:30",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "07:00",
+        "close": "23:30",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "07:00",
+        "close": "23:30",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "07:00",
+        "close": "23:30",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "07:00",
+        "close": "23:30",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "07:00",
+        "close": "23:30",
+        "closed": false
+      }
+    ],
+    "amenities": [
+      "parking",
+      "wifi",
+      "family",
+      "cards"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>Al-Nusra is a Nanyuki town-centre favourite for Swahili halal plates, Ethiopian dishes, pilau, shawarma, and camel tea. Indoor booths and an upstairs terrace make it work for meetings, families, and late dinners.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Swahili halal and Ethiopian dishes</p></li><li><p>Famous pilau, shawarma, and camel tea</p></li><li><p>Ground floor booths plus upstairs terrace</p></li><li><p>Delivery number 0795 813 989</p></li><li><p>Menu pages available online</p></li></ul><p></p>",
+    "details": {
+      "cuisine": [
+        "Swahili",
+        "Halal",
+        "Ethiopian"
+      ],
+      "specialty": "Halal Swahili and Ethiopian dining",
+      "dietary": [],
+      "reservations": "",
+      "dress_code": "",
+      "parking_notes": "",
+      "menus": [
+        {
+          "title": "Main dishes",
+          "images": [
+            "https://menu.or.ke/Alnusra_Nanyuki/Menu/Menus/Al_Nusra_Maindishes-07.jpg",
+            "https://menu.or.ke/Alnusra_Nanyuki/Menu/Menus/Al_Nusra_Maindishes-03.jpg",
+            "https://menu.or.ke/Alnusra_Nanyuki/Menu/Menus/Al_Nusra_Maindishes-04a-1.jpg",
+            "https://menu.or.ke/Alnusra_Nanyuki/Menu/Menus/Al_Nusra_Maindishes-05.jpg",
+            "https://menu.or.ke/Alnusra_Nanyuki/Menu/Menus/Al_Nusra_Maindishes-06.jpg"
+          ],
+          "pdf": ""
+        },
+        {
+          "title": "Drinks",
+          "images": [
+            "https://menu.or.ke/Alnusra_Nanyuki/Menu/Menus/Alnusra%20Drinks-01.jpg",
+            "https://menu.or.ke/Alnusra_Nanyuki/Menu/Menus/Alnusra%20Drinks-02.jpg"
+          ],
+          "pdf": ""
+        }
+      ],
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card"
+      ],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "products": [],
+      "portfolio": [],
+      "host_photo": "",
+      "delivery_options": [
+        "Dine-in"
+      ],
+      "booking_url": "",
+      "avg_meal": null,
+      "capacity": {}
+    }
+  },
+  {
+    "category_slug": "eat-drink",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "Java House Cedar Mall",
+    "tagline": "Hand-roasted Java coffee",
+    "subcategory": [
+      "Cafes",
+      "Restaurants"
+    ],
+    "phone": "+254711361522",
+    "whatsapp": "+254711361522",
+    "email": "nanyuki@javahouseafrica.com",
+    "website": "https://cedarmallnanyuki.co.ke/portfolio-item/java-house/",
+    "address": "Ground floor, Cedar Mall, Nanyuki",
+    "latitude": 0.0148,
+    "longitude": 37.0722,
+    "price_range": "$$",
+    "image_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Java-Logo.jpg",
+    "logo_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Java-Logo.jpg",
+    "gallery": [
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Java-Logo.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Image-009.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/concept-03.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2022/11/315643633_5813123865418216_2596231016373196611_n.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "07:00",
+        "close": "21:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "07:00",
+        "close": "21:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "07:00",
+        "close": "21:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "07:00",
+        "close": "21:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "07:00",
+        "close": "21:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "07:00",
+        "close": "21:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "07:00",
+        "close": "21:00",
+        "closed": false
+      }
+    ],
+    "amenities": [
+      "parking",
+      "wifi",
+      "family",
+      "cards"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>Java House at Cedar Mall serves hand-roasted coffee with burgers, steaks, sandwiches, salads, and Mexican favourites. It is the mall's all-day café for shoppers and highway travellers.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Hand-roasted Java coffee</p></li><li><p>Burgers, steaks, salads, and Mexican plates</p></li><li><p>Ground floor Cedar Mall</p></li><li><p>All-day café dining</p></li><li><p>Email nanyuki@javahouseafrica.com</p></li></ul><p></p>",
+    "details": {
+      "cuisine": [
+        "Café",
+        "American",
+        "Coffee"
+      ],
+      "specialty": "Coffee and all-day café dining",
+      "dietary": [],
+      "reservations": "",
+      "dress_code": "",
+      "parking_notes": "",
+      "menus": [
+        {
+          "title": "Java House classics",
+          "images": [
+            "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Java-Logo.jpg",
+            "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Image-009.jpg",
+            "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/concept-03.jpg"
+          ],
+          "pdf": ""
+        }
+      ],
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card"
+      ],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "products": [],
+      "portfolio": [],
+      "host_photo": "",
+      "delivery_options": [
+        "Dine-in"
+      ],
+      "booking_url": "",
+      "avg_meal": null,
+      "capacity": {}
+    }
+  },
+  {
+    "category_slug": "eat-drink",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "KFC Cedar Mall",
+    "tagline": "World-famous fried chicken",
+    "subcategory": [
+      "Fast Food & Takeaways"
+    ],
+    "phone": "+254715910321",
+    "whatsapp": "+254715910321",
+    "email": "kfcnanyuki@kfk.co.ke",
+    "website": "https://cedarmallnanyuki.co.ke/portfolio-item/kfc/",
+    "address": "Ground floor, Cedar Mall, Nanyuki",
+    "latitude": 0.0148,
+    "longitude": 37.0722,
+    "price_range": "$",
+    "image_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/KFC-Logo.jpg",
+    "logo_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/KFC-Logo.jpg",
+    "gallery": [
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/KFC-Logo.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Image-009.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/concept-03.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "09:00",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "09:00",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "09:00",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "09:00",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "09:00",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "09:00",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "09:00",
+        "close": "22:00",
+        "closed": false
+      }
+    ],
+    "amenities": [
+      "parking",
+      "wifi",
+      "family",
+      "cards"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>KFC at Cedar Mall brings the Colonel's chicken, buckets, and combos to Nanyuki shoppers. Grab a quick meal with mall parking and family-friendly seating.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>World-famous fried chicken</p></li><li><p>Ground floor Cedar Mall</p></li><li><p>Quick takeaway and dine-in</p></li><li><p>Family meal combos</p></li><li><p>Call +254 715 910 321</p></li></ul><p></p>",
+    "details": {
+      "cuisine": [
+        "Fast food",
+        "Chicken"
+      ],
+      "specialty": "Fried chicken and fast food combos",
+      "dietary": [],
+      "reservations": "",
+      "dress_code": "",
+      "parking_notes": "",
+      "menus": [
+        {
+          "title": "KFC favourites",
+          "images": [
+            "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/KFC-Logo.jpg",
+            "https://cedarmallnanyuki.co.ke/wp-content/uploads/2022/11/315643633_5813123865418216_2596231016373196611_n.jpg"
+          ],
+          "pdf": ""
+        }
+      ],
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card"
+      ],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "products": [],
+      "portfolio": [],
+      "host_photo": "",
+      "delivery_options": [
+        "Dine-in"
+      ],
+      "booking_url": "",
+      "avg_meal": null,
+      "capacity": {}
+    }
+  },
+  {
+    "category_slug": "services",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "Lintons Beauty World Cedar Mall",
+    "tagline": "Skincare, colour, and fragrance",
+    "subcategory": [
+      "Beauty & Personal Care"
+    ],
+    "phone": "+254716652416",
+    "whatsapp": "+254716652416",
+    "email": "caroline.wanjiru@lintonsbeauty.com",
+    "website": "https://cedarmallnanyuki.co.ke/portfolio-item/lintons-beauty-world/",
+    "address": "Ground floor, Cedar Mall",
+    "latitude": 0.0148,
+    "longitude": 37.0722,
+    "price_range": "$$",
+    "image_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2022/12/Lintons-Logo-for-Web.jpg",
+    "logo_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2022/12/Lintons-Logo-for-Web.jpg",
+    "gallery": [
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2022/12/Lintons-Logo-for-Web.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Image-009.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/concept-03.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2022/11/315643633_5813123865418216_2596231016373196611_n.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "08:30",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "08:30",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "08:30",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "08:30",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "08:30",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "08:30",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "11:00",
+        "close": "19:00",
+        "closed": false
+      }
+    ],
+    "amenities": [
+      "parking",
+      "cards"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>Lintons Beauty World brings skincare, colour cosmetics, fragrance, and day-spa energy to Cedar Mall. Stock up on beauty essentials or ask the team for product guidance.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Skincare, colour, and fragrance</p></li><li><p>Ground floor Cedar Mall</p></li><li><p>Open evenings and Sundays</p></li><li><p>Part of Lintons East Africa</p></li><li><p>Email caroline.wanjiru@lintonsbeauty.com</p></li></ul><p></p>",
+    "details": {
+      "service_area": "Nanyuki",
+      "pricing_from": "Retail beauty pricing",
+      "offerings": [
+        "Skincare",
+        "Cosmetics",
+        "Fragrance",
+        "Beauty advice"
+      ],
+      "response_time": "Branch hours",
+      "credentials": [],
+      "booking_url": "",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card",
+        "Bank transfer"
+      ],
+      "portfolio": [],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "products": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "services",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "Mawingu Networks Cedar Mall",
+    "tagline": "Nanyuki-born ISP with mall HQ",
+    "subcategory": [
+      "Tech & Digital"
+    ],
+    "phone": "+254746607791",
+    "whatsapp": "+254746607791",
+    "email": "info@mawingunetworks.com",
+    "website": "https://cedarmallnanyuki.co.ke/portfolio-item/mawingu-networks-ltd/",
+    "address": "Cedar Mall, Laikipia Road, Nanyuki",
+    "latitude": 0.0148,
+    "longitude": 37.0722,
+    "price_range": "$$",
+    "image_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Mawingu-New-Logo.jpg",
+    "logo_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Mawingu-New-Logo.jpg",
+    "gallery": [
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Mawingu-New-Logo.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Image-009.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/concept-03.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2022/11/315643633_5813123865418216_2596231016373196611_n.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "08:00",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "08:00",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "08:00",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "08:00",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "08:00",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "08:00",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "08:00",
+        "close": "17:00",
+        "closed": false
+      }
+    ],
+    "amenities": [
+      "parking",
+      "cards"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>Mawingu Networks started in Nanyuki and keeps its Cedar Mall base for affordable, reliable internet across rural and town communities. Visit for home and business connectivity support.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Nanyuki-born ISP with mall HQ</p></li><li><p>Affordable rural and town internet</p></li><li><p>Open daily 8am to 5pm</p></li><li><p>Email info@mawingunetworks.com</p></li><li><p>Award-winning community connectivity</p></li></ul><p></p>",
+    "details": {
+      "service_area": "Nanyuki and surrounding communities",
+      "pricing_from": "From package rates",
+      "offerings": [
+        "Home internet",
+        "Business connectivity",
+        "Support desk"
+      ],
+      "response_time": "Branch hours",
+      "credentials": [],
+      "booking_url": "",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card",
+        "Bank transfer"
+      ],
+      "portfolio": [],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "products": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "services",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "Abode Glow Cleaner",
+    "tagline": "Cleaning, landscaping, and pest control",
+    "subcategory": [
+      "Cleaning & Maintenance"
+    ],
+    "phone": "+254704183647",
+    "whatsapp": "+254704183647",
+    "email": "abodeglowcleancare@gmail.com",
+    "website": "https://cedarmallnanyuki.co.ke/portfolio-item/abode-glow-cleaner/",
+    "address": "Cedar Mall, Laikipia Road, Nanyuki",
+    "latitude": 0.0148,
+    "longitude": 37.0722,
+    "price_range": "$$",
+    "image_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Adobe-Glow-Clean-Care-Logo.jpg",
+    "logo_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Adobe-Glow-Clean-Care-Logo.jpg",
+    "gallery": [
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/Adobe-Glow-Clean-Care-Logo.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Image-009.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/concept-03.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2022/11/315643633_5813123865418216_2596231016373196611_n.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "08:00",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "08:00",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "08:00",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "08:00",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "08:00",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "08:00",
+        "close": "13:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "",
+        "close": "",
+        "closed": true
+      }
+    ],
+    "amenities": [
+      "parking",
+      "cards"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>Abode Glow Clean Care offers landscaping, specialised cleaning, waste management, and pest control for property managers and homeowners. Meet the team via their Cedar Mall presence.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Cleaning, landscaping, and pest control</p></li><li><p>Property management support</p></li><li><p>Weekdays 8am to 5pm</p></li><li><p>Saturday morning hours</p></li><li><p>Email abodeglowcleancare@gmail.com</p></li></ul><p></p>",
+    "details": {
+      "service_area": "Nanyuki properties",
+      "pricing_from": "Quote on request",
+      "offerings": [
+        "Cleaning",
+        "Landscaping",
+        "Waste management",
+        "Pest control"
+      ],
+      "response_time": "Branch hours",
+      "credentials": [],
+      "booking_url": "",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card",
+        "Bank transfer"
+      ],
+      "portfolio": [],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "products": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "services",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "Executive Super Rides",
+    "tagline": "New and selected used cars",
+    "subcategory": [
+      "Car Hire"
+    ],
+    "phone": "+254705282428",
+    "whatsapp": "+254705282428",
+    "email": "sales@executivesuperides.com",
+    "website": "https://cedarmallnanyuki.co.ke/portfolio-item/executive-super-rides/",
+    "address": "Ground floor, Cedar Mall",
+    "latitude": 0.0148,
+    "longitude": 37.0722,
+    "price_range": "$$",
+    "image_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/EXECUTIVE-SUPER-RIDES-1.png",
+    "logo_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/EXECUTIVE-SUPER-RIDES-1.png",
+    "gallery": [
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/EXECUTIVE-SUPER-RIDES-1.png",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Image-009.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/concept-03.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2022/11/315643633_5813123865418216_2596231016373196611_n.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "08:00",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "08:00",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "08:00",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "08:00",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "08:00",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "08:00",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "08:00",
+        "close": "17:00",
+        "closed": false
+      }
+    ],
+    "amenities": [
+      "parking",
+      "cards"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>Executive Super Rides sells new and selected used cars, including fresh imports from Japan and Europe. Visit the Cedar Mall ground-floor showroom to view stock.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>New and selected used cars</p></li><li><p>Fresh Japan and Europe imports</p></li><li><p>Ground floor Cedar Mall</p></li><li><p>Open daily 8am to 5pm</p></li><li><p>Email sales@executivesuperides.com</p></li></ul><p></p>",
+    "details": {
+      "service_area": "Nanyuki and nationwide delivery",
+      "pricing_from": "Vehicle pricing on enquiry",
+      "offerings": [
+        "New cars",
+        "Used cars",
+        "Import stock"
+      ],
+      "response_time": "Branch hours",
+      "credentials": [],
+      "booking_url": "",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card",
+        "Bank transfer"
+      ],
+      "portfolio": [],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "products": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "services",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "FAPCL Group",
+    "tagline": "Finance, property, and valuation",
+    "subcategory": [
+      "Finance & Banking"
+    ],
+    "phone": "+254722524383",
+    "whatsapp": "+254722524383",
+    "email": "md@fapcl.com",
+    "website": "https://cedarmallnanyuki.co.ke/portfolio-item/fapcl-group/",
+    "address": "Ground floor, Cedar Mall",
+    "latitude": 0.0148,
+    "longitude": 37.0722,
+    "price_range": "$$",
+    "image_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/FAPCL.jpg",
+    "logo_url": "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/FAPCL.jpg",
+    "gallery": [
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/FAPCL.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/09/Image-009.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2021/08/concept-03.jpg",
+      "https://cedarmallnanyuki.co.ke/wp-content/uploads/2022/11/315643633_5813123865418216_2596231016373196611_n.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "09:00",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "09:00",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "09:00",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "09:00",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "09:00",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "09:00",
+        "close": "15:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "",
+        "close": "",
+        "closed": true
+      }
+    ],
+    "amenities": [
+      "parking",
+      "cards"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>FAPCL Group offers financial, property, and valuation solutions from Cedar Mall. It is a total-solution desk for property and finance needs in Nanyuki.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Finance, property, and valuation</p></li><li><p>Ground floor Cedar Mall</p></li><li><p>Weekdays 9am to 5pm</p></li><li><p>Saturday until 3pm</p></li><li><p>Email md@fapcl.com</p></li></ul><p></p>",
+    "details": {
+      "service_area": "Nanyuki and Laikipia",
+      "pricing_from": "Quote on request",
+      "offerings": [
+        "Financial solutions",
+        "Property services",
+        "Valuation"
+      ],
+      "response_time": "Branch hours",
+      "credentials": [],
+      "booking_url": "",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card",
+        "Bank transfer"
+      ],
+      "portfolio": [],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "products": [],
+      "host_photo": ""
+    }
+  }
+]

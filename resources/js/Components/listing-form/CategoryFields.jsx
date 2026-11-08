@@ -13,6 +13,7 @@ import {
 } from './categoryFieldConfig';
 import CapacityAreasInput from './CapacityAreasInput';
 import CuisinePicker from './CuisinePicker';
+import PricingOptionsInput from './PricingOptionsInput';
 import SuggestTagsPicker from './SuggestTagsPicker';
 import FieldLabel from './FieldLabel';
 import { field, help, label } from './fieldStyles';
@@ -454,6 +455,7 @@ export default function CategoryFields({
                         f.type === 'multi' ||
                         f.type === 'richtext' ||
                         f.type === 'capacity' ||
+                        f.type === 'pricing' ||
                         f.key.includes('highlight') ||
                         f.key === 'booking_url' ||
                         f.key === 'reservations' ||
@@ -531,6 +533,14 @@ export default function CategoryFields({
                                     value={details[f.key]}
                                     onChange={(v) => setDetail(f.key, v)}
                                     fieldHelp={f.help}
+                                />
+                            ) : f.type === 'pricing' ? (
+                                <PricingOptionsInput
+                                    id={`detail_${f.key}`}
+                                    value={details[f.key]}
+                                    onChange={(v) => setDetail(f.key, v)}
+                                    fieldHelp={f.help}
+                                    required={f.required}
                                 />
                             ) : (
                                 <>

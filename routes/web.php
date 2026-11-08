@@ -15,7 +15,9 @@ use App\Http\Controllers\ListingClaimController;
 use App\Http\Controllers\ListingContactController;
 use App\Http\Controllers\ListingController;
 use App\Http\Controllers\ListingReportController;
+use App\Http\Controllers\ListingReviewController;
 use App\Http\Controllers\NewsletterController;
+use App\Http\Controllers\NyukiController;
 use App\Http\Controllers\PricingPageController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Webhooks\PalplussWebhookController;
@@ -37,6 +39,8 @@ Route::get('/listings/search', [ListingController::class, 'search'])
     ->name('listings.search');
 
 Route::get('/pricing', PricingPageController::class)->name('pricing');
+
+Route::get('/nyuki', NyukiController::class)->name('nyuki');
 
 Route::get('/stories', function () {
     return Inertia::render('Stories/Index', [
@@ -73,6 +77,9 @@ Route::post('/listings/{listing:slug}/claim', [ListingClaimController::class, 's
 Route::post('/listings/{listing:slug}/report', [ListingReportController::class, 'store'])
     ->middleware('throttle:8,1')
     ->name('listings.report');
+Route::post('/listings/{listing:slug}/reviews', [ListingReviewController::class, 'store'])
+    ->middleware(['auth', 'throttle:10,1'])
+    ->name('listings.reviews.store');
 
 Route::get('/terms', function () {
     return Inertia::render('Terms', [

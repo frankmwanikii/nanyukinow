@@ -1,15 +1,7 @@
-import { Link, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
-import {
-    EatMark,
-    ExploreMark,
-    MoreMark,
-    SearchMark,
-    ShopMark,
-    StayMark,
-} from '@/Components/site/Mark';
+import { SearchMark } from '@/Components/site/Mark';
 import SearchSuggestions from '@/Components/site/SearchSuggestions';
-import { explorePath } from '@/data/categories';
 
 const HERO_PHOTOS = [
     {
@@ -43,38 +35,7 @@ const PLACE_INTERVAL_MS = 3200;
 /** Longest place name — keeps the headline width stable while rotating. */
 const HERO_PLACE_SIZER = 'Naromoru';
 
-const CATEGORY_CHIPS = [
-    {
-        key: 'eatDrink',
-        label: 'Eat & Drink',
-        href: explorePath({ category: 'eatDrink' }),
-        Icon: EatMark,
-    },
-    {
-        key: 'stay',
-        label: 'Stay',
-        href: explorePath({ category: 'stay' }),
-        Icon: StayMark,
-    },
-    {
-        key: 'thingsToDo',
-        label: 'Things to do',
-        href: explorePath({ category: 'thingsToDo' }),
-        Icon: ExploreMark,
-    },
-    {
-        key: 'shopping',
-        label: 'Shopping',
-        href: explorePath({ category: 'shopping' }),
-        Icon: ShopMark,
-    },
-    {
-        key: 'more',
-        label: 'More',
-        href: explorePath(),
-        Icon: MoreMark,
-    },
-];
+const OPEN_MOBILE_SEARCH = 'nn:open-mobile-search';
 
 export default function HeroSlider() {
     const [photoIndex, setPhotoIndex] = useState(0);
@@ -159,6 +120,14 @@ export default function HeroSlider() {
         return () => document.removeEventListener('pointerdown', onPointerDown);
     }, [searchOpen, searchFieldVisible, desktopLayout]);
 
+    useEffect(() => {
+        if (!desktopLayout || !searchFieldVisible) {
+            return undefined;
+        }
+        const id = window.setTimeout(() => searchInputRef.current?.focus(), 40);
+        return () => window.clearTimeout(id);
+    }, [desktopLayout, searchFieldVisible]);
+
     const closeSearch = () => {
         setSearchOpen(false);
         if (desktopLayout) {
@@ -169,6 +138,10 @@ export default function HeroSlider() {
     const revealSearch = () => {
         setSearchFieldVisible(true);
         setSearchOpen(false);
+    };
+
+    const openMobileSearch = () => {
+        window.dispatchEvent(new CustomEvent(OPEN_MOBILE_SEARCH));
     };
 
     const goToPhoto = (index) => {
@@ -188,7 +161,7 @@ export default function HeroSlider() {
 
     const activePhoto = HERO_PHOTOS[photoIndex] ?? HERO_PHOTOS[0];
 
-    const searchForm = (placement) => (
+    const searchForm = (
         <form
             ref={searchRef}
             role="search"
@@ -237,7 +210,7 @@ export default function HeroSlider() {
                     anchorRef={searchRef}
                     panelRef={suggestionsRef}
                     id="hero-search-suggestions"
-                    placement={placement}
+                    placement="below"
                 />
             ) : null}
         </form>
@@ -344,97 +317,111 @@ export default function HeroSlider() {
             </div>
 
             {/*
-              Mobile: headline → search → chips.
+              Mobile: Find + place + search icon at bottom (opens bottom-nav search).
               Desktop: search reveals at top; big white icon beside headline.
             */}
-            <div className="relative z-10 mx-auto flex w-full max-w-[1400px] flex-1 flex-col justify-end px-4 pb-8 pt-10 sm:px-6 sm:pb-12 sm:pt-14 lg:justify-start lg:px-8 lg:pb-16 lg:pt-6 xl:px-10">
+            <div className="relative z-10 mx-auto flex w-full max-w-[1400px] flex-1 flex-col justify-end px-4 pb-14 pt-10 sm:px-6 sm:pb-16 sm:pt-14 lg:justify-start lg:px-8 lg:pb-16 lg:pt-6 xl:px-10">
                 {desktopLayout && searchFieldVisible ? (
                     <div
                         className={`relative order-1 mx-auto w-full max-w-3xl xl:max-w-4xl ${
                             reduceMotion ? '' : 'animate-hero-search-in'
                         }`}
                     >
-                        {searchForm('below')}
+                        {searchForm}
                     </div>
                 ) : null}
 
-                <div className="order-2 mt-auto max-w-xl lg:mx-auto lg:w-full lg:max-w-3xl lg:pb-10 lg:text-center xl:max-w-4xl xl:pb-14">
-                    <div className="flex items-center gap-3 sm:gap-4 lg:justify-center lg:gap-5">
-                        <h1 className="font-display text-[clamp(2.25rem,9vw,3.75rem)] font-semibold leading-[1.05] tracking-tight text-white lg:text-[clamp(3rem,5vw,4.5rem)]">
-                            <span className="inline-flex items-baseline gap-[0.28em]">
-                                <span>Find</span>
-                                <span className="relative inline-grid overflow-hidden align-baseline">
-                                    <span
-                                        className="invisible col-start-1 row-start-1 whitespace-nowrap"
-                                        aria-hidden="true"
-                                    >
-                                        {HERO_PLACE_SIZER}
-                                    </span>
-                                    <span
-                                        key={HERO_PLACES[placeIndex]}
-                                        className={`col-start-1 row-start-1 whitespace-nowrap ${
-                                            reduceMotion
-                                                ? ''
-                                                : 'animate-hero-place-in'
-                                        }`}
-                                        aria-live="polite"
-                                    >
-                                        {HERO_PLACES[placeIndex]}
+                <div className="order-2 mx-auto mt-auto w-full max-w-xl text-center lg:max-w-3xl lg:pb-10 xl:max-w-4xl xl:pb-14">
+                    <div className="flex flex-nowrap items-center justify-center gap-2.5 sm:gap-4 lg:gap-5">
+                        <h1 className="min-w-0 shrink font-display text-[clamp(1.85rem,7.2vw,3.75rem)] font-semibold leading-[1.05] tracking-tight text-white sm:text-[clamp(2.25rem,9vw,3.75rem)] lg:text-[clamp(3rem,5vw,4.5rem)]">
+                            {desktopLayout ? (
+                                <span className="inline-flex flex-nowrap items-baseline gap-[0.28em] whitespace-nowrap">
+                                    <span>Find</span>
+                                    <span className="relative inline-grid overflow-hidden align-baseline">
+                                        <span
+                                            className="invisible col-start-1 row-start-1 whitespace-nowrap"
+                                            aria-hidden="true"
+                                        >
+                                            {HERO_PLACE_SIZER}
+                                        </span>
+                                        <span
+                                            key={HERO_PLACES[placeIndex]}
+                                            className={`col-start-1 row-start-1 whitespace-nowrap ${
+                                                reduceMotion
+                                                    ? ''
+                                                    : 'animate-hero-place-in'
+                                            }`}
+                                            aria-live="polite"
+                                        >
+                                            {HERO_PLACES[placeIndex]}
+                                        </span>
                                     </span>
                                 </span>
-                            </span>
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={openMobileSearch}
+                                    className="inline-flex flex-nowrap items-baseline gap-[0.28em] whitespace-nowrap text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-mustard"
+                                >
+                                    <span>Find</span>
+                                    <span className="relative inline-grid overflow-hidden align-baseline">
+                                        <span
+                                            className="invisible col-start-1 row-start-1 whitespace-nowrap"
+                                            aria-hidden="true"
+                                        >
+                                            {HERO_PLACE_SIZER}
+                                        </span>
+                                        <span
+                                            key={HERO_PLACES[placeIndex]}
+                                            className={`col-start-1 row-start-1 whitespace-nowrap ${
+                                                reduceMotion
+                                                    ? ''
+                                                    : 'animate-hero-place-in'
+                                            }`}
+                                            aria-live="polite"
+                                        >
+                                            {HERO_PLACES[placeIndex]}
+                                        </span>
+                                    </span>
+                                </button>
+                            )}
                         </h1>
                         <button
                             ref={searchToggleRef}
                             type="button"
-                            onClick={() =>
-                                searchFieldVisible
-                                    ? closeSearch()
-                                    : revealSearch()
-                            }
+                            onClick={() => {
+                                if (!desktopLayout) {
+                                    openMobileSearch();
+                                    return;
+                                }
+                                if (searchFieldVisible) {
+                                    closeSearch();
+                                } else {
+                                    revealSearch();
+                                }
+                            }}
                             aria-label={
-                                searchFieldVisible
+                                desktopLayout && searchFieldVisible
                                     ? 'Close search'
                                     : 'Open search'
                             }
-                            aria-expanded={searchFieldVisible}
+                            aria-expanded={
+                                desktopLayout ? searchFieldVisible : undefined
+                            }
                             title="Search"
-                            className={`group hidden shrink-0 cursor-pointer text-white transition duration-200 hover:text-mustard focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-mustard lg:inline-flex ${
-                                !searchFieldVisible && !reduceMotion
+                            className={`group inline-flex shrink-0 cursor-pointer text-white transition duration-200 hover:text-mustard focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-mustard ${
+                                !(desktopLayout && searchFieldVisible) &&
+                                !reduceMotion
                                     ? 'animate-search-cue'
                                     : ''
                             } hover:animate-none`}
                         >
-                            <SearchMark className="h-10 w-10 transition duration-200 group-hover:scale-110 lg:h-12 lg:w-12 xl:h-14 xl:w-14" />
+                            <SearchMark className="h-8 w-8 transition duration-200 group-hover:scale-110 sm:h-10 sm:w-10 lg:h-12 lg:w-12 xl:h-14 xl:w-14" />
                         </button>
                     </div>
-                    <p className="mt-3 max-w-md text-base leading-relaxed text-white/85 sm:mt-4 sm:text-lg lg:mx-auto lg:mt-5 lg:max-w-xl lg:text-xl lg:text-white/90">
+                    <p className="mx-auto mt-3 max-w-full whitespace-nowrap text-[clamp(0.6875rem,3.55vw,0.8125rem)] leading-snug tracking-tight text-white/85 sm:mt-4 sm:text-base sm:tracking-normal lg:mt-5 lg:whitespace-normal lg:text-xl lg:leading-relaxed lg:tracking-normal lg:text-white/90">
                         Stay, eat, explore, and get things done right now.
                     </p>
-                </div>
-
-                {!desktopLayout ? (
-                    <div className="relative order-3 mt-6 w-full max-w-xl sm:mt-8">
-                        {searchForm('above')}
-                    </div>
-                ) : null}
-
-                <div className="order-4 mt-5 sm:mt-6 lg:hidden">
-                    <p className="sr-only">Browse by category</p>
-                    <ul className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] sm:flex-wrap sm:overflow-visible [&::-webkit-scrollbar]:hidden">
-                        {CATEGORY_CHIPS.map(({ key, label, href, Icon }) => (
-                            <li key={key} className="shrink-0">
-                                <Link
-                                    href={href}
-                                    prefetch
-                                    className="inline-flex min-h-10 items-center gap-2 border border-white/30 bg-white/10 px-3.5 py-2 text-sm font-semibold text-white backdrop-blur-[2px] transition hover:border-mustard hover:bg-mustard hover:text-olive-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mustard"
-                                >
-                                    <Icon className="h-4 w-4 shrink-0" />
-                                    {label}
-                                </Link>
-                            </li>
-                        ))}
-                    </ul>
                 </div>
             </div>
         </section>

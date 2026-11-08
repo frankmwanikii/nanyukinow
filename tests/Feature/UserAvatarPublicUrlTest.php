@@ -48,4 +48,34 @@ class UserAvatarPublicUrlTest extends TestCase
                 ->where('auth.user.avatar_url', null)
             );
     }
+
+    public function test_clear_unusable_nulls_broken_storage_path(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create([
+            'avatar_url' => '/storage/',
+        ]);
+
+        $this->assertTrue(UserAvatar::clearUnusable($user));
+        $this->assertNull($user->refresh()->avatar_url);
+    }
+
+    public function test_profile_page_uses_public_avatar_url(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('avatars/present.webp', 'fake-image');
+
+        $user = User::factory()->create([
+            'avatar_url' => '/storage/avatars/present.webp',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('profile.edit'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('avatarUrl', '/storage/avatars/present.webp')
+                ->where('auth.user.avatar_url', '/storage/avatars/present.webp')
+            );
+    }
 }

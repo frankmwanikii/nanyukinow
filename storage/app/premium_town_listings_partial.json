@@ -1,0 +1,1835 @@
+[
+  {
+    "category_slug": "eat-drink",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "Le Rustique Restaurant",
+    "tagline": "Mediterranean fine dining at the foot of Mount Kenya",
+    "subcategory": [
+      "Restaurants",
+      "Garden Restaurant"
+    ],
+    "phone": "+254 721 609 601",
+    "whatsapp": "+254721609601",
+    "email": "eat@lerustique.co.ke",
+    "website": "https://lerustique.co.ke/",
+    "address": "Mt Kenya Road, Nanyuki",
+    "latitude": 0.0105,
+    "longitude": 37.0735,
+    "price_range": "$$$",
+    "image_url": "https://lerustique.co.ke/wp-content/uploads/2021/06/restaurant-banner.jpg",
+    "logo_url": "https://lerustique.co.ke/wp-content/uploads/2021/06/le-rustique-logo.png",
+    "gallery": [
+      "https://lerustique.co.ke/wp-content/uploads/2021/06/restaurant-banner.jpg",
+      "https://lerustique.co.ke/wp-content/uploads/2021/06/food.jpg",
+      "https://lerustique.co.ke/wp-content/uploads/2021/06/le-rustique-outdoor-1.jpg",
+      "https://lerustique.co.ke/wp-content/uploads/2021/06/OKM_7357.jpg",
+      "https://lerustique.co.ke/wp-content/uploads/2021/06/la-boutique-interior.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "08:00",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "08:00",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "08:00",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "08:00",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "08:00",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "08:00",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "08:00",
+        "close": "22:00",
+        "closed": false
+      }
+    ],
+    "amenities": [
+      "wifi",
+      "parking",
+      "outdoor",
+      "alcohol",
+      "family",
+      "cards",
+      "garden"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>Le Rustique is Nanyuki's Mediterranean fine dining room, set in a Moroccan-inspired garden manor with open fire, flagstone floors, and al fresco terraces. The kitchen works organic and artisan ingredients into modern Mediterranean plates, backed by a considered wine list for long highland lunches and evenings.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Breakfast, lunch, and dinner every day of the week</p></li><li><p>Indoor fireplace dining plus shaded outdoor tables</p></li><li><p>On-site deli and cheese bar for take-home tastes</p></li><li><p>Poolside cocktails a short walk from the restaurant</p></li><li><p>Reservations recommended for weekend dinner</p></li></ul><p></p>",
+    "details": {
+      "cuisine": [
+        "Mediterranean",
+        "French",
+        "Continental"
+      ],
+      "dietary": [
+        "Vegetarian",
+        "Gluten-free"
+      ],
+      "delivery_options": [
+        "Dine-in",
+        "Reservations",
+        "Outdoor seating"
+      ],
+      "reservations": "Recommended",
+      "booking_url": "https://lerustique.co.ke/the-restaurant-at-lerustique/",
+      "avg_meal": 2500,
+      "capacity": {
+        "indoors": 40,
+        "outdoor": 30,
+        "terrace": 20
+      },
+      "dress_code": [
+        "Smart casual"
+      ],
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card"
+      ],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "deals": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "products": [],
+      "portfolio": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "stay",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "Le Rustique Hotel",
+    "tagline": "Garden cottages with Mount Kenya air and a heated pool",
+    "subcategory": [
+      "Boutique Hotels"
+    ],
+    "phone": "+254 721 609 601",
+    "whatsapp": "+254721609601",
+    "email": "bookings@lerustique.co.ke",
+    "website": "https://lerustique.co.ke/",
+    "address": "Mt Kenya Road, Nanyuki",
+    "latitude": 0.0108,
+    "longitude": 37.0738,
+    "price_range": "$$$",
+    "image_url": "https://lerustique.co.ke/wp-content/uploads/2021/06/room-at-lerustique.jpg",
+    "logo_url": "https://lerustique.co.ke/wp-content/uploads/2021/06/le-rustique-logo.png",
+    "gallery": [
+      "https://lerustique.co.ke/wp-content/uploads/2021/06/room-at-lerustique.jpg",
+      "https://lerustique.co.ke/wp-content/uploads/2021/06/swimming-pool.jpg",
+      "https://lerustique.co.ke/wp-content/uploads/2021/06/le-rustique-outdoor-1.jpg",
+      "https://lerustique.co.ke/wp-content/uploads/2021/06/OKM_7357.jpg",
+      "https://lerustique.co.ke/wp-content/uploads/2021/06/food.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "00:00",
+        "close": "23:59",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "00:00",
+        "close": "23:59",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "00:00",
+        "close": "23:59",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "00:00",
+        "close": "23:59",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "00:00",
+        "close": "23:59",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "00:00",
+        "close": "23:59",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "00:00",
+        "close": "23:59",
+        "closed": false
+      }
+    ],
+    "amenities": [
+      "wifi",
+      "parking",
+      "pool",
+      "restaurant",
+      "garden",
+      "laundry",
+      "hot-shower",
+      "breakfast"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>Le Rustique Hotel offers a handful of spacious garden cottages on the quiet southern edge of Nanyuki. Guests stay steps from the Mediterranean restaurant, heated pool, gift shop, and massage parlour, with Mount Kenya framing the lawns.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Around 10 cottage-style rooms in a Zen garden setting</p></li><li><p>Heated outdoor pool and lounge seating</p></li><li><p>Restaurant, deli, and spa services on the same grounds</p></li><li><p>Ideal base for Ol Pejeta and equator day trips</p></li><li><p>Book directly for breakfast-inclusive rates</p></li></ul><p></p>",
+    "details": {
+      "guests": "2\u20133",
+      "rooms": "10 cottages",
+      "beds": "Doubles and twins",
+      "baths": "En-suite",
+      "check_in": "14:00",
+      "check_out": "10:00",
+      "nightly_rate": "From KES 12,000",
+      "meal_plan": "Bed & breakfast (B&B)",
+      "house_rules": "<p>Quiet hours after 22:00. No smoking indoors. Pets by prior arrangement. Photo ID required at check-in.</p>",
+      "cancellation_policy": "Free cancellation up to 7 days before check-in",
+      "booking_url": "https://lerustique.co.ke/",
+      "included": [
+        "Pool access",
+        "Spa access",
+        "Garden walks"
+      ],
+      "nearby_attractions": [
+        "Mount Kenya",
+        "Nanyuki town",
+        "Equator marker",
+        "Ol Pejeta Conservancy"
+      ],
+      "host_name": "Le Rustique team",
+      "host_bio": "<p>A small highland hospitality team focused on warm service, garden calm, and Mediterranean hospitality.</p>",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card",
+        "Bank transfer"
+      ],
+      "video_url": "",
+      "video_title": "",
+      "deals": [],
+      "host_photo": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "products": [],
+      "portfolio": []
+    }
+  },
+  {
+    "category_slug": "things-to-do",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "Nanyuki Equator Marker",
+    "tagline": "Stand on the line and watch the Coriolis demo",
+    "subcategory": [
+      "Outdoor & Adventure"
+    ],
+    "phone": "",
+    "whatsapp": "",
+    "email": "",
+    "website": "",
+    "address": "A2 Equator Marker, south of Nanyuki town",
+    "latitude": 0.0,
+    "longitude": 37.0728,
+    "price_range": "$",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/f/f5/Equator_sign_on_the_A2_Road_connecting_Nanyuki_to_Nairobi%2C_Kenya_%282013%29.jpg",
+    "logo_url": "",
+    "gallery": [
+      "https://upload.wikimedia.org/wikipedia/commons/f/f5/Equator_sign_on_the_A2_Road_connecting_Nanyuki_to_Nairobi%2C_Kenya_%282013%29.jpg",
+      "https://upload.wikimedia.org/wikipedia/commons/f/f5/Equator_sign_on_the_A2_Road_connecting_Nanyuki_to_Nairobi%2C_Kenya_%282013%29.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "07:00",
+        "close": "18:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "07:00",
+        "close": "18:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "07:00",
+        "close": "18:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "07:00",
+        "close": "18:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "07:00",
+        "close": "18:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "07:00",
+        "close": "18:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "07:00",
+        "close": "18:00",
+        "closed": false
+      }
+    ],
+    "amenities": [
+      "parking",
+      "photos",
+      "family",
+      "car"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>The equator marker on the A2 south of Nanyuki is a classic highland stop. Travellers pose on the painted line, browse curio stalls, and often watch a local Coriolis water demonstration that makes the geography feel real.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Photo stop right on the equator line</p></li><li><p>Local Coriolis force demonstration for tips</p></li><li><p>Curio and craft market beside the highway</p></li><li><p>Easy add-on between Nairobi and Nanyuki</p></li><li><p>Best in clear morning light for mountain views</p></li></ul><p></p>",
+    "details": {
+      "duration": "30\u201360 minutes",
+      "difficulty": "Easy",
+      "price_from": [
+        {
+          "name": "Entry",
+          "price": "Free (demo tip optional)"
+        },
+        {
+          "name": "Curios",
+          "price": "From KES 200"
+        }
+      ],
+      "min_age": "All ages",
+      "group_size": "Flexible",
+      "included": [
+        "Equator photo stop",
+        "Optional Coriolis demo"
+      ],
+      "bring": [
+        "Camera",
+        "Sun hat",
+        "Cash for curios"
+      ],
+      "booking_url": "",
+      "payments": [
+        "Cash",
+        "M-Pesa"
+      ],
+      "video_url": "",
+      "video_title": "",
+      "deals": [],
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "products": [],
+      "portfolio": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "events",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "Frontiers Friday Garden Dinner",
+    "tagline": "Highland supper under the trees at One Stop",
+    "subcategory": [
+      "Lifestyle & Social",
+      "Music & Entertainment"
+    ],
+    "phone": "+254 759 417 219",
+    "whatsapp": "+254759417219",
+    "email": "butterbeanfarmshop@gmail.com",
+    "website": "https://www.onestopnanyuki.com/facilities",
+    "address": "One Stop Nanyuki, near Nanyuki Airstrip",
+    "venue": "Frontiers Bar and Restaurant",
+    "latitude": -0.061,
+    "longitude": 37.041,
+    "price_range": "$$",
+    "start_at": "2026-11-14 18:30:00",
+    "end_at": "2026-11-14 23:00:00",
+    "ticket_price": "Free entry (meals billed)",
+    "early_bird_price": "",
+    "gate_price": "",
+    "ticket_url": "https://www.onestopnanyuki.com/facilities",
+    "image_url": "https://static.wixstatic.com/media/b5b00e_ff562d79850047608a37dff81c40662c~mv2.jpeg",
+    "logo_url": "https://static.wixstatic.com/media/14ec3c_abe0d69cce414dd595063f2d42a30aad~mv2.jpeg",
+    "event_poster_url": "https://static.wixstatic.com/media/b5b00e_21efac320b7b4387b3cda57d17fa9e39~mv2.jpeg",
+    "gallery": [
+      "https://static.wixstatic.com/media/b5b00e_ff562d79850047608a37dff81c40662c~mv2.jpeg",
+      "https://static.wixstatic.com/media/b5b00e_7926babb5d85403ab0ef260384cb45af~mv2.jpeg",
+      "https://static.wixstatic.com/media/b5b00e_21efac320b7b4387b3cda57d17fa9e39~mv2.jpeg",
+      "https://static.wixstatic.com/media/b5b00e_e6490fb3ac7648089b77a6ff0f838df1~mv2.jpeg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "06:30",
+        "close": "23:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "06:30",
+        "close": "23:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "06:30",
+        "close": "23:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "06:30",
+        "close": "23:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "06:30",
+        "close": "23:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "06:30",
+        "close": "23:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "06:30",
+        "close": "23:00",
+        "closed": false
+      }
+    ],
+    "amenities": [
+      "parking",
+      "family",
+      "outdoor",
+      "food-drinks",
+      "seating",
+      "wifi"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>Frontiers at One Stop Nanyuki is the garden caf\u00e9 and meeting place beside the airstrip. Friday evenings bring longer dinners, wood-fired pizza energy, and a relaxed highland crowd under Mount Kenya skies.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Garden tables with Mount Kenya views</p></li><li><p>Barista coffee by day, full bar by night</p></li><li><p>Pizza oven and seasonal kitchen plates</p></li><li><p>Easy stop for travellers landing at Nanyuki airstrip</p></li><li><p>Walkable to Butterbean Farm Shop next door</p></li></ul><p></p>",
+    "details": {
+      "organiser": "Frontiers Bar and Restaurant, One Stop Nanyuki",
+      "age_limit": "All ages (bar service 18+)",
+      "doors_open": "18:30",
+      "dress_code": "Casual",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card"
+      ],
+      "agenda": [
+        {
+          "time": "18:30",
+          "title": "Doors and garden seating"
+        },
+        {
+          "time": "19:00",
+          "title": "Kitchen and pizza oven"
+        },
+        {
+          "time": "21:00",
+          "title": "Late bar"
+        }
+      ],
+      "sponsors": [
+        {
+          "name": "One Stop Nanyuki",
+          "url": "https://www.onestopnanyuki.com/"
+        }
+      ],
+      "event_schedule": [
+        {
+          "day": "Friday",
+          "items": [
+            "Garden dinner",
+            "Bar service",
+            "Live playlist"
+          ]
+        }
+      ],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "products": [],
+      "portfolio": [],
+      "deals": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "services",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "Le Rustique Spa & Wellness",
+    "tagline": "Massage, yoga studio calm, and poolside recovery",
+    "subcategory": [
+      "Beauty & Personal Care",
+      "Spas & Wellness"
+    ],
+    "phone": "+254 721 609 601",
+    "whatsapp": "+254721609601",
+    "email": "bookings@lerustique.co.ke",
+    "website": "https://lerustique.co.ke/",
+    "address": "Mt Kenya Road, Nanyuki",
+    "latitude": 0.0109,
+    "longitude": 37.0739,
+    "price_range": "$$$",
+    "image_url": "https://lerustique.co.ke/wp-content/uploads/2021/06/swimming-pool.jpg",
+    "logo_url": "https://lerustique.co.ke/wp-content/uploads/2021/06/le-rustique-logo.png",
+    "gallery": [
+      "https://lerustique.co.ke/wp-content/uploads/2021/06/swimming-pool.jpg",
+      "https://lerustique.co.ke/wp-content/uploads/2021/06/le-rustique-outdoor-1.jpg",
+      "https://lerustique.co.ke/wp-content/uploads/2021/06/room-at-lerustique.jpg",
+      "https://lerustique.co.ke/wp-content/uploads/2021/06/OKM_7357.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "09:00",
+        "close": "18:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "09:00",
+        "close": "18:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "09:00",
+        "close": "18:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "09:00",
+        "close": "18:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "09:00",
+        "close": "18:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "09:00",
+        "close": "18:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "09:00",
+        "close": "18:00",
+        "closed": false
+      }
+    ],
+    "amenities": [
+      "wifi",
+      "parking",
+      "pool",
+      "garden",
+      "onsite",
+      "same-day"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>Le Rustique's spa and wellness corner pairs massage treatments with a quiet yoga studio and heated pool access. It is designed for travellers and locals who want to reset between safari days without leaving the garden.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Massage parlour on the hotel grounds</p></li><li><p>Yoga studio for private or small sessions</p></li><li><p>Heated pool for post-treatment recovery</p></li><li><p>Same-day bookings when diaries allow</p></li><li><p>Combine with lunch at the Mediterranean restaurant</p></li></ul><p></p>",
+    "details": {
+      "service_area": "Nanyuki town and hotel guests",
+      "pricing_from": "From KES 3,500 / treatment",
+      "offerings": [
+        "Massage",
+        "Yoga studio",
+        "Pool recovery",
+        "Couples sessions on request"
+      ],
+      "response_time": "Usually same day",
+      "credentials": [
+        "In-house therapists",
+        "Hotel wellness standards"
+      ],
+      "booking_url": "https://wa.me/254721609601",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card"
+      ],
+      "portfolio": [
+        {
+          "title": "Garden pool",
+          "image": "https://lerustique.co.ke/wp-content/uploads/2021/06/swimming-pool.jpg"
+        }
+      ],
+      "deals": [
+        {
+          "title": "Hotel guest add-on",
+          "note": "Ask reception for spa package rates"
+        }
+      ],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "products": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "shopping",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "PCEA Nanyuki Spinners and Weavers",
+    "tagline": "Handwoven rugs and textiles made in Nanyuki",
+    "subcategory": [
+      "Curios & Souvenirs",
+      "African Fashions",
+      "Gifts & Souvenirs"
+    ],
+    "phone": "+254 720 815 334",
+    "whatsapp": "+254720815334",
+    "email": "info@nanyukispinnersandweaver.org",
+    "website": "https://www.nanyukispinnersandweaver.org/",
+    "address": "PCEA Nanyuki Spinners and Weavers, Nanyuki",
+    "latitude": 0.0165,
+    "longitude": 37.072,
+    "price_range": "$$",
+    "image_url": "https://www.nanyukispinnersandweaver.org/images/slide1.jpg",
+    "logo_url": "https://www.nanyukispinnersandweaver.org/images/nsw%20logo.jpg",
+    "gallery": [
+      "https://www.nanyukispinnersandweaver.org/images/slide1.jpg",
+      "https://www.nanyukispinnersandweaver.org/images/slide2.jpg",
+      "https://www.nanyukispinnersandweaver.org/images/slide3.JPG",
+      "https://www.nanyukispinnersandweaver.org/images/nsw%207.jpg",
+      "https://www.nanyukispinnersandweaver.org/images/nsw%202.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "08:30",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "08:30",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "08:30",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "08:30",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "08:30",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "08:30",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "",
+        "close": "",
+        "closed": true
+      }
+    ],
+    "amenities": [
+      "parking",
+      "cards",
+      "gift-wrap",
+      "family"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>PCEA Nanyuki Spinners and Weavers has trained women artisans in Nanyuki since 1977. The workshop turns highland inspiration into handwoven rugs, throws, and home textiles you can buy directly from the makers.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Founded in 1977 with 280+ women trained</p></li><li><p>Rugs, throws, and apparel woven on site</p></li><li><p>Direct support for artisan livelihoods</p></li><li><p>Call ahead to visit the workshop</p></li><li><p>Wholesale and custom orders welcome</p></li></ul><p></p>",
+    "details": {
+      "specialty": "Handwoven rugs, throws, and home textiles",
+      "brands": [
+        "Nanyuki Spinners artisans"
+      ],
+      "delivery_options": [
+        "In-store pickup",
+        "Countrywide parcels"
+      ],
+      "return_policy": "<p>Exchanges for unused items within 7 days when receipt is shown. Custom pieces are final sale.</p>",
+      "wholesale_retail": [
+        "Wholesale & retail",
+        "Trade accounts welcome"
+      ],
+      "whatsapp_catalog_url": "https://wa.me/254720815334",
+      "online_store_url": "https://www.nanyukispinnersandweaver.org/shop.html",
+      "price_list_pdf": "",
+      "made_to_order": "Show made-to-order badge",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Bank transfer"
+      ],
+      "products": [
+        {
+          "name": "Handwoven throw",
+          "price": "Enquire",
+          "image": "https://www.nanyukispinnersandweaver.org/images/slide1.jpg"
+        },
+        {
+          "name": "Workshop rug",
+          "price": "Enquire",
+          "image": "https://www.nanyukispinnersandweaver.org/images/slide2.jpg"
+        }
+      ],
+      "deals": [],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "portfolio": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "properties",
+    "location": "Nanyuki",
+    "city": "Nanyuki",
+    "title": "4-Bed Solar Townhouse with Mt Kenya Views",
+    "tagline": "Solar townhouse near the equator with train access",
+    "subcategory": [
+      "For Sale"
+    ],
+    "property_type": "Townhouse",
+    "phone": "",
+    "whatsapp": "",
+    "email": "",
+    "website": "https://jumuika.co.ke/properties/4-bed-solar-townhouse-with-mt-kenya-views-train-access-nanyuki",
+    "address": "Near Equator, about 13 km from Nanyuki town, Laikipia",
+    "latitude": -0.01,
+    "longitude": 37.08,
+    "price_range": "$$$$",
+    "image_url": "https://assets.jumuika.co.ke/properties/f614a945-9250-4f69-e9d2-fc1ec7d6d25a/photos/1eda5a37-a741-4f4b-a329-8f573b9c13ef.jpg?width=1200&quality=85&auto_optimize=medium",
+    "logo_url": "",
+    "gallery": [
+      "https://assets.jumuika.co.ke/properties/f614a945-9250-4f69-e9d2-fc1ec7d6d25a/photos/1eda5a37-a741-4f4b-a329-8f573b9c13ef.jpg?width=1200&quality=85&auto_optimize=medium",
+      "https://assets.jumuika.co.ke/properties/f614a945-9250-4f69-e9d2-fc1ec7d6d25a/photos/37de96ab-4424-4a74-97bc-dfd271a72ba9.jpg?width=1200&quality=85&auto_optimize=medium",
+      "https://assets.jumuika.co.ke/properties/f614a945-9250-4f69-e9d2-fc1ec7d6d25a/photos/4ed36c57-b80a-46dd-95ed-543cb6837ed4.jpg?width=1200&quality=85&auto_optimize=medium",
+      "https://assets.jumuika.co.ke/properties/f614a945-9250-4f69-e9d2-fc1ec7d6d25a/photos/770c6b70-38e3-46f3-9d21-95002f2c2bf2.jpg?width=1200&quality=85&auto_optimize=medium",
+      "https://assets.jumuika.co.ke/properties/f614a945-9250-4f69-e9d2-fc1ec7d6d25a/photos/905c52d4-dcca-41cf-9121-db5b0118c43c.jpg?width=1200&quality=85&auto_optimize=medium"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "09:00",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "09:00",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "09:00",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "09:00",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "09:00",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "09:00",
+        "close": "17:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "",
+        "close": "",
+        "closed": true
+      }
+    ],
+    "amenities": [
+      "parking",
+      "security",
+      "garden",
+      "backup-power",
+      "gated",
+      "borehole"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>A solid 4-bedroom solar townhouse near the equator outside Nanyuki, listed publicly at KES 10,000,000. The home faces Mount Kenya, runs on solar, and sits about 1 km from a train station for Friday Nairobi runs.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Asking price KES 10,000,000</p></li><li><p>4 bedrooms and 4 bathrooms with mountain balconies</p></li><li><p>Solar power plus 3,000-litre water storage</p></li><li><p>Cabro parking for up to six cars</p></li><li><p>Stone perimeter wall with electric fence</p></li></ul><p></p>",
+    "details": {
+      "bedrooms": "4",
+      "bathrooms": "4",
+      "price": "KES 10,000,000",
+      "size_sqm": "Spacious townhouse unit",
+      "furnished": "Semi-furnished",
+      "parking_spaces": "6 cars",
+      "year_built": "",
+      "highlights": [
+        "Mount Kenya views",
+        "Solar powered",
+        "Train station about 1 km",
+        "Gated compound",
+        "Units still available"
+      ],
+      "agent_name": "Jumuika listings desk",
+      "agent_phone": "",
+      "agent_email": "",
+      "virtual_tour_url": "",
+      "floor_plan_pdf": "",
+      "enquiry_url": "https://jumuika.co.ke/properties/4-bed-solar-townhouse-with-mt-kenya-views-train-access-nanyuki",
+      "payments": [
+        "Bank transfer",
+        "M-Pesa (deposit)"
+      ],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "products": [],
+      "portfolio": [],
+      "deals": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "eat-drink",
+    "location": "Naromoru",
+    "city": "Naromoru",
+    "title": "Trout Tree Restaurant",
+    "tagline": "Farm-to-table trout in a sacred fig tree",
+    "subcategory": [
+      "Restaurants",
+      "Outdoor Dining",
+      "Garden Restaurant"
+    ],
+    "phone": "+254 726 281 704",
+    "whatsapp": "+254726281704",
+    "email": "trouttreerestaurant@gmail.com",
+    "website": "https://www.trout-tree.com/",
+    "address": "Burguret River, off Kiganjo-Nanyuki Road, near Naro Moru",
+    "latitude": -0.05,
+    "longitude": 37.04,
+    "price_range": "$$$",
+    "image_url": "https://static.wixstatic.com/media/733d4f_755026867d8242fdb00017cdcab7ad3a~mv2.jpg",
+    "logo_url": "https://static.wixstatic.com/media/733d4f_a759cb658c8e4061a91df77dde6290b3~mv2.png",
+    "gallery": [
+      "https://static.wixstatic.com/media/733d4f_755026867d8242fdb00017cdcab7ad3a~mv2.jpg",
+      "https://static.wixstatic.com/media/733d4f_1dcdc13d5d914da98b2aa4fd8a95f0e2~mv2.jpg",
+      "https://static.wixstatic.com/media/733d4f_8cacbe32ca0941e68edb2864f1eddcb4~mv2.jpg",
+      "https://static.wixstatic.com/media/733d4f_3266fb8f1bfd4fa4a9693de16948765b~mv2.jpg",
+      "https://static.wixstatic.com/media/733d4f_ae35eb4c7bf64789a57a776d74af4dec~mv2.jpg",
+      "https://upload.wikimedia.org/wikipedia/commons/0/00/Steps_at_Trout_Tree_restaurant%2C_Nanyuki%2C_KE.jpg",
+      "https://upload.wikimedia.org/wikipedia/commons/2/2a/Fish_farm_at_Trout_Tree_restaurant_south_of_Nanyuki%2C_KE.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "",
+        "close": "",
+        "closed": true
+      },
+      {
+        "day": "Tuesday",
+        "open": "10:00",
+        "close": "16:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "10:00",
+        "close": "16:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "10:00",
+        "close": "16:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "10:00",
+        "close": "16:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "10:00",
+        "close": "16:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "10:00",
+        "close": "16:00",
+        "closed": false
+      }
+    ],
+    "amenities": [
+      "parking",
+      "outdoor",
+      "family",
+      "alcohol",
+      "garden",
+      "photos",
+      "cards"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": "https://www.facebook.com/",
+      "instagram": "https://www.instagram.com/"
+    },
+    "description": "<p>Trout Tree Restaurant is built in and around a huge Mugumo fig tree on the Burguret River. Fresh rainbow trout come straight from the ponds below, with Laikipia beef, vegetarian plates, and weekend pizza when the oven is fired. Colobus monkeys and tree hyrax share the canopy with lunch guests.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Open Tuesday to Sunday, roughly 10:00 to 16:00</p></li><li><p>Fresh trout smoked, grilled, or curried from on-site ponds</p></li><li><p>Seats up to about 60 guests across tree decks</p></li><li><p>Resident colobus monkeys and rich bird life</p></li><li><p>Reserve ahead for weekend groups. Call John on +254 726 281 704</p></li></ul><p></p>",
+    "details": {
+      "cuisine": [
+        "Seafood",
+        "Trout",
+        "Grill",
+        "BBQ"
+      ],
+      "dietary": [
+        "Vegetarian",
+        "Kid-friendly"
+      ],
+      "delivery_options": [
+        "Dine-in",
+        "Reservations",
+        "Outdoor seating"
+      ],
+      "reservations": "Recommended",
+      "booking_url": "mailto:trouttreerestaurant@gmail.com",
+      "avg_meal": 2500,
+      "capacity": {
+        "indoors": 20,
+        "outdoor": 30,
+        "terrace": 10
+      },
+      "dress_code": [
+        "Casual",
+        "Resort wear"
+      ],
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card"
+      ],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "products": [],
+      "portfolio": [],
+      "deals": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "stay",
+    "location": "Naromoru",
+    "city": "Naromoru",
+    "title": "Naro Moru River Lodge",
+    "tagline": "Rustic ecolodge on 71 acres beneath Mount Kenya",
+    "subcategory": [
+      "Lodges & Camps",
+      "Resorts"
+    ],
+    "phone": "+254 724 082 754",
+    "whatsapp": "+254724082754",
+    "email": "reservations@naromoruriverlodge.com",
+    "website": "https://naromoruriverlodge.com/",
+    "address": "Naro Moru, Off Nyeri-Nanyuki Highway, Kenya",
+    "latitude": -0.163,
+    "longitude": 37.018,
+    "price_range": "$$$",
+    "image_url": "https://naromoruriverlodge.com/wp-content/uploads/2023/08/Naro-Moru-River-Lodge-001-1-e1680240076406.jpg",
+    "logo_url": "https://naromoruriverlodge.com/wp-content/uploads/2025/09/nmrl.jpg",
+    "gallery": [
+      "https://naromoruriverlodge.com/wp-content/uploads/2023/08/Naro-Moru-River-Lodge-001-1-e1680240076406.jpg",
+      "https://naromoruriverlodge.com/wp-content/uploads/2023/05/swimming-pool.jpg",
+      "https://naromoruriverlodge.com/wp-content/uploads/2023/05/nature-trail2-1536x864.jpg",
+      "https://naromoruriverlodge.com/wp-content/uploads/2023/05/food2-1536x864.jpg",
+      "https://naromoruriverlodge.com/wp-content/uploads/2026/10/P1058499-scaled.jpg",
+      "https://naromoruriverlodge.com/wp-content/uploads/2023/09/fireplace.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "07:00",
+        "close": "23:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "07:00",
+        "close": "23:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "07:00",
+        "close": "23:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "07:00",
+        "close": "23:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "07:00",
+        "close": "23:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "07:00",
+        "close": "23:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "07:00",
+        "close": "23:00",
+        "closed": false
+      }
+    ],
+    "amenities": [
+      "wifi",
+      "parking",
+      "pool",
+      "restaurant",
+      "garden",
+      "fireplace",
+      "laundry",
+      "family",
+      "hot-shower"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>Naro Moru River Lodge is a rustic mountain ecolodge on a 71-acre stream-fed enclave about 16 km south of the equator. It is a classic base for Mount Kenya climbs, birding, and slow riverside days with colobus in the trees.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>River views, gardens, and year-round outdoor pool</p></li><li><p>Strong bird-watching site with montane forest trails</p></li><li><p>Mountain climbing packages with experienced desks</p></li><li><p>Restaurant, bar, and campfire evenings</p></li><li><p>Nairobi sales line +254 117 240 936</p></li></ul><p></p>",
+    "details": {
+      "guests": "2\u20134",
+      "rooms": "Chalets, bandas, and camping options",
+      "beds": "Doubles and twins",
+      "baths": "En-suite in main rooms",
+      "check_in": "14:00",
+      "check_out": "10:00",
+      "nightly_rate": "From USD 80",
+      "meal_plan": "Full board",
+      "house_rules": "<p>Respect wildlife corridors. Quiet hours after 22:00. No feeding monkeys. Firewood only in designated pits.</p>",
+      "cancellation_policy": "Contact host for cancellation terms",
+      "booking_url": "https://naromoruriverlodge.com/",
+      "included": [
+        "Nature trails",
+        "Bird watching",
+        "Pool access"
+      ],
+      "nearby_attractions": [
+        "Mount Kenya",
+        "Naro Moru Gate",
+        "Solio Ranch",
+        "Equator marker"
+      ],
+      "host_name": "Naro Moru River Lodge reservations",
+      "host_bio": "<p>A long-running mountain lodge team helping climbers, families, and school groups explore Mount Kenya with care.</p>",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card",
+        "Bank transfer"
+      ],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "products": [],
+      "portfolio": [],
+      "deals": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "things-to-do",
+    "location": "Naromoru",
+    "city": "Naromoru",
+    "title": "Mount Kenya Climb via Naro Moru Route",
+    "tagline": "Classic trek to Point Lenana from Naro Moru",
+    "subcategory": [
+      "Outdoor & Adventure"
+    ],
+    "phone": "+254 724 082 754",
+    "whatsapp": "+254724082754",
+    "email": "reservations@naromoruriverlodge.com",
+    "website": "https://naromoruriverlodge.com/",
+    "address": "Naro Moru Gate, Mount Kenya National Park",
+    "latitude": -0.17,
+    "longitude": 37.15,
+    "price_range": "$$$$",
+    "image_url": "https://naromoruriverlodge.com/wp-content/uploads/2023/05/mountain-climbers.jpg",
+    "logo_url": "https://naromoruriverlodge.com/wp-content/uploads/2025/09/nmrl.jpg",
+    "gallery": [
+      "https://naromoruriverlodge.com/wp-content/uploads/2023/05/mountain-climbers.jpg",
+      "https://www.idanbarnsuites.com/wp-content/uploads/2023/06/naro-moru-route-climbing-mount-kenya.jpg",
+      "https://www.idanbarnsuites.com/wp-content/uploads/2023/06/trek.jpg",
+      "https://naromoruriverlodge.com/wp-content/uploads/2023/05/nature-trail2-1536x864.jpg",
+      "https://www.idanbarnsuites.com/wp-content/uploads/2023/06/nature-e1753783933705.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "06:00",
+        "close": "18:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "06:00",
+        "close": "18:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "06:00",
+        "close": "18:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "06:00",
+        "close": "18:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "06:00",
+        "close": "18:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "06:00",
+        "close": "18:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "06:00",
+        "close": "18:00",
+        "closed": false
+      }
+    ],
+    "amenities": [
+      "guide",
+      "equipment",
+      "photos",
+      "parking",
+      "car"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>The Naro Moru Route is one of Mount Kenya's classic approaches to Point Lenana. Climbs are arranged through local lodge desks with mountain guides, porters, and park logistics for 3 to 5 day itineraries.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>3 to 5 day itineraries to Point Lenana</p></li><li><p>Guided climbs with porter support options</p></li><li><p>Base in Naro Moru before and after the trek</p></li><li><p>Suitable for fit hikers with altitude prep</p></li><li><p>Book via Naro Moru River Lodge reservations</p></li></ul><p></p>",
+    "details": {
+      "duration": "3\u20135 days",
+      "difficulty": "Challenging",
+      "price_from": [
+        {
+          "name": "Guided trek package",
+          "price": "From USD 450 pp"
+        },
+        {
+          "name": "Park fees",
+          "price": "As per KWS rates"
+        }
+      ],
+      "min_age": "16+",
+      "group_size": "2\u201312 people",
+      "included": [
+        "Mountain guide",
+        "Porter support options",
+        "Route briefings"
+      ],
+      "bring": [
+        "Hiking boots",
+        "Warm layers",
+        "Rain shell",
+        "Headlamp",
+        "Water bottle"
+      ],
+      "booking_url": "https://naromoruriverlodge.com/",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Bank transfer"
+      ],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "products": [],
+      "portfolio": [],
+      "deals": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "events",
+    "location": "Naromoru",
+    "city": "Naromoru",
+    "title": "Naro Moru River Lodge Team Building Weekend",
+    "tagline": "Forest team challenges with mountain air",
+    "subcategory": [
+      "Sports & Fitness",
+      "Business & Networking"
+    ],
+    "phone": "+254 724 082 754",
+    "whatsapp": "+254724082754",
+    "email": "sales@naromoruriverlodge.com",
+    "website": "https://naromoruriverlodge.com/",
+    "address": "Naro Moru River Lodge, Off Nyeri-Nanyuki Highway",
+    "venue": "Naro Moru River Lodge",
+    "latitude": -0.163,
+    "longitude": 37.018,
+    "price_range": "$$$",
+    "start_at": "2026-11-21 09:00:00",
+    "end_at": "2026-11-22 16:00:00",
+    "ticket_price": "Package rates on request",
+    "early_bird_price": "",
+    "gate_price": "",
+    "ticket_url": "https://naromoruriverlodge.com/",
+    "image_url": "https://naromoruriverlodge.com/wp-content/uploads/2026/01/NMR-Schools.jpg",
+    "logo_url": "https://naromoruriverlodge.com/wp-content/uploads/2025/09/nmrl.jpg",
+    "event_poster_url": "https://naromoruriverlodge.com/wp-content/uploads/2025/04/NMRL-Mountain-Escape-2-scaled.jpg",
+    "gallery": [
+      "https://naromoruriverlodge.com/wp-content/uploads/2026/01/NMR-Schools.jpg",
+      "https://naromoruriverlodge.com/wp-content/uploads/2025/04/NMRL-Mountain-Escape-2-scaled.jpg",
+      "https://naromoruriverlodge.com/wp-content/uploads/2023/05/swimming-pool.jpg",
+      "https://naromoruriverlodge.com/wp-content/uploads/2023/05/food2-1536x864.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "07:00",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "07:00",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "07:00",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "07:00",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "07:00",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "07:00",
+        "close": "22:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "07:00",
+        "close": "22:00",
+        "closed": false
+      }
+    ],
+    "amenities": [
+      "parking",
+      "wifi",
+      "pool",
+      "food-drinks",
+      "seating",
+      "rain-cover",
+      "family"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>A weekend team building package on the Naro Moru River Lodge grounds. Groups use forest trails, pool lawns, and experiential challenges, then regroup for lodge meals and campfire debriefs under Mount Kenya.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Two-day experiential programme on 71 acres</p></li><li><p>Suitable for corporate teams and school groups</p></li><li><p>Meals and lodging packages available</p></li><li><p>Nairobi sales desk for group quotes</p></li><li><p>Combine with a gentle nature walk or birding hour</p></li></ul><p></p>",
+    "details": {
+      "organiser": "Naro Moru River Lodge",
+      "age_limit": "Team adults / school groups by arrangement",
+      "doors_open": "09:00",
+      "dress_code": "Sportswear and closed shoes",
+      "payments": [
+        "Bank transfer",
+        "M-Pesa",
+        "Card"
+      ],
+      "agenda": [
+        {
+          "time": "09:00",
+          "title": "Arrival and briefing"
+        },
+        {
+          "time": "10:00",
+          "title": "Trail challenges"
+        },
+        {
+          "time": "19:00",
+          "title": "Dinner and debrief"
+        }
+      ],
+      "sponsors": [],
+      "event_schedule": [
+        {
+          "day": "Saturday",
+          "items": [
+            "Outdoor challenges",
+            "Pool break",
+            "Campfire"
+          ]
+        },
+        {
+          "day": "Sunday",
+          "items": [
+            "Reflection session",
+            "Departure lunch"
+          ]
+        }
+      ],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "products": [],
+      "portfolio": [],
+      "deals": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "services",
+    "location": "Naromoru",
+    "city": "Naromoru",
+    "title": "Naro Moru Mountain Climbing Desk",
+    "tagline": "Guides, porters, and Mount Kenya logistics",
+    "subcategory": [
+      "Tours & Guides"
+    ],
+    "phone": "+254 724 082 754",
+    "whatsapp": "+254724082754",
+    "email": "reservations@naromoruriverlodge.com",
+    "website": "https://naromoruriverlodge.com/",
+    "address": "Naro Moru River Lodge, Naro Moru",
+    "latitude": -0.163,
+    "longitude": 37.018,
+    "price_range": "$$$",
+    "image_url": "https://www.idanbarnsuites.com/wp-content/uploads/2023/06/naro-moru-route-climbing-mount-kenya.jpg",
+    "logo_url": "https://naromoruriverlodge.com/wp-content/uploads/2025/09/nmrl.jpg",
+    "gallery": [
+      "https://www.idanbarnsuites.com/wp-content/uploads/2023/06/naro-moru-route-climbing-mount-kenya.jpg",
+      "https://naromoruriverlodge.com/wp-content/uploads/2023/05/mountain-climbers.jpg",
+      "https://www.idanbarnsuites.com/wp-content/uploads/2023/06/trek.jpg",
+      "https://www.idanbarnsuites.com/wp-content/uploads/2024/03/walks.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "07:00",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "07:00",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "07:00",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "07:00",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "07:00",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "07:00",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "07:00",
+        "close": "20:00",
+        "closed": false
+      }
+    ],
+    "amenities": [
+      "onsite",
+      "licensed",
+      "same-day",
+      "guide",
+      "equipment"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>The Naro Moru climbing desk arranges Mount Kenya summit attempts, day hikes, and school mountain programmes. Expect route advice, guide allocation, and stay-and-climb packages from the lodge gateway.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Naro Moru, Sirimon, and related route planning</p></li><li><p>Porter and guide packaging on request</p></li><li><p>School trip and corporate trek logistics</p></li><li><p>Same-property lodging before departure</p></li><li><p>Sales and reservations lines answered daily</p></li></ul><p></p>",
+    "details": {
+      "service_area": "Naromoru, Mount Kenya, and Laikipia transfers",
+      "pricing_from": "From USD 450 / trek package",
+      "offerings": [
+        "Summit climbs",
+        "Day hikes",
+        "School trips",
+        "Equipment advice"
+      ],
+      "response_time": "Within a few hours on lodge days",
+      "credentials": [
+        "Mountain guides",
+        "Lodge-backed logistics"
+      ],
+      "booking_url": "https://wa.me/254724082754",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Bank transfer"
+      ],
+      "portfolio": [
+        {
+          "title": "Summit team",
+          "image": "https://naromoruriverlodge.com/wp-content/uploads/2023/05/mountain-climbers.jpg"
+        }
+      ],
+      "deals": [
+        {
+          "title": "Stay and climb",
+          "note": "Ask for lodge nights bundled with trek days"
+        }
+      ],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "products": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "shopping",
+    "location": "Naromoru",
+    "city": "Naromoru",
+    "title": "Idan Barn Suites Caf\u00e9 & Farm Shop",
+    "tagline": "Garden caf\u00e9 gifts on the Naro Moru road",
+    "subcategory": [
+      "Local Shops",
+      "Gifts & Souvenirs"
+    ],
+    "phone": "",
+    "whatsapp": "",
+    "email": "",
+    "website": "https://www.idanbarnsuites.com/",
+    "address": "Idan Barn Suites & Caf\u00e9, Naro Moru",
+    "latitude": -0.155,
+    "longitude": 37.025,
+    "price_range": "$$",
+    "image_url": "https://www.idanbarnsuites.com/wp-content/uploads/2023/06/rest-41.jpg",
+    "logo_url": "https://www.idanbarnsuites.com/wp-content/uploads/2023/06/logo-2-removebg-preview.png",
+    "gallery": [
+      "https://www.idanbarnsuites.com/wp-content/uploads/2023/06/rest-41.jpg",
+      "https://www.idanbarnsuites.com/wp-content/uploads/2025/08/hg-1.jpg",
+      "https://www.idanbarnsuites.com/wp-content/uploads/2025/08/hg-2.jpg",
+      "https://www.idanbarnsuites.com/wp-content/uploads/2024/04/IMG_5061-1.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "08:00",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "08:00",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "08:00",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "08:00",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "08:00",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "08:00",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "08:00",
+        "close": "20:00",
+        "closed": false
+      }
+    ],
+    "amenities": [
+      "parking",
+      "wifi",
+      "garden",
+      "family",
+      "cards"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>Idan Barn Suites & Caf\u00e9 is a garden stay and caf\u00e9 stop in Naro Moru. Guests browse local gifts, settle in for coffee or a grilled plate, and stock small farm-shop treats before continuing toward Mount Kenya.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Caf\u00e9 seating with garden views</p></li><li><p>Local gifts and travel essentials</p></li><li><p>Popular grilled chicken and comfort plates</p></li><li><p>On the Naro Moru tourism corridor</p></li><li><p>Suitable for day visitors and overnight guests</p></li></ul><p></p>",
+    "details": {
+      "specialty": "Caf\u00e9 gifts, farm treats, and garden souvenirs",
+      "brands": [
+        "Local makers",
+        "Idan Barn kitchen"
+      ],
+      "delivery_options": [
+        "In-store pickup",
+        "Not available"
+      ],
+      "return_policy": "<p>Food and opened pantry items are final sale. Unused gifts may be exchanged within 48 hours with receipt.</p>",
+      "wholesale_retail": [
+        "Retail only"
+      ],
+      "whatsapp_catalog_url": "",
+      "online_store_url": "https://www.idanbarnsuites.com/",
+      "price_list_pdf": "",
+      "made_to_order": "",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card"
+      ],
+      "products": [
+        {
+          "name": "Garden caf\u00e9 gift set",
+          "price": "Enquire",
+          "image": "https://www.idanbarnsuites.com/wp-content/uploads/2025/08/hg-1.jpg"
+        }
+      ],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "portfolio": [],
+      "deals": [],
+      "host_photo": ""
+    }
+  },
+  {
+    "category_slug": "properties",
+    "location": "Naromoru",
+    "city": "Naromoru",
+    "title": "Idan Barn Cottage for Rent",
+    "tagline": "Garden cottage nights at the foot of Mount Kenya",
+    "subcategory": [
+      "For Rent"
+    ],
+    "property_type": "Cottage",
+    "phone": "",
+    "whatsapp": "",
+    "email": "",
+    "website": "https://www.idanbarnsuites.com/",
+    "address": "Idan Barn Suites, Naro Moru",
+    "latitude": -0.155,
+    "longitude": 37.025,
+    "price_range": "$$$",
+    "image_url": "https://www.idanbarnsuites.com/wp-content/uploads/2024/04/cottage-2.jpg",
+    "logo_url": "https://www.idanbarnsuites.com/wp-content/uploads/2023/06/logo-2-removebg-preview.png",
+    "gallery": [
+      "https://www.idanbarnsuites.com/wp-content/uploads/2024/04/cottage-2.jpg",
+      "https://www.idanbarnsuites.com/wp-content/uploads/2024/04/jade-2.jpg",
+      "https://www.idanbarnsuites.com/wp-content/uploads/2024/04/IMG_5061-1.jpg",
+      "https://www.idanbarnsuites.com/wp-content/uploads/2024/04/IMG_5163-600x450.jpg",
+      "https://www.idanbarnsuites.com/wp-content/uploads/2024/04/IMG_5198-600x450.jpg"
+    ],
+    "hours": [
+      {
+        "day": "Monday",
+        "open": "08:00",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Tuesday",
+        "open": "08:00",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Wednesday",
+        "open": "08:00",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Thursday",
+        "open": "08:00",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Friday",
+        "open": "08:00",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Saturday",
+        "open": "08:00",
+        "close": "20:00",
+        "closed": false
+      },
+      {
+        "day": "Sunday",
+        "open": "08:00",
+        "close": "20:00",
+        "closed": false
+      }
+    ],
+    "amenities": [
+      "parking",
+      "wifi",
+      "garden",
+      "furnished",
+      "hot-shower",
+      "family"
+    ],
+    "social_links": {
+      "links": [],
+      "tiktok": null,
+      "youtube": null,
+      "facebook": null,
+      "instagram": null
+    },
+    "description": "<p>Cottage-style rooms and suites at Idan Barn in Naro Moru, offered for short stays with garden calm and caf\u00e9 access. A practical highland base for climbers, families, and weekend escapes toward Mount Kenya.</p><p><br></p><p><strong>Quick highlights:</strong></p><ul><li><p>Self-contained cottage and suite options</p></li><li><p>On-site caf\u00e9 and shared lounge spaces</p></li><li><p>Private parking and garden terraces</p></li><li><p>Close to Naro Moru Route logistics</p></li><li><p>Book direct through Idan Barn Suites</p></li></ul><p></p>",
+    "details": {
+      "bedrooms": "1\u20132",
+      "bathrooms": "1\u20132",
+      "price": "Nightly rates on request",
+      "size_sqm": "Cottage suite",
+      "furnished": "Furnished",
+      "parking_spaces": "Private parking",
+      "year_built": "",
+      "highlights": [
+        "Garden setting",
+        "Caf\u00e9 on site",
+        "Mount Kenya access",
+        "Family friendly"
+      ],
+      "agent_name": "Idan Barn Suites",
+      "agent_phone": "",
+      "agent_email": "",
+      "virtual_tour_url": "",
+      "floor_plan_pdf": "",
+      "enquiry_url": "https://www.idanbarnsuites.com/",
+      "payments": [
+        "Cash",
+        "M-Pesa",
+        "Card"
+      ],
+      "video_url": "",
+      "video_title": "",
+      "menus": [],
+      "agenda": [],
+      "sponsors": [],
+      "event_schedule": [],
+      "products": [],
+      "portfolio": [],
+      "deals": [],
+      "host_photo": ""
+    }
+  }
+]

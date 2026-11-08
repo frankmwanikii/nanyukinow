@@ -141,10 +141,10 @@ function ChatPane({ conversation, onDelete }) {
                             />
                         ) : null}
                         <div
-                            className={`max-w-[78%] px-4 py-3 ${
+                            className={`max-w-[78%] px-4 py-3 shadow-sm ${
                                 message.mine
-                                    ? 'bg-olive-900 text-white dark:bg-olive-800'
-                                    : 'border border-olive-900/10 bg-white text-olive-900 dark:border-olive-700 dark:bg-olive-900 dark:text-olive-100'
+                                    ? 'rounded-2xl rounded-br-md bg-olive-900 text-white dark:bg-olive-800'
+                                    : 'rounded-2xl rounded-bl-md border border-olive-900/10 bg-white text-olive-900 dark:border-olive-700 dark:bg-olive-900 dark:text-olive-100'
                             }`}
                         >
                             {!message.mine ? (

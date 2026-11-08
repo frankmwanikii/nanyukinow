@@ -1,56 +1,40 @@
 import DetailSection from './DetailSection';
 
-export default function ChipRow({ priceRangeLabel, chips }) {
+function Chip({ children }) {
+    return (
+        <span className="inline-flex rounded-full bg-olive-100 px-3 py-1.5 text-xs font-semibold text-olive-800">
+            {children}
+        </span>
+    );
+}
+
+export default function ChipRow({ chips }) {
     const categories = Array.isArray(chips?.categories)
         ? chips.categories.filter(Boolean)
         : [];
-    const tags = Array.isArray(chips?.tags) ? chips.tags.filter(Boolean) : [];
     const region = chips?.region || null;
-    const hasChips = Boolean(region || categories.length || tags.length);
 
-    if (!priceRangeLabel && !hasChips) {
+    if (!region && !categories.length) {
         return null;
     }
 
     return (
-        <DetailSection>
-            <div className="flex flex-col gap-4">
-                {priceRangeLabel ? (
-                    <div>
-                        <p className="text-[11px] font-semibold uppercase tracking-wide text-olive-500">
-                            Price range
-                        </p>
-                        <p className="mt-1 font-display text-lg font-semibold text-earth-dusk">
-                            {priceRangeLabel}
-                        </p>
-                    </div>
-                ) : null}
-                {hasChips ? (
+        <div className="space-y-4">
+            {region ? (
+                <DetailSection title="Location">
+                    <Chip>{region}</Chip>
+                </DetailSection>
+            ) : null}
+
+            {categories.length ? (
+                <DetailSection title="Appears in">
                     <div className="flex flex-wrap gap-2">
-                        {region ? (
-                            <span className="inline-flex rounded-full bg-olive-100 px-3 py-1.5 text-xs font-semibold text-olive-800">
-                                {region}
-                            </span>
-                        ) : null}
                         {categories.map((item) => (
-                            <span
-                                key={`cat-${item}`}
-                                className="inline-flex rounded-full bg-olive-100 px-3 py-1.5 text-xs font-semibold text-olive-800"
-                            >
-                                {item}
-                            </span>
-                        ))}
-                        {tags.map((item) => (
-                            <span
-                                key={`tag-${item}`}
-                                className="inline-flex rounded-full bg-mustard/20 px-3 py-1.5 text-xs font-semibold text-olive-900"
-                            >
-                                {item}
-                            </span>
+                            <Chip key={`cat-${item}`}>{item}</Chip>
                         ))}
                     </div>
-                ) : null}
-            </div>
-        </DetailSection>
+                </DetailSection>
+            ) : null}
+        </div>
     );
 }

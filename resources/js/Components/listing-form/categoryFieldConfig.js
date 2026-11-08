@@ -384,9 +384,9 @@ export const CATEGORY_DETAIL_FIELDS = {
         },
         {
             key: 'price_from',
-            label: 'From price',
-            type: 'text',
-            placeholder: 'e.g. KES 3,500 / person',
+            label: 'Pricing',
+            type: 'pricing',
+            help: 'Add each visitor type and its price, for example Kenya adult and Child.',
             minTier: 'free',
         },
         {
@@ -709,7 +709,8 @@ export function emptyDetailsFor(categoryKey) {
             f.type === 'tags' ||
             f.type === 'multi' ||
             f.type === 'cuisine' ||
-            f.type === 'suggest'
+            f.type === 'suggest' ||
+            f.type === 'pricing'
                 ? []
                 : f.type === 'richtext'
                   ? ''

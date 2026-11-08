@@ -106,7 +106,7 @@ class MemberMessages
                 ?: $conversation->last_message_at?->diffForHumans()
                 ?: '',
             'url' => route('account.messages.show', $conversation),
-            'avatar_url' => UserAvatar::normalize($latest?->user?->avatar_url),
+            'avatar_url' => UserAvatar::publicUrl($latest?->user?->avatar_url),
             'initials' => self::initials($from),
         ];
     }
@@ -125,7 +125,7 @@ class MemberMessages
             'sender_name' => $name,
             'guest_email' => $message->guest_email,
             'guest_phone' => $message->guest_phone,
-            'avatar_url' => UserAvatar::normalize($message->user?->avatar_url),
+            'avatar_url' => UserAvatar::publicUrl($message->user?->avatar_url),
             'initials' => self::initials($name),
             'created_at' => $message->created_at?->toIso8601String(),
             'created_ago' => $message->created_at?->diffForHumans(),

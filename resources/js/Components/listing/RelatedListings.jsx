@@ -9,9 +9,11 @@ export default function RelatedListings({ listings = [] }) {
                 <h2 className="font-display text-2xl font-semibold text-earth-dusk sm:text-3xl">
                     You may also be interested in
                 </h2>
-                <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {listings.map((listing) => (
-                        <ListingCard key={listing.id} listing={listing} />
+                        <div key={listing.id} className="min-w-0">
+                            <ListingCard listing={listing} />
+                        </div>
                     ))}
                 </div>
             </div>

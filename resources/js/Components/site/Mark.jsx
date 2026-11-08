@@ -24,7 +24,7 @@ function OutlineMark({ className = 'h-4 w-4', children, ...props }) {
             aria-hidden="true"
             fill="none"
             stroke="currentColor"
-            strokeWidth="1.75"
+            strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
             {...props}
@@ -58,6 +58,15 @@ export function BackMark({ className = 'h-4 w-4' }) {
     return (
         <Mark className={className}>
             <path d="M10.8 5.3a1 1 0 0 1 0 1.4L7.4 11H19a1 1 0 1 1 0 2H7.4l3.4 3.3a1 1 0 1 1-1.4 1.4l-5.1-5.1a1 1 0 0 1 0-1.4l5.1-5.1a1 1 0 0 1 1.4 0z" />
+        </Mark>
+    );
+}
+
+/** Paper plane — send / ask (WhatsApp-style). */
+export function SendMark({ className = 'h-4 w-4' }) {
+    return (
+        <Mark className={className}>
+            <path d="M3.15 10.85 20.55 3.2a1 1 0 0 1 1.3 1.2L15.2 21.05a1 1 0 0 1-1.8.05l-2.95-6.55-6.55-2.95a1 1 0 0 1 .05-1.8z" />
         </Mark>
     );
 }
@@ -233,7 +242,7 @@ export function StarMark({
 export function CalendarMark({ className = 'h-4 w-4' }) {
     return (
         <Mark className={className}>
-            <path d="M8 2.75a1 1 0 0 1 1 1V5h6V3.75a1 1 0 1 1 2 0V5h1.25A2.75 2.75 0 0 1 21 7.75v11.5A2.75 2.75 0 0 1 18.25 22H5.75A2.75 2.75 0 0 1 3 19.25V7.75A2.75 2.75 0 0 1 5.75 5H7V3.75a1 1 0 0 1 1-1zM5 10.5v8.75c0 .41.34.75.75.75h12.5c.41 0 .75-.34.75-.75V10.5H5z" />
+            <path d="M8 2.9a1 1 0 0 1 1 1V5h6V3.9a1 1 0 1 1 2 0V5h1.15A2.6 2.6 0 0 1 20.75 7.6v11.65A2.6 2.6 0 0 1 18.15 21.85H5.85A2.6 2.6 0 0 1 3.25 19.25V7.6A2.6 2.6 0 0 1 5.85 5H7V3.9a1 1 0 0 1 1-1zM5.35 10.35v8.9c0 .28.22.5.5.5h12.3c.28 0 .5-.22.5-.5v-8.9H5.35z" />
         </Mark>
     );
 }
@@ -273,18 +282,50 @@ export function UserMark({ className = 'h-4 w-4' }) {
     );
 }
 
+/** Compass rose — circle with N/S needle (reads clearly at 20px). */
 export function CompassMark({ className = 'h-4 w-4' }) {
     return (
         <Mark className={className}>
-            <path d="M12 2.25a9.75 9.75 0 1 1 0 19.5 9.75 9.75 0 0 1 0-19.5zm2.85 6.05-1.55 5.15-5.15 1.55 1.55-5.15 5.15-1.55zM12 10.6a1.4 1.4 0 1 0 0 2.8 1.4 1.4 0 0 0 0-2.8z" />
+            <path
+                fillRule="evenodd"
+                d="M12 2.25a9.75 9.75 0 1 1 0 19.5 9.75 9.75 0 0 1 0-19.5zm0 1.75a8 8 0 1 0 0 16 8 8 0 0 0 0-16z"
+            />
+            <path d="M12 5.4 14.85 12 12 18.6 9.15 12 12 5.4zm0 4.35L10.9 12 12 14.25 13.1 12 12 9.75z" />
         </Mark>
     );
 }
 
+/**
+ * Nyuki AI — stylised bee (Kiswahili: nyuki).
+ * Head, striped abdomen, paired wings; solid silhouette that reads at 40px.
+ */
+export function NyukiMark({ className = 'h-4 w-4' }) {
+    return (
+        <Mark className={className}>
+            {/* Wings */}
+            <ellipse cx="5.4" cy="11.6" rx="3.9" ry="5.1" transform="rotate(-22 5.4 11.6)" />
+            <ellipse cx="18.6" cy="11.6" rx="3.9" ry="5.1" transform="rotate(22 18.6 11.6)" />
+            {/* Abdomen with stripe cutouts */}
+            <path
+                fillRule="evenodd"
+                d="M12 6.2c2.4 0 4.35 2.75 4.35 6.5S14.4 19.2 12 19.2s-4.35-2.75-4.35-6.5S9.6 6.2 12 6.2zM9.15 9.45h5.7v1.35H9.15V9.45zm0 2.6h5.7v1.35H9.15v-1.35zm0 2.6h5.7v1.35H9.15v-1.35z"
+            />
+            {/* Head */}
+            <circle cx="12" cy="4.4" r="2.6" />
+            {/* Antennae */}
+            <path d="M10.95 3.5 8.2 1.25l-1 1.2 2.85 2.1z" />
+            <path d="M13.05 3.5 15.8 1.25l1 1.2-2.85 2.1z" />
+            <circle cx="7.45" cy="1.5" r="1.2" />
+            <circle cx="16.55" cy="1.5" r="1.2" />
+        </Mark>
+    );
+}
+
+/** Funnel — filters. */
 export function FiltersMark({ className = 'h-4 w-4' }) {
     return (
         <Mark className={className}>
-            <path d="M4 6.25A1.25 1.25 0 0 1 5.25 5h13.5a1.25 1.25 0 1 1 0 2.5H5.25A1.25 1.25 0 0 1 4 6.25zm2.5 5.75A1.25 1.25 0 0 1 7.75 10.75h8.5a1.25 1.25 0 1 1 0 2.5h-8.5A1.25 1.25 0 0 1 6.5 12zm2.5 5.75A1.25 1.25 0 0 1 10.25 16.5h3.5a1.25 1.25 0 1 1 0 2.5h-3.5A1.25 1.25 0 0 1 9 17.75z" />
+            <path d="M3.5 4.75h17L14.25 12.5v4.75L9.75 20V12.5L3.5 4.75z" />
         </Mark>
     );
 }
@@ -329,56 +370,56 @@ export function EmptyListingsMark({ className = 'h-4 w-4' }) {
     );
 }
 
-/** Fork & knife — Eat & Drink */
+/** Fork & knife — Eat & Drink (solid silhouette) */
 export function EatMark({ className = 'h-4 w-4' }) {
     return (
         <Mark className={className}>
-            <path d="M7.1 2.75c.55 0 1 .45 1 1V9.5c0 .83-.67 1.5-1.5 1.5S5.1 10.33 5.1 9.5V3.75c0-.55.45-1 1-1h1zM5.35 12.25h2.5c.55 0 1 .45 1 1V20.5a1 1 0 1 1-2 0v-5.5h-.5V20.5a1 1 0 1 1-2 0v-7.25c0-.55.45-1 1-1zM15.4 2.75c1.9 0 3.35 1.7 3.1 3.6l-.55 4.1c-.15 1.1-1.1 1.9-2.2 1.9h-.35V20.5a1 1 0 1 1-2 0V3.75c0-.55.45-1 1-1h1z" />
+            <path d="M6.1 3.25h1.8v5.4c0 .55-.45 1-1 1h-.3a.75.75 0 0 1-.75-.75V4a.75.75 0 0 1 .25-1.75zm-2.35 0h1.55v5.65c0 1.3.9 2.4 2.15 2.7V20.5a1.1 1.1 0 1 1-2.2 0v-7.4A3.85 3.85 0 0 1 2.2 9.1V4a.75.75 0 0 1 .75-.75h.8zm10.55 0c2.05 0 3.55 1.75 3.25 3.75l-.7 4.55c-.2 1.25-1.25 2.15-2.5 2.15h-.55V20.5a1.1 1.1 0 1 1-2.2 0V4a.75.75 0 0 1 .75-.75h1.95z" />
         </Mark>
     );
 }
 
-/** Bed — Stay */
+/** Bed — Stay (solid silhouette) */
 export function StayMark({ className = 'h-4 w-4' }) {
     return (
         <Mark className={className}>
-            <path d="M4.75 10.5V6.75A2.75 2.75 0 0 1 7.5 4h4.25A2.75 2.75 0 0 1 14.5 6.75V10.5H19A2.75 2.75 0 0 1 21.75 13.25v5.5a1 1 0 1 1-2 0v-1H4.25v1a1 1 0 1 1-2 0v-5.5A2.75 2.75 0 0 1 5 10.5h-.25zm2.75-4c-.41 0-.75.34-.75.75V10.5h5.25V7.25c0-.41-.34-.75-.75-.75H7.5zM3.25 15.75h17.5v-2.5c0-.41-.34-.75-.75-.75H5A.75.75 0 0 0 4.25 13.25v2.5z" />
+            <path d="M4.5 10.75V7A2.5 2.5 0 0 1 7 4.5h5A2.5 2.5 0 0 1 14.5 7v3.75H19a2.25 2.25 0 0 1 2.25 2.25V19a1.1 1.1 0 1 1-2.2 0v-1.5H4.95V19a1.1 1.1 0 1 1-2.2 0v-6A2.25 2.25 0 0 1 5 10.75h-.5zm2.5-4.75c-.41 0-.75.34-.75.75V10.75h6.25V6.75c0-.41-.34-.75-.75-.75H7zm-3.25 9.5h16.5v-2.5H3.75v2.5z" />
         </Mark>
     );
 }
 
-/** Binoculars — Things to do */
+/** Camera — Things to do (solid silhouette) */
 export function ExploreMark({ className = 'h-4 w-4' }) {
     return (
         <Mark className={className}>
-            <path d="M8.6 4.5h1.9l1 3.4h.9l1-3.4h1.9l1.55 5.1H18a3.75 3.75 0 1 1-3.55 4.95l-1.2-1.2a2 2 0 0 0-2.5 0l-1.2 1.2A3.75 3.75 0 1 1 6 9.6h.05L8.6 4.5zM7.75 12.25a1.75 1.75 0 1 0 0 3.5 1.75 1.75 0 0 0 0-3.5zm8.5 0a1.75 1.75 0 1 0 0 3.5 1.75 1.75 0 0 0 0-3.5z" />
+            <path d="M9.1 4.75h5.8l1.15 1.75H19A2.75 2.75 0 0 1 21.75 9.25v8A2.75 2.75 0 0 1 19 20H5a2.75 2.75 0 0 1-2.75-2.75v-8A2.75 2.75 0 0 1 5 6.5h3.05L9.1 4.75zM12 9.35a4.15 4.15 0 1 0 0 8.3 4.15 4.15 0 0 0 0-8.3zm0 2.1a2.05 2.05 0 1 1 0 4.1 2.05 2.05 0 0 1 0-4.1z" />
         </Mark>
     );
 }
 
-/** Shopping bag */
+/** Shopping bag (solid silhouette) */
 export function ShopMark({ className = 'h-4 w-4' }) {
     return (
         <Mark className={className}>
-            <path d="M9 3.5a3 3 0 0 1 6 0v1.75h2.35c1.35 0 2.45 1.05 2.55 2.4l.7 10.1A2.75 2.75 0 0 1 17.9 20.5H6.1a2.75 2.75 0 0 1-2.7-2.75l.7-10.1A2.6 2.6 0 0 1 6.65 5.25H9V3.5zm2 1.75h2V3.5a1 1 0 1 0-2 0v1.75zM6.65 7.25c-.3 0-.55.22-.58.52l-.7 10.1c-.05.4.27.73.68.73h11.9c.41 0 .73-.33.68-.73l-.7-10.1a.58.58 0 0 0-.58-.52H6.65z" />
+            <path d="M9.25 3.75a2.75 2.75 0 0 1 5.5 0v1.5h2.1c1.4 0 2.55 1.1 2.65 2.5l.7 9.85A2.6 2.6 0 0 1 17.65 20.5H6.35a2.6 2.6 0 0 1-2.55-2.9l.7-9.85a2.65 2.65 0 0 1 2.65-2.5h2.1v-1.5zm2.2 1.5h1.1V3.75a1.1 1.1 0 1 0-2.2 0v1.5h1.1z" />
         </Mark>
     );
 }
 
-/** Wrench — Services */
+/** Wrench — Services (solid silhouette) */
 export function ServicesMark({ className = 'h-4 w-4' }) {
     return (
         <Mark className={className}>
-            <path d="M14.7 3.35a5.5 5.5 0 0 0-7.1 6.55L3.4 14.1a2.25 2.25 0 0 0 3.18 3.18l4.2-4.2a5.5 5.5 0 0 0 6.55-7.1l-2.55 2.55a1.75 1.75 0 1 1-2.47-2.47l2.55-2.55a5.45 5.45 0 0 0-.16-.16z" />
+            <path d="M14.55 3.5a5.25 5.25 0 0 0-6.85 6.25L3.55 14a2.15 2.15 0 0 0 3.05 3.05l4.15-4.15a5.25 5.25 0 0 0 6.25-6.85l-2.4 2.4a1.65 1.65 0 1 1-2.35-2.35l2.4-2.4c-.03-.05-.07-.1-.1-.15z" />
         </Mark>
     );
 }
 
-/** House — Properties */
+/** House — Properties (solid silhouette) */
 export function PropertyMark({ className = 'h-4 w-4' }) {
     return (
         <Mark className={className}>
-            <path d="M11.35 3.35a1.1 1.1 0 0 1 1.3 0l8 6.1c.45.35.2 1.05-.35 1.05H19v8.25A1.75 1.75 0 0 1 17.25 20.5h-3.5a.75.75 0 0 1-.75-.75V15.5H11v4.25a.75.75 0 0 1-.75.75h-3.5A1.75 1.75 0 0 1 5 18.75V10.5H3.7c-.55 0-.8-.7-.35-1.05l8-6.1z" />
+            <path d="M11.4 3.5a1 1 0 0 1 1.2 0l7.85 6c.4.3.18.95-.35.95H19v8.1A1.65 1.65 0 0 1 17.35 20h-3.25a.75.75 0 0 1-.75-.75V15.25H10.65v4a.75.75 0 0 1-.75.75H6.65A1.65 1.65 0 0 1 5 18.55V10.45H3.9c-.53 0-.75-.65-.35-.95l7.85-6z" />
         </Mark>
     );
 }

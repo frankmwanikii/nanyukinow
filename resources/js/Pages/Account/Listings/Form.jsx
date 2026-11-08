@@ -10,7 +10,19 @@ import RichTextEditor from '@/Components/listing-form/RichTextEditor';
 import {
     emptyDetailsFor,
 } from '@/Components/listing-form/categoryFieldConfig';
+import { compactPricingOptions } from '@/Components/listing-form/PricingOptionsInput';
 import FieldLabel from '@/Components/listing-form/FieldLabel';
+
+function serializeListingDetails(details) {
+    const next = { ...(details || {}) };
+
+    if ('price_from' in next) {
+        next.price_from = compactPricingOptions(next.price_from);
+    }
+
+    return next;
+}
+
 import {
     defaultHours,
     field,
@@ -28,26 +40,28 @@ import {
     staySpaceLabel,
 } from '@/data/stayTierFeatures';
 import { listingSubcategories, subcategoryLabel } from '@/utils/listingSubcategories';
+import {
+    EatMark,
+    EventMark,
+    ExploreMark,
+    PropertyMark,
+    ServicesMark,
+    ShopMark,
+    StayMark,
+} from '@/Components/site/Mark';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    BedDouble,
-    Briefcase,
-    CalendarDays,
-    Camera,
     Check,
     ChevronLeft,
     ChevronRight,
-    Coffee,
     Cloud,
     CloudOff,
     FileText,
-    Home,
     Loader2,
     Plus,
     Save,
     Settings,
-    ShoppingCart,
     Trash2,
     X,
 } from 'lucide-react';
@@ -60,19 +74,32 @@ const tierLabels = {
 };
 
 const categoryIcons = {
-    eatDrink: Coffee,
-    'eat-drink': Coffee,
-    stay: BedDouble,
-    thingsToDo: Camera,
-    'things-to-do': Camera,
-    services: Briefcase,
-    shopping: ShoppingCart,
-    properties: Home,
-    events: CalendarDays,
+    eatDrink: EatMark,
+    'eat-drink': EatMark,
+    stay: StayMark,
+    thingsToDo: ExploreMark,
+    'things-to-do': ExploreMark,
+    services: ServicesMark,
+    shopping: ShopMark,
+    properties: PropertyMark,
+    events: EventMark,
 };
 
 function iconForSlug(slug) {
-    return categoryIcons[slug] || Coffee;
+    return categoryIcons[slug] || EatMark;
+}
+
+function labelForCategory(category) {
+    const raw = String(category?.slug || '').trim();
+    const slug = raw.toLowerCase();
+    const match = mainCategories.find(
+        (item) =>
+            item.slug === slug ||
+            item.key === raw ||
+            item.key.toLowerCase() === slug,
+    );
+
+    return match?.label || category?.name || 'Category';
 }
 
 function isPlaceholderSlug(slug) {
@@ -184,28 +211,33 @@ function normalizeStayGalleryKind(kind) {
 
 function galleryFromListing(listing) {
     const urls = listing?.gallery || [];
-    return urls.map((entry, i) => {
-        if (typeof entry === 'string') {
+    return urls
+        .map((entry, i) => {
+            if (typeof entry === 'string') {
+                const url = persistedMediaUrl(entry);
+                if (!url) return null;
+                return {
+                    id: `existing-${i}`,
+                    url,
+                    preview: url,
+                    file: null,
+                    kind: 'bedroom',
+                    label: 'Bedroom',
+                };
+            }
+            const src = persistedMediaUrl(entry?.src || entry?.url || '');
+            if (!src) return null;
+            const kind = normalizeStayGalleryKind(entry?.kind);
             return {
                 id: `existing-${i}`,
-                url: entry,
-                preview: entry,
+                url: src,
+                preview: src,
                 file: null,
-                kind: 'bedroom',
-                label: 'Bedroom',
+                kind,
+                label: entry?.label || staySpaceLabel(kind),
             };
-        }
-        const src = entry?.src || entry?.url || '';
-        const kind = normalizeStayGalleryKind(entry?.kind);
-        return {
-            id: `existing-${i}`,
-            url: src,
-            preview: src,
-            file: null,
-            kind,
-            label: entry?.label || staySpaceLabel(kind),
-        };
-    });
+        })
+        .filter(Boolean);
 }
 
 function serializeGalleryItems(items, { categorized = false } = {}) {
@@ -220,6 +252,34 @@ function serializeGalleryItems(items, { categorized = false } = {}) {
                 label: g.label || staySpaceLabel(kind),
             };
         });
+}
+
+/** Local blob/data previews are fine in <img>, but never persist them. */
+function isBrowserOnlyMediaUrl(url) {
+    return (
+        typeof url === 'string' &&
+        (url.startsWith('blob:') || url.startsWith('data:'))
+    );
+}
+
+/** Drop incomplete /storage/ placeholders and empty values. */
+function persistedMediaUrl(url) {
+    if (!url || typeof url !== 'string') return '';
+    const trimmed = url.trim();
+    if (!trimmed || trimmed === '/storage' || trimmed === '/storage/') {
+        return '';
+    }
+    if (isBrowserOnlyMediaUrl(trimmed)) return '';
+    return trimmed;
+}
+
+function previewMediaUrl(url) {
+    if (!url || typeof url !== 'string') return null;
+    const trimmed = url.trim();
+    if (!trimmed || trimmed === '/storage' || trimmed === '/storage/') {
+        return null;
+    }
+    return trimmed;
 }
 
 export default function Form({
@@ -283,9 +343,9 @@ export default function Form({
         latitude: listing?.latitude ?? '',
         longitude: listing?.longitude ?? '',
         price_range: listing?.price_range || '',
-        image_url: listing?.image_url || '',
-        logo_url: listing?.logo_url || '',
-        event_poster_url: listing?.event_poster_url || '',
+        image_url: persistedMediaUrl(listing?.image_url),
+        logo_url: persistedMediaUrl(listing?.logo_url),
+        event_poster_url: persistedMediaUrl(listing?.event_poster_url),
         amenities: listing?.amenities || [],
         hours:
             listing?.hours?.length
@@ -335,11 +395,13 @@ export default function Form({
     formDataRef.current = form.data;
 
     const [coverPreview, setCoverPreview] = useState(
-        listing?.image_url || null,
+        previewMediaUrl(listing?.image_url),
     );
-    const [logoPreview, setLogoPreview] = useState(listing?.logo_url || null);
+    const [logoPreview, setLogoPreview] = useState(
+        previewMediaUrl(listing?.logo_url),
+    );
     const [posterPreview, setPosterPreview] = useState(
-        listing?.event_poster_url || null,
+        previewMediaUrl(listing?.event_poster_url),
     );
     const [galleryItems, setGalleryItems] = useState(() =>
         galleryFromListing(listing),
@@ -453,7 +515,10 @@ export default function Form({
                     : data.hours || [],
             ),
         );
-        append('details', JSON.stringify(data.details || {}));
+        append(
+            'details',
+            JSON.stringify(serializeListingDetails(data.details)),
+        );
         append('social_links', JSON.stringify(data.social_links || {}));
         append('gallery_urls', JSON.stringify(galleryUrls));
         if (isStay) {
@@ -560,25 +625,67 @@ export default function Form({
                         // Ignore history failures; draftKey still keeps saves working.
                     }
                 }
-                if (json.listing.image_url) {
-                    form.setData('image_url', json.listing.image_url);
+                const savedCover = persistedMediaUrl(json.listing.image_url);
+                if (savedCover) {
+                    form.setData('image_url', savedCover);
                     form.setData('cover', null);
-                    setCoverPreview(json.listing.image_url);
+                    setCoverPreview(savedCover);
                 }
-                if (json.listing.logo_url) {
-                    form.setData('logo_url', json.listing.logo_url);
+                const savedLogo = persistedMediaUrl(json.listing.logo_url);
+                if (savedLogo) {
+                    form.setData('logo_url', savedLogo);
                     form.setData('logo', null);
-                    setLogoPreview(json.listing.logo_url);
+                    setLogoPreview(savedLogo);
+                }
+                const savedPoster = persistedMediaUrl(
+                    json.listing.event_poster_url,
+                );
+                if (savedPoster) {
+                    form.setData('event_poster_url', savedPoster);
+                    form.setData('event_poster', null);
+                    setPosterPreview(savedPoster);
                 }
                 if (Array.isArray(json.listing.gallery)) {
-                    setGalleryItems(
-                        json.listing.gallery.map((url, i) => ({
-                            id: `saved-${i}`,
-                            url,
-                            preview: url,
-                            file: null,
-                        })),
-                    );
+                    const savedGallery = json.listing.gallery
+                        .map((entry, i) => {
+                            if (typeof entry === 'string') {
+                                const url = persistedMediaUrl(entry);
+                                if (!url) return null;
+                                return {
+                                    id: `saved-${i}`,
+                                    url,
+                                    preview: url,
+                                    file: null,
+                                };
+                            }
+                            const url = persistedMediaUrl(
+                                entry?.src || entry?.url || '',
+                            );
+                            if (!url) return null;
+                            const kind = normalizeStayGalleryKind(entry?.kind);
+                            return {
+                                id: `saved-${i}`,
+                                url,
+                                preview: url,
+                                file: null,
+                                kind,
+                                label:
+                                    entry?.label || staySpaceLabel(kind),
+                            };
+                        })
+                        .filter(Boolean);
+
+                    // Keep local unsaved files if the server returned nothing new yet.
+                    setGalleryItems((current) => {
+                        const pending = current.filter((g) => g.file);
+                        if (!savedGallery.length && pending.length) {
+                            return current;
+                        }
+                        if (!pending.length) {
+                            return savedGallery;
+                        }
+                        return [...savedGallery, ...pending];
+                    });
                 }
             }
             setLastSavedAt(json.saved_at || new Date().toISOString());
@@ -782,7 +889,9 @@ export default function Form({
                     categoryKey === 'properties' || categoryKey === 'events'
                         ? null
                         : JSON.stringify(data.hours || []),
-                details: JSON.stringify(data.details || {}),
+                details: JSON.stringify(
+                    serializeListingDetails(data.details),
+                ),
                 social_links: JSON.stringify(data.social_links || {}),
                 latitude: data.latitude === '' ? null : data.latitude,
                 longitude: data.longitude === '' ? null : data.longitude,
@@ -1226,29 +1335,29 @@ export default function Form({
                                         }
                                         errors={form.errors}
                                         onCoverChange={({ file, preview, url }) => {
-                                            const nextPreview = preview || null;
-                                            setCoverPreview(nextPreview);
+                                            setCoverPreview(previewMediaUrl(preview));
                                             patch({
                                                 cover: file || null,
-                                                image_url: nextPreview
-                                                    ? url ||
-                                                      preview ||
-                                                      form.data.image_url ||
-                                                      ''
-                                                    : '',
+                                                image_url: file
+                                                    ? persistedMediaUrl(
+                                                          form.data.image_url,
+                                                      )
+                                                    : persistedMediaUrl(
+                                                          url || preview,
+                                                      ),
                                             });
                                         }}
                                         onLogoChange={({ file, preview, url }) => {
-                                            const nextPreview = preview || null;
-                                            setLogoPreview(nextPreview);
+                                            setLogoPreview(previewMediaUrl(preview));
                                             patch({
                                                 logo: file || null,
-                                                logo_url: nextPreview
-                                                    ? url ||
-                                                      preview ||
-                                                      form.data.logo_url ||
-                                                      ''
-                                                    : '',
+                                                logo_url: file
+                                                    ? persistedMediaUrl(
+                                                          form.data.logo_url,
+                                                      )
+                                                    : persistedMediaUrl(
+                                                          url || preview,
+                                                      ),
                                             });
                                         }}
                                         onPosterChange={({
@@ -1256,17 +1365,19 @@ export default function Form({
                                             preview,
                                             url,
                                         }) => {
-                                            setPosterPreview(preview || null);
+                                            setPosterPreview(
+                                                previewMediaUrl(preview),
+                                            );
                                             patch({
                                                 event_poster: file || null,
-                                                event_poster_url:
-                                                    url ||
-                                                    (file
-                                                        ? ''
-                                                        : preview
-                                                          ? form.data
-                                                                .event_poster_url
-                                                          : ''),
+                                                event_poster_url: file
+                                                    ? persistedMediaUrl(
+                                                          form.data
+                                                              .event_poster_url,
+                                                      )
+                                                    : persistedMediaUrl(
+                                                          url || preview,
+                                                      ),
                                             });
                                         }}
                                         onGalleryChange={setGalleryItems}
@@ -2386,7 +2497,7 @@ function CategoryPicker({ categories, selectedId, onPick, error }) {
     return (
         <div>
             <p className="mb-2 text-sm text-olive-600 dark:text-olive-400">
-                Choose a category — each one has its own fields tailored to that
+                Choose a category. Each one has its own fields tailored to that
                 listing type.
             </p>
             <h2 className="mb-5 font-display text-xl font-semibold text-olive-950 dark:text-white sm:text-2xl">
@@ -2426,11 +2537,11 @@ function CategoryPicker({ categories, selectedId, onPick, error }) {
                                     />
                                 </span>
                             ) : null}
-                            <span className="flex h-12 w-12 items-center justify-center text-olive-700 transition group-hover:text-olive-900 dark:text-olive-300 dark:group-hover:text-olive-100">
-                                <Icon className="h-8 w-8" strokeWidth={1.5} />
+                            <span className="flex h-12 w-12 shrink-0 items-center justify-center text-olive-700 transition group-hover:text-olive-900 dark:text-olive-300 dark:group-hover:text-olive-100">
+                                <Icon className="h-8 w-8" />
                             </span>
-                            <span className="font-display text-sm font-semibold text-earth-dusk dark:text-olive-50 sm:text-base">
-                                {category.name}
+                            <span className="font-display text-sm font-semibold leading-snug text-earth-dusk dark:text-olive-50 sm:text-base">
+                                {labelForCategory(category)}
                             </span>
                         </motion.button>
                     );

@@ -17,10 +17,39 @@ class WebpConverter
      */
     public static function storeAsWebp(UploadedFile $file, string $folder, string $disk = 'public'): string
     {
-        $path = $file->store($folder, $disk);
-        $converted = static::convertStored($path, $disk);
+        if (! $file->isValid()) {
+            throw new \RuntimeException('The uploaded image is invalid or incomplete.');
+        }
 
-        return '/storage/'.($converted ?? $path);
+        $diskInstance = Storage::disk($disk);
+        // Keep upload folders writable for the web user (OpenLiteSpeed runs as nobody).
+        if (! $diskInstance->exists($folder)) {
+            $diskInstance->makeDirectory($folder);
+        }
+        $absoluteFolder = $diskInstance->path($folder);
+        if (is_dir($absoluteFolder) && ! is_writable($absoluteFolder)) {
+            @chmod($absoluteFolder, 0775);
+        }
+        if (! is_writable($absoluteFolder)) {
+            throw new \RuntimeException('Image storage folder is not writable.');
+        }
+
+        $path = $file->store($folder, $disk);
+
+        // store() returns false on failure when the disk has throw=false; concatenating
+        // false into '/storage/' silently produced broken '/storage/' URLs in the DB.
+        if (! is_string($path) || $path === '') {
+            throw new \RuntimeException('Failed to store the uploaded image.');
+        }
+
+        $converted = static::convertStored($path, $disk);
+        $relative = is_string($converted) && $converted !== '' ? $converted : $path;
+
+        if ($relative === '') {
+            throw new \RuntimeException('Failed to store the uploaded image.');
+        }
+
+        return '/storage/'.$relative;
     }
 
     /**

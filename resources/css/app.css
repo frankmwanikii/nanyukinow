@@ -35,6 +35,43 @@
     }
 }
 
+@keyframes nn-flip-in {
+    from {
+        opacity: 0;
+        transform: translateY(0.35em);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes nn-sheet-in {
+    from {
+        transform: translateY(100%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+@keyframes nn-backdrop-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .animate-\[nn-flip-in_320ms_ease-out\],
+    .animate-\[nn-sheet-in_340ms_cubic-bezier\(0\.22\,1\,0\.36\,1\)\],
+    .animate-\[nn-backdrop-in_280ms_ease-out\] {
+        animation: none !important;
+    }
+}
+
 /* Hide browser-default search clear (ugly blue X on dark nav) */
 .site-nav-search::-webkit-search-decoration,
 .site-nav-search::-webkit-search-cancel-button,

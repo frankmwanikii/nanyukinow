@@ -37,3 +37,14 @@ export function subcategoryLabel(listing, separator = ' · ') {
     const items = listingSubcategories(listing);
     return items.length ? items.join(separator) : null;
 }
+
+/**
+ * Compact card label: first selected subcategory, then +N for the rest.
+ * e.g. "Wildlife & Nature +1"
+ */
+export function subcategoryCardLabel(listing) {
+    const items = listingSubcategories(listing);
+    if (!items.length) return null;
+    if (items.length === 1) return items[0];
+    return `${items[0]} +${items.length - 1}`;
+}

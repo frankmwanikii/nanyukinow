@@ -8,7 +8,6 @@ import {
     EmptyListingsMark,
     FiltersMark,
     ForwardMark,
-    ListMark,
     MapMark,
 } from '@/Components/site/Mark';
 import SiteLayout from '@/Layouts/SiteLayout';
@@ -189,7 +188,7 @@ function ExploreContent({
     };
 
     return (
-        <div className="flex h-svh flex-col bg-[#f3f1ec] pb-[4.75rem] lg:pb-0">
+        <div className="flex h-svh flex-col bg-[#f3f1ec] pb-[5.25rem] lg:pb-0">
             <div className="shrink-0 bg-white pt-[5.75rem] sm:pt-[6.25rem] lg:pt-[6.75rem]">
                 <ExploreCategoryTabs
                     categoryKey={categoryKey}
@@ -197,8 +196,8 @@ function ExploreContent({
                 />
             </div>
 
-            {/* Mobile toolbar */}
-            <div className="flex shrink-0 items-center gap-2 border-b border-olive-200 bg-white px-3 py-2.5 lg:hidden">
+            {/* Mobile toolbar — filters only; map lives top-right on the results bar */}
+            <div className="flex shrink-0 items-center border-b border-olive-200 bg-white px-3 py-2.5 lg:hidden">
                 <button
                     type="button"
                     onClick={() =>
@@ -206,7 +205,7 @@ function ExploreContent({
                             p === 'filters' ? 'list' : 'filters',
                         )
                     }
-                    className={`inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
+                    className={`inline-flex items-center justify-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition ${
                         mobilePanel === 'filters'
                             ? 'bg-olive-600 text-white'
                             : 'bg-[#f3f1ec] text-olive-800'
@@ -214,33 +213,6 @@ function ExploreContent({
                 >
                     <FiltersMark className="h-4 w-4" />
                     Filters
-                </button>
-                <button
-                    type="button"
-                    onClick={() => {
-                        setMobilePanel('list');
-                        setMapOpen(false);
-                    }}
-                    className={`inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
-                        mobilePanel === 'list'
-                            ? 'bg-olive-600 text-white'
-                            : 'bg-[#f3f1ec] text-olive-800'
-                    }`}
-                >
-                    <ListMark className="h-4 w-4" />
-                    List
-                </button>
-                <button
-                    type="button"
-                    onClick={openMap}
-                    className={`inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
-                        mobilePanel === 'map'
-                            ? 'bg-olive-600 text-white'
-                            : 'bg-[#f3f1ec] text-olive-800'
-                    }`}
-                >
-                    <MapMark className="h-4 w-4" />
-                    Map
                 </button>
             </div>
 
@@ -266,19 +238,23 @@ function ExploreContent({
                             : 'hidden lg:flex'
                     }`}
                 >
-                    <div className="relative flex shrink-0 items-center px-3 py-2.5 sm:px-4">
-                        <button
-                            type="button"
-                            disabled={safePage <= 1}
-                            onClick={() => setPage((p) => Math.max(1, p - 1))}
-                            className="relative z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-olive-200/80 bg-transparent text-olive-700 transition hover:border-olive-400 disabled:cursor-not-allowed disabled:opacity-35"
-                            aria-label="Previous page"
-                            title="Previous page"
-                        >
-                            <BackMark className="h-5 w-5" />
-                        </button>
+                    <div className="grid shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2 px-3 py-2.5 sm:px-4">
+                        <div className="flex justify-start">
+                            <button
+                                type="button"
+                                disabled={safePage <= 1}
+                                onClick={() =>
+                                    setPage((p) => Math.max(1, p - 1))
+                                }
+                                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-olive-200/80 bg-transparent text-olive-700 transition hover:border-olive-400 disabled:cursor-not-allowed disabled:opacity-35"
+                                aria-label="Previous page"
+                                title="Previous page"
+                            >
+                                <BackMark className="h-5 w-5" />
+                            </button>
+                        </div>
 
-                        <p className="pointer-events-none absolute inset-x-12 top-1/2 -translate-y-1/2 truncate text-center text-sm text-olive-700">
+                        <p className="truncate text-center text-sm text-olive-700">
                             Showing{' '}
                             <span className="font-semibold text-earth-dusk">
                                 {filtered.length === 0
@@ -292,7 +268,7 @@ function ExploreContent({
                             results
                         </p>
 
-                        <div className="relative z-10 ml-auto flex shrink-0 items-center gap-1.5">
+                        <div className="flex items-center justify-end gap-1.5">
                             <button
                                 type="button"
                                 disabled={safePage >= totalPages}
@@ -310,7 +286,7 @@ function ExploreContent({
                                 onClick={() =>
                                     mapOpen ? closeMap() : openMap()
                                 }
-                                className={`ml-1 flex h-9 w-9 items-center justify-center rounded-full border transition ${
+                                className={`flex h-9 w-9 items-center justify-center rounded-full border transition ${
                                     mapOpen
                                         ? 'border-mustard bg-mustard text-olive-950'
                                         : 'border-olive-200/80 bg-transparent text-olive-700 hover:border-olive-400'
@@ -361,6 +337,7 @@ function ExploreContent({
                                     {pageItems.map((listing) => (
                                         <div
                                             key={listing.id}
+                                            className="min-w-0"
                                             onMouseEnter={() =>
                                                 setActiveId(listing.id)
                                             }

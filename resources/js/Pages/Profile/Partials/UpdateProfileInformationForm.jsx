@@ -1,4 +1,5 @@
 import ImageCropModal from '@/Components/Admin/ImageCropModal';
+import { useConfirm } from '@/Components/ConfirmDialog';
 import { field, label as labelCls } from '@/Components/listing-form/fieldStyles';
 import { CropMark, TrashMark, UploadMark } from '@/Components/site/Mark';
 import { srcToDataUrl } from '@/utils/cropImage';
@@ -31,6 +32,7 @@ export default function UpdateProfileInformation({
     const [cropName, setCropName] = useState('avatar.jpg');
     const [dragOver, setDragOver] = useState(false);
     const [localError, setLocalError] = useState(null);
+    const { confirm, dialog } = useConfirm();
 
     const { data, setData, post, errors, processing, recentlySuccessful } = useForm({
         name: user.name,
@@ -163,11 +165,24 @@ export default function UpdateProfileInformation({
         closeCropper();
     };
 
-    const clearAvatar = () => {
+    const clearAvatar = async () => {
+        const ok = await confirm({
+            title: 'Remove profile photo?',
+            message:
+                'This removes your current photo. Save profile to apply the change.',
+            confirmLabel: 'Remove photo',
+            cancelLabel: 'Keep photo',
+            tone: 'danger',
+        });
+        if (!ok) {
+            return;
+        }
         setData('avatar', null);
         setData('remove_avatar', true);
         setLocalError(null);
-        if (fileRef.current) fileRef.current.value = '';
+        if (fileRef.current) {
+            fileRef.current.value = '';
+        }
     };
 
     const submit = (e) => {
@@ -180,6 +195,7 @@ export default function UpdateProfileInformation({
 
     return (
         <section className={className}>
+            {dialog}
             <header>
                 <h2 className="font-display text-lg font-semibold text-olive-950 dark:text-olive-50">
                     Profile
@@ -191,16 +207,14 @@ export default function UpdateProfileInformation({
 
             <form onSubmit={submit} className="mt-6 space-y-5">
                 <div>
-                    <p className={labelCls}>Profile photo</p>
-
                     {displaySrc ? (
-                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                        <div className="flex flex-col items-center gap-3">
                             <button
                                 type="button"
                                 onClick={editCurrentPhoto}
                                 aria-label="Crop and zoom profile photo"
                                 title="Click to crop & zoom"
-                                className="group relative mx-auto h-28 w-28 shrink-0 overflow-hidden border border-olive-900/15 bg-olive-100 transition hover:border-olive-900 focus:outline-none focus-visible:border-olive-900 dark:border-olive-700 dark:bg-olive-800 dark:hover:border-mustard sm:mx-0"
+                                className="group relative h-28 w-28 shrink-0 overflow-hidden rounded-full border border-olive-900/15 bg-olive-100 transition hover:border-olive-900 focus:outline-none focus-visible:border-olive-900 dark:border-olive-700 dark:bg-olive-800 dark:hover:border-mustard"
                             >
                                 <img
                                     src={displaySrc}
@@ -210,10 +224,15 @@ export default function UpdateProfileInformation({
                                 />
                                 <span className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1 bg-earth-dusk/55 text-white opacity-0 transition group-hover:opacity-100 group-focus-visible:opacity-100">
                                     <CropMark className="h-5 w-5" />
-                                    <span className="text-[11px] font-semibold">Crop</span>
+                                    <span className="text-[11px] font-semibold">
+                                        Crop
+                                    </span>
                                 </span>
                             </button>
-                            <div className="min-w-0 flex-1 space-y-3">
+                            <p className={`${labelCls} mb-0 text-center`}>
+                                Profile photo
+                            </p>
+                            <div className="w-full space-y-3">
                                 <button
                                     type="button"
                                     onClick={() => fileRef.current?.click()}
@@ -227,12 +246,13 @@ export default function UpdateProfileInformation({
                                                 Replace photo
                                             </span>
                                             <span className="mt-0.5 block text-xs text-olive-500 dark:text-olive-400">
-                                                Drop a new image or click · max 15MB
+                                                Drop a new image or click · max
+                                                15MB
                                             </span>
                                         </span>
                                     </span>
                                 </button>
-                                <div className="flex flex-wrap gap-2">
+                                <div className="flex flex-wrap justify-center gap-2 sm:justify-start">
                                     <button
                                         type="button"
                                         onClick={editCurrentPhoto}
@@ -244,7 +264,7 @@ export default function UpdateProfileInformation({
                                     <button
                                         type="button"
                                         onClick={clearAvatar}
-                                        className="inline-flex items-center gap-1.5 border border-transparent px-3 py-2 text-sm font-semibold text-rose-700 transition hover:border-rose-200 hover:bg-rose-50 dark:text-rose-400 dark:hover:border-rose-900 dark:hover:bg-rose-950/40"
+                                        className="inline-flex items-center gap-1.5 border border-rose-300 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700 transition hover:border-rose-400 hover:bg-rose-100 dark:border-rose-800 dark:bg-rose-950/50 dark:text-rose-300 dark:hover:border-rose-600 dark:hover:bg-rose-950/80"
                                     >
                                         <TrashMark className="h-3.5 w-3.5" />
                                         Remove photo
@@ -253,20 +273,31 @@ export default function UpdateProfileInformation({
                             </div>
                         </div>
                     ) : (
-                        <button
-                            type="button"
-                            onClick={() => fileRef.current?.click()}
-                            {...dragHandlers}
-                            className={`${dropZoneClass(dragOver)} flex-col items-center justify-center py-10 text-center`}
-                        >
-                            <UploadMark className="h-7 w-7 text-olive-700 dark:text-olive-300" />
-                            <span className="mt-4 text-sm font-semibold text-olive-950 dark:text-olive-50">
-                                Drop a photo here or click to upload
-                            </span>
-                            <span className="mt-1 text-xs text-olive-500 dark:text-olive-400">
-                                JPG, PNG, WEBP, GIF · max 15MB
-                            </span>
-                        </button>
+                        <div className="flex flex-col items-center gap-3">
+                            <div
+                                className="flex h-28 w-28 items-center justify-center rounded-full border border-dashed border-olive-900/20 bg-olive-100 text-olive-500 dark:border-olive-700 dark:bg-olive-800 dark:text-olive-300"
+                                aria-hidden
+                            >
+                                <UploadMark className="h-7 w-7" />
+                            </div>
+                            <p className={`${labelCls} mb-0 text-center`}>
+                                Profile photo
+                            </p>
+                            <button
+                                type="button"
+                                onClick={() => fileRef.current?.click()}
+                                {...dragHandlers}
+                                className={`${dropZoneClass(dragOver)} w-full flex-col items-center justify-center py-10 text-center`}
+                            >
+                                <UploadMark className="h-7 w-7 text-olive-700 dark:text-olive-300" />
+                                <span className="mt-4 text-sm font-semibold text-olive-950 dark:text-olive-50">
+                                    Drop a photo here or click to upload
+                                </span>
+                                <span className="mt-1 text-xs text-olive-500 dark:text-olive-400">
+                                    JPG, PNG, WEBP, GIF · max 15MB
+                                </span>
+                            </button>
+                        </div>
                     )}
 
                     <input
@@ -278,9 +309,16 @@ export default function UpdateProfileInformation({
                     />
 
                     {(localError || errors.avatar) && (
-                        <p className="mt-2 text-sm text-rose-600">{localError || errors.avatar}</p>
+                        <p className="mt-2 text-sm text-rose-600">
+                            {localError || errors.avatar}
+                        </p>
                     )}
                 </div>
+
+                <div
+                    className="border-t border-olive-900/10 dark:border-olive-800"
+                    aria-hidden
+                />
 
                 <div>
                     <label className={labelCls} htmlFor="name">

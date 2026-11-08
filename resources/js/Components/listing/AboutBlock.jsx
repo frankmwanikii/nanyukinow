@@ -7,7 +7,7 @@ function looksLikeHtml(value) {
 export default function AboutBlock({
     about,
     docs = [],
-    title = 'About',
+    title = 'About us',
     sectionId = 'overview',
 }) {
     const aboutText = (() => {

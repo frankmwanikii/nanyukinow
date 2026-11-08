@@ -2,6 +2,13 @@ import { createPortal } from 'react-dom';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { AlertTriangle, Info, Link2, Trash2, X } from 'lucide-react';
 
+const SHELL =
+    'fixed inset-0 z-[1600] flex items-end justify-center sm:items-center sm:p-4';
+const BACKDROP =
+    'absolute inset-0 bg-olive-950/55 backdrop-blur-[2px] animate-[nn-backdrop-in_280ms_ease-out]';
+const PANEL =
+    'relative w-full max-w-md overflow-hidden rounded-t-2xl border border-olive-200/80 bg-white pb-[env(safe-area-inset-bottom)] shadow-2xl animate-[nn-sheet-in_340ms_cubic-bezier(0.22,1,0.36,1)] dark:border-olive-700 dark:bg-olive-900 sm:rounded-2xl sm:pb-0';
+
 /**
  * Modern confirm / dialog popup.
  * Use with useConfirm() for a drop-in replacement of window.confirm().
@@ -38,11 +45,11 @@ export default function ConfirmDialog({
     const Icon = isDanger ? Trash2 : AlertTriangle;
 
     return createPortal(
-        <div className="fixed inset-0 z-[200] flex items-end justify-center p-4 sm:items-center">
+        <div className={SHELL}>
             <button
                 type="button"
                 aria-label="Dismiss"
-                className="absolute inset-0 bg-olive-950/55 backdrop-blur-[2px] transition"
+                className={BACKDROP}
                 onClick={onCancel}
             />
 
@@ -50,7 +57,7 @@ export default function ConfirmDialog({
                 role="alertdialog"
                 aria-modal="true"
                 aria-labelledby={titleId}
-                className="relative w-full max-w-md overflow-hidden rounded-2xl border border-olive-200/80 bg-white shadow-2xl dark:border-olive-700 dark:bg-olive-900"
+                className={PANEL}
             >
                 <div className="flex items-start gap-4 p-5 sm:p-6">
                     <span
@@ -148,11 +155,11 @@ export function AlertDialog({
     const Icon = isDanger ? AlertTriangle : Info;
 
     return createPortal(
-        <div className="fixed inset-0 z-[200] flex items-end justify-center p-4 sm:items-center">
+        <div className={SHELL}>
             <button
                 type="button"
                 aria-label="Dismiss"
-                className="absolute inset-0 bg-olive-950/55 backdrop-blur-[2px] transition"
+                className={BACKDROP}
                 onClick={onConfirm}
             />
 
@@ -160,7 +167,7 @@ export function AlertDialog({
                 role="alertdialog"
                 aria-modal="true"
                 aria-labelledby={titleId}
-                className="relative w-full max-w-md overflow-hidden rounded-2xl border border-olive-200/80 bg-white shadow-2xl dark:border-olive-700 dark:bg-olive-900"
+                className={PANEL}
             >
                 <div className="flex items-start gap-4 p-5 sm:p-6">
                     <span
@@ -263,11 +270,11 @@ export function PromptDialog({
     };
 
     return createPortal(
-        <div className="fixed inset-0 z-[200] flex items-end justify-center p-4 sm:items-center">
+        <div className={SHELL}>
             <button
                 type="button"
                 aria-label="Dismiss"
-                className="absolute inset-0 bg-olive-950/55 backdrop-blur-[2px] transition"
+                className={BACKDROP}
                 onClick={onCancel}
             />
 
@@ -275,7 +282,7 @@ export function PromptDialog({
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby={titleId}
-                className="relative w-full max-w-md overflow-hidden rounded-2xl border border-olive-200/80 bg-white shadow-2xl dark:border-olive-700 dark:bg-olive-900"
+                className={PANEL}
             >
                 <form onSubmit={submit}>
                     <div className="flex items-start gap-4 p-5 sm:p-6">

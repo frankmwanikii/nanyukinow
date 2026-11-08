@@ -147,7 +147,7 @@ export default function FeaturedMarquee({ items = [] }) {
     if (items.length === 0) return null;
 
     const cardClass =
-        'w-[min(82vw,22rem)] shrink-0 sm:w-[24rem]';
+        'w-[min(78vw,20rem)] shrink-0 sm:w-[22rem] lg:w-[24rem]';
 
     return (
         <section

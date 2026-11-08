@@ -216,7 +216,7 @@ export const PRICING_CATEGORY_BREAKDOWNS = {
             },
             {
                 id: 'activity_basics',
-                label: 'Duration, difficulty & price from',
+                label: 'Duration, difficulty & pricing options',
                 values: { free: yes, featured: yes, premium: yes },
             },
             {

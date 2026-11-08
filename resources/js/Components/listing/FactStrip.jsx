@@ -1,7 +1,9 @@
 import DetailSection from './DetailSection';
 
 export default function FactStrip({ facts = [], title = 'At a glance' }) {
-    const items = Array.isArray(facts) ? facts.filter((f) => f?.label) : [];
+    const items = Array.isArray(facts)
+        ? facts.filter((f) => f?.label && f.label !== 'Charges')
+        : [];
     if (!items.length) return null;
 
     return (

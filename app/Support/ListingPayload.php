@@ -98,6 +98,23 @@ class ListingPayload
             'ageLimit' => $details['age_limit'] ?? null,
             'organiser' => $details['organiser'] ?? null,
             'claim_status' => $listing->claim_status ?: 'unclaimed',
+            'reviews' => $listing->relationLoaded('reviews')
+                ? $listing->reviews->map(fn ($review) => [
+                    'id' => $review->id,
+                    'rating' => (int) $review->rating,
+                    'body' => $review->body,
+                    'name' => $review->user?->name ?: 'Member',
+                    'avatar' => $review->user?->avatar_url,
+                    'userId' => $review->user_id,
+                    'date' => $review->created_at?->toIso8601String(),
+                    'dateLabel' => $review->created_at?->diffForHumans(),
+                ])->values()->all()
+                : [],
+            'reviewSummary' => [
+                'count' => $listing->relationLoaded('reviews')
+                    ? $listing->reviews->count()
+                    : (int) $listing->reviews()->count(),
+            ],
         ];
     }
 
@@ -106,16 +123,7 @@ class ListingPayload
      */
     private static function publicMediaUrl(?string $url): ?string
     {
-        if (! filled($url)) {
-            return null;
-        }
-
-        $trimmed = trim($url);
-        if ($trimmed === '' || $trimmed === '/storage' || $trimmed === '/storage/') {
-            return null;
-        }
-
-        return $trimmed;
+        return ListingMedia::normalizePublicUrl($url);
     }
 
     /**

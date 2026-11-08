@@ -99,6 +99,11 @@ class Listing extends Model
         return $this->hasMany(ListingClaim::class);
     }
 
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(ListingReview::class);
+    }
+
     public function bookmarkedByUsers(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'listing_bookmarks')

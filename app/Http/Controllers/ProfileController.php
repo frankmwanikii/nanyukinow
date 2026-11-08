@@ -19,10 +19,13 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
+        $user = $request->user();
+        UserAvatar::clearUnusable($user);
+
         return Inertia::render('Profile/Edit', [
-            'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
+            'mustVerifyEmail' => $user instanceof MustVerifyEmail,
             'status' => session('status'),
-            'avatarUrl' => UserAvatar::normalize($request->user()->avatar_url),
+            'avatarUrl' => UserAvatar::publicUrl($user->avatar_url),
         ]);
     }
 

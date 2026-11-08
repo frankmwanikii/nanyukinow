@@ -24,9 +24,6 @@ export default function ReviewsTeaser({ rating, reviewSummary }) {
                     </p>
                 ) : null}
             </div>
-            <p className="mt-4 text-xs font-medium uppercase tracking-wide text-olive-500">
-                Full reviews coming soon
-            </p>
         </DetailSection>
     );
 }

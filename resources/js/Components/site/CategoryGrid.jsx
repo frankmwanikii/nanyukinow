@@ -48,7 +48,7 @@ export default function CategoryGrid() {
                         subtitle="From lodges to coffee, tours to nightlife."
                     />
                 </Reveal>
-                <div className="mx-auto grid max-w-4xl grid-cols-1 gap-3 min-[400px]:grid-cols-2 sm:gap-4 md:grid-cols-4">
+                <div className="mx-auto grid max-w-4xl grid-cols-4 gap-2 sm:gap-4">
                     {cards.map((card) => {
                         const Icon = card.Icon;
                         return (
@@ -56,10 +56,10 @@ export default function CategoryGrid() {
                                 key={card.key}
                                 href={card.href}
                                 prefetch
-                                className="group flex min-h-[7.5rem] flex-col items-center justify-center gap-3.5 border border-olive-200/70 bg-white px-3 py-6 text-center transition hover:border-olive-500 hover:bg-olive-600 sm:py-8"
+                                className="group flex min-h-[5.25rem] flex-col items-center justify-center gap-2 border border-olive-200/70 bg-white px-1.5 py-3.5 text-center transition hover:border-olive-500 hover:bg-olive-600 sm:min-h-[7.5rem] sm:gap-3.5 sm:px-3 sm:py-8"
                             >
-                                <Icon className="h-8 w-8 text-olive-700 transition group-hover:text-mustard sm:h-9 sm:w-9" />
-                                <span className="font-display text-sm font-semibold text-earth-dusk transition group-hover:text-white sm:text-base">
+                                <Icon className="h-7 w-7 shrink-0 text-olive-700 transition group-hover:text-mustard sm:h-9 sm:w-9" />
+                                <span className="font-display text-[11px] font-semibold leading-tight text-earth-dusk transition group-hover:text-white sm:text-base sm:leading-snug">
                                     {card.label}
                                 </span>
                             </Link>

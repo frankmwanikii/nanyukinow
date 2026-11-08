@@ -19,7 +19,7 @@ import { eventDateRangeLabel } from '@/Components/listing/eventDates';
 import { toggleListingBookmark } from '@/utils/listingBookmark';
 import {
     listingSubcategories,
-    subcategoryLabel,
+    subcategoryCardLabel,
 } from '@/utils/listingSubcategories';
 
 const CATEGORY_MARKS = {
@@ -75,7 +75,7 @@ export default function ListingCard({
     const categoryLabel =
         listing.categoryKey === 'properties' && listing.propertyType
             ? listing.propertyType
-            : subcategoryLabel(listing) || listing.category || 'Listing';
+            : subcategoryCardLabel(listing) || listing.category || 'Listing';
     const regionLabel = listing.location || listing.city || null;
     const priceLabel =
         listing.categoryKey === 'properties'
@@ -182,14 +182,14 @@ export default function ListingCard({
 
     return (
         <article
-            className={`group flex h-full flex-col border border-olive-900/15 bg-white ${
+            className={`group flex h-full min-w-0 max-w-full flex-col overflow-hidden rounded-2xl border border-olive-900/15 bg-white ${
                 featured ? 'border-olive-900/25' : ''
             } ${className}`}
             aria-hidden={inert ? true : undefined}
         >
             <Link
                 href={href}
-                className="flex min-h-0 flex-1 flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-mustard"
+                className="flex min-h-0 min-w-0 flex-1 flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-mustard"
                 tabIndex={inert ? -1 : undefined}
                 draggable={false}
                 onClick={(e) => {
@@ -236,16 +236,20 @@ export default function ListingCard({
                 </div>
 
                 <div
-                    className={`flex flex-1 flex-col gap-3 px-3.5 py-3.5 sm:px-4 sm:py-4 ${
+                    className={`flex min-w-0 flex-1 flex-col gap-2.5 px-3 py-3 sm:gap-3 sm:px-4 sm:py-4 ${
                         oliveFooter ? 'bg-olive-700 text-white' : 'bg-white text-earth-dusk'
                     }`}
                 >
-                    <div className="flex min-w-0 items-start gap-3">
+                    <div className="flex min-w-0 items-start gap-2.5 sm:gap-3">
                         {listing.logo ? (
                             <img
                                 src={listing.logo}
                                 alt=""
-                                className="mt-0.5 h-10 w-10 shrink-0 object-cover"
+                                className={`mt-0.5 h-9 w-9 shrink-0 rounded-full object-cover sm:h-10 sm:w-10 ${
+                                    oliveFooter
+                                        ? 'ring-2 ring-white/80'
+                                        : 'ring-2 ring-olive-200'
+                                }`}
                                 loading="lazy"
                                 decoding="async"
                                 width={40}
@@ -253,7 +257,7 @@ export default function ListingCard({
                             />
                         ) : null}
                         <div className="min-w-0 flex-1">
-                            <h3 className="font-display text-[1.05rem] font-semibold leading-snug tracking-tight sm:text-lg">
+                            <h3 className="font-display text-base font-semibold leading-snug tracking-tight sm:text-lg">
                                 <span className="line-clamp-2">
                                     {listing.title}
                                 </span>
@@ -274,7 +278,7 @@ export default function ListingCard({
                     </div>
 
                     <div
-                        className={`mt-auto flex items-center justify-between gap-2 border-t pt-3 ${
+                        className={`mt-auto flex min-w-0 items-center justify-between gap-2 border-t pt-2.5 sm:pt-3 ${
                             oliveFooter
                                 ? 'border-white/15'
                                 : 'border-olive-900/10'
@@ -283,7 +287,7 @@ export default function ListingCard({
                         {(() => {
                             const CategoryIcon =
                                 CATEGORY_MARKS[listing.categoryKey] || null;
-                            const categoryClass = `inline-flex min-h-11 min-w-0 max-w-full items-center gap-2 text-left text-sm font-medium ${
+                            const categoryClass = `inline-flex min-h-11 min-w-0 flex-1 items-center gap-1.5 overflow-hidden text-left text-sm font-medium ${
                                 oliveFooter ? 'text-white/90' : 'text-olive-800'
                             }`;
 
@@ -300,7 +304,7 @@ export default function ListingCard({
                                         {CategoryIcon ? (
                                             <CategoryIcon className="h-4 w-4 shrink-0" />
                                         ) : null}
-                                        <span className="truncate">
+                                        <span className="min-w-0 truncate">
                                             {categoryLabel}
                                         </span>
                                     </button>
@@ -312,7 +316,7 @@ export default function ListingCard({
                                     {CategoryIcon ? (
                                         <CategoryIcon className="h-4 w-4 shrink-0" />
                                     ) : null}
-                                    <span className="truncate">
+                                    <span className="min-w-0 truncate">
                                         {categoryLabel}
                                     </span>
                                 </p>

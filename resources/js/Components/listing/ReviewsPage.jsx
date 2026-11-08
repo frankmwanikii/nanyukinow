@@ -1,18 +1,40 @@
 import { ChevronLeft, ChevronRight, Star } from 'lucide-react';
-import { Link, usePage } from '@inertiajs/react';
+import { Link, useForm, usePage } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 import DetailSection from './DetailSection';
 
 const PAGE_SIZE = 5;
 
-function Stars({ value = 0, size = 'md' }) {
+function Stars({ value = 0, size = 'md', interactive = false, onSelect }) {
     const cls = size === 'lg' ? 'h-7 w-7' : 'h-4 w-4';
     return (
-        <div className="inline-flex items-center gap-1">
+        <div className="inline-flex items-center gap-1" role={interactive ? 'radiogroup' : undefined}>
             {[1, 2, 3, 4, 5].map((n) => {
                 const filled = n <= value;
+                if (!interactive) {
+                    return (
+                        <span key={n}>
+                            <Star
+                                className={`${cls} ${
+                                    filled
+                                        ? 'fill-mustard text-mustard'
+                                        : 'text-olive-300'
+                                }`}
+                            />
+                        </span>
+                    );
+                }
+
                 return (
-                    <span key={n}>
+                    <button
+                        key={n}
+                        type="button"
+                        role="radio"
+                        aria-checked={value === n}
+                        aria-label={`${n} star${n === 1 ? '' : 's'}`}
+                        onClick={() => onSelect?.(n)}
+                        className="rounded-md p-0.5 transition hover:scale-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-olive-700"
+                    >
                         <Star
                             className={`${cls} ${
                                 filled
@@ -20,18 +42,77 @@ function Stars({ value = 0, size = 'md' }) {
                                     : 'text-olive-300'
                             }`}
                         />
-                    </span>
+                    </button>
                 );
             })}
         </div>
     );
 }
 
+function ReviewForm({ listing }) {
+    const { data, setData, post, processing, errors, reset } = useForm({
+        rating: 0,
+        body: '',
+    });
+
+    const submit = (event) => {
+        event.preventDefault();
+        post(route('listings.reviews.store', listing.slug), {
+            preserveScroll: true,
+            onSuccess: () => reset('rating', 'body'),
+        });
+    };
+
+    return (
+        <form onSubmit={submit} className="flex flex-col gap-4">
+            <div>
+                <p className="mb-2 text-sm font-medium text-olive-800">Your rating</p>
+                <Stars
+                    value={data.rating}
+                    size="lg"
+                    interactive
+                    onSelect={(n) => setData('rating', n)}
+                />
+                {errors.rating ? (
+                    <p className="mt-2 text-sm text-red-600">{errors.rating}</p>
+                ) : null}
+            </div>
+            <div>
+                <label htmlFor="review-body" className="mb-2 block text-sm font-medium text-olive-800">
+                    Your review
+                </label>
+                <textarea
+                    id="review-body"
+                    rows={4}
+                    value={data.body}
+                    onChange={(event) => setData('body', event.target.value)}
+                    placeholder="Share what stood out about your visit"
+                    className="w-full rounded-xl border border-olive-200 bg-white px-3 py-2.5 text-sm text-olive-900 shadow-sm outline-none transition placeholder:text-olive-400 focus:border-olive-500 focus:ring-2 focus:ring-olive-500/20"
+                />
+                {errors.body ? (
+                    <p className="mt-2 text-sm text-red-600">{errors.body}</p>
+                ) : null}
+            </div>
+            <button
+                type="submit"
+                disabled={processing}
+                className="inline-flex min-h-11 w-full items-center justify-center rounded-full bg-olive-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-mustard hover:text-olive-950 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+            >
+                {processing ? 'Posting…' : 'Post review'}
+            </button>
+        </form>
+    );
+}
+
 export default function ReviewsPage({ listing }) {
     const { auth } = usePage().props;
     const user = auth?.user;
-    const reviews = [];
+    const reviews = Array.isArray(listing.reviews) ? listing.reviews : [];
     const [page, setPage] = useState(1);
+
+    const alreadyReviewed = Boolean(
+        user && reviews.some((review) => Number(review.userId) === Number(user.id)),
+    );
 
     const totalPages = Math.max(1, Math.ceil(reviews.length / PAGE_SIZE));
     const safePage = Math.min(page, totalPages);
@@ -67,26 +148,34 @@ export default function ReviewsPage({ listing }) {
             </DetailSection>
 
             <DetailSection title="Write a review">
-                <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <p className="text-sm leading-relaxed text-olive-700">
-                        Member reviews are launching soon
-                        {user ? '' : ' — sign in to be ready when they open'}.
-                    </p>
-                    {!user ? (
+                {!user ? (
+                    <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <p className="text-sm leading-relaxed text-olive-700">
+                            Sign in to share your experience with other visitors.
+                        </p>
                         <Link
                             href={route('login')}
                             className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-olive-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-mustard hover:text-olive-950"
                         >
                             Sign in
                         </Link>
-                    ) : null}
-                </div>
+                    </div>
+                ) : alreadyReviewed ? (
+                    <p className="text-sm leading-relaxed text-olive-700">
+                        Thanks, you already reviewed this place.
+                    </p>
+                ) : (
+                    <ReviewForm listing={listing} />
+                )}
             </DetailSection>
 
             <div id="reviews-list" className="flex flex-col gap-4">
                 {pageItems.length === 0 ? (
                     <p className="rounded-xl border border-dashed border-olive-200 bg-olive-50/50 px-4 py-8 text-center text-sm text-olive-600">
-                        No reviews yet. Real visitor reviews will appear here.
+                        <span className="mb-2 block text-3xl" aria-hidden="true">
+                            ⭐
+                        </span>
+                        no review yet
                     </p>
                 ) : (
                     pageItems.map((review) => (
@@ -100,13 +189,13 @@ export default function ReviewsPage({ listing }) {
                                         {review.name}
                                     </p>
                                     <p className="mt-0.5 text-xs text-olive-500">
-                                        {review.date}
+                                        {review.dateLabel || review.date}
                                     </p>
                                 </div>
                                 <Stars value={review.rating} />
                             </div>
                             <p className="mt-3 text-sm leading-relaxed text-olive-800">
-                                {review.text}
+                                {review.body || review.text}
                             </p>
                         </article>
                     ))

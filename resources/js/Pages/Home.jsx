@@ -96,13 +96,14 @@ function GoldListSection({ items = [], title, subtitle }) {
                     <ListingsSoonPlaceholder light />
                 ) : (
                     <>
-                        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
                             {shown.map((listing) => (
-                                <ListingCard
-                                    key={listing.id}
-                                    listing={listing}
-                                    featured
-                                />
+                                <div key={listing.id} className="min-w-0">
+                                    <ListingCard
+                                        listing={listing}
+                                        featured
+                                    />
+                                </div>
                             ))}
                         </div>
                         {hasMore ? (
@@ -147,12 +148,11 @@ function AirbnbsSection({ items = [], title, subtitle }) {
                     <ListingsSoonPlaceholder light />
                 ) : (
                     <>
-                        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
                             {shown.map((listing) => (
-                                <ListingCard
-                                    key={listing.id}
-                                    listing={listing}
-                                />
+                                <div key={listing.id} className="min-w-0">
+                                    <ListingCard listing={listing} />
+                                </div>
                             ))}
                         </div>
                         {hasMore ? (
@@ -193,12 +193,11 @@ function WildlifeSafarisSection({ items = [] }) {
                     <ListingsSoonPlaceholder />
                 ) : (
                     <>
-                        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
                             {shown.map((listing) => (
-                                <ListingCard
-                                    key={listing.id}
-                                    listing={listing}
-                                />
+                                <div key={listing.id} className="min-w-0">
+                                    <ListingCard listing={listing} />
+                                </div>
                             ))}
                         </div>
                         {hasMore ? (
@@ -237,28 +236,32 @@ function HomeContent({
                 id="about"
                 className={
                     hasPromoted
-                        ? 'relative z-10 bg-earth-sand py-16 sm:py-20 md:py-24'
-                        : 'relative z-10 -mt-10 bg-earth-sand pb-16 pt-24 sm:-mt-14 sm:pb-20 sm:pt-28 md:pb-24 md:pt-32'
+                        ? 'relative z-10 bg-earth-sand py-10 sm:py-16 md:py-24'
+                        : 'relative z-10 -mt-10 bg-earth-sand pb-10 pt-20 sm:-mt-14 sm:pb-16 sm:pt-28 md:pb-24 md:pt-32'
                 }
             >
                 <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
                     <Reveal>
-                        <div className="mx-auto max-w-3xl text-center">
-                            <h2 className="font-display text-3xl font-semibold tracking-tight text-earth-dusk sm:text-4xl md:text-[2.75rem] md:leading-tight">
+                        <div className="mx-auto max-w-xl text-center sm:max-w-2xl md:max-w-3xl">
+                            <h2 className="text-balance font-display text-3xl font-semibold tracking-tight text-earth-dusk sm:text-4xl md:text-[2.75rem] md:leading-tight">
                                 Nanyuki Now
                             </h2>
                             <div
-                                className="mx-auto mt-5 h-1 w-12 rounded-full bg-mustard"
+                                className="mx-auto mt-4 h-1 w-12 rounded-full bg-mustard sm:mt-5"
                                 aria-hidden
                             />
-                            <p className="mt-6 text-base leading-relaxed text-olive-700/90 sm:mt-8 sm:text-lg sm:leading-8 md:text-xl md:leading-9">
-                                Nanyuki Now is a local discovery platform
-                                designed to showcase the very best of Nanyuki
-                                and the surrounding towns. From great places to
-                                eat and stay, to unique experiences, services,
-                                and events worth knowing about, we bring
-                                everything in one trusted space.
+                            <p className="mx-auto mt-5 max-w-md text-pretty text-base leading-relaxed text-olive-700/90 sm:mt-7 sm:max-w-xl sm:text-lg sm:leading-8 md:max-w-2xl md:text-xl md:leading-9">
+                                The best of Nanyuki and nearby towns. Places to
+                                eat and stay, experiences, services, and events,
+                                all in one trusted space.
                             </p>
+                            <Link
+                                href="/explore"
+                                prefetch
+                                className="mt-7 inline-flex min-h-11 items-center rounded-md bg-olive-700 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-mustard hover:text-olive-950 sm:mt-8 sm:px-8 sm:text-base"
+                            >
+                                Explore Nanyuki
+                            </Link>
                         </div>
                     </Reveal>
                 </div>

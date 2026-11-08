@@ -31,7 +31,7 @@ export default function Modal({
             <Dialog
                 as="div"
                 id="modal"
-                className="fixed inset-0 z-[1500] flex transform items-center overflow-y-auto px-4 py-6 transition-all sm:px-0"
+                className="fixed inset-0 z-[1600] flex items-end justify-center sm:items-center sm:p-4"
                 onClose={close}
             >
                 <TransitionChild
@@ -42,19 +42,19 @@ export default function Modal({
                     leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                 >
-                    <div className="absolute inset-0 bg-gray-500/75 dark:bg-olive-950/70" />
+                    <div className="absolute inset-0 bg-olive-950/55 backdrop-blur-[2px]" />
                 </TransitionChild>
 
                 <TransitionChild
                     enter="ease-out duration-300"
-                    enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                    enterTo="opacity-100 translate-y-0 sm:scale-100"
+                    enterFrom="translate-y-full sm:translate-y-4 sm:opacity-0 sm:scale-95"
+                    enterTo="translate-y-0 sm:opacity-100 sm:scale-100"
                     leave="ease-in duration-200"
-                    leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-                    leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                    leaveFrom="translate-y-0 sm:opacity-100 sm:scale-100"
+                    leaveTo="translate-y-full sm:translate-y-4 sm:opacity-0 sm:scale-95"
                 >
                     <DialogPanel
-                        className={`mb-6 transform overflow-hidden rounded-lg bg-white shadow-xl transition-all dark:bg-olive-900 dark:shadow-none dark:ring-1 dark:ring-olive-800 sm:mx-auto sm:w-full ${maxWidthClass}`}
+                        className={`relative max-h-[min(92dvh,920px)] w-full transform overflow-y-auto rounded-t-2xl bg-white pb-[env(safe-area-inset-bottom)] shadow-xl transition-all dark:bg-olive-900 dark:shadow-none dark:ring-1 dark:ring-olive-800 sm:max-h-[90vh] sm:rounded-2xl sm:pb-0 sm:w-full ${maxWidthClass}`}
                     >
                         {children}
                     </DialogPanel>

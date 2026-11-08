@@ -273,4 +273,65 @@ class AccountListingFormTest extends TestCase
             'description' => '<p>Hello <strong>world</strong></p>',
         ]);
     }
+
+    public function test_draft_media_upload_persists_real_storage_paths(): void
+    {
+        Storage::fake('public');
+        $this->seedCategories();
+
+        $user = User::factory()->create(['plan' => 'featured']);
+        $category = Category::query()->where('slug', 'eatDrink')->firstOrFail();
+
+        $response = $this->actingAs($user)->postJson(route('account.listings.draft'), [
+            'category_id' => $category->id,
+            'title' => 'Media Cafe',
+            'location' => 'Nanyuki',
+            'tier' => 'featured',
+            'cover' => UploadedFile::fake()->image('cover.jpg', 800, 600),
+            'logo' => UploadedFile::fake()->image('logo.png', 200, 200),
+            'image_url' => 'blob:https://example.test/preview-cover',
+            'logo_url' => '/storage/',
+        ]);
+
+        $response->assertOk();
+
+        $imageUrl = $response->json('listing.image_url');
+        $logoUrl = $response->json('listing.logo_url');
+
+        $this->assertIsString($imageUrl);
+        $this->assertIsString($logoUrl);
+        $this->assertStringStartsWith('/storage/listings/covers/', $imageUrl);
+        $this->assertStringStartsWith('/storage/listings/logos/', $logoUrl);
+        $this->assertNotSame('/storage/', $imageUrl);
+        $this->assertNotSame('/storage/', $logoUrl);
+
+        Storage::disk('public')->assertExists(str_replace('/storage/', '', $imageUrl));
+        Storage::disk('public')->assertExists(str_replace('/storage/', '', $logoUrl));
+
+        $listing = Listing::query()->findOrFail($response->json('listing.id'));
+        $this->assertSame($imageUrl, $listing->image_url);
+        $this->assertSame($logoUrl, $listing->logo_url);
+    }
+
+    public function test_draft_rejects_incomplete_media_urls_without_files(): void
+    {
+        $this->seedCategories();
+        $user = User::factory()->create();
+        $category = Category::query()->where('slug', 'eatDrink')->firstOrFail();
+
+        $response = $this->actingAs($user)->postJson(route('account.listings.draft'), [
+            'category_id' => $category->id,
+            'title' => 'Broken Media Draft',
+            'location' => 'Nanyuki',
+            'tier' => 'free',
+            'image_url' => '/storage/',
+            'logo_url' => 'blob:https://example.test/x',
+            'event_poster_url' => '/storage',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('listing.image_url', null)
+            ->assertJsonPath('listing.logo_url', null)
+            ->assertJsonPath('listing.event_poster_url', null);
+    }
 }

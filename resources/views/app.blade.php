@@ -2,7 +2,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
         <meta name="description" content="Nanyuki Now — discover where to eat, stay, and explore in Nanyuki. Your city, right now.">
 
         <title inertia>{{ config('app.name', 'Nanyuki Now') }}</title>

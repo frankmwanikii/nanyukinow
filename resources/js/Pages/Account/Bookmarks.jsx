@@ -69,7 +69,7 @@ export default function Bookmarks({ bookmarks = [] }) {
                     ) : (
                         <div className="grid gap-4 p-4 sm:grid-cols-2 sm:p-5 xl:grid-cols-3">
                             {bookmarks.map((listing) => (
-                                <div key={listing.id} className="relative">
+                                <div key={listing.id} className="relative min-w-0">
                                     <ListingCard listing={listing} />
                                     <button
                                         type="button"

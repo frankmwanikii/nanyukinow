@@ -11,6 +11,7 @@ import EventSponsors from './EventSponsors';
 import EventTickets from './EventTickets';
 import EventWhen from './EventWhen';
 import EventWhere from './EventWhere';
+import ChargesCard from './ChargesCard';
 import FactStrip from './FactStrip';
 import HoursList from './HoursList';
 import MenuGallery from './MenuGallery';
@@ -51,29 +52,51 @@ export function renderListingSection(key, listing) {
                     amenities={listing.amenities}
                     title={
                         listing.categoryKey === 'thingsToDo'
-                            ? 'Facilities'
+                            ? 'Facilities and amenities'
                             : listing.categoryKey === 'properties'
                               ? 'Features'
                               : 'Amenities'
                     }
                 />
             );
-        case 'facts':
-            return (
-                <FactStrip
-                    key={key}
-                    facts={listing.facts}
-                    title={
-                        listing.categoryKey === 'events'
-                            ? 'Event details'
-                            : listing.categoryKey === 'properties'
-                              ? 'Property facts'
-                              : listing.categoryKey === 'stay'
-                                ? 'Stay facts'
-                                : 'At a glance'
-                    }
-                />
+        case 'facts': {
+            const rawFacts = Array.isArray(listing.facts)
+                ? listing.facts
+                : [];
+            const chargesFact =
+                rawFacts.find((fact) => fact?.label === 'Charges') || null;
+            const glanceFacts = rawFacts.filter(
+                (fact) => fact?.label && fact.label !== 'Charges',
             );
+
+            if (
+                listing.priceRangeLabel &&
+                !glanceFacts.some((fact) => fact.label === 'Price range')
+            ) {
+                glanceFacts.push({
+                    label: 'Price range',
+                    value: listing.priceRangeLabel,
+                });
+            }
+
+            return (
+                <div key={key} className="space-y-4">
+                    <FactStrip
+                        facts={glanceFacts}
+                        title={
+                            listing.categoryKey === 'events'
+                                ? 'Event details'
+                                : listing.categoryKey === 'properties'
+                                  ? 'Property facts'
+                                  : listing.categoryKey === 'stay'
+                                    ? 'Stay facts'
+                                    : 'At a glance'
+                        }
+                    />
+                    <ChargesCard fact={chargesFact} />
+                </div>
+            );
+        }
         case 'houseRules': {
             const rules = listing.houseRules;
             if (typeof rules === 'string') {
@@ -195,15 +218,9 @@ export function renderListingSection(key, listing) {
                 />
             );
         case 'chips':
-            return (
-                <ChipRow
-                    key={key}
-                    chips={listing.chips}
-                    priceRangeLabel={listing.priceRangeLabel}
-                />
-            );
+            return <ChipRow key={key} chips={listing.chips} />;
         case 'priceRange':
-            // Merged into the chips Details card to avoid duplicate cards.
+            // Shown inside At a glance (facts) to keep pricing summary with duration / difficulty.
             return null;
         case 'deals': {
             const deals = Array.isArray(listing.deals) ? listing.deals : [];

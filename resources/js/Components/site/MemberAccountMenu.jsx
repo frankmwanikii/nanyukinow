@@ -15,7 +15,14 @@ import { plainText } from '@/utils/plainText';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
-function useAnchoredMenu(open) {
+/**
+ * Position a fixed menu under a trigger, right-aligned, without overflowing
+ * the viewport (common on mobile when the panel is nearly full-width).
+ *
+ * @param {boolean} open
+ * @param {{ maxWidth?: number, edgeGap?: number }} [options]
+ */
+function useAnchoredMenu(open, { maxWidth = 256, edgeGap = 12 } = {}) {
     const triggerRef = useRef(null);
     const [coords, setCoords] = useState(null);
 
@@ -31,9 +38,20 @@ function useAnchoredMenu(open) {
                 return;
             }
             const rect = el.getBoundingClientRect();
+            const preferredRight = Math.round(window.innerWidth - rect.right);
+            const width = Math.min(maxWidth, window.innerWidth - edgeGap * 2);
+            const maxRight = Math.max(
+                edgeGap,
+                Math.round(window.innerWidth - width - edgeGap),
+            );
+            const right = Math.min(
+                Math.max(preferredRight, edgeGap),
+                maxRight,
+            );
+
             setCoords({
                 top: Math.round(rect.bottom + 8),
-                right: Math.round(window.innerWidth - rect.right),
+                right,
             });
         };
 
@@ -44,7 +62,7 @@ function useAnchoredMenu(open) {
             window.removeEventListener('resize', update);
             window.removeEventListener('scroll', update, true);
         };
-    }, [open]);
+    }, [open, maxWidth, edgeGap]);
 
     return { triggerRef, coords };
 }
@@ -60,41 +78,74 @@ const AVATAR_SIZES = {
     sm: 'h-8 w-8 text-[11px]',
     md: 'h-9 w-9 text-xs',
     lg: 'h-10 w-10 text-sm',
+    xl: 'h-14 w-14 text-base',
 };
 
-export function MemberAvatar({ user, size = 'md', className = '' }) {
+/** Tier ring — Free olive, Standard mint, Premium mustard (matches listing badges). */
+const PLAN_RING = {
+    free: 'bg-olive-400/55',
+    featured: 'bg-mint',
+    premium: 'bg-mustard',
+};
+
+function planRingClass(plan) {
+    if (!plan) {
+        return 'bg-olive-900/15';
+    }
+
+    return PLAN_RING[plan] || PLAN_RING.free;
+}
+
+export function MemberAvatar({
+    user,
+    size = 'md',
+    className = '',
+    showPlanRing = true,
+}) {
     const initials = useMemo(() => userInitials(user?.name), [user?.name]);
     const [failed, setFailed] = useState(false);
     const box = AVATAR_SIZES[size] ?? AVATAR_SIZES.md;
+    const plan = showPlanRing ? user?.plan : null;
+    const ring = planRingClass(plan);
+    const label = user?.plan_label
+        ? `${user.plan_label} plan`
+        : plan
+          ? `${plan} plan`
+          : undefined;
 
     useEffect(() => {
         setFailed(false);
     }, [user?.avatar_url]);
 
+    const shell = `inline-flex shrink-0 rounded-full p-[2px] ${ring} ${className}`;
+
     if (user?.avatar_url && !failed) {
         return (
-            <img
-                src={user.avatar_url}
-                alt=""
-                onError={() => setFailed(true)}
-                className={`${box} shrink-0 rounded-full object-cover ring-1 ring-white/20 ${className}`}
-            />
+            <span className={shell} title={label}>
+                <img
+                    src={user.avatar_url}
+                    alt=""
+                    onError={() => setFailed(true)}
+                    className={`${box} rounded-full object-cover`}
+                />
+            </span>
         );
     }
 
     return (
-        <div
-            className={`flex ${box} shrink-0 items-center justify-center rounded-full bg-mustard font-semibold leading-none text-earth-dusk ring-1 ring-mustard/40 ${className}`}
-            aria-hidden
-        >
-            {initials}
-        </div>
+        <span className={shell} title={label} aria-hidden>
+            <span
+                className={`flex ${box} items-center justify-center rounded-full bg-mustard font-semibold leading-none text-earth-dusk`}
+            >
+                {initials}
+            </span>
+        </span>
     );
 }
 
 export function MemberUserMenu({ user, compact = false }) {
     const [open, setOpen] = useState(false);
-    const { triggerRef, coords } = useAnchoredMenu(open);
+    const { triggerRef, coords } = useAnchoredMenu(open, { maxWidth: 256 });
 
     if (!user) return null;
 
@@ -142,20 +193,18 @@ export function MemberUserMenu({ user, compact = false }) {
                           style={{ top: coords.top, right: coords.right }}
                           className="fixed z-[1301] w-64 border border-olive-900/15 bg-white py-1 shadow-lift"
                       >
-                          <div className="border-b border-olive-900/10 px-4 py-3.5">
-                              <div className="flex items-center gap-3">
-                                  <MemberAvatar user={user} />
-                                  <div className="min-w-0">
-                                      <p className="truncate text-sm font-semibold text-olive-950">
-                                          {user.name}
-                                      </p>
-                                      <p className="truncate text-xs text-olive-500">
-                                          {user.email}
-                                      </p>
-                                      <p className="mt-1 text-[11px] font-semibold text-olive-700">
-                                          {user.plan_label || 'Free'} plan
-                                      </p>
-                                  </div>
+                          <div className="border-b border-olive-900/10 px-3 py-3">
+                              <div className="flex flex-col items-center rounded-2xl bg-earth-dusk px-4 py-4 text-center">
+                                  <MemberAvatar user={user} size="xl" />
+                                  <p className="mt-2.5 max-w-full truncate text-sm font-semibold text-white">
+                                      {user.name}
+                                  </p>
+                                  <p className="mt-0.5 max-w-full truncate text-xs text-white/70">
+                                      {user.email}
+                                  </p>
+                                  <p className="mt-1.5 text-[11px] font-semibold text-mustard">
+                                      {user.plan_label || 'Free'} plan
+                                  </p>
                               </div>
                           </div>
 
@@ -227,7 +276,11 @@ export function MemberUserMenu({ user, compact = false }) {
 export function MemberNotificationsBell() {
     const { notifications, messages } = usePage().props;
     const [open, setOpen] = useState(false);
-    const { triggerRef, coords } = useAnchoredMenu(open);
+    // Match CSS: w-[min(22rem,calc(100vw-1.5rem))] → 22rem = 352px, 1.5rem gap total
+    const { triggerRef, coords } = useAnchoredMenu(open, {
+        maxWidth: 352,
+        edgeGap: 12,
+    });
     const alertUnread = notifications?.unread_count || 0;
     const chatUnread = messages?.unread_count || 0;
     const unread = alertUnread + chatUnread;
@@ -256,7 +309,7 @@ export function MemberNotificationsBell() {
                       <div
                           role="menu"
                           style={{ top: coords.top, right: coords.right }}
-                          className="fixed z-[1301] w-[min(22rem,calc(100vw-1.5rem))] overflow-hidden border border-olive-900/15 bg-white shadow-lift"
+                          className="fixed z-[1301] w-[min(22rem,calc(100vw-1.5rem))] max-w-[calc(100vw-1.5rem)] overflow-hidden border border-olive-900/15 bg-white shadow-lift"
                       >
                           <div className="flex items-center justify-between gap-3 border-b border-olive-900/10 px-4 py-3.5">
                               <div className="min-w-0">
@@ -310,6 +363,7 @@ export function MemberNotificationsBell() {
                                                               item.avatar_url,
                                                       }}
                                                       size="sm"
+                                                      showPlanRing={false}
                                                       className="shrink-0"
                                                   />
                                                   <span className="min-w-0 flex-1">

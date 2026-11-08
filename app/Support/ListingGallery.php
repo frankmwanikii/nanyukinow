@@ -21,7 +21,10 @@ class ListingGallery
 
         foreach ($entries as $entry) {
             if (is_string($entry) && trim($entry) !== '') {
-                $gallery[] = trim($entry);
+                $url = ListingMedia::normalizePublicUrl($entry);
+                if ($url) {
+                    $gallery[] = $url;
+                }
 
                 continue;
             }
@@ -33,6 +36,8 @@ class ListingGallery
             $src = isset($entry['src']) && is_string($entry['src'])
                 ? trim($entry['src'])
                 : (isset($entry['url']) && is_string($entry['url']) ? trim($entry['url']) : '');
+
+            $src = ListingMedia::normalizePublicUrl($src) ?? '';
 
             if ($src === '') {
                 continue;
@@ -57,7 +62,7 @@ class ListingGallery
                 continue;
             }
 
-            $url = ListingMedia::store($file, 'listings/gallery');
+            $url = ListingMedia::storeOrFail($file, 'listings/gallery', 'gallery_files');
             $meta = is_array($fileMeta[$index] ?? null) ? $fileMeta[$index] : null;
 
             if ($meta !== null) {

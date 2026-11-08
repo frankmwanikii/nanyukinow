@@ -199,7 +199,7 @@ export default function TrendingCarousel({ items = [] }) {
                     <div
                         key={`${listing.id}-${i}`}
                         data-trending-card
-                        className="w-[min(85vw,22rem)] shrink-0 sm:w-[24rem]"
+                        className="w-[min(78vw,20rem)] shrink-0 sm:w-[22rem] lg:w-[24rem]"
                         aria-hidden={
                             canLoop && i >= uniqueItems.length
                                 ? true

@@ -2044,7 +2044,30 @@ function buildFactsFromDetails(listing) {
     } else if (key === 'thingsToDo') {
         if (d.duration) pairs.push({ label: 'Duration', value: String(d.duration) });
         if (d.difficulty) pairs.push({ label: 'Difficulty', value: String(d.difficulty) });
-        if (d.price_from) pairs.push({ label: 'From', value: String(d.price_from) });
+        if (d.price_from) {
+            if (Array.isArray(d.price_from)) {
+                const rows = d.price_from
+                    .map((row) => ({
+                        name: String(row?.name ?? '').trim(),
+                        price: String(row?.price ?? '').trim(),
+                    }))
+                    .filter((row) => row.name || row.price);
+
+                if (rows.length) {
+                    pairs.push({
+                        label: 'Charges',
+                        rows,
+                        wide: true,
+                    });
+                }
+            } else if (String(d.price_from).trim() !== '') {
+                pairs.push({
+                    label: 'Charges',
+                    value: String(d.price_from),
+                    wide: true,
+                });
+            }
+        }
         if (d.min_age) pairs.push({ label: 'Min age', value: String(d.min_age) });
         if (d.group_size) pairs.push({ label: 'Group size', value: String(d.group_size) });
         if (d.booking_url) {
@@ -2412,15 +2435,11 @@ export function getListingDetail(listing) {
         chips: {
             region: listing.location ? `${listing.location} Area` : null,
             categories: baseChipsCategories,
-            tags: listing.tagline ? [listing.tagline] : [],
+            // Tagline lives under the logo in the hero — keep it out of chips.
+            tags: [],
         },
         reviewSummary: live
-            ? listing.rating
-                ? {
-                      count: null,
-                      highlight: null,
-                  }
-                : null
+            ? listing.reviewSummary || null
             : {
                   count: Math.max(8, Math.round((listing.rating || 4) * 18)),
                   highlight: 'Well liked by recent visitors.',
@@ -2486,8 +2505,13 @@ export function getListingDetail(listing) {
                     : (explicit?.facts ?? base.facts),
         gallery,
         chips: mergedChips,
+        reviews: live
+            ? Array.isArray(listing.reviews)
+                ? listing.reviews
+                : []
+            : (explicit?.reviews ?? listing.reviews ?? []),
         reviewSummary: live
-            ? base.reviewSummary
+            ? listing.reviewSummary || base.reviewSummary
             : {
                   ...(explicit?.reviewSummary || {}),
                   ...base.reviewSummary,

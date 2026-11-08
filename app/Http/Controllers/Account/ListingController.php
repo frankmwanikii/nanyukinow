@@ -257,28 +257,35 @@ class ListingController extends Controller
             : [];
         $galleryUrls = ListingGallery::fromRequest($galleryEntries, $galleryFiles, $galleryFileMeta);
 
-        $imageUrl = $data['image_url'] ?? $existing?->image_url;
+        $imageUrl = ListingMedia::normalizePublicUrl($data['image_url'] ?? null)
+            ?? ListingMedia::normalizePublicUrl($existing?->image_url);
         if ($request->hasFile('cover')) {
             if ($existing?->image_url) {
                 ListingMedia::delete($existing->image_url);
             }
-            $imageUrl = ListingMedia::store($request->file('cover'), 'listings/covers');
+            $imageUrl = ListingMedia::storeOrFail($request->file('cover'), 'listings/covers', 'cover');
         }
 
-        $logoUrl = $data['logo_url'] ?? $existing?->logo_url;
+        $logoUrl = ListingMedia::normalizePublicUrl($data['logo_url'] ?? null)
+            ?? ListingMedia::normalizePublicUrl($existing?->logo_url);
         if ($request->hasFile('logo')) {
             if ($existing?->logo_url) {
                 ListingMedia::delete($existing->logo_url);
             }
-            $logoUrl = ListingMedia::store($request->file('logo'), 'listings/logos');
+            $logoUrl = ListingMedia::storeOrFail($request->file('logo'), 'listings/logos', 'logo');
         }
 
-        $posterUrl = $data['event_poster_url'] ?? $existing?->event_poster_url;
+        $posterUrl = ListingMedia::normalizePublicUrl($data['event_poster_url'] ?? null)
+            ?? ListingMedia::normalizePublicUrl($existing?->event_poster_url);
         if ($request->hasFile('event_poster')) {
             if ($existing?->event_poster_url) {
                 ListingMedia::delete($existing->event_poster_url);
             }
-            $posterUrl = ListingMedia::store($request->file('event_poster'), 'listings/posters');
+            $posterUrl = ListingMedia::storeOrFail(
+                $request->file('event_poster'),
+                'listings/posters',
+                'event_poster',
+            );
         }
 
         $amenities = array_values(array_unique(array_filter(
@@ -421,9 +428,9 @@ class ListingController extends Controller
             'latitude' => $listing->latitude,
             'longitude' => $listing->longitude,
             'price_range' => $listing->price_range,
-            'image_url' => $listing->image_url,
-            'logo_url' => $listing->logo_url,
-            'event_poster_url' => $listing->event_poster_url,
+            'image_url' => ListingMedia::normalizePublicUrl($listing->image_url),
+            'logo_url' => ListingMedia::normalizePublicUrl($listing->logo_url),
+            'event_poster_url' => ListingMedia::normalizePublicUrl($listing->event_poster_url),
             'gallery' => $listing->gallery ?? [],
             'amenities' => $listing->amenities ?? [],
             'hours' => $listing->hours ?? [],

@@ -98,7 +98,12 @@ class ListingController extends Controller
     public function show(Request $request, string $slug): Response
     {
         $listing = Listing::query()
-            ->with('category')
+            ->with([
+                'category',
+                'reviews' => fn ($query) => $query
+                    ->with('user:id,name,avatar_url')
+                    ->latest(),
+            ])
             ->where('slug', $slug)
             ->firstOrFail();
 
