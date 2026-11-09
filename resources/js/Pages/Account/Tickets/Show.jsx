@@ -97,6 +97,20 @@ export default function Show({ ticket }) {
                             </div>
                         </div>
 
+                        {ticket.attachment ? (
+                            <div>
+                                <p className="text-xs font-semibold uppercase tracking-wide text-olive-500 dark:text-olive-400">
+                                    Attachment
+                                </p>
+                                <a
+                                    href={ticket.attachment.url}
+                                    className="mt-2 inline-flex items-center gap-2 text-sm font-semibold text-olive-800 underline decoration-olive-300 underline-offset-2 transition hover:text-olive-950 dark:text-olive-200 dark:hover:text-olive-50"
+                                >
+                                    {ticket.attachment.name || 'Download file'}
+                                </a>
+                            </div>
+                        ) : null}
+
                         {ticket.admin_reply ? (
                             <div className="border border-olive-900/10 bg-earth-sand px-4 py-4 dark:border-olive-800 dark:bg-olive-950">
                                 <p className="text-xs font-semibold uppercase tracking-wide text-olive-500 dark:text-olive-400">

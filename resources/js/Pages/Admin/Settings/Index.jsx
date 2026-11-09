@@ -125,7 +125,7 @@ function MediaPreview({ url, label }) {
 
 function Panel({ title, blurb, children }) {
     return (
-        <section className="overflow-hidden rounded-2xl border border-olive-200/80 bg-white dark:border-olive-800 dark:bg-olive-900">
+        <section className="overflow-hidden border border-olive-200 bg-white dark:border-olive-800 dark:bg-olive-900">
             <header className="border-b border-olive-100 px-5 py-4 dark:border-olive-800 sm:px-6">
                 <h2 className="text-base font-semibold tracking-tight text-olive-950 dark:text-olive-50">
                     {title}
@@ -149,11 +149,11 @@ function NestedBlock({ title, badge, children }) {
     return (
         <div className="rounded-xl border border-olive-100 bg-[#faf9f6] p-4 dark:border-olive-800 dark:bg-olive-950/40 sm:p-5">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-                <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-olive-500 dark:text-olive-400">
+                <h3 className="text-sm font-medium text-olive-600 dark:text-olive-400">
                     {title}
                 </h3>
                 {badge ? (
-                    <span className="rounded-full bg-olive-100 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-olive-700 dark:bg-olive-800 dark:text-olive-200">
+                    <span className="rounded-sm bg-olive-100 px-2 py-0.5 text-[11px] font-semibold text-olive-700 dark:bg-olive-800 dark:text-olive-200">
                         {badge}
                     </span>
                 ) : null}

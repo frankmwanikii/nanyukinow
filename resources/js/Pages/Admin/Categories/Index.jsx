@@ -81,7 +81,7 @@ function CategoryFormDialog({ category = null, onClose }) {
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby={titleId}
-                className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-olive-200/80 bg-white shadow-2xl dark:border-olive-700 dark:bg-olive-900"
+                className="relative w-full max-w-lg overflow-hidden border border-olive-200 bg-white dark:border-olive-700 dark:bg-olive-900"
             >
                 <div className="flex items-start justify-between gap-3 border-b border-olive-100 px-5 py-4 dark:border-olive-800">
                     <h2
@@ -197,7 +197,7 @@ function CategoryListingsDialog({ category, onClose }) {
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby={titleId}
-                className="relative flex max-h-[min(88vh,40rem)] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-olive-200/80 bg-white shadow-2xl dark:border-olive-700 dark:bg-olive-900"
+                className="relative flex max-h-[min(88vh,40rem)] w-full max-w-xl flex-col overflow-hidden border border-olive-200 bg-white dark:border-olive-700 dark:bg-olive-900"
             >
                 <div className="flex shrink-0 items-start justify-between gap-3 border-b border-olive-100 px-5 py-4 dark:border-olive-800">
                     <div className="min-w-0">

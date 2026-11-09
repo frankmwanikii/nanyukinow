@@ -238,8 +238,8 @@ export default function Index({
             </FilterBar>
 
             {selected.length > 0 && (
-                <div className="sticky top-0 z-20 -mx-4 mb-3 border-b border-olive-200/80 bg-earth-sand/95 px-4 py-2.5 backdrop-blur-sm sm:-mx-6 sm:px-6 dark:border-olive-800 dark:bg-olive-950/95">
-                    <div className="flex flex-wrap items-center gap-2 rounded-md border border-olive-200 bg-olive-50 px-3 py-2 text-sm shadow-soft dark:border-olive-700 dark:bg-olive-900">
+                <div className="sticky top-0 z-20 -mx-4 mb-3 border-b border-olive-200 bg-olive-50/95 px-4 py-2.5 backdrop-blur-sm sm:-mx-6 sm:px-6 dark:border-olive-800 dark:bg-olive-950/95">
+                    <div className="flex flex-wrap items-center gap-2 border border-olive-200 bg-white px-3 py-2 text-sm dark:border-olive-700 dark:bg-olive-900">
                         <span className="text-xs font-semibold text-olive-800 dark:text-olive-100">{selected.length} selected</span>
                         <AdminButton size="sm" variant="secondary" onClick={() => runBulk('publish')}>Publish</AdminButton>
                         <AdminButton size="sm" variant="secondary" onClick={() => runBulk('unpublish')}>Unpublish</AdminButton>
@@ -288,7 +288,7 @@ export default function Index({
                                         type="checkbox"
                                         checked={allSelected}
                                         onChange={toggleAll}
-                                        className="h-3.5 w-3.5 rounded border-slate-300 text-slate-800"
+                                        className="h-3.5 w-3.5 rounded border-olive-300 text-olive-800"
                                     />
                                 </Th>
                                 <Th
@@ -374,7 +374,7 @@ export default function Index({
                                                 type="checkbox"
                                                 checked={isSelected}
                                                 onChange={() => toggleOne(listing.id)}
-                                                className="h-3.5 w-3.5 rounded border-slate-300 text-slate-800"
+                                                className="h-3.5 w-3.5 rounded border-olive-300 text-olive-800"
                                                 aria-label={`Select ${listing.title}`}
                                             />
                                         </Td>

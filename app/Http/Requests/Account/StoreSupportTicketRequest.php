@@ -22,6 +22,12 @@ class StoreSupportTicketRequest extends FormRequest
             'subject' => ['required', 'string', 'max:160'],
             'body' => ['required', 'string', 'min:20', 'max:5000'],
             'priority' => ['required', Rule::in(SupportTicket::PRIORITIES)],
+            'attachment' => [
+                'nullable',
+                'file',
+                'max:8192',
+                'mimes:jpg,jpeg,png,webp,gif,pdf,doc,docx',
+            ],
         ];
     }
 
@@ -36,6 +42,8 @@ class StoreSupportTicketRequest extends FormRequest
             'body.min' => 'Please add a bit more detail (at least 20 characters).',
             'priority.required' => 'Choose a priority.',
             'priority.in' => 'Choose a valid priority.',
+            'attachment.max' => 'Attachments must be 8 MB or smaller.',
+            'attachment.mimes' => 'Upload a JPG, PNG, WebP, GIF, PDF, DOC, or DOCX file.',
         ];
     }
 }

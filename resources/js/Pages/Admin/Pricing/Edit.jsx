@@ -102,14 +102,14 @@ function WebsitePlanCard({
 
     return (
         <article
-            className={`relative flex flex-col rounded-3xl bg-white p-6 shadow-soft sm:p-7 ${
+            className={`relative flex flex-col border bg-white p-5 sm:p-6 ${
                 featured
-                    ? 'ring-2 ring-olive-800'
-                    : 'ring-1 ring-olive-100 dark:ring-olive-700'
+                    ? 'border-olive-800'
+                    : 'border-olive-200 dark:border-olive-700'
             } dark:bg-olive-900`}
         >
             {featured ? (
-                <span className="absolute right-5 top-5 inline-flex items-center gap-1 rounded-full bg-olive-800 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white">
+                <span className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-sm bg-olive-800 px-2 py-0.5 text-[11px] font-bold text-white">
                     <Zap
                         className="h-3 w-3 fill-mustard text-mustard"
                         strokeWidth={0}
@@ -119,7 +119,7 @@ function WebsitePlanCard({
             ) : null}
 
             {categoryLabel ? (
-                <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-olive-400">
+                <p className="mb-2 text-xs font-medium text-olive-500">
                     {categoryLabel}
                 </p>
             ) : null}
@@ -488,7 +488,7 @@ export default function Edit({ plan, allPlans = [], categories = [], billingPeri
                         ) : null}
                         <StatusBadge status={plan.is_active ? 'active' : 'inactive'} />
                         {plan.is_highlighted ? (
-                            <span className="rounded-full bg-mustard/25 px-2.5 py-1 text-xs font-semibold text-earth-dusk">
+                            <span className="rounded-sm bg-mustard/25 px-2 py-0.5 text-xs font-semibold text-earth-dusk">
                                 Recommended
                             </span>
                         ) : null}
@@ -677,7 +677,7 @@ export default function Edit({ plan, allPlans = [], categories = [], billingPeri
                             </p>
                             {hasYearly ? (
                                 <div className="rounded-xl border border-olive-100 bg-olive-50/70 px-4 py-3 dark:border-olive-800 dark:bg-olive-950/40">
-                                    <p className="text-xs font-semibold uppercase tracking-wide text-olive-500">
+                                    <p className="text-xs font-medium text-olive-500">
                                         Quick check
                                     </p>
                                     <p className="mt-1 text-sm text-olive-800 dark:text-olive-200">
@@ -815,7 +815,7 @@ export default function Edit({ plan, allPlans = [], categories = [], billingPeri
                     </div>
                 ) : null}
 
-                <div className="sticky bottom-0 z-20 -mx-4 border-t border-olive-200 bg-earth-sand/95 px-4 py-3 backdrop-blur-sm sm:-mx-6 sm:px-6 dark:border-olive-800 dark:bg-olive-950/95">
+                <div className="sticky bottom-0 z-20 -mx-4 border-t border-olive-200 bg-olive-50/95 px-4 py-3 backdrop-blur-sm sm:-mx-6 sm:px-6 dark:border-olive-800 dark:bg-olive-950/95">
                     {actionBar}
                 </div>
             </form>

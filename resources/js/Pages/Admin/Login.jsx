@@ -16,76 +16,57 @@ export default function Login({ status }) {
     };
 
     return (
-        <div className="min-h-screen w-full overflow-hidden bg-earth-sand">
+        <div className="min-h-screen w-full overflow-hidden bg-olive-50">
             <Head title="Admin sign in" />
 
             <div className="grid min-h-screen w-full lg:grid-cols-12">
-                {/* Left hero — fill panel (no letterbox), keep full wordmark visible */}
                 <aside className="relative hidden min-h-screen overflow-hidden bg-olive-950 lg:col-span-7 lg:block">
                     <img
                         src="/images/hero/slide-2.webp"
-                        alt="Nanyuki Now — Your city, right now"
-                        className="absolute inset-0 h-full w-full object-fill"
+                        alt="Nanyuki Now. Your city, right now"
+                        className="absolute inset-0 h-full w-full object-cover"
                         decoding="async"
                     />
-
-                    {/* Slim curve into the form */}
-                    <svg
-                        className="pointer-events-none absolute inset-y-0 -right-px z-20 h-full w-10 text-earth-sand xl:w-12"
-                        viewBox="0 0 80 640"
-                        preserveAspectRatio="none"
-                        aria-hidden
-                    >
-                        <path
-                            d="M80 0 C 28 160, 28 480, 80 640 L 80 640 L 80 0 Z"
-                            fill="currentColor"
-                        />
-                    </svg>
+                    <div className="absolute inset-0 bg-olive-950/25" aria-hidden />
+                    <div className="absolute inset-y-0 right-0 w-px bg-olive-50" aria-hidden />
                 </aside>
 
-                {/* Right form panel — earth + olive blend, mustard CTA */}
-                <section className="relative flex min-h-screen flex-col justify-center overflow-hidden bg-earth-sand px-6 py-12 sm:px-10 lg:col-span-5 lg:px-10 xl:px-14">
-                    <div
-                        className="pointer-events-none absolute inset-0"
-                        style={{
-                            backgroundImage:
-                                'radial-gradient(ellipse at 70% 15%, rgba(242,184,46,0.18), transparent 45%), radial-gradient(ellipse at 20% 85%, rgba(107,119,88,0.12), transparent 40%)',
-                        }}
-                    />
-
-                    <div className="relative mx-auto w-full max-w-md text-center">
+                <section className="relative flex min-h-screen flex-col justify-center bg-olive-50 px-6 py-12 sm:px-10 lg:col-span-5 lg:px-10 xl:px-14">
+                    <div className="relative mx-auto w-full max-w-md">
                         <img
                             src="/images/logo.png"
                             alt="Nanyuki Now"
                             width={969}
                             height={542}
                             decoding="async"
-                            className="mx-auto h-16 w-auto object-contain mix-blend-multiply sm:h-20"
+                            className="h-12 w-auto object-contain mix-blend-multiply sm:h-14"
                         />
 
-                        <h2 className="mt-8 font-display text-3xl font-semibold uppercase tracking-wide text-earth-dusk sm:text-4xl">
-                            Welcome back!
-                        </h2>
-                        <p className="mt-2 text-base text-olive-700">
-                            Please login to view your dashboard
+                        <h1 className="mt-8 font-display text-2xl font-semibold tracking-tight text-olive-950 sm:text-3xl">
+                            Admin sign in
+                        </h1>
+                        <p className="mt-1.5 text-sm text-olive-600">
+                            Use your staff email or username to continue.
                         </p>
 
                         {status && (
-                            <div className="mt-6 rounded-lg border border-mustard/40 bg-mustard/15 px-3 py-2 text-sm text-olive-900">
+                            <div className="mt-6 border border-olive-200 bg-white px-3 py-2 text-sm text-olive-900">
                                 {status}
                             </div>
                         )}
 
-                        <form onSubmit={submit} className="mt-8 space-y-4 text-left">
+                        <form onSubmit={submit} className="mt-8 space-y-4">
                             <label className="block">
-                                <span className="sr-only">Email or username</span>
+                                <span className="mb-1.5 block text-sm font-medium text-olive-600">
+                                    Email or username
+                                </span>
                                 <input
                                     type="text"
                                     value={data.login}
                                     autoComplete="username"
                                     autoFocus
                                     onChange={(e) => setData('login', e.target.value)}
-                                    className="w-full rounded-md border border-olive-300/90 bg-white/90 px-4 py-3.5 text-base text-earth-dusk outline-none transition placeholder:text-olive-400 focus:border-mustard focus:ring-2 focus:ring-mustard/30"
+                                    className="w-full rounded-md border border-olive-200 bg-white px-3 py-2.5 text-sm text-olive-950 outline-none transition placeholder:text-olive-400 focus:border-olive-600 focus:ring-1 focus:ring-olive-600/30"
                                     placeholder="Email or username"
                                 />
                                 {errors.login && (
@@ -96,26 +77,28 @@ export default function Login({ status }) {
                             </label>
 
                             <label className="block">
-                                <span className="sr-only">Password</span>
+                                <span className="mb-1.5 block text-sm font-medium text-olive-600">
+                                    Password
+                                </span>
                                 <div className="relative">
                                     <input
                                         type={showPassword ? 'text' : 'password'}
                                         value={data.password}
                                         autoComplete="current-password"
                                         onChange={(e) => setData('password', e.target.value)}
-                                        className="w-full rounded-md border border-olive-300/90 bg-white/90 px-4 py-3.5 pr-12 text-base text-earth-dusk outline-none transition placeholder:text-olive-400 focus:border-mustard focus:ring-2 focus:ring-mustard/30"
+                                        className="w-full rounded-md border border-olive-200 bg-white px-3 py-2.5 pr-12 text-sm text-olive-950 outline-none transition placeholder:text-olive-400 focus:border-olive-600 focus:ring-1 focus:ring-olive-600/30"
                                         placeholder="Password"
                                     />
                                     <button
                                         type="button"
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-olive-500 hover:text-olive-800"
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-olive-500 hover:bg-olive-100 hover:text-olive-800"
                                         onClick={() => setShowPassword((v) => !v)}
                                         aria-label="Toggle password"
                                     >
                                         {showPassword ? (
-                                            <EyeOff className="h-5 w-5" />
+                                            <EyeOff className="h-4 w-4" strokeWidth={1.5} />
                                         ) : (
-                                            <Eye className="h-5 w-5" />
+                                            <Eye className="h-4 w-4" strokeWidth={1.5} />
                                         )}
                                     </button>
                                 </div>
@@ -127,7 +110,7 @@ export default function Login({ status }) {
                             </label>
 
                             <div className="flex items-center justify-between gap-3 pt-1 text-sm">
-                                <label className="inline-flex items-center gap-2 text-olive-800">
+                                <label className="inline-flex items-center gap-2 text-olive-700">
                                     <input
                                         type="checkbox"
                                         checked={data.remember}
@@ -136,11 +119,11 @@ export default function Login({ status }) {
                                         }
                                         className="rounded border-olive-300 text-mustard focus:ring-mustard"
                                     />
-                                    Keep me logged in
+                                    Keep me signed in
                                 </label>
                                 <Link
                                     href={route('password.request')}
-                                    className="font-medium text-olive-700 underline-offset-2 hover:text-earth-dusk hover:underline"
+                                    className="font-medium text-olive-700 underline-offset-2 hover:text-olive-950 hover:underline"
                                 >
                                     Forgot password?
                                 </Link>
@@ -149,9 +132,9 @@ export default function Login({ status }) {
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="mt-2 w-full rounded-md bg-mustard px-4 py-3.5 text-base font-bold uppercase tracking-wide text-earth-dusk shadow-soft transition duration-200 hover:bg-mint-deep hover:text-white hover:shadow-lift active:scale-[0.99] disabled:opacity-60"
+                                className="mt-2 w-full rounded-md bg-mustard px-4 py-2.5 text-sm font-semibold text-earth-dusk transition hover:bg-mustard-deep disabled:opacity-60"
                             >
-                                {processing ? 'Signing in…' : 'Login'}
+                                {processing ? 'Signing in…' : 'Sign in'}
                             </button>
                         </form>
                     </div>

@@ -135,16 +135,16 @@ function TopbarSearch() {
         <form onSubmit={submit} role="search" className="w-full max-w-xl">
             <label className="relative flex items-center">
                 <span className="sr-only">Search listings</span>
-                <Search className="pointer-events-none absolute left-3.5 h-4 w-4 text-olive-400 dark:text-olive-500" />
+                <Search className="pointer-events-none absolute left-3 h-4 w-4 text-olive-400 dark:text-olive-500" />
                 <input
                     ref={inputRef}
                     type="search"
                     value={term}
                     onChange={(e) => setTerm(e.target.value)}
-                    placeholder="Search..."
-                    className="h-10 w-full rounded-full border-0 bg-olive-100/80 pl-10 pr-14 text-sm text-olive-900 outline-none ring-1 ring-inset ring-olive-200/80 placeholder:text-olive-400 focus:bg-white focus:ring-2 focus:ring-mustard/50 dark:bg-olive-950/70 dark:text-olive-50 dark:ring-olive-700 dark:placeholder:text-olive-500 dark:focus:bg-olive-950 dark:focus:ring-mustard/40"
+                    placeholder="Search listings"
+                    className="h-9 w-full rounded-md border border-olive-200 bg-white pl-9 pr-14 text-sm text-olive-900 outline-none placeholder:text-olive-400 focus:border-olive-600 focus:ring-1 focus:ring-olive-600/30 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-50 dark:placeholder:text-olive-500 dark:focus:border-mustard dark:focus:ring-mustard/30"
                 />
-                <kbd className="pointer-events-none absolute right-3 hidden select-none rounded-md bg-white px-1.5 py-0.5 font-sans text-[10px] font-semibold tracking-wide text-olive-400 ring-1 ring-olive-200 sm:inline-block dark:bg-olive-900 dark:text-olive-500 dark:ring-olive-700">
+                <kbd className="pointer-events-none absolute right-2.5 hidden select-none rounded-sm border border-olive-200 bg-olive-50 px-1.5 py-0.5 font-sans text-[10px] font-semibold text-olive-400 sm:inline-block dark:border-olive-700 dark:bg-olive-900 dark:text-olive-500">
                     {isMac ? '⌘K' : 'Ctrl K'}
                 </kbd>
             </label>
@@ -168,7 +168,7 @@ function UserMenu({ user }) {
                 aria-expanded={open}
                 aria-haspopup="menu"
                 aria-label="Account menu"
-                className="rounded-full ring-2 ring-transparent transition hover:ring-mustard/40 focus:outline-none focus-visible:ring-mustard"
+                className="rounded-md ring-2 ring-transparent transition hover:ring-olive-300 focus:outline-none focus-visible:ring-olive-600 dark:hover:ring-olive-600 dark:focus-visible:ring-mustard"
             >
                 <UserAvatar user={user} />
             </button>
@@ -183,7 +183,7 @@ function UserMenu({ user }) {
                     />
                     <div
                         role="menu"
-                        className="absolute right-0 z-40 mt-2 w-56 overflow-hidden rounded-xl border border-olive-200/80 bg-white py-1 shadow-lift dark:border-olive-700 dark:bg-olive-900"
+                        className="absolute right-0 z-40 mt-2 w-56 overflow-hidden border border-olive-200 bg-white py-1 dark:border-olive-700 dark:bg-olive-900"
                     >
                         <div className="border-b border-olive-100 px-3 py-2.5 dark:border-olive-800">
                             <p className="truncate text-sm font-semibold text-olive-950 dark:text-olive-50">
@@ -270,14 +270,13 @@ function AdminShell({ children }) {
 
     return (
         <div className={isDark ? 'dark' : ''}>
-            <div className="fixed inset-0 flex flex-col overflow-hidden bg-earth-sand text-earth-dusk dark:bg-olive-950 dark:text-olive-50">
-                {/* Full-width top bar: logo · centered search · utilities */}
-                <header className="z-30 shrink-0 border-b border-olive-200/70 bg-white dark:border-olive-800 dark:bg-olive-900">
-                    <div className="grid h-16 grid-cols-[minmax(0,1fr)_minmax(0,28rem)_minmax(0,1fr)] items-center gap-3 px-3 sm:gap-4 sm:px-5">
+            <div className="fixed inset-0 flex flex-col overflow-hidden bg-olive-50 text-earth-dusk dark:bg-olive-950 dark:text-olive-50">
+                <header className="z-30 shrink-0 border-b border-olive-200 bg-white dark:border-olive-800 dark:bg-olive-900">
+                    <div className="grid h-14 grid-cols-[minmax(0,1fr)_minmax(0,28rem)_minmax(0,1fr)] items-center gap-3 px-3 sm:gap-4 sm:px-5">
                         <div className="flex min-w-0 items-center gap-2.5 justify-self-start">
                             <button
                                 type="button"
-                                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-olive-700 transition hover:bg-olive-100 dark:text-olive-200 dark:hover:bg-olive-800 lg:hidden"
+                                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-olive-700 transition hover:bg-olive-100 dark:text-olive-200 dark:hover:bg-olive-800 lg:hidden"
                                 onClick={() => setOpen(true)}
                                 aria-label="Open navigation"
                             >
@@ -290,16 +289,16 @@ function AdminShell({ children }) {
                             <TopbarSearch />
                         </div>
 
-                        <div className="flex items-center justify-end gap-2 justify-self-end sm:gap-2.5">
+                        <div className="flex items-center justify-end gap-1.5 justify-self-end sm:gap-2">
                             <a
                                 href={route('home')}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 aria-label="Open public website"
                                 title="View website"
-                                className="relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-olive-700 transition hover:bg-olive-100 hover:text-olive-950 dark:text-olive-200 dark:hover:bg-olive-800 dark:hover:text-mustard"
+                                className="relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-olive-700 transition hover:bg-olive-100 hover:text-olive-950 dark:text-olive-200 dark:hover:bg-olive-800 dark:hover:text-mustard"
                             >
-                                <ExternalLink className="h-[18px] w-[18px]" />
+                                <ExternalLink className="h-[18px] w-[18px]" strokeWidth={1.5} />
                             </a>
 
                             <ThemeToggleControl />
@@ -308,16 +307,15 @@ function AdminShell({ children }) {
                                 href={route('admin.listings.index', { status: 'pending' })}
                                 aria-label="Listings awaiting review"
                                 title="Listings awaiting review"
-                                className="relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-olive-700 transition hover:bg-olive-100 hover:text-olive-950 dark:text-olive-200 dark:hover:bg-olive-800 dark:hover:text-mustard"
+                                className="relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-olive-700 transition hover:bg-olive-100 hover:text-olive-950 dark:text-olive-200 dark:hover:bg-olive-800 dark:hover:text-mustard"
                             >
-                                <Bell className="h-[18px] w-[18px]" />
+                                <Bell className="h-[18px] w-[18px]" strokeWidth={1.5} />
                             </Link>
 
                             <UserMenu user={user} />
                         </div>
                     </div>
 
-                    {/* Compact search under logo row on very small screens */}
                     <div className="border-t border-olive-100 px-3 pb-3 pt-0 sm:hidden dark:border-olive-800">
                         <TopbarSearch />
                     </div>
@@ -325,15 +323,15 @@ function AdminShell({ children }) {
 
                 <div className="flex min-h-0 flex-1">
                     <aside
-                        className={`fixed inset-y-0 left-0 z-40 flex h-full w-64 flex-col border-r border-olive-200/80 bg-white text-olive-900 transition-transform dark:border-olive-900 dark:bg-olive-950 dark:text-olive-50 lg:static lg:h-full lg:translate-x-0 ${
+                        className={`fixed inset-y-0 left-0 z-40 flex h-full w-60 flex-col border-r border-olive-200 bg-white text-olive-900 transition-transform dark:border-olive-800 dark:bg-olive-950 dark:text-olive-50 lg:static lg:h-full lg:translate-x-0 ${
                             open ? 'translate-x-0' : '-translate-x-full'
                         }`}
                     >
-                        <div className="flex h-16 shrink-0 items-center border-b border-olive-100 px-4 dark:border-white/10 lg:hidden">
+                        <div className="flex h-14 shrink-0 items-center border-b border-olive-200 px-4 dark:border-olive-800 lg:hidden">
                             <BrandMark className="dark:[&_img]:!mix-blend-lighten" />
                         </div>
 
-                        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+                        <nav className="flex-1 space-y-0.5 overflow-y-auto px-2 py-3">
                             {nav.map((item) => {
                                 const Icon = item.icon;
                                 const badge =
@@ -376,16 +374,22 @@ function AdminShell({ children }) {
                                         key={item.href}
                                         href={route(item.href)}
                                         onClick={() => setOpen(false)}
-                                        className={`flex items-center gap-3 rounded-md px-3 py-2.5 text-base font-medium transition ${
+                                        className={`relative flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium transition ${
                                             active
-                                                ? 'bg-mustard/20 text-earth-dusk dark:bg-mustard/15 dark:text-mustard'
-                                                : 'text-olive-600 hover:bg-olive-50 hover:text-olive-950 dark:text-olive-300 dark:hover:bg-white/5 dark:hover:text-white'
+                                                ? 'bg-olive-100 font-semibold text-olive-950 dark:bg-olive-900 dark:text-white'
+                                                : 'text-olive-600 hover:bg-olive-50 hover:text-olive-950 dark:text-olive-300 dark:hover:bg-olive-900/60 dark:hover:text-white'
                                         }`}
                                     >
-                                        <Icon className="h-5 w-5 shrink-0 opacity-80" />
+                                        {active ? (
+                                            <span
+                                                className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-mustard"
+                                                aria-hidden
+                                            />
+                                        ) : null}
+                                        <Icon className="h-4 w-4 shrink-0 opacity-80" strokeWidth={1.5} />
                                         <span className="min-w-0 flex-1">{item.label}</span>
                                         {badge > 0 ? (
-                                            <span className="rounded-full bg-mustard px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-earth-dusk">
+                                            <span className="rounded-sm bg-mustard px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-earth-dusk">
                                                 {badge > 99 ? '99+' : badge}
                                             </span>
                                         ) : null}
@@ -394,16 +398,16 @@ function AdminShell({ children }) {
                             })}
                         </nav>
 
-                        <div className="shrink-0 border-t border-olive-100 p-3 dark:border-white/[0.08]">
+                        <div className="shrink-0 border-t border-olive-200 p-2 dark:border-olive-800">
                             <Link
                                 href={route('admin.logout')}
                                 method="post"
                                 as="button"
-                                className="inline-flex w-full items-center gap-3 rounded-2xl bg-white px-4 py-3.5 text-left text-sm font-medium text-olive-950 shadow-soft transition hover:bg-olive-50 hover:shadow-md dark:bg-olive-900 dark:text-olive-50 dark:shadow-none dark:ring-1 dark:ring-olive-700 dark:hover:bg-olive-800"
+                                className="inline-flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-sm font-medium text-olive-600 transition hover:bg-olive-50 hover:text-olive-950 dark:text-olive-300 dark:hover:bg-olive-900 dark:hover:text-olive-50"
                             >
                                 <LogOut
-                                    className="h-[18px] w-[18px] shrink-0 text-olive-950 dark:text-olive-50"
-                                    strokeWidth={1.75}
+                                    className="h-4 w-4 shrink-0"
+                                    strokeWidth={1.5}
                                 />
                                 <span>Sign out</span>
                             </Link>
@@ -419,7 +423,7 @@ function AdminShell({ children }) {
                         />
                     )}
 
-                    <main className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain px-4 py-6 text-base sm:px-6">
+                    <main className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain px-4 py-5 text-base sm:px-6">
                         <FlashBanner />
                         {children}
                     </main>

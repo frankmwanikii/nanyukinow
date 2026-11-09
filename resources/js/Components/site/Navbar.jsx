@@ -379,7 +379,7 @@ export default function Navbar({ compact = false }) {
                         />
                         <aside
                             key="mobile-nav-drawer"
-                            className="fixed inset-y-0 left-0 z-[2001] flex h-[100dvh] w-[min(20rem,86vw)] flex-col bg-[#4f5a3e] font-display shadow-lift lg:hidden"
+                            className="fixed inset-y-0 left-0 z-[2001] flex h-[100dvh] w-[min(20rem,86vw)] flex-col bg-[#4f5a3e] font-sans shadow-lift lg:hidden"
                             role="dialog"
                             aria-modal="true"
                             aria-label="Main menu"
@@ -558,7 +558,7 @@ export default function Navbar({ compact = false }) {
                     ) : null}
                 </form>
 
-                <nav className="absolute left-1/2 top-1/2 z-20 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-1 font-display lg:flex xl:gap-2">
+                <nav className="absolute left-1/2 top-1/2 z-20 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-1 font-sans lg:flex xl:gap-2">
                     {navLinks.map((link) => {
                         const isMore = link.menu === 'more';
                         const items = link.menu
@@ -612,7 +612,7 @@ export default function Navbar({ compact = false }) {
                                             isMore ? 'right-0' : 'left-0'
                                         }`}
                                     >
-                                        <div className="relative min-w-[220px] border-t-[3px] border-mustard bg-white font-display shadow-lift">
+                                        <div className="relative min-w-[220px] border-t-[3px] border-mustard bg-white font-sans shadow-lift">
                                             {items.map((item) => {
                                                 const label =
                                                     typeof item === 'string'
@@ -691,7 +691,7 @@ export default function Navbar({ compact = false }) {
                                             {isMore &&
                                             flyoutItem?.children ? (
                                                 <div className="absolute right-full top-0 z-50 flex pr-1.5">
-                                                    <div className="min-w-[240px] border-t-[3px] border-mustard bg-white font-display shadow-lift">
+                                                    <div className="min-w-[240px] border-t-[3px] border-mustard bg-white font-sans shadow-lift">
                                                         {flyoutItem.children.map(
                                                             (child) => (
                                                                 <Link
@@ -725,7 +725,7 @@ export default function Navbar({ compact = false }) {
                     })}
                 </nav>
 
-                <div className="relative z-10 ml-auto hidden shrink-0 items-center font-display lg:flex">
+                <div className="relative z-10 ml-auto hidden shrink-0 items-center font-sans lg:flex">
                     {user ? (
                         <div className="flex items-center gap-3">
                             <MemberNotificationsBell />

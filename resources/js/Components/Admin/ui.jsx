@@ -10,7 +10,6 @@ import {
     ChevronsRight,
     Eye,
     EyeOff,
-    Info,
     MoreVertical,
     X,
 } from 'lucide-react';
@@ -18,98 +17,69 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, router } from '@inertiajs/react';
 
-export function StatCard({ label, value, hint, icon: Icon }) {
+export function StatCard({ label, value, hint }) {
     return (
-        <div className="rounded-lg border border-olive-200/80 bg-white px-5 py-5 dark:border-olive-800 dark:bg-olive-900">
-            <div className="flex items-start justify-between gap-3">
-                <div>
-                    <p className="text-sm font-semibold uppercase tracking-wide text-olive-500 dark:text-olive-400">
-                        {label}
-                    </p>
-                    <p className="mt-1.5 text-3xl font-semibold tabular-nums tracking-tight text-olive-950 dark:text-white">
-                        {value}
-                    </p>
-                    {hint && (
-                        <p className="mt-1.5 text-sm text-olive-500 dark:text-olive-400">{hint}</p>
-                    )}
-                </div>
-                {Icon && (
-                    <div className="flex h-11 w-11 items-center justify-center rounded-md bg-mustard/15 text-olive-800 dark:bg-mustard/20 dark:text-mustard">
-                        <Icon className="h-5 w-5" />
-                    </div>
-                )}
-            </div>
+        <div className="border border-olive-200 bg-white px-4 py-3 dark:border-olive-800 dark:bg-olive-900">
+            <p className="text-sm font-medium text-olive-600 dark:text-olive-400">{label}</p>
+            <p className="mt-1 text-2xl font-semibold tabular-nums tracking-tight text-olive-950 dark:text-white">
+                {value}
+            </p>
+            {hint ? (
+                <p className="mt-1 text-sm text-olive-500 dark:text-olive-400">{hint}</p>
+            ) : null}
         </div>
     );
 }
 
 /**
- * cPanel-style summary card: icon + title, large value, hint, bottom action link.
+ * Compact metric panel: title, value, hint, optional text action.
+ * icon / iconTone kept for call-site compatibility but are not rendered.
  */
 export function SummaryCard({
     title,
     value = '—',
     hint,
-    icon: Icon,
-    iconTone = 'mustard',
+    icon: _Icon,
+    iconTone: _iconTone,
     actionLabel,
     actionHref,
     onAction,
     className = '',
 }) {
-    const tones = {
-        mustard: 'bg-mustard/20 text-olive-900 dark:bg-mustard/15 dark:text-mustard',
-        mint: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200',
-        amber: 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-200',
-        slate: 'bg-olive-100 text-olive-700 dark:bg-olive-800 dark:text-olive-200',
-        rose: 'bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300',
-    };
-
     const actionClass =
-        'text-sm font-semibold text-earth-clay transition hover:text-earth-dusk dark:text-mustard dark:hover:text-mustard/80';
+        'text-sm font-semibold text-olive-800 transition hover:text-olive-950 dark:text-mustard dark:hover:text-mustard/80';
 
     return (
         <div
-            className={`flex min-h-[9.5rem] flex-col rounded-xl border border-olive-200/70 bg-white p-4 shadow-soft dark:border-olive-800 dark:bg-olive-900 ${className}`}
+            className={`flex flex-col border border-olive-200 bg-white px-4 py-3 dark:border-olive-800 dark:bg-olive-900 ${className}`}
         >
-            <div className="flex items-center gap-2.5">
-                {Icon ? (
-                    <span
-                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${tones[iconTone] || tones.mustard}`}
-                    >
-                        <Icon className="h-4 w-4" strokeWidth={2.25} />
-                    </span>
-                ) : null}
-                <p className="text-sm font-semibold text-olive-700 dark:text-olive-200">
-                    {title}
-                </p>
-            </div>
+            <p className="text-sm font-medium text-olive-600 dark:text-olive-300">{title}</p>
 
-            <p className="mt-3 text-2xl font-bold tabular-nums tracking-tight text-olive-950 dark:text-white">
+            <p className="mt-2 text-2xl font-semibold tabular-nums tracking-tight text-olive-950 dark:text-white">
                 {value}
             </p>
 
             {hint ? (
                 <p className="mt-1 text-xs text-olive-500 dark:text-olive-400">{hint}</p>
-            ) : (
-                <div className="mt-1 h-4" aria-hidden />
-            )}
+            ) : null}
 
-            <div className="mt-auto flex justify-end pt-3">
-                {actionHref ? (
-                    <Link href={actionHref} className={actionClass}>
-                        {actionLabel || 'Manage'}
-                    </Link>
-                ) : onAction ? (
-                    <button type="button" onClick={onAction} className={actionClass}>
-                        {actionLabel || 'Manage'}
-                    </button>
-                ) : actionLabel ? (
-                    <span className="text-sm font-semibold text-olive-300 dark:text-olive-600">
-                        {actionLabel}
-                    </span>
-                ) : null}
-            </div>
+            {(actionHref || onAction || actionLabel) && (
+                <div className="mt-3 flex justify-end border-t border-olive-100 pt-2.5 dark:border-olive-800">
+                    {actionHref ? (
+                        <Link href={actionHref} className={actionClass}>
+                            {actionLabel || 'Manage'}
+                        </Link>
+                    ) : onAction ? (
+                        <button type="button" onClick={onAction} className={actionClass}>
+                            {actionLabel || 'Manage'}
+                        </button>
+                    ) : (
+                        <span className="text-sm font-semibold text-olive-300 dark:text-olive-600">
+                            {actionLabel}
+                        </span>
+                    )}
+                </div>
+            )}
         </div>
     );
 }
@@ -196,7 +166,7 @@ export function StatusBadge({ status, className = '' }) {
 
     return (
         <span
-            className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold tracking-wide ${tone.shell} ${className}`}
+            className={`inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-semibold ${tone.shell} ${className}`}
         >
             {tone.label}
         </span>
@@ -236,24 +206,24 @@ export function AdminButton({
     ...props
 }) {
     const sizes = {
-        sm: 'px-3.5 py-2 text-sm',
-        md: 'px-4 py-2.5 text-base',
+        sm: 'px-3 py-1.5 text-sm',
+        md: 'px-4 py-2 text-sm',
     };
     const variants = {
         primary:
-            'bg-mustard text-earth-dusk shadow-soft transition duration-200 hover:bg-mint-deep hover:text-white hover:shadow-lift active:scale-[0.99]',
+            'bg-mustard text-earth-dusk transition hover:bg-mustard-deep',
         secondary:
-            'border border-olive-200 bg-white text-olive-800 transition duration-200 hover:border-mustard/50 hover:bg-mustard/10 hover:text-earth-dusk dark:border-olive-700 dark:bg-olive-900 dark:text-olive-100 dark:hover:border-mustard/40 dark:hover:bg-mustard/10',
+            'border border-olive-200 bg-white text-olive-800 transition hover:border-olive-400 hover:bg-olive-50 dark:border-olive-700 dark:bg-olive-900 dark:text-olive-100 dark:hover:border-olive-500 dark:hover:bg-olive-800',
         danger:
-            'bg-rose-600 text-white transition duration-200 hover:bg-rose-700 hover:shadow-soft active:scale-[0.99]',
+            'bg-rose-600 text-white transition hover:bg-rose-700',
         ghost:
-            'text-olive-700 transition duration-200 hover:bg-olive-100 hover:text-olive-950 dark:text-olive-200 dark:hover:bg-olive-800',
+            'text-olive-700 transition hover:bg-olive-100 hover:text-olive-950 dark:text-olive-200 dark:hover:bg-olive-800',
     };
 
     return (
         <button
             type={type}
-            className={`inline-flex items-center justify-center gap-1.5 rounded-full font-semibold disabled:cursor-not-allowed disabled:opacity-50 ${sizes[size]} ${variants[variant]} ${className}`}
+            className={`inline-flex items-center justify-center gap-1.5 rounded-md font-semibold disabled:cursor-not-allowed disabled:opacity-50 ${sizes[size]} ${variants[variant]} ${className}`}
             {...props}
         >
             {children}
@@ -264,15 +234,15 @@ export function AdminButton({
 export function AdminLink({ href, children, className = '', variant = 'primary' }) {
     const variants = {
         primary:
-            'bg-mustard text-earth-dusk shadow-soft transition duration-200 hover:bg-mint-deep hover:text-white hover:shadow-lift',
+            'bg-mustard text-earth-dusk transition hover:bg-mustard-deep',
         secondary:
-            'border border-olive-200 bg-white text-olive-800 transition duration-200 hover:border-mustard/50 hover:bg-mustard/10 hover:text-earth-dusk dark:border-olive-700 dark:bg-olive-900 dark:text-olive-100 dark:hover:bg-mustard/10',
+            'border border-olive-200 bg-white text-olive-800 transition hover:border-olive-400 hover:bg-olive-50 dark:border-olive-700 dark:bg-olive-900 dark:text-olive-100 dark:hover:bg-olive-800',
     };
 
     return (
         <Link
             href={href}
-            className={`inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-base font-semibold ${variants[variant]} ${className}`}
+            className={`inline-flex items-center justify-center gap-1.5 rounded-md px-4 py-2 text-sm font-semibold ${variants[variant]} ${className}`}
         >
             {children}
         </Link>
@@ -280,9 +250,9 @@ export function AdminLink({ href, children, className = '', variant = 'primary' 
 }
 
 const fieldLabel =
-    'mb-1.5 block text-sm font-semibold text-olive-600 dark:text-olive-400';
+    'mb-1.5 block text-sm font-medium text-olive-600 dark:text-olive-400';
 const fieldControl =
-    'w-full rounded-xl border border-olive-200 bg-white px-3.5 py-3 text-base text-olive-900 outline-none transition placeholder:text-olive-400 focus:border-mustard focus:ring-2 focus:ring-mustard/30 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-50 dark:placeholder:text-olive-500 dark:focus:border-mustard';
+    'w-full rounded-md border border-olive-200 bg-white px-3 py-2.5 text-sm text-olive-900 outline-none transition placeholder:text-olive-400 focus:border-olive-600 focus:ring-1 focus:ring-olive-600/30 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-50 dark:placeholder:text-olive-500 dark:focus:border-mustard dark:focus:ring-mustard/30';
 
 export function AdminInput({ label, error, className = '', ...props }) {
     return (
@@ -357,20 +327,20 @@ export function AdminCheckbox({ label, ...props }) {
 
 export function EmptyState({ title, description, action }) {
     return (
-        <div className="rounded-lg border border-dashed border-olive-300 bg-white px-6 py-14 text-center dark:border-olive-700 dark:bg-olive-900">
-            <p className="text-lg font-semibold text-olive-900 dark:text-olive-50">{title}</p>
+        <div className="border border-dashed border-olive-300 bg-white px-5 py-10 text-center dark:border-olive-700 dark:bg-olive-900">
+            <p className="text-base font-semibold text-olive-900 dark:text-olive-50">{title}</p>
             {description && (
-                <p className="mx-auto mt-2 max-w-md text-base text-olive-500 dark:text-olive-400">
+                <p className="mx-auto mt-2 max-w-md text-sm text-olive-500 dark:text-olive-400">
                     {description}
                 </p>
             )}
-            {action && <div className="mt-5">{action}</div>}
+            {action && <div className="mt-4">{action}</div>}
         </div>
     );
 }
 
 /**
- * Split insight / notification toast.
+ * Inline insight / notification.
  * tone: "decreasing" (attention/decline), "success", "info"
  */
 export function AdminNotice({
@@ -382,40 +352,27 @@ export function AdminNotice({
 }) {
     const tones = {
         decreasing: {
-            shell: 'shadow-[0_8px_24px_rgba(185,74,72,0.12)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.35)]',
-            accent: 'bg-rose-100 dark:bg-rose-950/60',
-            iconWrap: 'bg-rose-600 text-white dark:bg-rose-500',
-            Icon: AlertCircle,
+            shell: 'border-rose-200 dark:border-rose-900/60',
+            accent: 'bg-rose-600',
         },
         success: {
-            shell: 'shadow-[0_8px_24px_rgba(107,119,88,0.12)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.35)]',
-            accent: 'bg-mint/35 dark:bg-mint/15',
-            iconWrap: 'bg-olive-800 text-white dark:bg-mint dark:text-olive-950',
-            Icon: CheckCircle2,
+            shell: 'border-olive-300 dark:border-olive-700',
+            accent: 'bg-olive-700',
         },
         info: {
-            shell: 'shadow-[0_8px_24px_rgba(242,184,46,0.18)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.35)]',
-            accent: 'bg-mustard/25 dark:bg-mustard/15',
-            iconWrap: 'bg-mustard text-earth-dusk',
-            Icon: Info,
+            shell: 'border-mustard/60 dark:border-mustard/40',
+            accent: 'bg-mustard',
         },
     };
 
     const t = tones[tone] || tones.decreasing;
-    const Icon = t.Icon;
 
     const inner = (
         <div
-            className={`flex min-h-[3.75rem] overflow-hidden rounded-2xl bg-white dark:bg-olive-900 ${t.shell} ${className}`}
+            className={`flex overflow-hidden border bg-white dark:bg-olive-900 ${t.shell} ${className}`}
         >
-            <div className={`flex w-[4.5rem] shrink-0 items-center justify-center sm:w-20 ${t.accent}`}>
-                <span
-                    className={`inline-flex h-8 w-8 items-center justify-center rounded-full ${t.iconWrap}`}
-                >
-                    <Icon className="h-4 w-4" strokeWidth={2.5} />
-                </span>
-            </div>
-            <div className="flex min-w-0 flex-1 items-center px-4 py-3 pr-11 text-sm leading-snug text-olive-800 dark:text-olive-100 sm:px-5">
+            <div className={`w-1 shrink-0 ${t.accent}`} aria-hidden />
+            <div className="flex min-w-0 flex-1 items-center px-4 py-3 pr-10 text-sm leading-snug text-olive-800 dark:text-olive-100">
                 {children}
             </div>
         </div>
@@ -424,7 +381,7 @@ export function AdminNotice({
     return (
         <div className="relative">
             {href ? (
-                <Link href={href} className="block transition hover:opacity-95">
+                <Link href={href} className="block transition hover:bg-olive-50/50 dark:hover:bg-olive-800/30">
                     {inner}
                 </Link>
             ) : (
@@ -439,9 +396,9 @@ export function AdminNotice({
                         onDismiss();
                     }}
                     aria-label="Dismiss"
-                    className="absolute -right-1 -top-1 z-10 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white text-olive-500 shadow-soft ring-1 ring-olive-200/80 transition hover:text-olive-900 dark:bg-olive-800 dark:text-olive-300 dark:ring-olive-700 dark:hover:text-olive-50"
+                    className="absolute right-1.5 top-1.5 z-10 inline-flex h-7 w-7 items-center justify-center rounded-md text-olive-500 transition hover:bg-olive-100 hover:text-olive-900 dark:hover:bg-olive-800 dark:hover:text-olive-50"
                 >
-                    <X className="h-3.5 w-3.5" strokeWidth={2.5} />
+                    <X className="h-3.5 w-3.5" strokeWidth={1.5} />
                 </button>
             )}
         </div>
@@ -497,13 +454,13 @@ export function AdminFlashToast({
         <div
             role="status"
             aria-live="polite"
-            className={`pointer-events-auto fixed right-4 top-20 z-[80] w-[min(100vw-2rem,22rem)] overflow-hidden rounded-2xl bg-white shadow-lift ring-1 ring-olive-200/80 transition-all duration-300 ease-out dark:bg-olive-900 dark:ring-olive-700 sm:right-6 ${translate}`}
+            className={`pointer-events-auto fixed right-4 top-20 z-[80] w-[min(100vw-2rem,22rem)] overflow-hidden border border-olive-200 bg-white transition-all duration-300 ease-out dark:border-olive-700 dark:bg-olive-900 sm:right-6 ${translate}`}
         >
-            <div className="flex items-start gap-3 px-4 pb-3.5 pt-4 pr-11">
+            <div className="flex items-start gap-3 px-4 pb-3 pt-3.5 pr-11">
                 <span
-                    className={`mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${iconWrap}`}
+                    className={`mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${iconWrap}`}
                 >
-                    <Icon className="h-4 w-4" strokeWidth={2.5} />
+                    <Icon className="h-3.5 w-3.5" strokeWidth={1.5} />
                 </span>
                 <div className="min-w-0 flex-1 pt-0.5">
                     <p className="text-sm font-semibold text-olive-950 dark:text-olive-50">
@@ -521,11 +478,11 @@ export function AdminFlashToast({
                     setTimeout(() => dismissRef.current?.(), 280);
                 }}
                 aria-label="Dismiss"
-                className="absolute right-2.5 top-2.5 inline-flex h-7 w-7 items-center justify-center rounded-full text-olive-400 transition hover:bg-olive-100 hover:text-olive-800 dark:hover:bg-olive-800 dark:hover:text-olive-100"
+                className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-md text-olive-400 transition hover:bg-olive-100 hover:text-olive-800 dark:hover:bg-olive-800 dark:hover:text-olive-100"
             >
-                <X className="h-3.5 w-3.5" strokeWidth={2.5} />
+                <X className="h-3.5 w-3.5" strokeWidth={1.5} />
             </button>
-            <div className="h-1 w-full bg-olive-100 dark:bg-olive-800">
+            <div className="h-0.5 w-full bg-olive-100 dark:bg-olive-800">
                 <div
                     key={message}
                     className={`admin-toast-progress h-full origin-left ${barClass}`}
@@ -595,12 +552,12 @@ export function AdminTabs({
                         {Icon ? <Icon className="h-4 w-4 opacity-80" /> : null}
                         {item.label}
                         {item.badge != null && item.badge !== '' ? (
-                            <span className="rounded-full bg-mustard/80 px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-earth-dusk">
+                            <span className="rounded-sm bg-mustard px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-earth-dusk">
                                 {item.badge}
                             </span>
                         ) : null}
                         {active ? (
-                            <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-mustard" />
+                            <span className="absolute inset-x-2 -bottom-px h-0.5 bg-mustard" />
                         ) : null}
                     </button>
                 );
@@ -612,17 +569,17 @@ export function AdminTabs({
 export function FormPanel({ title, description, children, className = '' }) {
     return (
         <section
-            className={`rounded-2xl border border-olive-200/80 bg-white p-6 shadow-soft dark:border-olive-800 dark:bg-olive-900 sm:p-7 ${className}`}
+            className={`border border-olive-200 bg-white p-5 dark:border-olive-800 dark:bg-olive-900 sm:p-6 ${className}`}
         >
             {(title || description) && (
-                <header className="mb-6">
+                <header className="mb-5">
                     {title && (
-                        <h2 className="text-lg font-semibold tracking-tight text-olive-950 dark:text-olive-50">
+                        <h2 className="text-base font-semibold tracking-tight text-olive-950 dark:text-olive-50">
                             {title}
                         </h2>
                     )}
                     {description && (
-                        <p className="mt-1.5 text-sm text-olive-500 dark:text-olive-400">
+                        <p className="mt-1 text-sm text-olive-500 dark:text-olive-400">
                             {description}
                         </p>
                     )}
@@ -636,11 +593,11 @@ export function FormPanel({ title, description, children, className = '' }) {
 /** Card shell for data tables */
 export function DataCard({ title, tools, children, footer }) {
     return (
-        <div className="rounded-lg border border-olive-200/80 bg-white dark:border-olive-800 dark:bg-olive-900">
+        <div className="border border-olive-200 bg-white dark:border-olive-800 dark:bg-olive-900">
             {(title || tools) && (
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-olive-200 px-5 py-4 dark:border-olive-800">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-olive-200 px-4 py-3 dark:border-olive-800">
                     {title && (
-                        <h3 className="text-base font-semibold text-olive-900 dark:text-olive-50">
+                        <h3 className="text-sm font-semibold text-olive-900 dark:text-olive-50">
                             {title}
                         </h3>
                     )}
@@ -649,7 +606,7 @@ export function DataCard({ title, tools, children, footer }) {
             )}
             {children}
             {footer && (
-                <div className="border-t border-olive-200 bg-olive-50/80 px-5 py-3.5 dark:border-olive-800 dark:bg-olive-950/50">
+                <div className="border-t border-olive-200 bg-olive-50/80 px-4 py-3 dark:border-olive-800 dark:bg-olive-950/50">
                     {footer}
                 </div>
             )}
@@ -717,11 +674,11 @@ export function MediaCell({ image, title, subtitle, href }) {
 
     return (
         <div className="flex min-w-0 items-center gap-3">
-            <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-olive-100 ring-1 ring-olive-200/80 dark:bg-olive-800 dark:ring-olive-700">
+            <div className="h-12 w-12 shrink-0 overflow-hidden rounded-md border border-olive-200 bg-olive-100 dark:border-olive-700 dark:bg-olive-800">
                 {image ? (
                     <img src={image} alt="" className="h-full w-full object-cover" />
                 ) : (
-                    <div className="flex h-full w-full items-center justify-center text-sm font-semibold uppercase text-olive-400">
+                    <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-olive-400">
                         {(title || '?').charAt(0)}
                     </div>
                 )}
@@ -860,11 +817,11 @@ export function ActionMenu({ label = 'Actions', items = [] }) {
                 aria-expanded={open}
                 title={label}
                 onClick={() => setOpen((v) => !v)}
-                className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border border-olive-200 bg-white text-olive-600 transition hover:bg-olive-50 hover:text-olive-950 dark:border-olive-700 dark:bg-olive-900 dark:text-olive-300 dark:hover:bg-olive-800 dark:hover:text-olive-50 ${
+                className={`inline-flex h-9 w-9 items-center justify-center rounded-md border border-olive-200 bg-white text-olive-600 transition hover:bg-olive-50 hover:text-olive-950 dark:border-olive-700 dark:bg-olive-900 dark:text-olive-300 dark:hover:bg-olive-800 dark:hover:text-olive-50 ${
                     open ? 'bg-olive-50 text-olive-950 dark:bg-olive-800 dark:text-olive-50' : ''
                 }`}
             >
-                <MoreVertical className="h-4 w-4" strokeWidth={2.25} />
+                <MoreVertical className="h-4 w-4" strokeWidth={1.5} />
             </button>
 
             {open &&
@@ -881,10 +838,10 @@ export function ActionMenu({ label = 'Actions', items = [] }) {
                             role="menu"
                             data-placement={coords.placement}
                             style={{ top: coords.top, right: coords.right }}
-                            className="fixed z-[100] min-w-[8.5rem] overflow-hidden rounded-lg border border-olive-200 bg-white py-1 shadow-lift dark:border-olive-700 dark:bg-olive-900"
+                            className="fixed z-[100] min-w-[8.5rem] overflow-hidden border border-olive-200 bg-white py-1 dark:border-olive-700 dark:bg-olive-900"
                         >
                             {label ? (
-                                <div className="border-b border-olive-100 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-olive-400 dark:border-olive-800 dark:text-olive-500">
+                                <div className="border-b border-olive-100 px-3 py-1.5 text-xs font-medium text-olive-500 dark:border-olive-800 dark:text-olive-400">
                                     {label}
                                 </div>
                             ) : null}
@@ -936,7 +893,7 @@ export function FilterBar({ children, onSubmit }) {
                 e.preventDefault();
                 onSubmit?.(e);
             }}
-            className="mb-5 rounded-lg border border-olive-200/80 bg-white p-4 dark:border-olive-800 dark:bg-olive-900"
+            className="mb-4 border border-olive-200 bg-white p-3 dark:border-olive-800 dark:bg-olive-900"
         >
             <div className="flex flex-wrap items-end gap-3">{children}</div>
         </form>
@@ -1003,7 +960,7 @@ export function Pagination({
     const pageLinks = (links || []).slice(1, -1);
 
     const btnBase =
-        'inline-flex h-9 min-w-9 items-center justify-center rounded-lg border text-sm font-semibold transition';
+        'inline-flex h-9 min-w-9 items-center justify-center rounded-md border text-sm font-semibold transition';
     const btnIdle =
         'border-olive-200 bg-white text-olive-700 hover:bg-olive-50 dark:border-olive-700 dark:bg-olive-900 dark:text-olive-200 dark:hover:bg-olive-800';
     const btnActive =
@@ -1133,7 +1090,7 @@ export function Pagination({
                 ) : null}
 
                 <label className="inline-flex items-center gap-2">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-olive-500">
+                    <span className="text-xs font-medium text-olive-500">
                         Go to
                     </span>
                     <input
@@ -1150,7 +1107,7 @@ export function Pagination({
                             }
                         }}
                         onBlur={() => goToPage(goto)}
-                        className="h-9 w-14 rounded-lg border border-olive-200 bg-white px-2 text-center text-sm font-semibold tabular-nums text-olive-900 outline-none focus:border-mustard focus:ring-2 focus:ring-mustard/30 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-50"
+                        className="h-9 w-14 rounded-md border border-olive-200 bg-white px-2 text-center text-sm font-semibold tabular-nums text-olive-900 outline-none focus:border-olive-600 focus:ring-1 focus:ring-olive-600/30 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-50"
                         aria-label="Go to page"
                     />
                     <span className="text-xs font-medium text-olive-500">
@@ -1165,15 +1122,15 @@ export function Pagination({
                             aria-hidden="true"
                         />
                         <label className="inline-flex items-center gap-2">
-                            <span className="text-xs font-semibold uppercase tracking-wide text-olive-500">
-                                Show entries
+                            <span className="text-xs font-medium text-olive-500">
+                                Show
                             </span>
                             <select
                                 value={perPage || meta?.per_page || 15}
                                 onChange={(e) =>
                                     onPerPageChange(Number(e.target.value))
                                 }
-                                className="h-9 min-w-[4.25rem] rounded-lg border border-olive-200 bg-white py-0 pl-3 pr-8 text-sm font-semibold tabular-nums text-olive-900 outline-none focus:border-mustard focus:ring-2 focus:ring-mustard/30 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-50"
+                                className="h-9 min-w-[4.25rem] rounded-md border border-olive-200 bg-white py-0 pl-3 pr-8 text-sm font-semibold tabular-nums text-olive-900 outline-none focus:border-olive-600 focus:ring-1 focus:ring-olive-600/30 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-50"
                             >
                                 {perPageOptions.map((n) => (
                                     <option key={n} value={n}>

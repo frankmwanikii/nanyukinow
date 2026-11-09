@@ -198,15 +198,15 @@ input[type='search']::-ms-clear {
 
     .admin-table--compact .admin-th,
     .admin-table--compact .admin-td {
-        @apply px-4 py-3;
+        @apply px-4 py-2.5;
     }
 
     .admin-th {
-        @apply whitespace-nowrap border-b border-olive-200 bg-olive-50 px-4 py-3.5 text-sm font-semibold text-olive-600 dark:border-olive-800 dark:bg-olive-950/60 dark:text-olive-300;
+        @apply whitespace-nowrap border-b border-olive-200 bg-olive-50 px-4 py-2.5 text-sm font-semibold text-olive-600 dark:border-olive-800 dark:bg-olive-950/60 dark:text-olive-300;
     }
 
     .admin-td {
-        @apply border-b border-olive-100 px-4 py-3.5 align-middle text-base text-olive-800 dark:border-olive-800 dark:text-olive-200;
+        @apply border-b border-olive-100 px-4 py-2.5 align-middle text-sm text-olive-800 dark:border-olive-800 dark:text-olive-200;
     }
 
     .admin-table--zebra tbody tr:nth-child(even) .admin-td {

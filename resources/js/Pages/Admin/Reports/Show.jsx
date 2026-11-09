@@ -54,7 +54,7 @@ export default function Show({ report }) {
                 <DataCard title="Details">
                     <dl className="space-y-4 text-sm">
                         <div>
-                            <dt className="text-xs font-semibold uppercase tracking-wide text-olive-500">
+                            <dt className="text-xs font-medium text-olive-500">
                                 Status
                             </dt>
                             <dd className="mt-1">
@@ -62,7 +62,7 @@ export default function Show({ report }) {
                             </dd>
                         </div>
                         <div>
-                            <dt className="text-xs font-semibold uppercase tracking-wide text-olive-500">
+                            <dt className="text-xs font-medium text-olive-500">
                                 Reason
                             </dt>
                             <dd className="mt-1 font-medium text-olive-900 dark:text-olive-50">
@@ -70,7 +70,7 @@ export default function Show({ report }) {
                             </dd>
                         </div>
                         <div>
-                            <dt className="text-xs font-semibold uppercase tracking-wide text-olive-500">
+                            <dt className="text-xs font-medium text-olive-500">
                                 Details
                             </dt>
                             <dd className="mt-1 whitespace-pre-wrap text-olive-800 dark:text-olive-100">
@@ -78,7 +78,7 @@ export default function Show({ report }) {
                             </dd>
                         </div>
                         <div>
-                            <dt className="text-xs font-semibold uppercase tracking-wide text-olive-500">
+                            <dt className="text-xs font-medium text-olive-500">
                                 Reporter
                             </dt>
                             <dd className="mt-1 text-olive-800 dark:text-olive-100">
@@ -90,7 +90,7 @@ export default function Show({ report }) {
                         </div>
                         {report.listing?.slug ? (
                             <div>
-                                <dt className="text-xs font-semibold uppercase tracking-wide text-olive-500">
+                                <dt className="text-xs font-medium text-olive-500">
                                     Listing
                                 </dt>
                                 <dd className="mt-1">
@@ -121,7 +121,7 @@ export default function Show({ report }) {
                             className="space-y-4"
                         >
                             <div>
-                                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-olive-500">
+                                <label className="mb-1.5 block text-xs font-medium text-olive-500">
                                     Outcome
                                 </label>
                                 <select
@@ -136,7 +136,7 @@ export default function Show({ report }) {
                                 </select>
                             </div>
                             <div>
-                                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-olive-500">
+                                <label className="mb-1.5 block text-xs font-medium text-olive-500">
                                     Admin notes
                                 </label>
                                 <textarea

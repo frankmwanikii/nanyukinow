@@ -255,7 +255,7 @@ function AccountShell({ title = 'Account', children }) {
                 <div className="flex shrink-0 items-center gap-3 border-b border-olive-900/15 px-4 py-5 dark:border-olive-800">
                     <MemberAvatar user={user} size="md" />
                     <div className="min-w-0 flex-1">
-                        <p className="truncate font-display text-[15px] font-semibold leading-snug text-olive-950 dark:text-olive-50">
+                        <p className="truncate font-sans text-[15px] font-semibold leading-snug text-olive-950 dark:text-olive-50">
                             {user.name}
                         </p>
                         <p className="mt-0.5 truncate text-sm text-olive-600 dark:text-olive-400">
@@ -306,7 +306,7 @@ function AccountShell({ title = 'Account', children }) {
                                   <>
                                       <MemberAvatar user={user} size="md" />
                                       <div className="min-w-0 flex-1 pt-0.5">
-                                          <p className="truncate font-display text-base font-semibold leading-snug text-olive-950 dark:text-olive-50">
+                                          <p className="truncate font-sans text-base font-semibold leading-snug text-olive-950 dark:text-olive-50">
                                               {user.name}
                                           </p>
                                           <p className="mt-0.5 truncate text-sm text-olive-600 dark:text-olive-400">
@@ -315,7 +315,7 @@ function AccountShell({ title = 'Account', children }) {
                                       </div>
                                   </>
                               ) : (
-                                  <p className="flex-1 pt-1 font-display text-base font-semibold text-olive-950 dark:text-olive-50">
+                                  <p className="flex-1 pt-1 font-sans text-base font-semibold text-olive-950 dark:text-olive-50">
                                       Account
                                   </p>
                               )}

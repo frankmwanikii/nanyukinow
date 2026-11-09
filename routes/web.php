@@ -156,6 +156,8 @@ Route::middleware('auth')->group(function () {
         ->middleware('throttle:20,1')
         ->name('account.tickets.store');
     Route::get('/account/tickets/{ticket}', [AccountSupportTicketController::class, 'show'])->name('account.tickets.show');
+    Route::get('/account/tickets/{ticket}/attachment', [AccountSupportTicketController::class, 'downloadAttachment'])
+        ->name('account.tickets.attachment');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

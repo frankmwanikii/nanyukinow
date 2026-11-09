@@ -18,7 +18,7 @@ function ChartTooltip({ active, payload, label }) {
     if (!active || !payload?.length) return null;
 
     return (
-        <div className="rounded-md border border-olive-200 bg-white px-3 py-2 text-xs shadow-soft dark:border-olive-700 dark:bg-olive-900">
+        <div className="rounded-md border border-olive-200 bg-white px-3 py-2 text-xs dark:border-olive-700 dark:bg-olive-900">
             {label && (
                 <p className="mb-1 font-semibold text-olive-800 dark:text-olive-100">{label}</p>
             )}

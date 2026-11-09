@@ -1,11 +1,15 @@
 import AccountLayout from '@/Layouts/AccountLayout';
-import { TicketMark } from '@/Components/site/Mark';
+import { TicketMark, UploadMark } from '@/Components/site/Mark';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { useRef } from 'react';
 
 const field =
     'w-full border border-olive-900/15 bg-white px-3.5 py-3 text-sm text-olive-950 outline-none transition placeholder:text-olive-400 focus:border-mustard focus:ring-2 focus:ring-mustard/30 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-50 dark:placeholder:text-olive-500';
 const labelCls =
     'mb-1.5 block text-sm font-semibold text-olive-700 dark:text-olive-300';
+
+const ACCEPT =
+    '.jpg,.jpeg,.png,.webp,.gif,.pdf,.doc,.docx,image/jpeg,image/png,image/webp,image/gif,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
 function priorityTone(priority) {
     return (
@@ -47,18 +51,44 @@ function formatDate(value) {
     }
 }
 
+function formatBytes(size) {
+    if (!size || Number.isNaN(Number(size))) return '';
+    const bytes = Number(size);
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 export default function Index({ tickets = [], priorities = [] }) {
+    const fileInputRef = useRef(null);
     const form = useForm({
         subject: '',
         body: '',
         priority: 'normal',
+        attachment: null,
     });
+
+    const priorityOptions = priorities.length
+        ? priorities
+        : [
+              { value: 'low', label: 'Low' },
+              { value: 'normal', label: 'Normal' },
+              { value: 'high', label: 'High' },
+              { value: 'urgent', label: 'Urgent' },
+          ];
 
     const submit = (event) => {
         event.preventDefault();
         form.post(route('account.tickets.store'), {
+            forceFormData: true,
             preserveScroll: true,
-            onSuccess: () => form.reset('subject', 'body'),
+            onSuccess: () => {
+                form.reset('subject', 'body', 'attachment');
+                form.setData('priority', 'normal');
+                if (fileInputRef.current) {
+                    fileInputRef.current.value = '';
+                }
+            },
         });
     };
 
@@ -108,40 +138,19 @@ export default function Index({ tickets = [], priorities = [] }) {
                             <label htmlFor="ticket-priority" className={labelCls}>
                                 Priority
                             </label>
-                            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                                {(priorities.length
-                                    ? priorities
-                                    : [
-                                          { value: 'low', label: 'Low' },
-                                          { value: 'normal', label: 'Normal' },
-                                          { value: 'high', label: 'High' },
-                                          { value: 'urgent', label: 'Urgent' },
-                                      ]
-                                ).map((option) => {
-                                    const selected = form.data.priority === option.value;
-                                    return (
-                                        <button
-                                            key={option.value}
-                                            type="button"
-                                            onClick={() => form.setData('priority', option.value)}
-                                            className={`border px-3 py-2.5 text-left text-sm font-semibold transition ${
-                                                selected
-                                                    ? 'border-olive-900 bg-olive-900 text-white dark:border-mustard dark:bg-mustard dark:text-earth-dusk'
-                                                    : 'border-olive-900/15 bg-earth-sand text-olive-800 hover:border-olive-900/35 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-200'
-                                            }`}
-                                            aria-pressed={selected}
-                                        >
-                                            {option.label}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                            <input
+                            <select
                                 id="ticket-priority"
-                                type="hidden"
                                 value={form.data.priority}
-                                readOnly
-                            />
+                                onChange={(e) => form.setData('priority', e.target.value)}
+                                className={field}
+                                required
+                            >
+                                {priorityOptions.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </select>
                             {form.errors.priority ? (
                                 <p className="mt-1.5 text-sm text-rose-700 dark:text-rose-400">
                                     {form.errors.priority}
@@ -164,6 +173,65 @@ export default function Index({ tickets = [], priorities = [] }) {
                             {form.errors.body ? (
                                 <p className="mt-1.5 text-sm text-rose-700 dark:text-rose-400">
                                     {form.errors.body}
+                                </p>
+                            ) : null}
+                        </div>
+
+                        <div>
+                            <label htmlFor="ticket-attachment" className={labelCls}>
+                                Attachment
+                                <span className="ml-1 font-normal text-olive-500 dark:text-olive-400">
+                                    (optional)
+                                </span>
+                            </label>
+                            <div className="flex flex-wrap items-center gap-3">
+                                <label
+                                    htmlFor="ticket-attachment"
+                                    className="inline-flex cursor-pointer items-center gap-2 border border-olive-900/15 bg-earth-sand px-3.5 py-2.5 text-sm font-semibold text-olive-800 transition hover:border-olive-900/35 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-200"
+                                >
+                                    <UploadMark className="h-4 w-4" />
+                                    Choose file
+                                </label>
+                                <input
+                                    ref={fileInputRef}
+                                    id="ticket-attachment"
+                                    type="file"
+                                    accept={ACCEPT}
+                                    className="sr-only"
+                                    onChange={(e) =>
+                                        form.setData(
+                                            'attachment',
+                                            e.target.files?.[0] ?? null,
+                                        )
+                                    }
+                                />
+                                <p className="text-sm text-olive-600 dark:text-olive-400">
+                                    {form.data.attachment
+                                        ? `${form.data.attachment.name}${
+                                              form.data.attachment.size
+                                                  ? ` · ${formatBytes(form.data.attachment.size)}`
+                                                  : ''
+                                          }`
+                                        : 'JPG, PNG, WebP, GIF, PDF, DOC, or DOCX. Max 8 MB.'}
+                                </p>
+                                {form.data.attachment ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            form.setData('attachment', null);
+                                            if (fileInputRef.current) {
+                                                fileInputRef.current.value = '';
+                                            }
+                                        }}
+                                        className="text-sm font-semibold text-rose-700 hover:underline dark:text-rose-400"
+                                    >
+                                        Remove
+                                    </button>
+                                ) : null}
+                            </div>
+                            {form.errors.attachment ? (
+                                <p className="mt-1.5 text-sm text-rose-700 dark:text-rose-400">
+                                    {form.errors.attachment}
                                 </p>
                             ) : null}
                         </div>
@@ -220,6 +288,7 @@ export default function Index({ tickets = [], priorities = [] }) {
                                                 {ticket.created_at
                                                     ? ` · ${formatDate(ticket.created_at)}`
                                                     : ''}
+                                                {ticket.has_attachment ? ' · Attachment' : ''}
                                             </p>
                                         </div>
                                         <div className="flex flex-wrap items-center gap-2">

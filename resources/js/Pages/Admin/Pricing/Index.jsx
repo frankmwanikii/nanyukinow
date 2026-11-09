@@ -138,7 +138,7 @@ export default function Index({
             />
 
             {!selectedCategory ? (
-                <div className="rounded-2xl bg-earth-sand/60 p-5 dark:bg-olive-950/40 sm:p-8">
+                <div className="border border-olive-200 bg-white p-4 dark:border-olive-800 dark:bg-olive-900 sm:p-5">
                     <CategoryPicker
                         onSelect={selectCategory}
                         title="Choose a listing category"

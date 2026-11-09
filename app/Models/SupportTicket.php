@@ -45,6 +45,10 @@ class SupportTicket extends Model
         'user_id',
         'subject',
         'body',
+        'attachment_path',
+        'attachment_name',
+        'attachment_mime',
+        'attachment_size',
         'priority',
         'status',
         'admin_reply',
@@ -56,9 +60,15 @@ class SupportTicket extends Model
     protected function casts(): array
     {
         return [
+            'attachment_size' => 'integer',
             'answered_at' => 'datetime',
             'closed_at' => 'datetime',
         ];
+    }
+
+    public function hasAttachment(): bool
+    {
+        return filled($this->attachment_path);
     }
 
     public function user(): BelongsTo
@@ -105,6 +115,13 @@ class SupportTicket extends Model
             'reference' => $this->reference(),
             'subject' => $this->subject,
             'body' => $this->body,
+            'has_attachment' => $this->hasAttachment(),
+            'attachment' => $this->hasAttachment() ? [
+                'name' => $this->attachment_name,
+                'mime' => $this->attachment_mime,
+                'size' => $this->attachment_size,
+                'url' => route('account.tickets.attachment', $this),
+            ] : null,
             'priority' => $this->priority,
             'priority_label' => self::priorityLabel($this->priority),
             'status' => $this->status,

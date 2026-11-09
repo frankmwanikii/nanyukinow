@@ -231,7 +231,7 @@ export default function SearchSuggestions({
                 maxHeight: coords.maxHeight ?? undefined,
                 overflowY: coords.maxHeight ? 'auto' : undefined,
             }}
-            className={`z-[1200] bg-white font-display shadow-lift ${
+            className={`z-[1200] bg-white font-sans shadow-lift ${
                 placement === 'above'
                     ? 'border-b-[3px] border-mustard'
                     : 'border-t-[3px] border-mustard'

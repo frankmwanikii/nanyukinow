@@ -61,7 +61,7 @@ function ClaimTabs({ tab, onChange, docsCount }) {
 function Field({ label, children }) {
     return (
         <div>
-            <dt className="text-xs font-semibold uppercase tracking-wide text-olive-500">
+            <dt className="text-xs font-medium text-olive-500">
                 {label}
             </dt>
             <dd className="mt-1 text-sm font-medium text-olive-950 dark:text-olive-50">

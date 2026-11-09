@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Models\SupportTicket;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class AccountSupportTicketTest extends TestCase
@@ -80,5 +82,31 @@ class AccountSupportTicketTest extends TestCase
                 'priority' => 'critical',
             ])
             ->assertSessionHasErrors(['subject', 'body', 'priority']);
+    }
+
+    public function test_member_can_open_a_ticket_with_attachment(): void
+    {
+        Storage::fake('local');
+        $user = User::factory()->create();
+        $file = UploadedFile::fake()->create('receipt.pdf', 120, 'application/pdf');
+
+        $this->actingAs($user)
+            ->post(route('account.tickets.store'), [
+                'subject' => 'Payment proof',
+                'body' => 'Here is my M-Pesa receipt for the Standard plan renewal.',
+                'priority' => SupportTicket::PRIORITY_NORMAL,
+                'attachment' => $file,
+            ])
+            ->assertRedirect();
+
+        $ticket = SupportTicket::query()->first();
+        $this->assertNotNull($ticket);
+        $this->assertTrue($ticket->hasAttachment());
+        $this->assertSame('receipt.pdf', $ticket->attachment_name);
+        Storage::disk('local')->assertExists($ticket->attachment_path);
+
+        $this->actingAs($user)
+            ->get(route('account.tickets.attachment', $ticket))
+            ->assertOk();
     }
 }

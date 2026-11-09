@@ -170,7 +170,7 @@ function ProfileForm({ user }) {
             >
                 <form onSubmit={submit} className="space-y-5">
                     <div>
-                        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-olive-500 dark:text-olive-400">
+                        <p className="mb-2 text-sm font-medium text-olive-600 dark:text-olive-400">
                             Profile image
                         </p>
 
@@ -181,7 +181,7 @@ function ProfileForm({ user }) {
                                     onClick={editCurrentPhoto}
                                     aria-label="Crop and zoom profile photo"
                                     title="Click to crop & zoom"
-                                    className="group relative mx-auto h-28 w-28 shrink-0 overflow-hidden rounded-full bg-olive-100 shadow-soft ring-2 ring-olive-200 transition hover:ring-mustard focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard sm:mx-0 dark:bg-olive-800 dark:ring-olive-700"
+                                    className="group relative mx-auto h-28 w-28 shrink-0 overflow-hidden rounded-md border border-olive-200 bg-olive-100 transition hover:border-olive-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-olive-600 sm:mx-0 dark:border-olive-700 dark:bg-olive-800"
                                 >
                                     <img
                                         src={displaySrc}
@@ -191,7 +191,7 @@ function ProfileForm({ user }) {
                                     />
                                     <span className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1 bg-earth-dusk/55 text-white opacity-0 transition group-hover:opacity-100 group-focus-visible:opacity-100">
                                         <Crop className="h-5 w-5" strokeWidth={2} />
-                                        <span className="text-[11px] font-semibold uppercase tracking-wide">
+                                        <span className="text-[11px] font-semibold">
                                             Crop
                                         </span>
                                     </span>
@@ -207,13 +207,13 @@ function ProfileForm({ user }) {
                                         }}
                                         onDragLeave={() => setDragOver(false)}
                                         onDrop={onDrop}
-                                        className={`flex w-full items-center gap-3 rounded-2xl border border-dashed px-4 py-4 text-left transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard ${
+                                        className={`flex w-full items-center gap-3 rounded-md border border-dashed px-4 py-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-olive-600 ${
                                             dragOver
-                                                ? 'border-mustard bg-mustard/10'
-                                                : 'border-mustard/70 bg-olive-50/50 hover:border-mustard hover:bg-mustard/5 dark:bg-olive-950/40'
+                                                ? 'border-olive-600 bg-olive-50'
+                                                : 'border-olive-300 bg-olive-50/50 hover:border-olive-500 dark:border-olive-700 dark:bg-olive-950/40'
                                         }`}
                                     >
-                                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-mustard/15 text-mustard">
+                                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-olive-100 text-olive-700 dark:bg-olive-800 dark:text-olive-200">
                                             <CloudUpload className="h-5 w-5" strokeWidth={1.75} />
                                         </span>
                                         <span className="min-w-0">
@@ -221,7 +221,7 @@ function ProfileForm({ user }) {
                                                 Replace photo
                                             </span>
                                             <span className="mt-0.5 block text-xs text-olive-500 dark:text-olive-400">
-                                                Drop a new image or click · max 15MB
+                                                Drop a new image or click, max 15MB
                                             </span>
                                         </span>
                                     </button>
@@ -248,20 +248,20 @@ function ProfileForm({ user }) {
                                 }}
                                 onDragLeave={() => setDragOver(false)}
                                 onDrop={onDrop}
-                                className={`flex w-full flex-col items-center justify-center rounded-2xl border border-dashed bg-gradient-to-b from-white to-olive-50/40 px-4 py-10 text-center transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard dark:from-olive-950/50 dark:to-olive-950/20 ${
+                                className={`flex w-full flex-col items-center justify-center rounded-md border border-dashed bg-white px-4 py-8 text-center transition focus:outline-none focus-visible:ring-2 focus-visible:ring-olive-600 dark:bg-olive-950/40 ${
                                     dragOver
-                                        ? 'border-mustard bg-mustard/10 scale-[1.01]'
-                                        : 'border-mustard/70 hover:border-mustard hover:bg-mustard/5'
+                                        ? 'border-olive-600 bg-olive-50'
+                                        : 'border-olive-300 hover:border-olive-500'
                                 }`}
                             >
-                                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-mustard/15 text-mustard">
+                                <span className="flex h-12 w-12 items-center justify-center rounded-md bg-olive-100 text-olive-700 dark:bg-olive-800 dark:text-olive-200">
                                     <CloudUpload className="h-7 w-7" strokeWidth={1.5} />
                                 </span>
                                 <span className="mt-4 text-sm font-semibold text-earth-dusk dark:text-olive-50">
                                     Drop files here or click to upload
                                 </span>
                                 <span className="mt-1 text-xs text-olive-500 dark:text-olive-400">
-                                    JPG, PNG, WEBP, GIF · max 15MB
+                                    JPG, PNG, WEBP, GIF, max 15MB
                                 </span>
                             </button>
                         )}

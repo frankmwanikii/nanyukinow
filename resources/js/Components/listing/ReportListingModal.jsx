@@ -1,6 +1,7 @@
-import { Loader2, Send } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { usePage } from '@inertiajs/react';
 import { useState } from 'react';
+import { ForwardMark } from '@/Components/site/Mark';
 import ListingModal from './ListingModal';
 
 const fieldClass =
@@ -193,10 +194,11 @@ export default function ReportListingModal({ open, onClose, listing }) {
                     >
                         {sending ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                            <Send className="h-4 w-4" />
-                        )}
+                        ) : null}
                         Submit report
+                        {!sending ? (
+                            <ForwardMark className="h-4 w-4" />
+                        ) : null}
                     </button>
                     {sent ? (
                         <span className="text-sm font-semibold text-olive-700">

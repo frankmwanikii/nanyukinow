@@ -166,7 +166,7 @@ function ReviewPaymentDialog({ payment, methods, onClose }) {
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby={titleId}
-                className="relative flex max-h-[min(92vh,44rem)] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-olive-200/80 bg-white shadow-2xl dark:border-olive-700 dark:bg-olive-900"
+                className="relative flex max-h-[min(92vh,44rem)] w-full max-w-lg flex-col overflow-hidden border border-olive-200 bg-white dark:border-olive-700 dark:bg-olive-900"
             >
                 <div className="flex shrink-0 items-start justify-between gap-3 border-b border-olive-100 px-5 py-4 dark:border-olive-800">
                     <div className="min-w-0">
@@ -262,7 +262,7 @@ function ReviewPaymentDialog({ payment, methods, onClose }) {
 
                     {(payment.listings || []).length > 0 ? (
                         <div>
-                            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-olive-500">
+                            <p className="mb-2 text-xs font-medium text-olive-500">
                                 Linked listings
                             </p>
                             <ul className="divide-y divide-olive-100 overflow-hidden rounded-xl border border-olive-100 dark:divide-olive-800 dark:border-olive-800">
@@ -562,7 +562,7 @@ function Overview({ stats, counts, breakdowns, methods, onGoPending, onGoPayment
                                     </div>
                                     <div className="h-2 overflow-hidden rounded-full bg-olive-100 dark:bg-olive-800">
                                         <div
-                                            className="h-full rounded-full bg-mustard"
+                                            className="h-full bg-mustard"
                                             style={{
                                                 width: `${Math.max(6, (row.total / methodMax) * 100)}%`,
                                             }}
@@ -682,7 +682,7 @@ function Overview({ stats, counts, breakdowns, methods, onGoPending, onGoPayment
                 <div className="rounded-xl border border-olive-200/70 bg-white p-4 dark:border-olive-800 dark:bg-olive-900">
                     <div className="flex items-center gap-2 text-olive-500">
                         <Users className="h-4 w-4" />
-                        <span className="text-xs font-semibold uppercase tracking-wide">
+                        <span className="text-xs font-medium">
                             Paid members
                         </span>
                     </div>
@@ -693,7 +693,7 @@ function Overview({ stats, counts, breakdowns, methods, onGoPending, onGoPayment
                 <div className="rounded-xl border border-olive-200/70 bg-white p-4 dark:border-olive-800 dark:bg-olive-900">
                     <div className="flex items-center gap-2 text-olive-500">
                         <LayoutList className="h-4 w-4" />
-                        <span className="text-xs font-semibold uppercase tracking-wide">
+                        <span className="text-xs font-medium">
                             Featured listings
                         </span>
                     </div>
@@ -704,7 +704,7 @@ function Overview({ stats, counts, breakdowns, methods, onGoPending, onGoPayment
                 <div className="rounded-xl border border-olive-200/70 bg-white p-4 dark:border-olive-800 dark:bg-olive-900">
                     <div className="flex items-center gap-2 text-olive-500">
                         <Wallet className="h-4 w-4" />
-                        <span className="text-xs font-semibold uppercase tracking-wide">
+                        <span className="text-xs font-medium">
                             Premium listings
                         </span>
                     </div>

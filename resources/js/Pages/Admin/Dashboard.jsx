@@ -17,15 +17,6 @@ import {
 } from '@/Components/Admin/ui';
 import { useAdminTheme } from '@/hooks/useAdminTheme';
 import { Head, Link } from '@inertiajs/react';
-import {
-    Eye,
-    LayoutList,
-    Sparkles,
-    Timer,
-    Users,
-    Wallet,
-    ClipboardList,
-} from 'lucide-react';
 import { useState } from 'react';
 
 export default function Dashboard(props) {
@@ -64,7 +55,7 @@ function DashboardBody({ stats, recentListings, expiringListings, charts }) {
             !dismissed.expiring && {
                 key: 'expiring',
                 href: route('admin.listings.index', { expiry: 'soon' }),
-                text: `${stats.expiring_soon} listing${stats.expiring_soon === 1 ? '' : 's'} expiring soon${stats.expired ? ` · ${stats.expired} already expired` : ''}.`,
+                text: `${stats.expiring_soon} listing${stats.expiring_soon === 1 ? '' : 's'} expiring soon${stats.expired ? `, ${stats.expired} already expired` : ''}.`,
             },
     ].filter(Boolean);
 
@@ -87,63 +78,56 @@ function DashboardBody({ stats, recentListings, expiringListings, charts }) {
                 </div>
             )}
 
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-7">
+            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-7">
                 <StatCard
                     label="Listings"
                     value={stats.listings}
                     hint={`${stats.published} published`}
-                    icon={LayoutList}
                 />
                 <StatCard
                     label="Pending review"
                     value={stats.pending_listings ?? 0}
                     hint="Member submissions"
-                    icon={ClipboardList}
                 />
                 <StatCard
                     label="Finance queue"
                     value={stats.pending_upgrades ?? 0}
                     hint="Awaiting payment check"
-                    icon={Wallet}
                 />
                 <StatCard
                     label="Featured"
                     value={stats.featured}
                     hint="Promoted in explore"
-                    icon={Sparkles}
                 />
                 <StatCard
                     label="Expiring soon"
                     value={stats.expiring_soon}
                     hint={`${stats.expired} already expired`}
-                    icon={Timer}
                 />
                 <StatCard
                     label="Users"
                     value={stats.users}
-                    hint={`${stats.admins} admins · ${stats.stories} stories`}
-                    icon={Users}
+                    hint={`${stats.admins} admins, ${stats.stories} stories`}
                 />
                 <StatCard
                     label="Listing views"
                     value={Number(stats.views || 0).toLocaleString()}
                     hint="All-time directory views"
-                    icon={Eye}
                 />
             </div>
 
-            <div className="mt-5 grid gap-4 xl:grid-cols-3">
+            <div className="mt-4 grid gap-3 xl:grid-cols-3">
                 <div className="xl:col-span-2">
                     <DataCard
-                        title="Activity · last 30 days"
+                        title="Activity, last 30 days"
                         tools={
                             <div className="flex items-center gap-3 text-sm text-olive-600 dark:text-olive-300">
                                 <span className="inline-flex items-center gap-1.5">
-                                    <span className="h-2 w-2 rounded-full bg-olive-600" />
+                                    <span className="h-2 w-2 bg-olive-600" />
                                     Listings
                                 </span>
                                 <span className="inline-flex items-center gap-1.5">
-                                    <span className="h-2 w-2 rounded-full bg-mustard" />
+                                    <span className="h-2 w-2 bg-mustard" />
                                     Users
                                 </span>
                             </div>

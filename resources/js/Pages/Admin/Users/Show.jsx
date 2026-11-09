@@ -88,20 +88,16 @@ function MembershipPanel({ membership, stats }) {
 
     return (
         <div className="space-y-3">
-            <section className="relative overflow-hidden rounded-2xl border border-olive-200/80 bg-white p-5 shadow-soft dark:border-olive-800 dark:bg-olive-900">
-                <div
-                    className="pointer-events-none absolute -right-8 -top-10 h-36 w-36 rounded-full bg-mustard/20 blur-2xl"
-                    aria-hidden
-                />
-                <div className="relative flex flex-wrap items-start justify-between gap-4">
+            <section className="border border-olive-200 bg-white p-4 dark:border-olive-800 dark:bg-olive-900">
+                <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-olive-500 dark:text-olive-400">
+                        <p className="text-sm font-medium text-olive-600 dark:text-olive-400">
                             Listing membership
                         </p>
                         <div className="mt-2 flex flex-wrap items-center gap-2">
                             <StatusBadge status={membership?.key || 'free'} />
                             <span
-                                className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                                className={`inline-flex items-center rounded-sm px-2 py-0.5 text-[11px] font-semibold ${
                                     tone === 'rose'
                                         ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/50 dark:text-rose-200'
                                         : tone === 'amber'
@@ -128,8 +124,8 @@ function MembershipPanel({ membership, stats }) {
                                 : 'No paid listing plan. Assign one from Finance when they upgrade.'}
                         </p>
                     </div>
-                    <div className="rounded-xl border border-olive-100 bg-olive-50/80 px-4 py-3 text-right dark:border-olive-800 dark:bg-olive-950/50">
-                        <p className="text-[11px] font-semibold uppercase tracking-wide text-olive-500">
+                    <div className="border border-olive-200 bg-olive-50 px-4 py-3 text-right dark:border-olive-800 dark:bg-olive-950/50">
+                        <p className="text-xs font-medium text-olive-500">
                             Slots used
                         </p>
                         <p className="mt-1 font-display text-2xl font-bold tabular-nums text-olive-950 dark:text-white">
@@ -147,9 +143,9 @@ function MembershipPanel({ membership, stats }) {
                             <span>Period progress</span>
                             <span className="tabular-nums">{percent}%</span>
                         </div>
-                        <div className="h-2.5 overflow-hidden rounded-full bg-olive-100 dark:bg-olive-800">
+                        <div className="h-2 overflow-hidden bg-olive-100 dark:bg-olive-800">
                             <div
-                                className={`h-full rounded-full transition-all ${
+                                className={`h-full transition-all ${
                                     tone === 'rose'
                                         ? 'bg-rose-500'
                                         : tone === 'amber'
@@ -194,15 +190,15 @@ function MembershipPanel({ membership, stats }) {
 function MetaTile({ icon: Icon, label, value, emphasis = false }) {
     return (
         <div
-            className={`rounded-2xl border px-4 py-3.5 ${
+            className={`border px-4 py-3 ${
                 emphasis
-                    ? 'border-amber-200/80 bg-amber-50/80 dark:border-amber-900/50 dark:bg-amber-950/30'
-                    : 'border-olive-200/80 bg-white dark:border-olive-800 dark:bg-olive-900'
+                    ? 'border-amber-200 bg-amber-50 dark:border-amber-900/50 dark:bg-amber-950/30'
+                    : 'border-olive-200 bg-white dark:border-olive-800 dark:bg-olive-900'
             }`}
         >
             <div className="flex items-center gap-2 text-olive-500 dark:text-olive-400">
-                <Icon className="h-3.5 w-3.5" />
-                <span className="text-[11px] font-semibold uppercase tracking-wide">{label}</span>
+                <Icon className="h-3.5 w-3.5" strokeWidth={1.5} />
+                <span className="text-xs font-medium">{label}</span>
             </div>
             <p className="mt-1.5 text-sm font-semibold text-olive-950 dark:text-olive-50">{value}</p>
         </div>
@@ -384,7 +380,7 @@ function ProfileEditor({ user }) {
             >
                 <form onSubmit={submit} className="space-y-6">
                     <div>
-                        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-olive-500 dark:text-olive-400">
+                        <p className="mb-2 text-sm font-medium text-olive-600 dark:text-olive-400">
                             Profile picture
                         </p>
                         {displaySrc ? (
@@ -393,7 +389,7 @@ function ProfileEditor({ user }) {
                                     type="button"
                                     onClick={editCurrentPhoto}
                                     aria-label="Crop profile photo"
-                                    className="group relative mx-auto h-28 w-28 shrink-0 overflow-hidden rounded-full bg-olive-100 shadow-soft ring-2 ring-olive-200 transition hover:ring-mustard sm:mx-0 dark:bg-olive-800 dark:ring-olive-700"
+                                    className="group relative mx-auto h-28 w-28 shrink-0 overflow-hidden rounded-full bg-olive-100 border border-olive-200 transition hover:border-olive-400 sm:mx-0 dark:bg-olive-800 dark:ring-olive-700"
                                 >
                                     <img
                                         src={displaySrc}
@@ -403,7 +399,7 @@ function ProfileEditor({ user }) {
                                     />
                                     <span className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-earth-dusk/55 text-white opacity-0 transition group-hover:opacity-100">
                                         <Crop className="h-5 w-5" />
-                                        <span className="text-[11px] font-semibold uppercase tracking-wide">
+                                        <span className="text-[11px] font-semibold">
                                             Crop
                                         </span>
                                     </span>
@@ -418,13 +414,13 @@ function ProfileEditor({ user }) {
                                         }}
                                         onDragLeave={() => setDragOver(false)}
                                         onDrop={onDrop}
-                                        className={`flex w-full items-center gap-3 rounded-2xl border border-dashed px-4 py-4 text-left transition ${
+                                        className={`flex w-full items-center gap-3 rounded-md border border-dashed px-4 py-4 text-left transition ${
                                             dragOver
                                                 ? 'border-mustard bg-mustard/10'
                                                 : 'border-mustard/70 bg-olive-50/50 hover:border-mustard dark:bg-olive-950/40'
                                         }`}
                                     >
-                                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-mustard/15 text-mustard">
+                                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-olive-100 text-olive-700 dark:bg-olive-800 dark:text-olive-200">
                                             <CloudUpload className="h-5 w-5" />
                                         </span>
                                         <span>
@@ -432,7 +428,7 @@ function ProfileEditor({ user }) {
                                                 Replace photo
                                             </span>
                                             <span className="mt-0.5 block text-xs text-olive-500">
-                                                Drop or click · JPG, PNG, WEBP, GIF · max 15MB
+                                                Drop or click, JPG, PNG, WEBP, GIF, max 15MB
                                             </span>
                                         </span>
                                     </button>
@@ -471,20 +467,20 @@ function ProfileEditor({ user }) {
                                 }}
                                 onDragLeave={() => setDragOver(false)}
                                 onDrop={onDrop}
-                                className={`flex w-full flex-col items-center justify-center rounded-2xl border border-dashed px-4 py-10 text-center transition ${
+                                className={`flex w-full flex-col items-center justify-center rounded-md border border-dashed px-4 py-10 text-center transition ${
                                     dragOver
                                         ? 'border-mustard bg-mustard/10'
                                         : 'border-mustard/70 bg-gradient-to-b from-white to-olive-50/40 hover:border-mustard dark:from-olive-950/50 dark:to-olive-950/20'
                                 }`}
                             >
-                                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-mustard/15 text-mustard">
+                                <span className="flex h-14 w-14 items-center justify-center rounded-md bg-olive-100 text-olive-700 dark:bg-olive-800 dark:text-olive-200">
                                     <CloudUpload className="h-7 w-7" />
                                 </span>
                                 <span className="mt-4 text-sm font-semibold text-earth-dusk dark:text-olive-50">
                                     Drop a photo or click to upload
                                 </span>
                                 <span className="mt-1 text-xs text-olive-500">
-                                    JPG, PNG, WEBP, GIF · max 15MB
+                                    JPG, PNG, WEBP, GIF, max 15MB
                                 </span>
                             </button>
                         )}
@@ -557,8 +553,8 @@ function ProfileEditor({ user }) {
                         <p className="text-xs text-olive-500">
                             Joined {formatDate(user.created_at)}
                             {user.email_verified_at
-                                ? ` · Email verified ${formatDate(user.email_verified_at)}`
-                                : ' · Email not verified'}
+                                ? `, Email verified ${formatDate(user.email_verified_at)}`
+                                : ', Email not verified'}
                         </p>
                         <AdminButton type="submit" disabled={processing}>
                             <Save className="h-4 w-4" />
@@ -843,7 +839,7 @@ export default function Show({
 
     return (
         <AdminLayout>
-            <Head title={`${user.name} · Member`} />
+            <Head title={`${user.name}, Member`} />
             {dialog}
 
             <div className="mb-5">
@@ -856,50 +852,42 @@ export default function Show({
                 </Link>
             </div>
 
-            <header className="relative mb-6 overflow-hidden rounded-2xl border border-olive-200/80 bg-gradient-to-br from-olive-950 via-olive-900 to-earth-dusk text-white shadow-soft dark:border-olive-800">
-                <div
-                    className="pointer-events-none absolute inset-0 opacity-[0.18]"
-                    style={{
-                        backgroundImage:
-                            'radial-gradient(circle at 12% 20%, rgba(244,196,48,0.55), transparent 42%), radial-gradient(circle at 88% 10%, rgba(255,255,255,0.18), transparent 35%), linear-gradient(135deg, transparent 40%, rgba(0,0,0,0.25))',
-                    }}
-                    aria-hidden
-                />
-                <div className="relative flex flex-col gap-5 p-5 sm:flex-row sm:items-end sm:justify-between sm:p-7">
+            <header className="mb-5 border border-olive-200 bg-white p-4 dark:border-olive-800 dark:bg-olive-900 sm:p-5">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                     <div className="flex min-w-0 items-start gap-4">
                         <div className="relative shrink-0">
                             {user.avatar_url ? (
                                 <img
                                     src={user.avatar_url}
                                     alt=""
-                                    className="h-20 w-20 rounded-2xl object-cover ring-2 ring-white/25 sm:h-24 sm:w-24"
+                                    className="h-16 w-16 rounded-md border border-olive-200 object-cover sm:h-20 sm:w-20 dark:border-olive-700"
                                 />
                             ) : (
-                                <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-mustard/90 font-display text-2xl font-bold text-earth-dusk ring-2 ring-white/25 sm:h-24 sm:w-24">
+                                <div className="flex h-16 w-16 items-center justify-center rounded-md border border-olive-200 bg-mustard font-display text-xl font-bold text-earth-dusk sm:h-20 sm:w-20 dark:border-olive-700">
                                     {initials}
                                 </div>
                             )}
                             {user.is_admin ? (
-                                <span className="absolute -bottom-1.5 -right-1.5 inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-olive-900 shadow">
-                                    <Shield className="h-3 w-3" />
+                                <span className="absolute -bottom-1.5 -right-1.5 inline-flex items-center gap-1 rounded-sm border border-olive-200 bg-white px-1.5 py-0.5 text-[10px] font-bold text-olive-900 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-50">
+                                    <Shield className="h-3 w-3" strokeWidth={1.5} />
                                     Admin
                                 </span>
                             ) : null}
                         </div>
-                        <div className="min-w-0 pt-1">
-                            <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
+                        <div className="min-w-0 pt-0.5">
+                            <h1 className="font-display text-2xl font-bold tracking-tight text-olive-950 dark:text-white sm:text-3xl">
                                 {user.name}
                             </h1>
-                            <p className="mt-1 truncate text-sm text-white/70">
-                                {user.username ? `@${user.username} · ` : ''}
+                            <p className="mt-1 truncate text-sm text-olive-600 dark:text-olive-300">
+                                {user.username ? `@${user.username}, ` : ''}
                                 {user.email}
-                                {user.phone ? ` · ${user.phone}` : ''}
+                                {user.phone ? `, ${user.phone}` : ''}
                             </p>
                             <div className="mt-3 flex flex-wrap gap-2">
-                                <span className="rounded-full bg-white/10 px-2.5 py-1 text-xs font-semibold backdrop-blur">
+                                <span className="rounded-sm border border-olive-200 bg-olive-50 px-2 py-0.5 text-xs font-medium text-olive-700 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-200">
                                     {stats.listings ?? user.listings_count ?? 0} listings
                                 </span>
-                                <span className="rounded-full bg-white/10 px-2.5 py-1 text-xs font-semibold backdrop-blur">
+                                <span className="rounded-sm border border-olive-200 bg-olive-50 px-2 py-0.5 text-xs font-medium text-olive-700 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-200">
                                     {stats.payments ?? user.payments_count ?? 0} payments
                                 </span>
                                 <StatusBadge status={membership?.key || 'free'} />

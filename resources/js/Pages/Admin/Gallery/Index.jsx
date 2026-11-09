@@ -213,7 +213,7 @@ export default function Index({ media, filters, counts, sources }) {
                     className="min-w-[200px] flex-1"
                 />
                 <div className="flex flex-col gap-1.5">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-olive-500">
+                    <span className="text-xs font-medium text-olive-500">
                         Source
                     </span>
                     <div className="flex flex-wrap gap-1.5">
@@ -246,7 +246,7 @@ export default function Index({ media, filters, counts, sources }) {
                     </div>
                 </div>
                 <div className="ml-auto flex flex-col gap-1.5">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-olive-500">
+                    <span className="text-xs font-medium text-olive-500">
                         View
                     </span>
                     <div
@@ -400,7 +400,7 @@ export default function Index({ media, filters, counts, sources }) {
                                         </p>
                                         <div className="flex flex-wrap gap-1">
                                             <span
-                                                className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${sourceTone(item.source)}`}
+                                                className={`rounded-sm px-1.5 py-0.5 text-[10px] font-semibold ${sourceTone(item.source)}`}
                                             >
                                                 {item.kind || item.source}
                                             </span>
@@ -603,7 +603,7 @@ export default function Index({ media, filters, counts, sources }) {
                           onClick={() => setPreview(null)}
                       >
                           <div
-                              className="relative max-h-[90vh] w-full max-w-4xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-olive-900"
+                              className="relative max-h-[90vh] w-full max-w-4xl overflow-hidden border border-olive-200 bg-white dark:border-olive-700 dark:bg-olive-900"
                               onClick={(e) => e.stopPropagation()}
                           >
                               <div className="flex items-start justify-between gap-3 border-b border-olive-100 px-4 py-3 dark:border-olive-800">

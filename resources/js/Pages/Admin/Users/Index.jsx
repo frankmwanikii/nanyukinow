@@ -224,9 +224,9 @@ export default function Index({ users, filters }) {
                                         />
                                     </Td>
                                     <Td>
-                                        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700 dark:text-slate-200">
+                                        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-olive-700 dark:text-olive-200">
                                             <span
-                                                className={`h-1.5 w-1.5 rounded-full ${user.is_admin ? 'bg-indigo-500' : 'bg-slate-400'}`}
+                                                className={`h-1.5 w-1.5 rounded-full ${user.is_admin ? 'bg-olive-700' : 'bg-olive-400'}`}
                                             />
                                             {user.is_admin ? 'Admin' : 'Member'}
                                         </span>
