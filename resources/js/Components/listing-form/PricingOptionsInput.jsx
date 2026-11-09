@@ -82,7 +82,7 @@ export default function PricingOptionsInput({
                                 <button
                                     type="button"
                                     onClick={() => removeRow(index)}
-                                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-olive-200 text-olive-500 transition hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 dark:border-olive-700 dark:hover:border-rose-700 dark:hover:bg-rose-950/40 dark:hover:text-rose-400"
+                                    className="inline-flex h-9 w-9 items-center justify-center rounded-sm border border-olive-200 text-olive-500 transition hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 dark:border-olive-700 dark:hover:border-rose-700 dark:hover:bg-rose-950/40 dark:hover:text-rose-400"
                                     aria-label={`Remove pricing option ${index + 1}`}
                                 >
                                     <Trash2 className="h-4 w-4" />
@@ -137,7 +137,7 @@ export default function PricingOptionsInput({
             <button
                 type="button"
                 onClick={addRow}
-                className="mt-3 inline-flex min-h-11 items-center gap-1.5 rounded-xl bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-olive-800 dark:bg-mustard dark:text-olive-950 dark:hover:bg-mustard/90"
+                className="mt-3 inline-flex min-h-11 items-center gap-1.5 rounded-sm bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-olive-800 dark:bg-mustard dark:text-olive-950 dark:hover:bg-mustard/90"
             >
                 <Plus className="h-4 w-4" />
                 Add pricing option

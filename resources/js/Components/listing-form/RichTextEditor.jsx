@@ -99,7 +99,7 @@ function ToolBtn({
                 e.preventDefault();
                 if (!disabled) onClick?.();
             }}
-            className={`inline-flex h-8 min-w-8 items-center justify-center rounded-lg px-1.5 text-olive-700 transition hover:bg-white hover:text-olive-950 disabled:cursor-not-allowed disabled:opacity-40 dark:text-olive-300 dark:hover:bg-olive-800 dark:hover:text-olive-50 ${
+            className={`inline-flex h-8 min-w-8 items-center justify-center rounded-sm px-1.5 text-olive-700 transition hover:bg-white hover:text-olive-950 disabled:cursor-not-allowed disabled:opacity-40 dark:text-olive-300 dark:hover:bg-olive-800 dark:hover:text-olive-50 ${
                 active
                     ? 'bg-white text-olive-950 shadow-sm ring-1 ring-olive-200 dark:bg-olive-800 dark:text-olive-50 dark:ring-olive-600'
                     : ''
@@ -130,7 +130,7 @@ function BubbleBtn({ title, active, onClick, children }) {
                 e.preventDefault();
                 onClick?.();
             }}
-            className={`inline-flex h-8 w-8 items-center justify-center rounded-lg transition ${
+            className={`inline-flex h-8 w-8 items-center justify-center rounded-sm transition ${
                 active
                     ? 'bg-olive-100 text-olive-950 ring-1 ring-olive-200 dark:bg-olive-800 dark:text-olive-50 dark:ring-olive-600'
                     : 'text-olive-700 hover:bg-olive-50 dark:text-olive-200 dark:hover:bg-olive-800'

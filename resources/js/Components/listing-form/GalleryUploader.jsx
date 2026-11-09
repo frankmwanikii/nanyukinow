@@ -69,7 +69,7 @@ function DropZone({
 
 function MediaToolbar({ onView, onReplace, onRemove }) {
     const chip =
-        'inline-flex items-center gap-1.5 rounded-2xl px-3 py-2 text-[11px] font-semibold tracking-wide shadow-[0_8px_24px_rgba(0,0,0,0.28)] backdrop-blur-xl transition focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard focus-visible:ring-offset-2 focus-visible:ring-offset-transparent';
+        'inline-flex items-center gap-1.5 rounded-sm px-3 py-2 text-[11px] font-semibold tracking-wide shadow-[0_8px_24px_rgba(0,0,0,0.28)] backdrop-blur-xl transition focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard focus-visible:ring-offset-2 focus-visible:ring-offset-transparent';
 
     return (
         <div
@@ -248,7 +248,7 @@ function CoverLogoStage({
                         <button
                             type="button"
                             onClick={onSubmitCoverUrl}
-                            className="inline-flex shrink-0 items-center justify-center rounded-xl bg-olive-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-olive-800"
+                            className="inline-flex shrink-0 items-center justify-center rounded-sm bg-olive-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-olive-800"
                         >
                             Use URL
                         </button>
@@ -274,7 +274,7 @@ function CoverLogoStage({
                         <button
                             type="button"
                             onClick={onOpenLibraryLogo}
-                            className="inline-flex items-center gap-1.5 rounded-full bg-olive-900 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-olive-800 sm:text-sm"
+                            className="inline-flex items-center gap-1.5 rounded-sm bg-olive-900 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-olive-800 sm:text-sm"
                         >
                             <Images className="h-4 w-4" />
                             Open gallery
@@ -347,7 +347,7 @@ function CoverLogoStage({
                             <button
                                 type="button"
                                 onClick={onSubmitLogoUrl}
-                                className="inline-flex shrink-0 items-center justify-center rounded-xl bg-olive-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-olive-800"
+                                className="inline-flex shrink-0 items-center justify-center rounded-sm bg-olive-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-olive-800"
                             >
                                 Use URL
                             </button>
@@ -385,7 +385,7 @@ function PosterSlot({
                     <button
                         type="button"
                         onClick={onOpenLibrary}
-                        className="inline-flex items-center gap-1.5 rounded-full bg-olive-900 px-3 py-1.5 text-[11px] font-semibold text-white transition hover:bg-olive-800"
+                        className="inline-flex items-center gap-1.5 rounded-sm bg-olive-900 px-3 py-1.5 text-[11px] font-semibold text-white transition hover:bg-olive-800"
                     >
                         <Images className="h-3.5 w-3.5" />
                         Open gallery
@@ -420,7 +420,7 @@ function PosterSlot({
                     <button
                         type="button"
                         onClick={onBrowse}
-                        className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-2 rounded-2xl bg-gradient-to-br from-olive-50 via-white to-olive-100/80 text-olive-600 ring-1 ring-dashed ring-olive-300 transition hover:bg-mustard/5 hover:ring-mustard"
+                        className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-2 rounded-sm bg-gradient-to-br from-olive-50 via-white to-olive-100/80 text-olive-600 ring-1 ring-dashed ring-olive-300 transition hover:bg-mustard/5 hover:ring-mustard"
                     >
                         <ImagePlus className="h-5 w-5" />
                         <span className="text-xs font-semibold text-olive-900">
@@ -1004,7 +1004,7 @@ export default function GalleryUploader({
                             e.stopPropagation();
                             setCoverFromGallery(item);
                         }}
-                        className="inline-flex items-center gap-1 rounded-lg bg-white/95 px-2 py-1.5 text-[11px] font-semibold text-olive-900 shadow-sm ring-1 ring-black/5"
+                        className="inline-flex items-center gap-1 rounded-sm bg-white/95 px-2 py-1.5 text-[11px] font-semibold text-olive-900 shadow-sm ring-1 ring-black/5"
                     >
                         <Star className="h-3.5 w-3.5" />
                         Cover
@@ -1016,7 +1016,7 @@ export default function GalleryUploader({
                             e.stopPropagation();
                             removeGallery(item.id);
                         }}
-                        className="rounded-lg bg-white/95 p-1.5 text-rose-600 shadow-sm ring-1 ring-rose-100"
+                        className="rounded-sm bg-white/95 p-1.5 text-rose-600 shadow-sm ring-1 ring-rose-100"
                     >
                         <Trash2 className="h-3.5 w-3.5" />
                     </button>
@@ -1181,7 +1181,7 @@ export default function GalleryUploader({
                                     openAdminGallery('gallery');
                                 }}
                                 disabled={galleryCount >= MAX_GALLERY}
-                                className="inline-flex items-center gap-1.5 rounded-full bg-olive-900 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-olive-800 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm"
+                                className="inline-flex items-center gap-1.5 rounded-sm bg-olive-900 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-olive-800 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm"
                             >
                                 <Images className="h-4 w-4" />
                                 Open gallery
@@ -1240,7 +1240,7 @@ export default function GalleryUploader({
                                         key={opt.value}
                                         type="button"
                                         onClick={() => selectSpace(opt.value)}
-                                        className={`inline-flex h-11 shrink-0 items-center gap-2 rounded-full px-3.5 text-xs font-semibold transition sm:text-sm ${
+                                        className={`inline-flex h-11 shrink-0 items-center gap-2 rounded-sm px-3.5 text-xs font-semibold transition sm:text-sm ${
                                             selected
                                                 ? 'bg-olive-900 text-white dark:bg-mustard dark:text-earth-dusk'
                                                 : 'bg-white text-olive-800 ring-1 ring-olive-200 hover:border-mustard hover:ring-mustard dark:bg-olive-900 dark:text-olive-100 dark:ring-olive-700'
@@ -1306,7 +1306,7 @@ export default function GalleryUploader({
                                                         selectSpace(activeSpace);
                                                         openGalleryPicker();
                                                     }}
-                                                    className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-olive-300 bg-olive-50/70 text-olive-600 transition hover:border-mustard hover:bg-mustard/5 hover:text-olive-900 dark:border-olive-700 dark:bg-olive-900/50 dark:text-olive-400 dark:hover:border-mustard dark:hover:bg-mustard/10 dark:hover:text-olive-100"
+                                                    className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-2 rounded-sm border border-dashed border-olive-300 bg-olive-50/70 text-olive-600 transition hover:border-mustard hover:bg-mustard/5 hover:text-olive-900 dark:border-olive-700 dark:bg-olive-900/50 dark:text-olive-400 dark:hover:border-mustard dark:hover:bg-mustard/10 dark:hover:text-olive-100"
                                                 >
                                                     <ImagePlus className="h-6 w-6" />
                                                     <span className="px-2 text-center text-xs font-semibold">
@@ -1325,7 +1325,7 @@ export default function GalleryUploader({
                                             openGalleryPicker();
                                         }}
                                         disabled={!canAddToActiveSpace}
-                                        className="flex w-full flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-olive-300 bg-olive-50/80 px-4 py-10 text-center transition hover:border-mustard hover:bg-mustard/5 disabled:cursor-not-allowed disabled:opacity-50 dark:border-olive-700 dark:bg-olive-900/40 dark:hover:border-mustard dark:hover:bg-mustard/10"
+                                        className="flex w-full flex-col items-center justify-center gap-3 rounded-sm border border-dashed border-olive-300 bg-olive-50/80 px-4 py-10 text-center transition hover:border-mustard hover:bg-mustard/5 disabled:cursor-not-allowed disabled:opacity-50 dark:border-olive-700 dark:bg-olive-900/40 dark:hover:border-mustard dark:hover:bg-mustard/10"
                                     >
                                         <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white ring-1 ring-olive-100 dark:bg-olive-950 dark:ring-olive-700">
                                             <ImagePlus className="h-6 w-6 text-olive-700 dark:text-olive-300" />
@@ -1369,7 +1369,7 @@ export default function GalleryUploader({
                                                 ? openAddMenu('gallery')
                                                 : openGalleryPicker()
                                         }
-                                        className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-olive-300 bg-white/70 text-olive-600 transition hover:border-mustard hover:bg-mustard/5 hover:text-olive-900 dark:border-olive-700 dark:bg-olive-950/70 dark:text-olive-400 dark:hover:border-mustard dark:hover:bg-mustard/10 dark:hover:text-olive-100"
+                                        className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-2 rounded-sm border border-dashed border-olive-300 bg-white/70 text-olive-600 transition hover:border-mustard hover:bg-mustard/5 hover:text-olive-900 dark:border-olive-700 dark:bg-olive-950/70 dark:text-olive-400 dark:hover:border-mustard dark:hover:bg-mustard/10 dark:hover:text-olive-100"
                                     >
                                         <ImagePlus className="h-6 w-6" />
                                         <span className="text-xs font-semibold">
@@ -1387,7 +1387,7 @@ export default function GalleryUploader({
                                     ? openAddMenu('gallery')
                                     : openGalleryPicker()
                             }
-                            className="flex w-full flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-olive-300 bg-white/80 px-4 py-12 text-center transition hover:border-mustard hover:bg-mustard/5 dark:border-olive-700 dark:bg-olive-950/80 dark:hover:border-mustard dark:hover:bg-mustard/10"
+                            className="flex w-full flex-col items-center justify-center gap-3 rounded-sm border border-dashed border-olive-300 bg-white/80 px-4 py-12 text-center transition hover:border-mustard hover:bg-mustard/5 dark:border-olive-700 dark:bg-olive-950/80 dark:hover:border-mustard dark:hover:bg-mustard/10"
                         >
                             <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-olive-50 ring-1 ring-olive-100 dark:bg-olive-900 dark:ring-olive-700">
                                 <ImagePlus className="h-6 w-6 text-olive-700 dark:text-olive-300" />
@@ -1436,7 +1436,7 @@ export default function GalleryUploader({
                                 type="button"
                                 onClick={submitGalleryUrl}
                                 disabled={!canAddToActiveSpace}
-                                className="inline-flex shrink-0 items-center justify-center rounded-xl bg-olive-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-olive-800 disabled:cursor-not-allowed disabled:opacity-50"
+                                className="inline-flex shrink-0 items-center justify-center rounded-sm bg-olive-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-olive-800 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 {categorized
                                     ? `Add to ${activeSpaceMeta.label}`

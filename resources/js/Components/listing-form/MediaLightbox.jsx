@@ -76,7 +76,7 @@ export default function MediaLightbox({
                 <button
                     type="button"
                     onClick={onClose}
-                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-mustard text-olive-950 shadow-lift ring-2 ring-white/90 transition hover:scale-105 hover:bg-white"
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-sm bg-mustard text-olive-950 shadow-lift ring-2 ring-white/90 transition hover:scale-105 hover:bg-white"
                     aria-label="Close lightbox"
                 >
                     <X className="h-5 w-5" strokeWidth={2.75} />
@@ -97,7 +97,7 @@ export default function MediaLightbox({
                                         items.length,
                                 )
                             }
-                            className="absolute left-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white ring-1 ring-white/25 backdrop-blur transition hover:bg-white/20 sm:left-6"
+                            className="absolute left-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-sm bg-white/10 text-white ring-1 ring-white/25 backdrop-blur transition hover:bg-white/20 sm:left-6"
                             aria-label="Previous photo"
                         >
                             <ChevronLeft className="h-6 w-6" strokeWidth={2.25} />
@@ -109,7 +109,7 @@ export default function MediaLightbox({
                                     (safeIndex + 1) % items.length,
                                 )
                             }
-                            className="absolute right-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white ring-1 ring-white/25 backdrop-blur transition hover:bg-white/20 sm:right-6"
+                            className="absolute right-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-sm bg-white/10 text-white ring-1 ring-white/25 backdrop-blur transition hover:bg-white/20 sm:right-6"
                             aria-label="Next photo"
                         >
                             <ChevronRight
@@ -143,7 +143,7 @@ export default function MediaLightbox({
                                     onClick={() => onIndexChange?.(i)}
                                     aria-label={`View ${thumb.label || `photo ${i + 1}`}`}
                                     aria-current={active ? 'true' : undefined}
-                                    className={`relative h-14 w-20 shrink-0 overflow-hidden rounded-xl transition ${
+                                    className={`relative h-14 w-20 shrink-0 overflow-hidden rounded-sm transition ${
                                         active
                                             ? 'ring-2 ring-mustard ring-offset-2 ring-offset-[#0c0a08]'
                                             : 'opacity-60 ring-1 ring-white/15 hover:opacity-100'

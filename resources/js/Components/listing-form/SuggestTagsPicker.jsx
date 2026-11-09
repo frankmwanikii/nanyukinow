@@ -159,7 +159,7 @@ export default function SuggestTagsPicker({
                     <button
                         type="button"
                         onClick={addCustom}
-                        className="absolute right-2 top-1/2 z-10 inline-flex -translate-y-1/2 items-center gap-1 rounded-lg bg-mustard px-2.5 py-1.5 text-xs font-bold text-earth-dusk"
+                        className="absolute right-2 top-1/2 z-10 inline-flex -translate-y-1/2 items-center gap-1 rounded-sm bg-mustard px-2.5 py-1.5 text-xs font-bold text-earth-dusk"
                     >
                         <Plus className="h-3.5 w-3.5" />
                         Add
@@ -220,7 +220,7 @@ export default function SuggestTagsPicker({
                             key={name}
                             type="button"
                             onClick={() => remove(name)}
-                            className="inline-flex items-center gap-1.5 rounded-full bg-olive-900 px-3 py-1.5 text-xs font-semibold text-white"
+                            className="inline-flex items-center gap-1.5 rounded-sm bg-olive-900 px-3 py-1.5 text-xs font-semibold text-white"
                         >
                             {name}
                             <X className="h-3.5 w-3.5 opacity-80" />

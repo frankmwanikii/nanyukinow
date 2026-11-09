@@ -42,7 +42,7 @@ export default function ServicesTierUpsell({
             {!isAdmin ? (
                 <Link
                     href={route('account.upgrade')}
-                    className="inline-flex h-10 shrink-0 items-center justify-center gap-1.5 self-start rounded-lg bg-olive-900 px-3.5 text-xs font-semibold text-white transition hover:bg-mustard hover:text-earth-dusk sm:self-center dark:bg-mustard dark:text-earth-dusk dark:hover:bg-olive-100"
+                    className="inline-flex h-10 shrink-0 items-center justify-center gap-1.5 self-start rounded-sm bg-olive-900 px-3.5 text-xs font-semibold text-white transition hover:bg-mustard hover:text-earth-dusk sm:self-center dark:bg-mustard dark:text-earth-dusk dark:hover:bg-olive-100"
                 >
                     <Sparkles className="h-3.5 w-3.5" />
                     Upgrade

@@ -146,7 +146,7 @@ export default function ListingImageCropModal({
                         type="button"
                         onClick={useWithoutCrop}
                         disabled={busy || (!imageSrc && !originalFile)}
-                        className="rounded-xl border border-olive-200 px-4 py-2 text-sm font-semibold text-olive-800 transition hover:bg-olive-50 disabled:opacity-50"
+                        className="rounded-sm border border-olive-200 px-4 py-2 text-sm font-semibold text-olive-800 transition hover:bg-olive-50 disabled:opacity-50"
                     >
                         {busy ? 'Working…' : 'Don’t crop'}
                     </button>
@@ -155,7 +155,7 @@ export default function ListingImageCropModal({
                             type="button"
                             onClick={onCancel}
                             disabled={busy}
-                            className="rounded-xl border border-olive-200 px-4 py-2 text-sm font-semibold text-olive-700"
+                            className="rounded-sm border border-olive-200 px-4 py-2 text-sm font-semibold text-olive-700"
                         >
                             Cancel
                         </button>
@@ -163,7 +163,7 @@ export default function ListingImageCropModal({
                             type="button"
                             onClick={apply}
                             disabled={busy || !croppedAreaPixels}
-                            className="rounded-xl bg-mustard px-4 py-2 text-sm font-bold text-earth-dusk disabled:opacity-50"
+                            className="rounded-sm bg-mustard px-4 py-2 text-sm font-bold text-earth-dusk disabled:opacity-50"
                         >
                             {busy ? 'Applying…' : 'Use cropped'}
                         </button>

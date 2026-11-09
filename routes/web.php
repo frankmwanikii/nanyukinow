@@ -101,6 +101,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/account', AccountDashboardController::class)->name('account.index');
     Route::get('/account/bookmarks', AccountBookmarkController::class)->name('account.bookmarks');
 
+    Route::get('/account/listings', [AccountListingController::class, 'index'])->name('account.listings.index');
     Route::get('/account/listings/create', [AccountListingController::class, 'create'])->name('account.listings.create');
     Route::post('/account/listings', [AccountListingController::class, 'store'])->name('account.listings.store');
     Route::post('/account/listings/draft', [AccountListingController::class, 'saveDraft'])

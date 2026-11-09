@@ -297,14 +297,11 @@ export function CompassMark({ className = 'h-4 w-4' }) {
 
 /**
  * Nyuki AI — stylised bee (Kiswahili: nyuki).
- * Head, striped abdomen, paired wings; solid silhouette that reads at 40px.
+ * Head, antennae, striped abdomen; solid silhouette that reads at 40px.
  */
 export function NyukiMark({ className = 'h-4 w-4' }) {
     return (
         <Mark className={className}>
-            {/* Wings */}
-            <ellipse cx="5.4" cy="11.6" rx="3.9" ry="5.1" transform="rotate(-22 5.4 11.6)" />
-            <ellipse cx="18.6" cy="11.6" rx="3.9" ry="5.1" transform="rotate(22 18.6 11.6)" />
             {/* Abdomen with stripe cutouts */}
             <path
                 fillRule="evenodd"

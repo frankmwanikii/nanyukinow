@@ -30,6 +30,22 @@ use Inertia\Response;
 
 class ListingController extends Controller
 {
+    public function index(Request $request): Response
+    {
+        $user = $request->user();
+
+        $listings = $user->listings()
+            ->with('category:id,name,slug')
+            ->latest()
+            ->get()
+            ->map(fn (Listing $listing) => $this->listingTablePayload($listing));
+
+        return Inertia::render('Account/Listings/Index', [
+            'plan' => Membership::planSummary($user),
+            'listings' => $listings,
+        ]);
+    }
+
     public function create(Request $request): Response|RedirectResponse
     {
         $user = $request->user();
@@ -42,7 +58,7 @@ class ListingController extends Controller
 
         if (! $draft && ! Membership::canCreateListing($user)) {
             return redirect()
-                ->route('account.index')
+                ->route('account.listings.index')
                 ->with('error', 'You have reached your listing limit. Upgrade your plan to add more.');
         }
 
@@ -159,7 +175,7 @@ class ListingController extends Controller
         $this->bumpAmenityUsage($payload['amenities'] ?? []);
 
         return redirect()
-            ->route('account.index')
+            ->route('account.listings.index')
             ->with('success', "“{$listing->title}” submitted for review.");
     }
 
@@ -213,7 +229,7 @@ class ListingController extends Controller
         $this->bumpAmenityUsage($payload['amenities'] ?? []);
 
         return redirect()
-            ->route('account.index')
+            ->route('account.listings.index')
             ->with(
                 'success',
                 $wasDraft
@@ -230,8 +246,30 @@ class ListingController extends Controller
         $listing->delete();
 
         return redirect()
-            ->route('account.index')
+            ->route('account.listings.index')
             ->with('success', "“{$title}” deleted.");
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function listingTablePayload(Listing $listing): array
+    {
+        return [
+            'id' => $listing->id,
+            'title' => $listing->title,
+            'slug' => $listing->slug,
+            'status' => $listing->status,
+            'tier' => $listing->tier,
+            'tier_label' => Membership::badgeLabel($listing->tier),
+            'is_published' => $listing->is_published,
+            'category' => $listing->category?->name,
+            'image_url' => $listing->image_url,
+            'updated_at' => $listing->updated_at?->toIso8601String(),
+            'expires_at' => $listing->expires_at?->toIso8601String(),
+            'published_at' => $listing->published_at?->toIso8601String(),
+            'is_expired' => $listing->isExpired(),
+        ];
     }
 
     private function authorizeOwner(Request $request, Listing $listing): void

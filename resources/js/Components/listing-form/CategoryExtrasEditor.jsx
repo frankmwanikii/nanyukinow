@@ -78,7 +78,7 @@ function RowActions({ onRemove }) {
         <button
             type="button"
             onClick={onRemove}
-            className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-50"
+            className="inline-flex items-center gap-1 rounded-sm px-2 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-50"
             aria-label="Remove"
         >
             <Trash2 className="h-3.5 w-3.5" />
@@ -105,7 +105,7 @@ function ImagePickButton({ image, onPick, onClear }) {
                 <button
                     type="button"
                     onClick={onPick}
-                    className="rounded-xl border border-olive-200 bg-white px-3 py-1.5 text-xs font-semibold text-olive-800 hover:border-mustard dark:border-olive-700 dark:bg-olive-900 dark:text-olive-100 dark:hover:border-mustard"
+                    className="rounded-sm border border-olive-200 bg-white px-3 py-1.5 text-xs font-semibold text-olive-800 hover:border-mustard dark:border-olive-700 dark:bg-olive-900 dark:text-olive-100 dark:hover:border-mustard"
                 >
                     {image ? 'Replace image' : 'Add image'}
                 </button>
@@ -113,7 +113,7 @@ function ImagePickButton({ image, onPick, onClear }) {
                     <button
                         type="button"
                         onClick={onClear}
-                        className="rounded-xl px-3 py-1.5 text-xs font-semibold text-olive-500 hover:text-rose-700 dark:text-olive-400 dark:hover:text-rose-400"
+                        className="rounded-sm px-3 py-1.5 text-xs font-semibold text-olive-500 hover:text-rose-700 dark:text-olive-400 dark:hover:text-rose-400"
                     >
                         Clear
                     </button>
@@ -180,7 +180,7 @@ function ImageDropzonePick({
                         <button
                             type="button"
                             onClick={onClear}
-                            className="rounded-xl bg-white/90 px-3 py-1.5 text-xs font-semibold text-rose-700 shadow-sm hover:bg-white"
+                            className="rounded-sm bg-white/90 px-3 py-1.5 text-xs font-semibold text-rose-700 shadow-sm hover:bg-white"
                         >
                             Clear
                         </button>
@@ -337,7 +337,7 @@ function MenuImagesEditor({
                             <button
                                 type="button"
                                 onClick={() => setLibraryOpen(true)}
-                                className="inline-flex items-center gap-1.5 rounded-full bg-olive-900 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-olive-800"
+                                className="inline-flex items-center gap-1.5 rounded-sm bg-olive-900 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-olive-800"
                             >
                                 <Images className="h-3.5 w-3.5" />
                                 Open gallery
@@ -360,7 +360,7 @@ function MenuImagesEditor({
                                     <button
                                         type="button"
                                         onClick={() => removeAt(index)}
-                                        className="absolute right-1.5 top-1.5 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/95 text-rose-700 shadow-sm"
+                                        className="absolute right-1.5 top-1.5 inline-flex h-7 w-7 items-center justify-center rounded-sm bg-white/95 text-rose-700 shadow-sm"
                                         aria-label={`Remove image ${index + 1}`}
                                     >
                                         <X
@@ -378,7 +378,7 @@ function MenuImagesEditor({
                                     <button
                                         type="button"
                                         onClick={openAdd}
-                                        className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-olive-300 bg-white/70 text-olive-600 transition hover:border-mustard hover:bg-mustard/5"
+                                        className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-1.5 rounded-sm border border-dashed border-olive-300 bg-white/70 text-olive-600 transition hover:border-mustard hover:bg-mustard/5"
                                     >
                                         <ImagePlus className="h-5 w-5" />
                                         <span className="text-[11px] font-semibold">
@@ -404,7 +404,7 @@ function MenuImagesEditor({
                                 <button
                                     type="button"
                                     onClick={() => setLibraryOpen(true)}
-                                    className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-olive-200 bg-white px-3 py-2 text-xs font-semibold text-olive-800 transition hover:border-mustard dark:border-olive-700 dark:bg-olive-900 dark:text-olive-100"
+                                    className="inline-flex w-full items-center justify-center gap-1.5 rounded-sm border border-olive-200 bg-white px-3 py-2 text-xs font-semibold text-olive-800 transition hover:border-mustard dark:border-olive-700 dark:bg-olive-900 dark:text-olive-100"
                                 >
                                     <Images className="h-3.5 w-3.5" />
                                     Or grab from gallery
@@ -663,7 +663,7 @@ export default function CategoryExtrasEditor({
                                     pdf: '',
                                 })
                             }
-                            className="inline-flex items-center gap-1.5 rounded-xl bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white"
+                            className="inline-flex items-center gap-1.5 rounded-sm bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white"
                         >
                             <Plus className="h-4 w-4" />
                             Add menu page
@@ -732,7 +732,7 @@ export default function CategoryExtrasEditor({
                         onClick={() =>
                             addItem('deals', { title: '', description: '' })
                         }
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white"
+                        className="inline-flex items-center gap-1.5 rounded-sm bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white"
                     >
                         <Plus className="h-4 w-4" />
                         Add offer
@@ -802,7 +802,7 @@ export default function CategoryExtrasEditor({
                                                                   }),
                                                         })
                                                     }
-                                                    className={`rounded-full px-3.5 py-2 text-sm font-semibold transition ${
+                                                    className={`rounded-sm px-3.5 py-2 text-sm font-semibold transition ${
                                                         scheduleType ===
                                                         opt.key
                                                             ? 'bg-olive-900 text-white'
@@ -948,7 +948,7 @@ export default function CategoryExtrasEditor({
                                 label: '',
                             })
                         }
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white"
+                        className="inline-flex items-center gap-1.5 rounded-sm bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white"
                     >
                         <Plus className="h-4 w-4" />
                         Add gig
@@ -1015,7 +1015,7 @@ export default function CategoryExtrasEditor({
                         onClick={() =>
                             addItem('deals', { title: '', description: '' })
                         }
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white"
+                        className="inline-flex items-center gap-1.5 rounded-sm bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white"
                     >
                         <Plus className="h-4 w-4" />
                         Add offer
@@ -1076,7 +1076,7 @@ export default function CategoryExtrasEditor({
                             onClick={() =>
                                 addItem('agenda', { time: '', title: '' })
                             }
-                            className="inline-flex items-center gap-1.5 rounded-xl bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white"
+                            className="inline-flex items-center gap-1.5 rounded-sm bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white"
                         >
                             <Plus className="h-4 w-4" />
                             Add agenda item
@@ -1139,7 +1139,7 @@ export default function CategoryExtrasEditor({
                                     value: '',
                                 })
                             }
-                            className="inline-flex items-center gap-1.5 rounded-xl bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white"
+                            className="inline-flex items-center gap-1.5 rounded-sm bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white"
                         >
                             <Plus className="h-4 w-4" />
                             Add schedule row
@@ -1207,7 +1207,7 @@ export default function CategoryExtrasEditor({
                             onClick={() =>
                                 addItem('sponsors', { name: '', logo: '' })
                             }
-                            className="inline-flex items-center gap-1.5 rounded-xl bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white"
+                            className="inline-flex items-center gap-1.5 rounded-sm bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white"
                         >
                             <Plus className="h-4 w-4" />
                             Add sponsor
@@ -1280,7 +1280,7 @@ export default function CategoryExtrasEditor({
                         onClick={() =>
                             addItem('deals', { title: '', description: '' })
                         }
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white"
+                        className="inline-flex items-center gap-1.5 rounded-sm bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white"
                     >
                         <Plus className="h-4 w-4" />
                         Add offer
@@ -1401,7 +1401,7 @@ export default function CategoryExtrasEditor({
                                 image: '',
                             })
                         }
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 rounded-sm bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         <Plus className="h-4 w-4" />
                         Add product
@@ -1508,7 +1508,7 @@ export default function CategoryExtrasEditor({
                                 image: '',
                             })
                         }
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 rounded-sm bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         <Plus className="h-4 w-4" />
                         Add work
@@ -1577,7 +1577,7 @@ export default function CategoryExtrasEditor({
                         onClick={() =>
                             addItem('deals', { title: '', description: '' })
                         }
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white"
+                        className="inline-flex items-center gap-1.5 rounded-sm bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white"
                     >
                         <Plus className="h-4 w-4" />
                         Add offer

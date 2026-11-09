@@ -157,7 +157,7 @@ export default function AmenitiesPicker({
                             type="button"
                             onClick={createCustom}
                             disabled={creating}
-                            className="absolute right-2 top-1/2 z-10 inline-flex -translate-y-1/2 items-center gap-1 rounded-lg bg-mustard px-2.5 py-1.5 text-xs font-bold text-earth-dusk disabled:opacity-50"
+                            className="absolute right-2 top-1/2 z-10 inline-flex -translate-y-1/2 items-center gap-1 rounded-sm bg-mustard px-2.5 py-1.5 text-xs font-bold text-earth-dusk disabled:opacity-50"
                         >
                             <Plus className="h-3.5 w-3.5" />
                             {creating ? 'Saving…' : 'Add'}
@@ -230,7 +230,7 @@ export default function AmenitiesPicker({
                                 key={slug}
                                 type="button"
                                 onClick={() => toggle(slug)}
-                                className="inline-flex items-center gap-1.5 rounded-full bg-olive-900 px-3 py-1.5 text-xs font-semibold text-white"
+                                className="inline-flex items-center gap-1.5 rounded-sm bg-olive-900 px-3 py-1.5 text-xs font-semibold text-white"
                             >
                                 {meta.name}
                                 <X className="h-3.5 w-3.5 opacity-80" />

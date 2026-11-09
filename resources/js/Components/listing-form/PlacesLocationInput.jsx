@@ -811,7 +811,7 @@ export default function PlacesLocationInput({
                     ) : query ? (
                         <button
                             type="button"
-                            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-0.5 text-olive-400 hover:text-olive-700"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-sm p-0.5 text-olive-400 hover:text-olive-700"
                             aria-label="Clear search"
                             onClick={() => {
                                 setQuery('');

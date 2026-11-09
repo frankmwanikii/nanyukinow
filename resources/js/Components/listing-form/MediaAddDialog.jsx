@@ -173,7 +173,7 @@ export default function MediaAddDialog({
               : copy.url;
 
     const optionBtn =
-        'group flex w-full items-start gap-4 rounded-2xl border border-olive-200/80 bg-gradient-to-br from-white to-olive-50/40 px-5 py-4 text-left shadow-soft transition hover:border-mustard/80 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard dark:border-olive-700 dark:from-olive-900 dark:to-olive-950 dark:hover:border-mustard/50';
+        'group flex w-full items-start gap-4 rounded-sm border border-olive-200/80 bg-gradient-to-br from-white to-olive-50/40 px-5 py-4 text-left shadow-soft transition hover:border-mustard/80 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard dark:border-olive-700 dark:from-olive-900 dark:to-olive-950 dark:hover:border-mustard/50';
 
     return (
         <section
@@ -311,7 +311,7 @@ export default function MediaAddDialog({
                                     <button
                                         type="button"
                                         onClick={onClose}
-                                        className="rounded-full px-4 py-2 text-sm font-semibold text-olive-700 ring-1 ring-olive-200 transition hover:bg-olive-50 dark:text-olive-200 dark:ring-olive-700"
+                                        className="rounded-sm px-4 py-2 text-sm font-semibold text-olive-700 ring-1 ring-olive-200 transition hover:bg-olive-50 dark:text-olive-200 dark:ring-olive-700"
                                     >
                                         Cancel
                                     </button>
@@ -319,7 +319,7 @@ export default function MediaAddDialog({
                                         type="button"
                                         disabled={!selected.length}
                                         onClick={confirmLibrary}
-                                        className="rounded-full bg-olive-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-olive-800 disabled:opacity-40"
+                                        className="rounded-sm bg-olive-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-olive-800 disabled:opacity-40"
                                     >
                                         {single
                                             ? 'Use image'
@@ -343,7 +343,7 @@ export default function MediaAddDialog({
                                                         onClose?.();
                                                     }
                                                 }}
-                                                className={`group relative aspect-square w-full overflow-hidden rounded-2xl ring-2 transition ${
+                                                className={`group relative aspect-square w-full overflow-hidden rounded-sm ring-2 transition ${
                                                     active
                                                         ? 'ring-mustard'
                                                         : 'ring-transparent hover:ring-olive-300'
@@ -410,14 +410,14 @@ export default function MediaAddDialog({
                         <button
                             type="button"
                             onClick={onClose}
-                            className="rounded-full px-4 py-2.5 text-sm font-semibold text-olive-700 ring-1 ring-olive-200 transition hover:bg-olive-50 dark:text-olive-200 dark:ring-olive-700"
+                            className="rounded-sm px-4 py-2.5 text-sm font-semibold text-olive-700 ring-1 ring-olive-200 transition hover:bg-olive-50 dark:text-olive-200 dark:ring-olive-700"
                         >
                             Cancel
                         </button>
                         <button
                             type="button"
                             onClick={confirmUrl}
-                            className="rounded-full bg-olive-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-olive-800"
+                            className="rounded-sm bg-olive-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-olive-800"
                         >
                             {single ? 'Use image' : 'Add image'}
                         </button>

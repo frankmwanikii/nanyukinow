@@ -197,7 +197,7 @@ export default function ListingPreview({
                                     <button
                                         type="button"
                                         onClick={() => setSection(id)}
-                                        className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition ${
+                                        className={`flex w-full items-center gap-2.5 rounded-sm px-3 py-2.5 text-left text-sm font-semibold transition ${
                                             isActive
                                                 ? 'bg-olive-900 text-white shadow-soft dark:bg-mustard dark:text-earth-dusk'
                                                 : 'text-olive-700 hover:bg-white hover:text-olive-950 dark:text-olive-300 dark:hover:bg-olive-800 dark:hover:text-olive-50'
@@ -227,7 +227,7 @@ export default function ListingPreview({
                             <button
                                 type="button"
                                 onClick={goEdit}
-                                className="inline-flex items-center gap-1.5 rounded-lg border border-olive-200 bg-white px-3 py-1.5 text-xs font-semibold text-olive-800 transition hover:border-mustard/50 hover:bg-mustard/10 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-100 dark:hover:border-mustard/50 dark:hover:bg-mustard/10"
+                                className="inline-flex items-center gap-1.5 rounded-sm border border-olive-200 bg-white px-3 py-1.5 text-xs font-semibold text-olive-800 transition hover:border-mustard/50 hover:bg-mustard/10 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-100 dark:hover:border-mustard/50 dark:hover:bg-mustard/10"
                             >
                                 <Pencil className="h-3 w-3" />
                                 Edit this section

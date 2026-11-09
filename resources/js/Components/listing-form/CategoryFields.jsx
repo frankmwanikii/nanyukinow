@@ -139,7 +139,7 @@ function TagsInput({ value = [], onChange, placeholder, maxTags = null, disabled
                     type="button"
                     onClick={add}
                     disabled={disabled || atLimit}
-                    className="inline-flex shrink-0 items-center gap-1 rounded-xl bg-olive-900 px-3 text-sm font-semibold text-white disabled:opacity-50"
+                    className="inline-flex shrink-0 items-center gap-1 rounded-sm bg-olive-900 px-3 text-sm font-semibold text-white disabled:opacity-50"
                 >
                     <Plus className="h-4 w-4" />
                     Add
@@ -223,7 +223,7 @@ function DropdownMultiSelect({
                                         selected.filter((v) => v !== item),
                                     )
                                 }
-                                className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-olive-700 transition hover:bg-olive-200 hover:text-olive-950 disabled:opacity-50 dark:text-olive-200 dark:hover:bg-olive-700 dark:hover:text-white"
+                                className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm text-olive-700 transition hover:bg-olive-200 hover:text-olive-950 disabled:opacity-50 dark:text-olive-200 dark:hover:bg-olive-700 dark:hover:text-white"
                                 aria-label={`Remove ${item}`}
                             >
                                 <X className="h-3.5 w-3.5" strokeWidth={2.5} />

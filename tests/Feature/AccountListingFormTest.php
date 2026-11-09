@@ -87,7 +87,7 @@ class AccountListingFormTest extends TestCase
             'social_links' => json_encode([]),
         ]);
 
-        $response->assertRedirect(route('account.index'));
+        $response->assertRedirect(route('account.listings.index'));
 
         $listing = Listing::query()->where('title', 'Cedar Grove Estate')->first();
         $this->assertNotNull($listing);
@@ -127,7 +127,7 @@ class AccountListingFormTest extends TestCase
             'cover' => UploadedFile::fake()->image('poster.jpg'),
             'gallery_urls' => json_encode([]),
             'social_links' => json_encode([]),
-        ])->assertRedirect(route('account.index'));
+        ])->assertRedirect(route('account.listings.index'));
 
         $listing = Listing::query()->where('title', 'Nanyuki Jazz Night')->first();
         $this->assertNotNull($listing);

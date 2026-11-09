@@ -6,8 +6,8 @@ import {
     DashboardMark,
     DisclosureMark,
     GearMark,
+    ListMark,
     MessageMark,
-    PlusMark,
     SignOutMark,
     UpgradePlansMark,
 } from '@/Components/site/Mark';
@@ -156,9 +156,9 @@ export function MemberUserMenu({ user, compact = false }) {
             icon: DashboardMark,
         },
         {
-            label: 'Add listing',
-            href: route('account.listings.create'),
-            icon: PlusMark,
+            label: 'Listings',
+            href: route('account.listings.index'),
+            icon: ListMark,
         },
         {
             label: 'Upgrade plan',

@@ -54,7 +54,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     Check,
     ChevronLeft,
-    ChevronRight,
     Cloud,
     CloudOff,
     FileText,
@@ -1009,7 +1008,7 @@ export default function Form({
                             <div className="flex flex-wrap items-center justify-end gap-2">
                                 <Link
                                     href={route('admin.listings.index')}
-                                    className="rounded-xl border border-olive-200 px-4 py-2.5 text-sm font-semibold text-olive-700 dark:border-olive-700 dark:text-olive-200 dark:hover:bg-olive-800"
+                                    className="rounded-sm border border-olive-200 px-4 py-2.5 text-sm font-semibold text-olive-700 dark:border-olive-700 dark:text-olive-200 dark:hover:bg-olive-800"
                                 >
                                     Cancel
                                 </Link>
@@ -1017,7 +1016,7 @@ export default function Form({
                                     type="button"
                                     disabled={form.processing}
                                     onClick={(e) => submit(e, 'draft')}
-                                    className="inline-flex items-center gap-2 rounded-xl border border-olive-200 bg-white px-4 py-2.5 text-sm font-semibold text-olive-800 disabled:opacity-50 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-100 dark:hover:bg-olive-800"
+                                    className="inline-flex items-center gap-2 rounded-sm border border-olive-200 bg-white px-4 py-2.5 text-sm font-semibold text-olive-800 disabled:opacity-50 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-100 dark:hover:bg-olive-800"
                                 >
                                     <Save className="h-4 w-4" />
                                     {form.processing ? 'Saving…' : 'Save draft'}
@@ -1026,7 +1025,7 @@ export default function Form({
                                     type="button"
                                     disabled={form.processing}
                                     onClick={(e) => submit(e, 'publish')}
-                                    className="inline-flex items-center gap-2 rounded-xl bg-mustard px-4 py-2.5 text-sm font-bold text-earth-dusk disabled:opacity-50"
+                                    className="inline-flex items-center gap-2 rounded-sm bg-mustard px-4 py-2.5 text-sm font-bold text-earth-dusk disabled:opacity-50"
                                 >
                                     {form.processing ? 'Publishing…' : 'Publish'}
                                 </button>
@@ -1520,7 +1519,7 @@ export default function Form({
                         ) : null}
 
                         <div
-                            className={`flex flex-wrap items-center justify-between gap-2 border-t border-olive-100 pt-5 dark:border-olive-800 ${
+                            className={`flex items-center gap-3 overflow-x-auto border-t border-olive-100 pt-5 [-ms-overflow-style:none] [scrollbar-width:none] dark:border-olive-800 [&::-webkit-scrollbar]:hidden ${
                                 isAdmin ? '' : 'pb-20 sm:pb-0'
                             }`}
                         >
@@ -1535,16 +1534,15 @@ export default function Form({
                                     }
                                     back();
                                 }}
-                                className="inline-flex items-center gap-1 rounded-xl border border-olive-200 px-4 py-2.5 text-sm font-semibold text-olive-700 dark:border-olive-700 dark:text-olive-200 dark:hover:bg-olive-800"
+                                className="inline-flex shrink-0 items-center px-1 py-2 text-sm font-semibold text-olive-700 transition hover:text-olive-950 dark:text-olive-200 dark:hover:text-olive-50"
                             >
-                                <ChevronLeft className="h-4 w-4" />
                                 {step.id === 'preview' ? 'Edit details' : 'Back'}
                             </button>
 
-                            <div className="flex flex-wrap gap-2">
+                            <div className="ml-auto flex shrink-0 items-center gap-3">
                                 <Link
-                                    href={isAdmin ? route('admin.listings.index') : route('account.index')}
-                                    className="rounded-xl border border-olive-200 px-4 py-2.5 text-sm font-semibold text-olive-700 dark:border-olive-700 dark:text-olive-200 dark:hover:bg-olive-800"
+                                    href={isAdmin ? route('admin.listings.index') : route('account.listings.index')}
+                                    className="inline-flex shrink-0 items-center px-1 py-2 text-sm font-semibold text-olive-600 transition hover:text-olive-950 dark:text-olive-300 dark:hover:text-olive-50"
                                 >
                                     Cancel
                                 </Link>
@@ -1554,7 +1552,7 @@ export default function Form({
                                             type="button"
                                             disabled={form.processing}
                                             onClick={(e) => submit(e, 'draft')}
-                                            className="inline-flex items-center gap-2 rounded-xl border border-olive-200 bg-white px-4 py-2.5 text-sm font-semibold text-olive-800 disabled:opacity-50 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-100 dark:hover:bg-olive-800"
+                                            className="inline-flex shrink-0 items-center gap-2 rounded-sm border border-olive-900/20 bg-white px-3.5 py-2 text-sm font-semibold text-olive-800 transition hover:border-olive-900/40 disabled:opacity-50 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-100 dark:hover:bg-olive-800"
                                         >
                                             <Save className="h-4 w-4" />
                                             {form.processing ? 'Saving…' : 'Save draft'}
@@ -1563,7 +1561,7 @@ export default function Form({
                                             type="button"
                                             disabled={form.processing}
                                             onClick={(e) => submit(e, 'publish')}
-                                            className="inline-flex items-center gap-2 rounded-xl bg-mustard px-4 py-2.5 text-sm font-bold text-earth-dusk disabled:opacity-50"
+                                            className="inline-flex shrink-0 items-center gap-2 rounded-sm bg-mustard px-3.5 py-2 text-sm font-semibold text-earth-dusk transition hover:bg-olive-900 hover:text-white disabled:opacity-50 dark:hover:bg-olive-100 dark:hover:text-earth-dusk"
                                         >
                                             {form.processing ? 'Publishing…' : 'Publish'}
                                         </button>
@@ -1573,16 +1571,15 @@ export default function Form({
                                     <button
                                         type="button"
                                         onClick={next}
-                                        className="inline-flex items-center gap-2 rounded-xl bg-olive-900 px-4 py-2.5 text-sm font-bold text-white dark:bg-mustard dark:text-earth-dusk"
+                                        className="inline-flex shrink-0 items-center rounded-sm bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-mustard hover:text-earth-dusk dark:bg-mustard dark:text-earth-dusk dark:hover:bg-olive-100"
                                     >
                                         Continue
-                                        <ChevronRight className="h-4 w-4" />
                                     </button>
                                 ) : !isAdmin ? (
                                     <button
                                         type="submit"
                                         disabled={form.processing}
-                                        className="inline-flex items-center gap-2 rounded-xl bg-mustard px-4 py-2.5 text-sm font-bold text-earth-dusk disabled:opacity-50"
+                                        className="inline-flex shrink-0 items-center gap-2 rounded-sm bg-mustard px-3.5 py-2 text-sm font-semibold text-earth-dusk transition hover:bg-olive-900 hover:text-white disabled:opacity-50 dark:hover:bg-olive-100 dark:hover:text-earth-dusk"
                                     >
                                         <Save className="h-4 w-4" />
                                         {form.processing
@@ -2038,7 +2035,7 @@ function BasicsStep({
                                     <button
                                         type="button"
                                         onClick={() => removeSubcategory(s)}
-                                        className="inline-flex h-7 w-7 shrink-0 items-center justify-center text-olive-700 transition hover:bg-olive-200 hover:text-olive-950 dark:text-olive-200 dark:hover:bg-olive-700 dark:hover:text-white"
+                                        className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm text-olive-700 transition hover:bg-olive-200 hover:text-olive-950 dark:text-olive-200 dark:hover:bg-olive-700 dark:hover:text-white"
                                         aria-label={`Remove ${s}`}
                                     >
                                         <X className="h-3.5 w-3.5" strokeWidth={2.5} />
@@ -2266,7 +2263,7 @@ function ContactStep({
                     <button
                         type="button"
                         onClick={addLink}
-                        className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-olive-200 bg-white px-3.5 text-xs font-semibold text-olive-800 transition hover:border-mustard dark:border-olive-700 dark:bg-olive-900 dark:text-olive-100 dark:hover:border-mustard"
+                        className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-sm border border-olive-200 bg-white px-3.5 text-xs font-semibold text-olive-800 transition hover:border-mustard dark:border-olive-700 dark:bg-olive-900 dark:text-olive-100 dark:hover:border-mustard"
                     >
                         <Plus className="h-3.5 w-3.5" />
                         Add link
@@ -2475,7 +2472,7 @@ function ContactStep({
                                                 onClick={() =>
                                                     removeLink(index)
                                                 }
-                                                className="inline-flex h-11 items-center justify-center rounded-xl border border-olive-200 px-3 text-olive-500 transition hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 dark:border-olive-700 dark:text-olive-400 dark:hover:border-rose-700 dark:hover:bg-rose-950/40 dark:hover:text-rose-400"
+                                                className="inline-flex h-11 items-center justify-center rounded-sm border border-olive-200 px-3 text-olive-500 transition hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 dark:border-olive-700 dark:text-olive-400 dark:hover:border-rose-700 dark:hover:bg-rose-950/40 dark:hover:text-rose-400"
                                                 aria-label={`Remove link ${index + 1}`}
                                             >
                                                 <Trash2 className="h-4 w-4" />
@@ -2523,7 +2520,7 @@ function CategoryPicker({ categories, selectedId, onPick, error }) {
                             whileHover={{ y: -4 }}
                             whileTap={{ scale: 0.98 }}
                             onClick={() => onPick(category)}
-                            className={`group relative flex flex-col items-center gap-3 rounded-2xl bg-white px-3 py-6 text-center shadow-soft ring-1 transition dark:bg-olive-900 dark:shadow-none sm:py-8 ${
+                            className={`group relative flex flex-col items-center gap-3 rounded-sm bg-white px-3 py-6 text-center shadow-soft ring-1 transition dark:bg-olive-900 dark:shadow-none sm:py-8 ${
                                 selected
                                     ? 'ring-2 ring-mustard shadow-lift'
                                     : 'ring-olive-200/60 hover:shadow-lift hover:ring-olive-300 dark:ring-olive-700 dark:hover:ring-olive-600'
@@ -2550,11 +2547,11 @@ function CategoryPicker({ categories, selectedId, onPick, error }) {
 
             <div className="mt-6">
                 <Link
-                    href={route('account.index')}
+                    href={route('account.listings.index')}
                     className="inline-flex items-center gap-1 text-sm font-semibold text-olive-600 transition hover:text-olive-900 dark:text-olive-400 dark:hover:text-olive-100"
                 >
                     <ChevronLeft className="h-4 w-4" />
-                    Back to account
+                    Back to listings
                 </Link>
             </div>
         </div>

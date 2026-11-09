@@ -117,7 +117,7 @@ export default function HoursEditor({
                     <button
                         type="button"
                         onClick={() => copyToAll(0)}
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-olive-900 px-3 py-2 text-xs font-semibold text-white transition hover:bg-olive-800 dark:bg-mustard dark:text-earth-dusk dark:hover:bg-mustard/90"
+                        className="inline-flex items-center gap-1.5 rounded-sm bg-olive-900 px-3 py-2 text-xs font-semibold text-white transition hover:bg-olive-800 dark:bg-mustard dark:text-earth-dusk dark:hover:bg-mustard/90"
                     >
                         <Copy className="h-3.5 w-3.5" strokeWidth={2} />
                         Copy schedule to all
@@ -125,7 +125,7 @@ export default function HoursEditor({
                     <button
                         type="button"
                         onClick={() => copyWeekdays(0)}
-                        className="inline-flex items-center gap-1.5 rounded-xl border border-olive-200 bg-white px-3 py-2 text-xs font-semibold text-olive-800 transition hover:border-olive-300 hover:bg-olive-50 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-100 dark:hover:border-olive-600 dark:hover:bg-olive-900"
+                        className="inline-flex items-center gap-1.5 rounded-sm border border-olive-200 bg-white px-3 py-2 text-xs font-semibold text-olive-800 transition hover:border-olive-300 hover:bg-olive-50 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-100 dark:hover:border-olive-600 dark:hover:bg-olive-900"
                     >
                         Mon–Sat · Sun closed
                     </button>
@@ -222,7 +222,7 @@ export default function HoursEditor({
                                             title={`Copy ${day.full} hours to every day`}
                                             disabled={closed}
                                             onClick={() => copyToAll(index)}
-                                            className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-olive-500 transition hover:bg-olive-100 hover:text-olive-900 disabled:pointer-events-none disabled:opacity-30 dark:text-olive-400 dark:hover:bg-olive-800 dark:hover:text-olive-100"
+                                            className="inline-flex h-9 w-9 items-center justify-center rounded-sm text-olive-500 transition hover:bg-olive-100 hover:text-olive-900 disabled:pointer-events-none disabled:opacity-30 dark:text-olive-400 dark:hover:bg-olive-800 dark:hover:text-olive-100"
                                         >
                                             <Copy
                                                 className="h-3.5 w-3.5"

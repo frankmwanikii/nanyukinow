@@ -6,9 +6,9 @@ import {
     CloseMark,
     DashboardMark,
     GearMark,
+    ListMark,
     MenuMark,
     MessageMark,
-    PlusMark,
     SignOutMark,
     UpgradePlansMark,
 } from '@/Components/site/Mark';
@@ -114,13 +114,10 @@ function AccountShell({ title = 'Account', children }) {
                     active: navActive(['account.bookmarks']),
                 },
                 {
-                    label: 'Add listing',
-                    href: route('account.listings.create'),
-                    icon: PlusMark,
-                    active: navActive([
-                        'account.listings.create',
-                        'account.listings.edit',
-                    ]),
+                    label: 'Listings',
+                    href: route('account.listings.index'),
+                    icon: ListMark,
+                    active: navActive(['account.listings.*']),
                 },
                 {
                     label: 'Messages',
