@@ -228,10 +228,10 @@ export default function Index({ media, filters, counts, sources }) {
                                     key={s.key || 'all'}
                                     type="button"
                                     onClick={() => setFilter('source', s.key)}
-                                    className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                                    className={`rounded-[2px] px-3 py-1.5 text-xs font-semibold transition ${
                                         active
                                             ? 'bg-olive-900 text-white'
-                                            : 'bg-olive-100 text-olive-700 hover:bg-olive-200/80 dark:bg-olive-800 dark:text-olive-200'
+                                            : 'border border-olive-200 bg-white text-olive-700 hover:border-olive-400 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-200'
                                     }`}
                                 >
                                     {s.label}
@@ -250,7 +250,7 @@ export default function Index({ media, filters, counts, sources }) {
                         View
                     </span>
                     <div
-                        className="inline-flex overflow-hidden rounded-lg border border-olive-200 bg-white dark:border-olive-700 dark:bg-olive-900"
+                        className="inline-flex overflow-hidden rounded-[2px] border border-olive-200 bg-white dark:border-olive-700 dark:bg-olive-900"
                         role="group"
                         aria-label="View mode"
                     >
@@ -285,14 +285,14 @@ export default function Index({ media, filters, counts, sources }) {
             </FilterBar>
 
             {selected.length > 0 ? (
-                <div className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 dark:border-rose-900/50 dark:bg-rose-950/40">
+                <div className="mb-4 flex flex-wrap items-center gap-3 border border-rose-200 bg-rose-50 px-4 py-3 dark:border-rose-900/50 dark:bg-rose-950/40">
                     <span className="text-sm font-semibold text-rose-900 dark:text-rose-100">
                         {selected.length} selected
                     </span>
                     <button
                         type="button"
                         onClick={bulkDelete}
-                        className="inline-flex items-center gap-1.5 rounded-md bg-rose-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-rose-700"
+                        className="inline-flex items-center gap-1.5 rounded-[2px] bg-rose-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-rose-700"
                     >
                         <Trash2 className="h-3.5 w-3.5" />
                         Delete selected
@@ -349,21 +349,21 @@ export default function Index({ media, filters, counts, sources }) {
                         />
                     }
                 >
-                    <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
+                    <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
                         {items.map((item) => {
                             const isSelected = selected.includes(item.url);
                             return (
                                 <article
                                     key={item.id}
-                                    className={`group relative overflow-hidden rounded-xl border bg-olive-50/40 transition dark:bg-olive-950/40 ${
+                                    className={`group relative aspect-[4/3] overflow-hidden bg-olive-100 dark:bg-olive-950 ${
                                         isSelected
-                                            ? 'border-mustard ring-2 ring-mustard/40'
-                                            : 'border-olive-200/80 hover:border-olive-300 dark:border-olive-800'
+                                            ? 'ring-2 ring-inset ring-mustard'
+                                            : ''
                                     }`}
                                 >
                                     {item.can_delete ? (
                                         <label
-                                            className="absolute left-2 top-2 z-10"
+                                            className="absolute left-2 top-2 z-20"
                                             onClick={(e) => e.stopPropagation()}
                                         >
                                             <input
@@ -372,7 +372,7 @@ export default function Index({ media, filters, counts, sources }) {
                                                 onChange={() =>
                                                     toggleOne(item.url, item.can_delete)
                                                 }
-                                                className="h-4 w-4 rounded border-olive-300 text-olive-800 shadow-sm"
+                                                className="h-4 w-4 rounded-[2px] border-olive-300 text-olive-800"
                                                 aria-label={`Select ${item.filename}`}
                                             />
                                         </label>
@@ -381,69 +381,71 @@ export default function Index({ media, filters, counts, sources }) {
                                     <button
                                         type="button"
                                         onClick={() => setPreview(item)}
-                                        className="block aspect-square w-full overflow-hidden bg-olive-100 dark:bg-olive-900"
+                                        className="absolute inset-0 block h-full w-full"
+                                        aria-label={`Preview ${item.filename}`}
                                     >
                                         <img
                                             src={item.url}
                                             alt=""
-                                            className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+                                            className="h-full w-full object-cover"
                                             loading="lazy"
                                         />
                                     </button>
 
-                                    <div className="space-y-1.5 p-2.5">
+                                    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/75 via-black/35 to-transparent px-3 pb-2.5 pt-10">
                                         <p
-                                            className="truncate text-xs font-semibold text-olive-900 dark:text-olive-50"
+                                            className="truncate text-sm font-semibold text-white"
                                             title={item.filename}
                                         >
                                             {item.filename}
                                         </p>
-                                        <div className="flex flex-wrap gap-1">
+                                        <div className="mt-1 flex flex-wrap items-center gap-1.5">
                                             <span
-                                                className={`rounded-sm px-1.5 py-0.5 text-[10px] font-semibold ${sourceTone(item.source)}`}
+                                                className={`rounded-[2px] px-1.5 py-0.5 text-[10px] font-semibold ${sourceTone(item.source)}`}
                                             >
                                                 {item.kind || item.source}
                                             </span>
                                             {item.size_label ? (
-                                                <span className="text-[10px] font-medium text-olive-500">
+                                                <span className="text-[10px] font-medium text-white/70">
                                                     {item.size_label}
                                                 </span>
                                             ) : null}
                                         </div>
-                                        <div className="flex items-center gap-1 pt-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
+                                    </div>
+
+                                    <div className="absolute bottom-2 right-2 z-20 flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
+                                        <button
+                                            type="button"
+                                            onClick={() => copyUrl(item)}
+                                            className="rounded-[2px] bg-black/55 p-1.5 text-white ring-1 ring-white/20 hover:bg-black/75"
+                                            title="Copy URL"
+                                        >
+                                            {copiedId === item.id ? (
+                                                <Check className="h-3.5 w-3.5 text-mint" />
+                                            ) : (
+                                                <Copy className="h-3.5 w-3.5" />
+                                            )}
+                                        </button>
+                                        {item.edit_href ? (
+                                            <a
+                                                href={item.edit_href}
+                                                className="rounded-[2px] bg-black/55 p-1.5 text-white ring-1 ring-white/20 hover:bg-black/75"
+                                                title="Open source"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                <ExternalLink className="h-3.5 w-3.5" />
+                                            </a>
+                                        ) : null}
+                                        {item.can_delete ? (
                                             <button
                                                 type="button"
-                                                onClick={() => copyUrl(item)}
-                                                className="rounded p-1 text-olive-600 hover:bg-white hover:text-olive-950 dark:hover:bg-olive-800"
-                                                title="Copy URL"
+                                                onClick={() => deleteOne(item)}
+                                                className="rounded-[2px] bg-black/55 p-1.5 text-rose-200 ring-1 ring-white/20 hover:bg-rose-700 hover:text-white"
+                                                title="Delete"
                                             >
-                                                {copiedId === item.id ? (
-                                                    <Check className="h-3.5 w-3.5 text-mint-deep" />
-                                                ) : (
-                                                    <Copy className="h-3.5 w-3.5" />
-                                                )}
+                                                <Trash2 className="h-3.5 w-3.5" />
                                             </button>
-                                            {item.edit_href ? (
-                                                <a
-                                                    href={item.edit_href}
-                                                    className="rounded p-1 text-olive-600 hover:bg-white hover:text-olive-950 dark:hover:bg-olive-800"
-                                                    title="Open source"
-                                                    onClick={(e) => e.stopPropagation()}
-                                                >
-                                                    <ExternalLink className="h-3.5 w-3.5" />
-                                                </a>
-                                            ) : null}
-                                            {item.can_delete ? (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => deleteOne(item)}
-                                                    className="rounded p-1 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
-                                                    title="Delete"
-                                                >
-                                                    <Trash2 className="h-3.5 w-3.5" />
-                                                </button>
-                                            ) : null}
-                                        </div>
+                                        ) : null}
                                     </div>
                                 </article>
                             );
@@ -596,73 +598,71 @@ export default function Index({ media, filters, counts, sources }) {
             {preview
                 ? createPortal(
                       <div
-                          className="fixed inset-0 z-[80] flex items-center justify-center bg-olive-950/70 p-4 backdrop-blur-sm"
+                          className="fixed inset-0 z-[80] bg-black"
                           role="dialog"
                           aria-modal="true"
                           aria-label="Media preview"
                           onClick={() => setPreview(null)}
                       >
                           <div
-                              className="relative max-h-[90vh] w-full max-w-4xl overflow-hidden border border-olive-200 bg-white dark:border-olive-700 dark:bg-olive-900"
+                              className="absolute inset-0 flex items-center justify-center"
                               onClick={(e) => e.stopPropagation()}
                           >
-                              <div className="flex items-start justify-between gap-3 border-b border-olive-100 px-4 py-3 dark:border-olive-800">
+                              <img
+                                  src={preview.url}
+                                  alt={preview.filename}
+                                  className="max-h-[100dvh] max-w-[100vw] object-contain"
+                              />
+                          </div>
+                          <div className="pointer-events-none absolute inset-x-0 top-0 z-10 bg-gradient-to-b from-black/75 to-transparent pb-16 pt-[max(0.75rem,env(safe-area-inset-top))]">
+                              <div
+                                  className="pointer-events-auto flex items-start justify-between gap-3 px-4 sm:px-6"
+                                  onClick={(e) => e.stopPropagation()}
+                              >
                                   <div className="min-w-0">
-                                      <p className="truncate font-semibold text-olive-950 dark:text-white">
+                                      <p className="truncate text-sm font-semibold text-white sm:text-base">
                                           {preview.filename}
                                       </p>
-                                      <p className="truncate text-xs text-olive-500">
+                                      <p className="mt-0.5 truncate text-xs text-white/55">
                                           {preview.url}
                                       </p>
                                   </div>
                                   <button
                                       type="button"
                                       onClick={() => setPreview(null)}
-                                      className="rounded-lg p-1.5 text-olive-500 hover:bg-olive-100 dark:hover:bg-olive-800"
+                                      className="rounded-[2px] bg-white/10 p-2 text-white ring-1 ring-white/20 hover:bg-white/20"
                                       aria-label="Close preview"
                                   >
                                       <X className="h-5 w-5" />
                                   </button>
                               </div>
-                              <div className="flex max-h-[70vh] items-center justify-center bg-olive-50 p-4 dark:bg-olive-950">
-                                  <img
-                                      src={preview.url}
-                                      alt={preview.filename}
-                                      className="max-h-[65vh] max-w-full object-contain"
-                                  />
-                              </div>
-                              <div className="flex flex-wrap items-center gap-2 border-t border-olive-100 px-4 py-3 dark:border-olive-800">
-                                  {(preview.sources || []).map((label) => (
-                                      <span
-                                          key={label}
-                                          className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${sourceTone(preview.source)}`}
+                          </div>
+                          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/80 to-transparent pt-16 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+                              <div
+                                  className="pointer-events-auto flex flex-wrap items-center justify-end gap-2 px-4 sm:px-6"
+                                  onClick={(e) => e.stopPropagation()}
+                              >
+                                  <button
+                                      type="button"
+                                      onClick={() => copyUrl(preview)}
+                                      className="inline-flex items-center gap-1.5 rounded-[2px] border border-white/25 bg-black/40 px-3 py-1.5 text-xs font-semibold text-white hover:bg-black/60"
+                                  >
+                                      {copiedId === preview.id ? (
+                                          <Check className="h-3.5 w-3.5" />
+                                      ) : (
+                                          <Copy className="h-3.5 w-3.5" />
+                                      )}
+                                      Copy URL
+                                  </button>
+                                  {preview.edit_href ? (
+                                      <a
+                                          href={preview.edit_href}
+                                          className="inline-flex items-center gap-1.5 rounded-[2px] border border-white/25 bg-black/40 px-3 py-1.5 text-xs font-semibold text-white hover:bg-black/60"
                                       >
-                                          {label}
-                                      </span>
-                                  ))}
-                                  <div className="ml-auto flex flex-wrap gap-2">
-                                      <button
-                                          type="button"
-                                          onClick={() => copyUrl(preview)}
-                                          className="inline-flex items-center gap-1.5 rounded-lg border border-olive-200 px-3 py-1.5 text-xs font-semibold text-olive-800 dark:border-olive-700 dark:text-olive-100"
-                                      >
-                                          {copiedId === preview.id ? (
-                                              <Check className="h-3.5 w-3.5" />
-                                          ) : (
-                                              <Copy className="h-3.5 w-3.5" />
-                                          )}
-                                          Copy URL
-                                      </button>
-                                      {preview.edit_href ? (
-                                          <a
-                                              href={preview.edit_href}
-                                              className="inline-flex items-center gap-1.5 rounded-lg border border-olive-200 px-3 py-1.5 text-xs font-semibold text-olive-800 dark:border-olive-700 dark:text-olive-100"
-                                          >
-                                              <ExternalLink className="h-3.5 w-3.5" />
-                                              Open source
-                                          </a>
-                                      ) : null}
-                                  </div>
+                                          <ExternalLink className="h-3.5 w-3.5" />
+                                          Open source
+                                      </a>
+                                  ) : null}
                               </div>
                           </div>
                       </div>,

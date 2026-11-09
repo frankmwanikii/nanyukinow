@@ -48,17 +48,17 @@ export function UpgradePlansMark({ className = 'h-4 w-4' }) {
 
 export function ForwardMark({ className = 'h-4 w-4' }) {
     return (
-        <Mark className={className}>
-            <path d="M13.2 5.3a1 1 0 0 1 1.4 0l5.1 5.1a1 1 0 0 1 0 1.4l-5.1 5.1a1 1 0 1 1-1.4-1.4L16.6 13H5a1 1 0 1 1 0-2h11.6l-3.4-3.3a1 1 0 0 1 0-1.4z" />
-        </Mark>
+        <OutlineMark className={className}>
+            <path d="M5 12h14M13 6l6 6-6 6" />
+        </OutlineMark>
     );
 }
 
 export function BackMark({ className = 'h-4 w-4' }) {
     return (
-        <Mark className={className}>
-            <path d="M10.8 5.3a1 1 0 0 1 0 1.4L7.4 11H19a1 1 0 1 1 0 2H7.4l3.4 3.3a1 1 0 1 1-1.4 1.4l-5.1-5.1a1 1 0 0 1 0-1.4l5.1-5.1a1 1 0 0 1 1.4 0z" />
-        </Mark>
+        <OutlineMark className={className}>
+            <path d="M19 12H5M11 18l-6-6 6-6" />
+        </OutlineMark>
     );
 }
 

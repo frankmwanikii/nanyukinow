@@ -900,6 +900,42 @@ export function FilterBar({ children, onSubmit }) {
     );
 }
 
+/**
+ * Compact page list: up to 5 pages near the start/end, ellipsis in between.
+ * Example on page 1 of 18: 1 2 3 4 5 … 17 18
+ */
+function paginationWindow(current, last) {
+    if (last <= 7) {
+        return Array.from({ length: last }, (_, i) => i + 1);
+    }
+
+    const pages = new Set([1, last]);
+
+    if (current <= 4) {
+        for (let p = 1; p <= 5; p += 1) pages.add(p);
+        pages.add(last - 1);
+    } else if (current >= last - 3) {
+        pages.add(2);
+        for (let p = last - 4; p <= last; p += 1) pages.add(p);
+    } else {
+        pages.add(current - 1);
+        pages.add(current);
+        pages.add(current + 1);
+    }
+
+    const sorted = [...pages].filter((p) => p >= 1 && p <= last).sort((a, b) => a - b);
+    const items = [];
+    let prev = 0;
+    for (const page of sorted) {
+        if (prev && page - prev > 1) {
+            items.push('…');
+        }
+        items.push(page);
+        prev = page;
+    }
+    return items;
+}
+
 export function Pagination({
     links,
     meta,
@@ -957,7 +993,7 @@ export function Pagination({
     const lastUrl = pageUrl(last);
     const prev = links?.[0];
     const next = links?.[links.length - 1];
-    const pageLinks = (links || []).slice(1, -1);
+    const pageItems = paginationWindow(current, last);
 
     const btnBase =
         'inline-flex h-9 min-w-9 items-center justify-center rounded-md border text-sm font-semibold transition';
@@ -1007,40 +1043,45 @@ export function Pagination({
                     </span>
                 )}
 
-                {pageLinks.map((link, i) => {
-                    const disabled = !link.url;
-                    const isEllipsis = link.label === '...' || link.label === '…';
-                    if (disabled || isEllipsis) {
+                {pageItems.map((item, i) => {
+                    if (item === '…') {
                         return (
                             <span
-                                key={`p-${i}`}
+                                key={`ellipsis-${i}`}
                                 className={`${btnBase} ${btnDisabled} px-2`}
                             >
-                                {isEllipsis ? '…' : (
-                                    <span
-                                        dangerouslySetInnerHTML={{
-                                            __html: link.label,
-                                        }}
-                                    />
-                                )}
+                                …
+                            </span>
+                        );
+                    }
+
+                    const href = pageUrl(item);
+                    const active = item === current;
+                    if (!href) {
+                        return (
+                            <span
+                                key={`p-${item}`}
+                                className={`${btnBase} px-2.5 ${
+                                    active ? btnActive : btnDisabled
+                                }`}
+                            >
+                                {item}
                             </span>
                         );
                     }
 
                     return (
                         <Link
-                            key={`p-${i}`}
-                            href={link.url}
+                            key={`p-${item}`}
+                            href={href}
                             preserveState
                             preserveScroll
                             className={`${btnBase} px-2.5 ${
-                                link.active ? btnActive : btnIdle
+                                active ? btnActive : btnIdle
                             }`}
-                            aria-current={link.active ? 'page' : undefined}
+                            aria-current={active ? 'page' : undefined}
                         >
-                            <span
-                                dangerouslySetInnerHTML={{ __html: link.label }}
-                            />
+                            {item}
                         </Link>
                     );
                 })}
