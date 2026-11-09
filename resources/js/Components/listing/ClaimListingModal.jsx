@@ -1,7 +1,7 @@
 import { CloudUpload, FileText, Loader2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { router, usePage } from '@inertiajs/react';
-import { CloseMark, ForwardMark } from '@/Components/site/Mark';
+import { CloseMark, SendArrowMark } from '@/Components/site/Mark';
 import ListingModal from './ListingModal';
 
 const fieldClass =
@@ -408,7 +408,7 @@ export default function ClaimListingModal({ open, onClose, listing }) {
                         ) : null}
                         {sending ? 'Submitting…' : 'Submit claim'}
                         {!sending ? (
-                            <ForwardMark className="h-4 w-4" />
+                            <SendArrowMark className="h-4 w-4" />
                         ) : null}
                     </button>
                     {sent ? (
