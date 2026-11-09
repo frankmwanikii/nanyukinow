@@ -228,6 +228,7 @@ class StayTierFeatures
             'kitchen' => 'Kitchen',
             'living' => 'Living room',
             'dining' => 'Dining',
+            'restaurant' => 'Restaurant',
             'outdoor' => 'Outdoor',
             'exterior' => 'Exterior',
             default => 'Exterior',

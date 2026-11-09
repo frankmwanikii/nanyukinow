@@ -23,6 +23,7 @@ export const STAY_GALLERY_SPACES = [
     { value: 'kitchen', label: 'Kitchen' },
     { value: 'living', label: 'Living room' },
     { value: 'dining', label: 'Dining' },
+    { value: 'restaurant', label: 'Restaurant' },
     { value: 'outdoor', label: 'Outdoor' },
     { value: 'exterior', label: 'Exterior' },
 ];
