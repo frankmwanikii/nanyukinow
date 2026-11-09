@@ -16,12 +16,13 @@ import {
 import { FlashToast } from '@/Components/site/SuccessToast';
 import ThemeToggle from '@/Components/ThemeToggle';
 import { ThemeProvider, useTheme } from '@/hooks/useUiTheme';
-import { Link, usePage } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { registerAccountMenuOpener } from '@/lib/accountMenuBridge';
 
 const ACCOUNT_FLASH_KEY = 'nn:account-flash';
+const ADD_PASSKEY_FLAG = 'nn_add_passkey';
 
 /**
  * Persist a one-shot toast across a full page reload (e.g. upgrade polling).
@@ -233,6 +234,20 @@ function AccountShell({ title = 'Account', children }) {
 
     useEffect(() => {
         return registerAccountMenuOpener(() => setMobileOpen(true));
+    }, []);
+
+    useEffect(() => {
+        try {
+            if (sessionStorage.getItem(ADD_PASSKEY_FLAG) !== '1') {
+                return;
+            }
+            if (route().current('profile.edit')) {
+                return;
+            }
+            router.visit(`${route('profile.edit')}#passkeys`);
+        } catch {
+            // ignore
+        }
     }, []);
 
     useEffect(() => {

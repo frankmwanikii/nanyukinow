@@ -4,7 +4,10 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\ConfirmablePasswordController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\EmailVerificationPromptController;
+use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Auth\NewPasswordController;
+use App\Http\Controllers\Auth\PasskeyAvailabilityController;
+use App\Http\Controllers\Auth\PasskeyLoginOptionsController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
@@ -12,6 +15,14 @@ use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
+    Route::post('passkeys/availability', PasskeyAvailabilityController::class)
+        ->middleware('throttle:20,1')
+        ->name('passkey.availability');
+
+    Route::get('passkeys/login/account-options', PasskeyLoginOptionsController::class)
+        ->middleware('throttle:6,1')
+        ->name('passkey.account-login-options');
+
     Route::get('register', [RegisteredUserController::class, 'create'])
         ->name('register');
 
@@ -26,10 +37,10 @@ Route::middleware('guest')->group(function () {
 
     Route::post('login', [AuthenticatedSessionController::class, 'store']);
 
-    Route::get('auth/google', [\App\Http\Controllers\Auth\GoogleAuthController::class, 'redirect'])
+    Route::get('auth/google', [GoogleAuthController::class, 'redirect'])
         ->name('auth.google');
 
-    Route::get('auth/google/callback', [\App\Http\Controllers\Auth\GoogleAuthController::class, 'callback'])
+    Route::get('auth/google/callback', [GoogleAuthController::class, 'callback'])
         ->name('auth.google.callback');
 
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])

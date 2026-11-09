@@ -39,7 +39,9 @@ class AuthenticatedSessionController extends Controller
             UserAvatar::clearUnusable($user);
         }
 
-        return redirect()->intended(route('account.index', absolute: false));
+        return redirect()
+            ->intended(route('account.index', absolute: false))
+            ->with('success', 'Welcome back. You are signed in.');
     }
 
     /**

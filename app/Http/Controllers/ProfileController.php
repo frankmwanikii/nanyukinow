@@ -26,6 +26,17 @@ class ProfileController extends Controller
             'mustVerifyEmail' => $user instanceof MustVerifyEmail,
             'status' => session('status'),
             'avatarUrl' => UserAvatar::publicUrl($user->avatar_url),
+            'passkeys' => $user->passkeys()
+                ->latest()
+                ->get()
+                ->map(fn ($passkey) => [
+                    'id' => $passkey->id,
+                    'name' => $passkey->name,
+                    'authenticator' => $passkey->authenticator,
+                    'last_used_at' => $passkey->last_used_at?->toIso8601String(),
+                    'created_at' => $passkey->created_at?->toIso8601String(),
+                ])
+                ->values(),
         ]);
     }
 

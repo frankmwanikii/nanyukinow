@@ -152,6 +152,17 @@ export function EyeMark({ className = 'h-4 w-4' }) {
     );
 }
 
+/** Fingerprint arcs — passkeys / device unlock. */
+export function PasskeyMark({ className = 'h-4 w-4' }) {
+    return (
+        <OutlineMark className={className}>
+            <path d="M12 20.25c-1.1-1.35-1.75-2.95-1.75-4.75V11.5a1.75 1.75 0 1 1 3.5 0v1" />
+            <path d="M8.4 18.6c-1.05-1.55-1.65-3.3-1.65-5.1V10.2a5.25 5.25 0 0 1 10.5 0v.55" />
+            <path d="M5.6 16.85C4.55 15.1 4 13.15 4 11.1V10a8 8 0 0 1 16 0v.35" />
+        </OutlineMark>
+    );
+}
+
 export function EyeOffMark({ className = 'h-4 w-4' }) {
     return (
         <Mark className={className}>

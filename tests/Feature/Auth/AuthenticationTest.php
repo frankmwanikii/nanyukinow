@@ -30,6 +30,7 @@ class AuthenticationTest extends TestCase
 
         $this->assertAuthenticated();
         $response->assertRedirect(route('account.index', absolute: false));
+        $response->assertSessionHas('success', 'Welcome back. You are signed in.');
     }
 
     public function test_login_requires_recaptcha(): void

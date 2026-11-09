@@ -92,7 +92,9 @@ class GoogleAuthController extends Controller
 
         Auth::login($user, remember: true);
 
-        return redirect()->intended(route('account.index', absolute: false));
+        return redirect()
+            ->intended(route('account.index', absolute: false))
+            ->with('success', 'Welcome back. You are signed in.');
     }
 
     private function credentialsConfigured(): bool

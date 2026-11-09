@@ -4,22 +4,65 @@ import {
     AuthLegalNote,
     AuthOrDivider,
     GoogleContinueButton,
+    PasskeyContinueButton,
     PasswordToggle,
 } from '@/Components/auth/AuthField';
+import PasskeyPromptModal from '@/Components/auth/PasskeyPromptModal';
 import {
     fieldFeedback,
     validateLoginIdentifier,
     validateLoginPassword,
 } from '@/Components/auth/authHelpers';
 import RecaptchaField from '@/Components/listing/RecaptchaField';
+import { Passkeys } from '@laravel/passkeys';
+import { usePasskeyVerify } from '@laravel/passkeys/react';
 import { Link, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
+
+const ADD_PASSKEY_FLAG = 'nn_add_passkey';
+
+function markAddPasskeyIntent() {
+    try {
+        sessionStorage.setItem(ADD_PASSKEY_FLAG, '1');
+    } catch {
+        // ignore
+    }
+}
+
+async function checkPasskeyAvailability(loginValue) {
+    const csrf =
+        document
+            .querySelector('meta[name="csrf-token"]')
+            ?.getAttribute('content') || '';
+
+    const response = await fetch(route('passkey.availability'), {
+        method: 'POST',
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrf,
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify({ login: loginValue }),
+    });
+
+    if (!response.ok) {
+        return null;
+    }
+
+    const payload = await response.json();
+    return payload?.status ?? null;
+}
 
 export default function Login({ status, canResetPassword }) {
     const { flash } = usePage().props;
     const [showPassword, setShowPassword] = useState(false);
     const [captchaToken, setCaptchaToken] = useState('');
     const [captchaError, setCaptchaError] = useState('');
+    const [passkeyError, setPasskeyError] = useState('');
+    const [passkeyBusy, setPasskeyBusy] = useState(false);
+    const [prompt, setPrompt] = useState({ open: false, reason: 'missing' });
     const {
         data,
         setData,
@@ -34,6 +77,19 @@ export default function Login({ status, canResetPassword }) {
         password: '',
         remember: true,
         'g-recaptcha-response': '',
+    });
+
+    const { isSupported: passkeySupported } = usePasskeyVerify({
+        autofill: true,
+        remember: () => data.remember,
+        onSuccess: (response) => {
+            setPasskeyError('');
+            window.location.href =
+                response?.redirect || route('account.index');
+        },
+        onError: () => {
+            // Autofill dismissals stay quiet.
+        },
     });
 
     const loginIdFeedback = fieldFeedback(
@@ -51,6 +107,61 @@ export default function Login({ status, canResetPassword }) {
         validateLoginIdentifier(data.login) === true &&
         validateLoginPassword(data.password) === true &&
         Boolean(captchaToken);
+
+    const closePrompt = () => setPrompt((p) => ({ ...p, open: false }));
+
+    const focusPassword = () => {
+        closePrompt();
+        markAddPasskeyIntent();
+        window.requestAnimationFrame(() => {
+            document.getElementById('password')?.focus();
+        });
+    };
+
+    const showFallbackPrompt = async () => {
+        const loginValue = data.login.trim();
+
+        if (validateLoginIdentifier(loginValue) === true) {
+            try {
+                const status = await checkPasskeyAvailability(loginValue);
+                if (status === 'unknown') {
+                    setPrompt({ open: true, reason: 'unknown' });
+                    return;
+                }
+                if (status === 'missing') {
+                    setPrompt({ open: true, reason: 'missing' });
+                    return;
+                }
+            } catch {
+                // Fall through to device prompt.
+            }
+        }
+
+        setPrompt({ open: true, reason: 'not_on_device' });
+    };
+
+    const handlePasskeyClick = async () => {
+        setPasskeyError('');
+        setPasskeyBusy(true);
+
+        try {
+            // Discoverable passkey: browser / Touch ID identifies the account
+            // immediately. No email required.
+            const response = await Passkeys.verify({
+                remember: data.remember,
+            });
+
+            window.location.href =
+                response?.redirect || route('account.index');
+        } catch (err) {
+            if (err?.name === 'UserCancelledError') {
+                return;
+            }
+            await showFallbackPrompt();
+        } finally {
+            setPasskeyBusy(false);
+        }
+    };
 
     const submit = (e) => {
         e.preventDefault();
@@ -118,8 +229,23 @@ export default function Login({ status, canResetPassword }) {
                 </div>
             ) : null}
 
-            <GoogleContinueButton />
-            <AuthOrDivider label="or" />
+            <div className="space-y-3">
+                <PasskeyContinueButton
+                    onClick={handlePasskeyClick}
+                    loading={passkeyBusy}
+                    supported={passkeySupported}
+                    loadingLabel="Waiting for Touch ID…"
+                />
+                <GoogleContinueButton />
+            </div>
+
+            {passkeyError ? (
+                <p className="mt-3 text-sm text-rose-600" role="alert">
+                    {passkeyError}
+                </p>
+            ) : null}
+
+            <AuthOrDivider label="or use password" />
 
             <form onSubmit={submit} className="space-y-4">
                 <AuthField
@@ -136,7 +262,7 @@ export default function Login({ status, canResetPassword }) {
                             ? null
                             : loginIdFeedback.error
                     }
-                    autoComplete="username"
+                    autoComplete="username webauthn"
                 />
                 <AuthField
                     id="password"
@@ -202,6 +328,20 @@ export default function Login({ status, canResetPassword }) {
             </form>
 
             <AuthLegalNote />
+
+            <PasskeyPromptModal
+                open={prompt.open}
+                reason={prompt.reason}
+                onClose={closePrompt}
+                onUsePassword={focusPassword}
+                onGoogle={() => {
+                    markAddPasskeyIntent();
+                    window.location.href = route('auth.google');
+                }}
+                onRegister={() => {
+                    window.location.href = route('register');
+                }}
+            />
         </AuthSplitLayout>
     );
 }

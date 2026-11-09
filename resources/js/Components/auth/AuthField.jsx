@@ -1,4 +1,4 @@
-import { CheckMark, EyeMark, EyeOffMark } from '@/Components/site/Mark';
+import { CheckMark, EyeMark, EyeOffMark, PasskeyMark } from '@/Components/site/Mark';
 import { Link } from '@inertiajs/react';
 
 export function GoogleIcon({ className = '' }) {
@@ -160,35 +160,84 @@ export function AuthField({
     );
 }
 
+function authContinueClassName({ dense = false, tone = 'default' } = {}) {
+    const isSoft = tone === 'soft';
+    const isGlass = tone === 'glass';
+
+    if (isGlass) {
+        return 'border border-white/30 bg-olive-950/70 px-4 py-3.5 text-[15px] text-white hover:border-mustard hover:bg-mustard hover:text-earth-dusk disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:border-white/30 disabled:hover:bg-olive-950/70 disabled:hover:text-white';
+    }
+
+    if (isSoft) {
+        return 'border border-olive-900/15 bg-olive-50 px-4 py-3 text-[15px] text-earth-dusk hover:border-mustard hover:bg-mustard disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:border-olive-900/15 disabled:hover:bg-olive-50';
+    }
+
+    if (dense) {
+        return 'border border-olive-900/20 bg-white px-3 py-2 text-sm text-earth-dusk hover:border-mustard hover:bg-mustard disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:border-olive-900/20 disabled:hover:bg-white';
+    }
+
+    return 'border border-olive-900/20 bg-white px-4 py-3 text-[15px] text-earth-dusk hover:border-mustard hover:bg-mustard disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:border-olive-900/20 disabled:hover:bg-white';
+}
+
 export function GoogleContinueButton({
     showIcon = true,
     dense = false,
     tone = 'default',
     label = 'Continue with Google',
 }) {
-    const isSoft = tone === 'soft';
-    const isGlass = tone === 'glass';
-
     return (
         <a
             href={route('auth.google')}
-            className={`flex w-full items-center justify-center gap-3 font-medium transition ${
-                isGlass
-                    ? 'border border-white/30 bg-olive-950/70 px-4 py-3.5 text-[15px] text-white hover:border-mustard hover:bg-mustard hover:text-earth-dusk'
-                    : isSoft
-                      ? 'border border-olive-900/15 bg-olive-50 px-4 py-3 text-[15px] text-earth-dusk hover:border-mustard hover:bg-mustard'
-                      : dense
-                        ? 'border border-olive-900/20 bg-white px-3 py-2 text-sm text-earth-dusk hover:border-mustard hover:bg-mustard'
-                        : 'border border-olive-900/20 bg-white px-4 py-3 text-[15px] text-earth-dusk hover:border-mustard hover:bg-mustard'
-            }`}
+            className={`flex w-full items-center justify-center gap-3 font-medium transition ${authContinueClassName(
+                { dense, tone },
+            )}`}
         >
             {showIcon ? (
                 <GoogleIcon
-                    className={dense && !isSoft && !isGlass ? 'h-4 w-4' : 'h-5 w-5'}
+                    className={
+                        dense && tone !== 'soft' && tone !== 'glass'
+                            ? 'h-4 w-4'
+                            : 'h-5 w-5'
+                    }
                 />
             ) : null}
             {label}
         </a>
+    );
+}
+
+export function PasskeyContinueButton({
+    onClick,
+    loading = false,
+    disabled = false,
+    supported = true,
+    dense = false,
+    tone = 'default',
+    label = 'Sign in with passkey',
+    loadingLabel = 'Waiting for device…',
+}) {
+    if (!supported) {
+        return null;
+    }
+
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            disabled={disabled || loading}
+            className={`flex w-full items-center justify-center gap-3 font-medium transition ${authContinueClassName(
+                { dense, tone },
+            )}`}
+        >
+            <PasskeyMark
+                className={
+                    dense && tone !== 'soft' && tone !== 'glass'
+                        ? 'h-4 w-4'
+                        : 'h-5 w-5'
+                }
+            />
+            {loading ? loadingLabel : label}
+        </button>
     );
 }
 
