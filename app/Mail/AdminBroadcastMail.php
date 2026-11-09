@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Support\MailBranding;
+use App\Support\SafeHtml;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Address;
@@ -41,6 +42,12 @@ class AdminBroadcastMail extends Mailable
             ? 'Hi '.$this->recipientName.','
             : 'Hi there,';
 
+        $bodyHtml = SafeHtml::sanitizeMessage($this->bodyText);
+        $plain = SafeHtml::toPlainText($bodyHtml !== '' ? $bodyHtml : $this->bodyText);
+        $bodyParagraphs = $bodyHtml === ''
+            ? (preg_split("/\r\n|\n|\r/", trim($this->bodyText)) ?: [])
+            : (preg_split("/\r\n|\n|\r/", $plain) ?: []);
+
         return new Content(
             html: 'mail.admin-broadcast',
             text: 'mail.admin-broadcast-text',
@@ -48,7 +55,8 @@ class AdminBroadcastMail extends Mailable
                 ...$brand,
                 'greeting' => $greeting,
                 'subjectLine' => $this->subjectLine,
-                'bodyParagraphs' => preg_split("/\r\n|\n|\r/", trim($this->bodyText)) ?: [],
+                'bodyHtml' => $bodyHtml,
+                'bodyParagraphs' => $bodyParagraphs,
                 'exploreUrl' => route('explore'),
             ],
         );

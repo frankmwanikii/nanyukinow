@@ -16,13 +16,13 @@ import {
     Menu,
     X,
     Search,
-    Bell,
     ExternalLink,
     LogOut,
     MessagesSquare,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AdminThemeProvider, useAdminTheme } from '@/hooks/useAdminTheme';
+import AdminNotificationsBell from '@/Components/Admin/AdminNotificationsBell';
 import { AdminFlashToast } from '@/Components/Admin/ui';
 import ThemeToggle from '@/Components/ThemeToggle';
 
@@ -106,7 +106,12 @@ function UserAvatar({ user, size = 'md' }) {
 
 function TopbarSearch() {
     const [term, setTerm] = useState('');
+    const [groups, setGroups] = useState([]);
+    const [open, setOpen] = useState(false);
+    const [loading, setLoading] = useState(false);
     const inputRef = useRef(null);
+    const wrapRef = useRef(null);
+    const abortRef = useRef(null);
     const isMac =
         typeof navigator !== 'undefined' &&
         /Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent || '');
@@ -116,38 +121,161 @@ function TopbarSearch() {
             if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
                 e.preventDefault();
                 inputRef.current?.focus();
+                setOpen(true);
+            }
+            if (e.key === 'Escape') {
+                setOpen(false);
             }
         };
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
     }, []);
 
+    useEffect(() => {
+        const onPointer = (e) => {
+            if (!wrapRef.current?.contains(e.target)) {
+                setOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', onPointer);
+        return () => document.removeEventListener('mousedown', onPointer);
+    }, []);
+
+    useEffect(() => {
+        const q = term.trim();
+        if (q.length < 2) {
+            setGroups([]);
+            setLoading(false);
+            abortRef.current?.abort();
+            return undefined;
+        }
+
+        const timer = setTimeout(async () => {
+            abortRef.current?.abort();
+            const controller = new AbortController();
+            abortRef.current = controller;
+            setLoading(true);
+            try {
+                const url = route('admin.search.suggest', { q });
+                const response = await fetch(url, {
+                    headers: {
+                        Accept: 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    credentials: 'same-origin',
+                    signal: controller.signal,
+                });
+                if (!response.ok) {
+                    throw new Error('Search failed');
+                }
+                const data = await response.json();
+                setGroups(Array.isArray(data.groups) ? data.groups : []);
+                setOpen(true);
+            } catch (error) {
+                if (error?.name !== 'AbortError') {
+                    setGroups([]);
+                }
+            } finally {
+                if (!controller.signal.aborted) {
+                    setLoading(false);
+                }
+            }
+        }, 220);
+
+        return () => {
+            clearTimeout(timer);
+            abortRef.current?.abort();
+        };
+    }, [term]);
+
     const submit = (e) => {
         e.preventDefault();
+        setOpen(false);
         router.get(
-            route('admin.listings.index'),
+            route('admin.search'),
             { q: term.trim() || undefined },
             { preserveState: false },
         );
     };
 
+    const total = groups.reduce((sum, group) => sum + (group.items?.length || 0), 0);
+
     return (
-        <form onSubmit={submit} role="search" className="w-full max-w-xl">
+        <form
+            ref={wrapRef}
+            onSubmit={submit}
+            role="search"
+            className="relative w-full max-w-xl"
+        >
             <label className="relative flex items-center">
-                <span className="sr-only">Search listings</span>
+                <span className="sr-only">Search admin</span>
                 <Search className="pointer-events-none absolute left-3 h-4 w-4 text-olive-400 dark:text-olive-500" />
                 <input
                     ref={inputRef}
                     type="search"
                     value={term}
                     onChange={(e) => setTerm(e.target.value)}
-                    placeholder="Search listings"
+                    onFocus={() => {
+                        if (term.trim().length >= 2) {
+                            setOpen(true);
+                        }
+                    }}
+                    placeholder="Search admin"
+                    autoComplete="off"
                     className="h-9 w-full rounded-md border border-olive-200 bg-white pl-9 pr-14 text-sm text-olive-900 outline-none placeholder:text-olive-400 focus:border-olive-600 focus:ring-1 focus:ring-olive-600/30 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-50 dark:placeholder:text-olive-500 dark:focus:border-mustard dark:focus:ring-mustard/30"
                 />
                 <kbd className="pointer-events-none absolute right-2.5 hidden select-none rounded-sm border border-olive-200 bg-olive-50 px-1.5 py-0.5 font-sans text-[10px] font-semibold text-olive-400 sm:inline-block dark:border-olive-700 dark:bg-olive-900 dark:text-olive-500">
                     {isMac ? '⌘K' : 'Ctrl K'}
                 </kbd>
             </label>
+
+            {open && term.trim().length >= 2 ? (
+                <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 max-h-[min(28rem,70vh)] overflow-y-auto border border-olive-200 bg-white dark:border-olive-700 dark:bg-olive-950">
+                    {loading && total === 0 ? (
+                        <p className="px-3 py-3 text-sm text-olive-500">Searching…</p>
+                    ) : total === 0 ? (
+                        <p className="px-3 py-3 text-sm text-olive-500">
+                            No matches. Press Enter for full search.
+                        </p>
+                    ) : (
+                        <>
+                            {groups.map((group) => (
+                                <div key={group.key}>
+                                    <p className="border-b border-olive-100 px-3 py-1.5 text-xs font-medium text-olive-500 dark:border-olive-800 dark:text-olive-400">
+                                        {group.label}
+                                    </p>
+                                    <ul>
+                                        {group.items.map((item) => (
+                                            <li key={`${group.key}-${item.id}`}>
+                                                <Link
+                                                    href={item.href}
+                                                    onClick={() => setOpen(false)}
+                                                    className="block px-3 py-2.5 transition hover:bg-olive-50 dark:hover:bg-olive-900"
+                                                >
+                                                    <span className="block text-sm font-medium text-olive-950 dark:text-olive-50">
+                                                        {item.title}
+                                                    </span>
+                                                    {item.subtitle ? (
+                                                        <span className="mt-0.5 block text-xs text-olive-500 dark:text-olive-400">
+                                                            {item.subtitle}
+                                                        </span>
+                                                    ) : null}
+                                                </Link>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            ))}
+                            <button
+                                type="submit"
+                                className="w-full border-t border-olive-100 px-3 py-2.5 text-left text-sm font-medium text-olive-700 transition hover:bg-olive-50 dark:border-olive-800 dark:text-olive-200 dark:hover:bg-olive-900"
+                            >
+                                View all results for "{term.trim()}"
+                            </button>
+                        </>
+                    )}
+                </div>
+            ) : null}
         </form>
     );
 }
@@ -303,14 +431,7 @@ function AdminShell({ children }) {
 
                             <ThemeToggleControl />
 
-                            <Link
-                                href={route('admin.listings.index', { status: 'pending' })}
-                                aria-label="Listings awaiting review"
-                                title="Listings awaiting review"
-                                className="relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-olive-700 transition hover:bg-olive-100 hover:text-olive-950 dark:text-olive-200 dark:hover:bg-olive-800 dark:hover:text-mustard"
-                            >
-                                <Bell className="h-[18px] w-[18px]" strokeWidth={1.5} />
-                            </Link>
+                            <AdminNotificationsBell />
 
                             <UserMenu user={user} />
                         </div>

@@ -286,6 +286,41 @@ class MemberMessagesTest extends TestCase
         );
     }
 
+    public function test_chat_thread_lists_messages_oldest_first(): void
+    {
+        $owner = User::factory()->create();
+        $listing = $this->makeListing($owner);
+
+        $conversation = Conversation::query()->create([
+            'listing_id' => $listing->id,
+            'subject' => 'Inquiry',
+            'last_message_at' => now(),
+        ]);
+        $conversation->participants()->attach($owner->id, ['last_read_at' => null]);
+
+        Message::query()->create([
+            'conversation_id' => $conversation->id,
+            'guest_name' => 'Jane',
+            'body' => 'Older message',
+            'created_at' => now()->subMinutes(2),
+            'updated_at' => now()->subMinutes(2),
+        ]);
+        Message::query()->create([
+            'conversation_id' => $conversation->id,
+            'user_id' => $owner->id,
+            'body' => 'Newest message',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->actingAs($owner)
+            ->get(route('account.messages.show', $conversation))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('active.messages.0.body', 'Older message')
+                ->where('active.messages.1.body', 'Newest message'));
+    }
+
     public function test_notification_opens_in_messages_inbox(): void
     {
         $user = User::factory()->create();
@@ -346,5 +381,108 @@ class MemberMessagesTest extends TestCase
         $this->actingAs($user)
             ->get(route('account.notifications'))
             ->assertRedirect(route('account.messages', ['tab' => 'alerts']));
+    }
+
+    public function test_member_can_reply_with_attachment(): void
+    {
+        $owner = User::factory()->create();
+        $listing = $this->makeListing($owner);
+
+        $conversation = Conversation::query()->create([
+            'listing_id' => $listing->id,
+            'subject' => 'Inquiry',
+            'last_message_at' => now(),
+        ]);
+        $conversation->participants()->attach($owner->id);
+        Message::query()->create([
+            'conversation_id' => $conversation->id,
+            'guest_name' => 'Jane',
+            'guest_email' => 'jane@example.com',
+            'body' => 'Hello',
+        ]);
+
+        $file = UploadedFile::fake()->image('menu.jpg', 400, 300);
+
+        $this->actingAs($owner)
+            ->post(route('account.messages.reply', $conversation), [
+                'body' => 'Here is the menu',
+                'attachments' => [$file],
+            ])
+            ->assertRedirect(route('account.messages.show', $conversation));
+
+        $reply = Message::query()
+            ->where('conversation_id', $conversation->id)
+            ->where('user_id', $owner->id)
+            ->latest('id')
+            ->first();
+
+        $this->assertNotNull($reply);
+        $this->assertSame('Here is the menu', $reply->body);
+        $this->assertIsArray($reply->attachments);
+        $this->assertCount(1, $reply->attachments);
+        $this->assertSame('menu.jpg', $reply->attachments[0]['name']);
+
+        $this->actingAs($owner)
+            ->get(route('account.messages.attachment', [
+                'conversation' => $conversation,
+                'message' => $reply,
+                'index' => 0,
+            ]))
+            ->assertOk()
+            ->assertHeader('content-disposition');
+
+        $previewDisposition = $this->actingAs($owner)
+            ->get(route('account.messages.attachment', [
+                'conversation' => $conversation,
+                'message' => $reply,
+                'index' => 0,
+            ]))
+            ->headers
+            ->get('content-disposition');
+
+        $this->assertNotNull($previewDisposition);
+        $this->assertStringContainsString('inline', strtolower((string) $previewDisposition));
+
+        $downloadDisposition = $this->actingAs($owner)
+            ->get(route('account.messages.attachment', [
+                'conversation' => $conversation,
+                'message' => $reply,
+                'index' => 0,
+                'download' => 1,
+            ]))
+            ->assertOk()
+            ->headers
+            ->get('content-disposition');
+
+        $this->assertNotNull($downloadDisposition);
+        $this->assertStringContainsString('attachment', strtolower((string) $downloadDisposition));
+    }
+
+    public function test_member_can_reply_with_attachment_only(): void
+    {
+        $owner = User::factory()->create();
+        $listing = $this->makeListing($owner);
+
+        $conversation = Conversation::query()->create([
+            'listing_id' => $listing->id,
+            'subject' => 'Inquiry',
+            'last_message_at' => now(),
+        ]);
+        $conversation->participants()->attach($owner->id);
+
+        $file = UploadedFile::fake()->create('quote.pdf', 120, 'application/pdf');
+
+        $this->actingAs($owner)
+            ->post(route('account.messages.reply', $conversation), [
+                'body' => '',
+                'attachments' => [$file],
+            ])
+            ->assertRedirect(route('account.messages.show', $conversation));
+
+        $this->assertDatabaseHas('messages', [
+            'conversation_id' => $conversation->id,
+            'user_id' => $owner->id,
+            'body' => '',
+        ]);
     }
 }

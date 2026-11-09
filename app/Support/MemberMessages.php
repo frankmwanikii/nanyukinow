@@ -137,6 +137,29 @@ class MemberMessages
     public static function transformMessage(Message $message, User $viewer): array
     {
         $name = $message->senderName();
+        $attachments = collect(is_array($message->attachments) ? $message->attachments : [])
+            ->values()
+            ->map(function (array $file, int $index) use ($message) {
+                $mime = $file['mime'] ?? null;
+                $kind = self::attachmentKind($mime);
+                $url = route('account.messages.attachment', [
+                    'conversation' => $message->conversation_id,
+                    'message' => $message->id,
+                    'index' => $index,
+                ]);
+
+                return [
+                    'index' => $index,
+                    'name' => $file['name'] ?? 'attachment',
+                    'mime' => $mime,
+                    'size' => isset($file['size']) ? (int) $file['size'] : null,
+                    'kind' => $kind,
+                    'previewable' => in_array($kind, ['image', 'pdf'], true),
+                    'url' => $url,
+                    'download_url' => $url.(str_contains($url, '?') ? '&' : '?').'download=1',
+                ];
+            })
+            ->all();
 
         return [
             'id' => $message->id,
@@ -147,6 +170,7 @@ class MemberMessages
             'guest_phone' => $message->guest_phone,
             'avatar_url' => UserAvatar::publicUrl($message->user?->avatar_url),
             'initials' => self::initials($name),
+            'attachments' => $attachments,
             'created_at' => $message->created_at?->toIso8601String(),
             'created_ago' => $message->created_at?->diffForHumans(),
         ];
@@ -166,5 +190,18 @@ class MemberMessages
         }
 
         return strtoupper(substr($parts[0], 0, 1).substr($parts[1], 0, 1));
+    }
+
+    private static function attachmentKind(?string $mime): string
+    {
+        if (is_string($mime) && str_starts_with($mime, 'image/')) {
+            return 'image';
+        }
+
+        if ($mime === 'application/pdf') {
+            return 'pdf';
+        }
+
+        return 'file';
     }
 }

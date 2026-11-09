@@ -1,6 +1,6 @@
 import AuthSplitLayout from '@/Components/auth/AuthSplitLayout';
 import { AuthField } from '@/Components/auth/AuthField';
-import { BackMark } from '@/Components/site/Mark';
+import { BackMark, ForwardMark } from '@/Components/site/Mark';
 import { Link, useForm, usePage } from '@inertiajs/react';
 
 export default function ForgotPassword({ status }) {
@@ -68,9 +68,12 @@ export default function ForgotPassword({ status }) {
                     <button
                         type="submit"
                         disabled={processing}
-                        className="w-full border border-mustard bg-mustard px-4 py-3.5 text-[15px] font-semibold text-earth-dusk transition hover:border-olive-900 hover:bg-olive-900 hover:text-white disabled:cursor-not-allowed disabled:opacity-55"
+                        className="inline-flex w-full items-center justify-center gap-2 border border-mustard bg-mustard px-4 py-3.5 text-[15px] font-semibold text-earth-dusk transition hover:border-olive-900 hover:bg-olive-900 hover:text-white disabled:cursor-not-allowed disabled:opacity-55"
                     >
                         {processing ? 'Sending link…' : 'Send reset link'}
+                        {!processing ? (
+                            <ForwardMark className="h-4 w-4" />
+                        ) : null}
                     </button>
                 </form>
             )}

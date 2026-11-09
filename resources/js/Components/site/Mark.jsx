@@ -62,12 +62,26 @@ export function BackMark({ className = 'h-4 w-4' }) {
     );
 }
 
-/** Paper plane — send / ask (WhatsApp-style). */
+/** Paper plane — send (filled, nose top-right, fold notch). */
 export function SendMark({ className = 'h-4 w-4' }) {
     return (
         <Mark className={className}>
-            <path d="M3.15 10.85 20.55 3.2a1 1 0 0 1 1.3 1.2L15.2 21.05a1 1 0 0 1-1.8.05l-2.95-6.55-6.55-2.95a1 1 0 0 1 .05-1.8z" />
+            <path d="M2.01 21 23 12 2.01 3 2 10l15 2-15 2z" />
         </Mark>
+    );
+}
+
+/** Alias for chat send buttons. */
+export function SendArrowMark({ className = 'h-4 w-4' }) {
+    return <SendMark className={className} />;
+}
+
+/** Paperclip — WhatsApp-style attach. */
+export function AttachMark({ className = 'h-4 w-4' }) {
+    return (
+        <OutlineMark className={className}>
+            <path d="M15.75 7.25v7.5a3.75 3.75 0 1 1-7.5 0V8a2.25 2.25 0 1 1 4.5 0v6.25a.75.75 0 1 1-1.5 0V8.35" />
+        </OutlineMark>
     );
 }
 

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Cache;
 
 class ListingClaim extends Model
 {
@@ -34,6 +35,14 @@ class ListingClaim extends Model
             'documents' => 'array',
             'reviewed_at' => 'datetime',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        $forget = fn () => Cache::forget('admin.badge.pending_claims');
+
+        static::saved($forget);
+        static::deleted($forget);
     }
 
     public function listing(): BelongsTo

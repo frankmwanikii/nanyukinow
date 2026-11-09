@@ -14,7 +14,15 @@ class Message extends Model
         'guest_email',
         'guest_phone',
         'body',
+        'attachments',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'attachments' => 'array',
+        ];
+    }
 
     public function conversation(): BelongsTo
     {

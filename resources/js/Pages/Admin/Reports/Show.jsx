@@ -16,9 +16,8 @@ export default function Show({ report }) {
     });
 
     const resolve = (status) => {
-        form.transform((data) => ({ ...data, status })).post(
-            route('admin.reports.resolve', report.id),
-        );
+        form.transform((data) => ({ ...data, status }));
+        form.post(route('admin.reports.resolve', report.id));
     };
 
     const destroy = async () => {

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Cache;
 
 class ListingReport extends Model
 {
@@ -31,6 +32,14 @@ class ListingReport extends Model
         return [
             'reviewed_at' => 'datetime',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        $forget = fn () => Cache::forget('admin.badge.pending_reports');
+
+        static::saved($forget);
+        static::deleted($forget);
     }
 
     public function listing(): BelongsTo

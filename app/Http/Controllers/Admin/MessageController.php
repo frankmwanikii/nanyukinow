@@ -11,11 +11,14 @@ use App\Models\Conversation;
 use App\Models\NewsletterSubscriber;
 use App\Models\User;
 use App\Support\AdminCommunications;
+use App\Support\AdminNotifications;
+use App\Support\SafeHtml;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Throwable;
@@ -219,7 +222,7 @@ class MessageController extends Controller
                 $conversation = Conversation::query()
                     ->with([
                         'listing:id,title,slug',
-                        'messages' => fn ($q) => $q->oldest()->with('user:id,name,email'),
+                        'messages' => fn ($q) => $q->reorder()->oldest('created_at')->oldest('id')->with('user:id,name,email'),
                     ])
                     ->find($selectedId);
 
@@ -287,6 +290,13 @@ class MessageController extends Controller
         $intent = $data['intent'] ?? 'send';
         $channel = $data['channel'];
         $mode = $data['mode'];
+        $data['body'] = SafeHtml::sanitizeMessage($data['body'] ?? '');
+
+        if (SafeHtml::plainTextLength($data['body']) < 1) {
+            throw ValidationException::withMessages([
+                'body' => 'Write a message before sending.',
+            ]);
+        }
 
         if ($intent === 'draft') {
             CommunicationCampaign::query()->create([
@@ -422,6 +432,18 @@ class MessageController extends Controller
         return redirect()
             ->route('admin.messages.index', ['folder' => 'sent'])
             ->with($failed > 0 && $sent === 0 ? 'error' : 'success', $message);
+    }
+
+    public function readAll(): RedirectResponse
+    {
+        $updated = AdminNotifications::markMessagesRead();
+
+        return back()->with(
+            'success',
+            $updated > 0
+                ? 'Inbox messages marked as read.'
+                : 'No unread inbox messages.',
+        );
     }
 
     public function star(Request $request): RedirectResponse

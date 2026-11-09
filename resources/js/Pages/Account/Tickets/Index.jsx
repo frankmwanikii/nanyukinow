@@ -1,5 +1,5 @@
 import AccountLayout from '@/Layouts/AccountLayout';
-import { TicketMark, UploadMark } from '@/Components/site/Mark';
+import { ForwardMark, TicketMark, UploadMark } from '@/Components/site/Mark';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useRef } from 'react';
 
@@ -245,8 +245,10 @@ export default function Index({ tickets = [], priorities = [] }) {
                                 disabled={form.processing}
                                 className="inline-flex items-center gap-1.5 rounded-sm border border-mustard bg-mustard px-4 py-2.5 text-sm font-semibold text-earth-dusk transition hover:bg-olive-900 hover:text-white disabled:opacity-60 dark:hover:bg-olive-100 dark:hover:text-earth-dusk"
                             >
-                                <TicketMark className="h-4 w-4" />
                                 {form.processing ? 'Sending…' : 'Send ticket'}
+                                {!form.processing ? (
+                                    <ForwardMark className="h-4 w-4" />
+                                ) : null}
                             </button>
                         </div>
                     </form>

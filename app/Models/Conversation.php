@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\Cache;
 
 class Conversation extends Model
 {
@@ -26,6 +27,14 @@ class Conversation extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        $forget = fn () => Cache::forget('admin.badge.inbox_messages');
+
+        static::saved($forget);
+        static::deleted($forget);
+    }
+
     public function listing(): BelongsTo
     {
         return $this->belongsTo(Listing::class);
@@ -33,7 +42,7 @@ class Conversation extends Model
 
     public function messages(): HasMany
     {
-        return $this->hasMany(Message::class)->latest();
+        return $this->hasMany(Message::class)->oldest();
     }
 
     public function latestMessage(): HasOne

@@ -10,6 +10,7 @@ use App\Models\Story;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -18,69 +19,100 @@ class DashboardController extends Controller
 {
     public function __invoke(Request $request): Response
     {
-        $now = now();
+        $payload = Cache::flexible('admin.dashboard.overview', [30, 90], function () {
+            $now = now();
 
-        $stats = [
-            'listings' => Listing::query()->count(),
-            'published' => Listing::query()->where('is_published', true)->count(),
-            'featured' => Listing::query()->where('is_featured', true)->count(),
-            'expiring_soon' => Listing::query()
+            $listingStats = Listing::query()
+                ->selectRaw('COUNT(*) as listings')
+                ->selectRaw('COALESCE(SUM(CASE WHEN is_published = 1 THEN 1 ELSE 0 END), 0) as published')
+                ->selectRaw('COALESCE(SUM(CASE WHEN is_featured = 1 THEN 1 ELSE 0 END), 0) as featured')
+                ->selectRaw('COALESCE(SUM(CASE WHEN status = ? THEN 1 ELSE 0 END), 0) as pending_listings', ['pending'])
+                ->selectRaw('COALESCE(SUM(views_count), 0) as views')
+                ->selectRaw(
+                    'COALESCE(SUM(CASE WHEN expires_at IS NOT NULL AND expires_at BETWEEN ? AND ? THEN 1 ELSE 0 END), 0) as expiring_soon',
+                    [$now, $now->copy()->addDays(14)],
+                )
+                ->selectRaw(
+                    'COALESCE(SUM(CASE WHEN expires_at IS NOT NULL AND expires_at < ? THEN 1 ELSE 0 END), 0) as expired',
+                    [$now],
+                )
+                ->first();
+
+            $userStats = User::query()
+                ->selectRaw('COUNT(*) as users')
+                ->selectRaw('COALESCE(SUM(CASE WHEN is_admin = 1 THEN 1 ELSE 0 END), 0) as admins')
+                ->first();
+
+            $storyStats = Story::query()
+                ->selectRaw('COUNT(*) as stories')
+                ->selectRaw('COALESCE(SUM(CASE WHEN is_published = 0 THEN 1 ELSE 0 END), 0) as draft_stories')
+                ->first();
+
+            $stats = [
+                'listings' => (int) ($listingStats->listings ?? 0),
+                'published' => (int) ($listingStats->published ?? 0),
+                'featured' => (int) ($listingStats->featured ?? 0),
+                'expiring_soon' => (int) ($listingStats->expiring_soon ?? 0),
+                'expired' => (int) ($listingStats->expired ?? 0),
+                'categories' => Category::query()->count(),
+                'users' => (int) ($userStats->users ?? 0),
+                'admins' => (int) ($userStats->admins ?? 0),
+                'stories' => (int) ($storyStats->stories ?? 0),
+                'draft_stories' => (int) ($storyStats->draft_stories ?? 0),
+                'views' => (int) ($listingStats->views ?? 0),
+                'pending_listings' => (int) ($listingStats->pending_listings ?? 0),
+                'pending_upgrades' => PlanUpgrade::query()
+                    ->where('status', PlanUpgrade::STATUS_PENDING)
+                    ->count(),
+            ];
+
+            $recentListings = Listing::query()
+                ->with(['category:id,name', 'user:id,name'])
+                ->latest()
+                ->limit(8)
+                ->get()
+                ->map(fn (Listing $listing) => $this->listingRow($listing));
+
+            $expiringListings = Listing::query()
+                ->with(['category:id,name'])
                 ->whereNotNull('expires_at')
-                ->whereBetween('expires_at', [$now, $now->copy()->addDays(14)])
-                ->count(),
-            'expired' => Listing::query()
-                ->whereNotNull('expires_at')
-                ->where('expires_at', '<', $now)
-                ->count(),
-            'categories' => Category::query()->count(),
-            'users' => User::query()->count(),
-            'admins' => User::query()->where('is_admin', true)->count(),
-            'stories' => Story::query()->count(),
-            'draft_stories' => Story::query()->where('is_published', false)->count(),
-            'views' => (int) Listing::query()->sum('views_count'),
-            'pending_listings' => Listing::query()->where('status', 'pending')->count(),
-            'pending_upgrades' => PlanUpgrade::query()->where('status', PlanUpgrade::STATUS_PENDING)->count(),
-        ];
+                ->where('expires_at', '>=', $now->copy()->subDays(7))
+                ->orderBy('expires_at')
+                ->limit(8)
+                ->get()
+                ->map(fn (Listing $listing) => $this->listingRow($listing));
 
-        $recentListings = Listing::query()
-            ->with(['category:id,name', 'user:id,name'])
-            ->latest()
-            ->limit(8)
-            ->get()
-            ->map(fn (Listing $listing) => $this->listingRow($listing));
+            $categoryBreakdown = Category::query()
+                ->withCount('listings')
+                ->orderByDesc('listings_count')
+                ->limit(8)
+                ->get(['id', 'name', 'slug'])
+                ->map(fn (Category $cat) => [
+                    'id' => $cat->id,
+                    'name' => $cat->name,
+                    'slug' => $cat->slug,
+                    'listings_count' => (int) $cat->listings_count,
+                ])
+                ->values();
 
-        $expiringListings = Listing::query()
-            ->with(['category:id,name'])
-            ->whereNotNull('expires_at')
-            ->where('expires_at', '>=', $now->copy()->subDays(7))
-            ->orderBy('expires_at')
-            ->limit(8)
-            ->get()
-            ->map(fn (Listing $listing) => $this->listingRow($listing));
+            return [
+                'stats' => $stats,
+                'recentListings' => $recentListings->values(),
+                'expiringListings' => $expiringListings->values(),
+                'categoryBreakdown' => $categoryBreakdown,
+                'charts' => [
+                    'activity' => $this->activitySeries(30),
+                    'categories' => $categoryBreakdown->map(fn (array $cat) => [
+                        'name' => $cat['name'],
+                        'count' => $cat['listings_count'],
+                    ])->values(),
+                    'statuses' => $this->groupedCounts(Listing::class, 'status'),
+                    'tiers' => $this->groupedCounts(Listing::class, 'tier'),
+                ],
+            ];
+        });
 
-        $categoryBreakdown = Category::query()
-            ->withCount('listings')
-            ->orderByDesc('listings_count')
-            ->limit(8)
-            ->get(['id', 'name', 'slug', 'listings_count']);
-
-        $charts = [
-            'activity' => $this->activitySeries(30),
-            'categories' => $categoryBreakdown->map(fn (Category $cat) => [
-                'name' => $cat->name,
-                'count' => (int) $cat->listings_count,
-            ])->values(),
-            'statuses' => $this->groupedCounts(Listing::class, 'status'),
-            'tiers' => $this->groupedCounts(Listing::class, 'tier'),
-        ];
-
-        return Inertia::render('Admin/Dashboard', [
-            'stats' => $stats,
-            'recentListings' => $recentListings,
-            'expiringListings' => $expiringListings,
-            'categoryBreakdown' => $categoryBreakdown,
-            'charts' => $charts,
-        ]);
+        return Inertia::render('Admin/Dashboard', $payload);
     }
 
     /**

@@ -6,6 +6,7 @@ use App\Models\Conversation;
 use App\Models\ListingClaim;
 use App\Models\ListingReport;
 use App\Models\SiteSetting;
+use App\Support\AdminNotifications;
 use App\Support\MemberMessages;
 use App\Support\MemberNotifications;
 use App\Support\Membership;
@@ -61,48 +62,79 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $isAdminArea = $request->is('admin', 'admin/*');
+
         return [
             ...parent::share($request),
-            'auth' => [
-                'user' => $request->user()
-                    ? [
-                        'id' => $request->user()->id,
-                        'name' => $request->user()->name,
-                        'username' => $request->user()->username,
-                        'email' => $request->user()->email,
-                        'avatar_url' => UserAvatar::publicUrl($request->user()->avatar_url),
-                        'is_admin' => (bool) $request->user()->is_admin,
-                        'plan' => $request->user()->effectivePlan(),
-                        'plan_label' => Membership::label($request->user()->effectivePlan()),
-                        'listings_remaining' => Membership::remainingSlots($request->user()),
-                        'bookmarkedListingIds' => (function () use ($request) {
-                            try {
-                                $userId = (int) $request->user()->id;
+            'auth' => function () use ($request, $isAdminArea) {
+                $user = $request->user();
 
-                                return Cache::remember(
-                                    'user.'.$userId.'.bookmark_ids',
-                                    120,
-                                    fn () => $request->user()
-                                        ->bookmarkedListings()
-                                        ->pluck('listings.id')
-                                        ->map(fn ($id) => (int) $id)
-                                        ->values()
-                                        ->all(),
-                                );
-                            } catch (Throwable) {
-                                return [];
-                            }
-                        })(),
-                    ]
-                    : null,
-            ],
+                if (! $user) {
+                    return ['user' => null];
+                }
+
+                $bookmarkIds = [];
+
+                if (! $isAdminArea) {
+                    try {
+                        $userId = (int) $user->id;
+                        $bookmarkIds = Cache::remember(
+                            'user.'.$userId.'.bookmark_ids',
+                            120,
+                            fn () => $user
+                                ->bookmarkedListings()
+                                ->pluck('listings.id')
+                                ->map(fn ($id) => (int) $id)
+                                ->values()
+                                ->all(),
+                        );
+                    } catch (Throwable) {
+                        $bookmarkIds = [];
+                    }
+                }
+
+                return [
+                    'user' => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'username' => $user->username,
+                        'email' => $user->email,
+                        'avatar_url' => UserAvatar::publicUrl($user->avatar_url),
+                        'is_admin' => (bool) $user->is_admin,
+                        'plan' => $user->effectivePlan(),
+                        'plan_label' => Membership::label($user->effectivePlan()),
+                        'listings_remaining' => $isAdminArea
+                            ? null
+                            : Membership::remainingSlots($user),
+                        'bookmarkedListingIds' => $bookmarkIds,
+                    ],
+                ];
+            },
             'flash' => [
                 'status' => fn () => $request->session()->get('status'),
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
             ],
-            'notifications' => fn () => MemberNotifications::forUser($request->user()),
-            'messages' => fn () => MemberMessages::forUser($request->user()),
+            'notifications' => function () use ($request, $isAdminArea) {
+                if ($isAdminArea) {
+                    return [
+                        'unread_count' => 0,
+                        'recent' => [],
+                    ];
+                }
+
+                return MemberNotifications::forUser($request->user());
+            },
+            'messages' => function () use ($request, $isAdminArea) {
+                if ($isAdminArea) {
+                    return [
+                        'unread_count' => 0,
+                        'recent' => [],
+                    ];
+                }
+
+                return MemberMessages::forUser($request->user());
+            },
             'mapProvider' => function () {
                 $value = SiteSetting::getValue('map_provider', 'google');
 
@@ -129,15 +161,28 @@ class HandleInertiaRequests extends Middleware
                     ];
                 }
             },
+            'adminInbox' => function () use ($request, $isAdminArea) {
+                if (! $isAdminArea || ! $request->user()?->is_admin) {
+                    return [
+                        'unread_count' => 0,
+                        'message_unread' => 0,
+                        'alert_count' => 0,
+                        'messages' => [],
+                        'alerts' => [],
+                    ];
+                }
+
+                return AdminNotifications::inbox();
+            },
             'pendingClaims' => function () use ($request) {
                 if (! $request->user()?->is_admin) {
                     return 0;
                 }
 
                 try {
-                    return ListingClaim::query()
+                    return Cache::remember('admin.badge.pending_claims', 30, fn () => ListingClaim::query()
                         ->where('status', ListingClaim::STATUS_PENDING)
-                        ->count();
+                        ->count());
                 } catch (Throwable) {
                     return 0;
                 }
@@ -148,9 +193,9 @@ class HandleInertiaRequests extends Middleware
                 }
 
                 try {
-                    return ListingReport::query()
+                    return Cache::remember('admin.badge.pending_reports', 30, fn () => ListingReport::query()
                         ->where('status', ListingReport::STATUS_PENDING)
-                        ->count();
+                        ->count());
                 } catch (Throwable) {
                     return 0;
                 }
@@ -161,9 +206,9 @@ class HandleInertiaRequests extends Middleware
                 }
 
                 try {
-                    return Conversation::query()
+                    return Cache::remember('admin.badge.inbox_messages', 30, fn () => Conversation::query()
                         ->where('admin_status', 'new')
-                        ->count();
+                        ->count());
                 } catch (Throwable) {
                     return 0;
                 }

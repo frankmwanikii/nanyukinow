@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use App\Models\SiteSetting;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 
 class SitePage extends Model
 {
@@ -31,9 +31,35 @@ class SitePage extends Model
 
     public static function findBySlug(string $slug): ?self
     {
-        static::ensureDefaults();
+        $id = Cache::flexible("site_page_id.{$slug}", [300, 900], function () use ($slug) {
+            $page = static::query()->where('slug', $slug)->first();
 
-        return static::query()->where('slug', $slug)->first();
+            if (! $page) {
+                static::ensureDefaults();
+                $page = static::query()->where('slug', $slug)->first();
+            }
+
+            return $page?->id;
+        });
+
+        if (! $id) {
+            return null;
+        }
+
+        return static::query()->find($id);
+    }
+
+    public static function forgetPageCache(?string $slug = null): void
+    {
+        if ($slug !== null) {
+            Cache::forget("site_page_id.{$slug}");
+
+            return;
+        }
+
+        foreach (static::defaults() as $row) {
+            Cache::forget('site_page_id.'.$row['slug']);
+        }
     }
 
     /**
@@ -121,9 +147,14 @@ class SitePage extends Model
 
     public static function ensureDefaults(): void
     {
-        foreach (static::defaults() as $row) {
-            $existing = static::query()->where('slug', $row['slug'])->first();
-            if ($existing) {
+        $defaults = static::defaults();
+        $existingSlugs = static::query()
+            ->whereIn('slug', array_column($defaults, 'slug'))
+            ->pluck('slug')
+            ->all();
+
+        foreach ($defaults as $row) {
+            if (in_array($row['slug'], $existingSlugs, true)) {
                 continue;
             }
 
@@ -261,5 +292,11 @@ class SitePage extends Model
         static::ensureDefaults();
 
         return static::query()->orderBy('sort_order')->orderBy('id')->get();
+    }
+
+    protected static function booted(): void
+    {
+        static::saved(fn (self $page) => static::forgetPageCache($page->slug));
+        static::deleted(fn (self $page) => static::forgetPageCache($page->slug));
     }
 }

@@ -1,4 +1,4 @@
-import { BackMark, ForwardMark, NyukiMark, SendMark } from '@/Components/site/Mark';
+import { BackMark, ForwardMark, NyukiMark, SendArrowMark } from '@/Components/site/Mark';
 import SiteLayout from '@/Layouts/SiteLayout';
 import { Head, router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
@@ -278,7 +278,7 @@ export default function Index({ prompts = [] }) {
                                     : 'bg-olive-900/15 text-olive-500'
                             }`}
                         >
-                            <SendMark className="h-5 w-5 translate-x-px" />
+                            <SendArrowMark className="h-5 w-5" />
                         </button>
                     </form>
                 </div>

@@ -149,6 +149,9 @@ Route::middleware('auth')->group(function () {
     Route::delete('/account/messages/alerts/{id}', [MessageController::class, 'destroyAlert'])->name('account.messages.alerts.destroy');
     Route::get('/account/messages/{conversation}', [MessageController::class, 'show'])->name('account.messages.show');
     Route::post('/account/messages/{conversation}', [MessageController::class, 'reply'])->name('account.messages.reply');
+    Route::get('/account/messages/{conversation}/{message}/attachments/{index}', [MessageController::class, 'downloadAttachment'])
+        ->whereNumber('index')
+        ->name('account.messages.attachment');
     Route::delete('/account/messages/{conversation}', [MessageController::class, 'destroy'])->name('account.messages.destroy');
 
     Route::get('/account/tickets', [AccountSupportTicketController::class, 'index'])->name('account.tickets.index');

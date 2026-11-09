@@ -112,6 +112,38 @@ class MessagesTest extends TestCase
         $this->assertSame(2, CommunicationLog::query()->count());
     }
 
+    public function test_admin_can_send_email_to_a_single_address(): void
+    {
+        Mail::fake();
+
+        $admin = User::factory()->create(['is_admin' => true]);
+
+        $this->actingAs($admin)
+            ->post(route('admin.messages.store'), [
+                'intent' => 'send',
+                'mode' => 'single',
+                'channel' => 'email',
+                'to_email' => 'urbanpulsed@gmail.com',
+                'to_name' => 'Urban Pulse',
+                'subject' => 'Testing the admin emails',
+                'body' => '<p>Hello <strong>there</strong></p>',
+            ])
+            ->assertRedirect(route('admin.messages.index', ['folder' => 'sent']));
+
+        Mail::assertSent(AdminBroadcastMail::class, function (AdminBroadcastMail $mail) {
+            return $mail->hasTo('urbanpulsed@gmail.com')
+                && $mail->subjectLine === 'Testing the admin emails'
+                && str_contains($mail->bodyText, '<strong>there</strong>');
+        });
+
+        $this->assertDatabaseHas('communication_logs', [
+            'recipient_email' => 'urbanpulsed@gmail.com',
+            'recipient_name' => 'Urban Pulse',
+            'subject' => 'Testing the admin emails',
+            'status' => 'sent',
+        ]);
+    }
+
     public function test_admin_can_broadcast_to_newsletter_subscribers(): void
     {
         Mail::fake();

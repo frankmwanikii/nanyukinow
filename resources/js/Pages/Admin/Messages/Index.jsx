@@ -3,10 +3,11 @@ import {
     AdminButton,
     AdminInput,
     AdminSelect,
-    AdminTextarea,
     Pagination,
 } from '@/Components/Admin/ui';
+import RichTextEditor from '@/Components/listing-form/RichTextEditor';
 import { Head, router, useForm } from '@inertiajs/react';
+import { SendArrowMark } from '@/Components/site/Mark';
 import {
     AtSign,
     BookUser,
@@ -311,12 +312,11 @@ function ComposePanel({ composeMode, counts, contacts, prefillTo = '' }) {
     const [title, sub] = titles[composeMode] || titles.group;
 
     const submit = (intent) => {
-        form
-            .transform((data) => ({ ...data, intent }))
-            .post(route('admin.messages.store'), {
-                preserveScroll: true,
-                onFinish: () => form.transform((data) => data),
-            });
+        form.transform((data) => ({ ...data, intent }));
+        form.post(route('admin.messages.store'), {
+            preserveScroll: true,
+            onFinish: () => form.transform((data) => data),
+        });
     };
 
     return (
@@ -453,13 +453,15 @@ function ComposePanel({ composeMode, counts, contacts, prefillTo = '' }) {
                         error={form.errors.subject}
                         placeholder="Payment received — …"
                     />
-                    <AdminTextarea
+                    <RichTextEditor
+                        id="admin-compose-message"
                         label="Message"
-                        rows={12}
                         value={form.data.body}
-                        onChange={(e) => form.setData('body', e.target.value)}
+                        onChange={(html) => form.setData('body', html)}
                         error={form.errors.body}
                         placeholder="Write your email…"
+                        allowImages={false}
+                        compact
                     />
                 </div>
 
@@ -473,8 +475,10 @@ function ComposePanel({ composeMode, counts, contacts, prefillTo = '' }) {
                         Save draft
                     </AdminButton>
                     <AdminButton type="submit" disabled={form.processing}>
-                        <Send className="h-4 w-4" />
                         {form.processing ? 'Sending…' : 'Send'}
+                        {!form.processing ? (
+                            <SendArrowMark className="h-4 w-4" />
+                        ) : null}
                     </AdminButton>
                 </div>
             </form>

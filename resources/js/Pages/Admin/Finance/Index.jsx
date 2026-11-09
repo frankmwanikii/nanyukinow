@@ -246,7 +246,7 @@ function ReviewPaymentDialog({ payment, methods, onClose }) {
                             <dd className="mt-0.5 font-semibold text-olive-950 dark:text-olive-50">
                                 {payment.listings_count ?? 0} total
                                 {payment.paid_listings_count
-                                    ? ` · ${payment.paid_listings_count} paid tier`
+                                    ? `, ${payment.paid_listings_count} paid tier`
                                     : ''}
                             </dd>
                         </div>
@@ -505,7 +505,7 @@ function Overview({ stats, counts, breakdowns, methods, onGoPending, onGoPayment
                 <SummaryCard
                     title="All-time revenue"
                     value={money(stats.approved_amount, currency)}
-                    hint={`${stats.approved_count ?? 0} approved · avg ${money(stats.avg_ticket, currency)}`}
+                    hint={`${stats.approved_count ?? 0} approved, avg ${money(stats.avg_ticket, currency)}`}
                     icon={CircleDollarSign}
                     iconTone="mint"
                     actionLabel="All payments"
@@ -521,7 +521,7 @@ function Overview({ stats, counts, breakdowns, methods, onGoPending, onGoPayment
                 <SummaryCard
                     title="Paid listing reach"
                     value={stats.published_paid_listings ?? 0}
-                    hint={`${stats.featured_listings ?? 0} featured · ${stats.premium_listings ?? 0} premium · ${stats.paid_members ?? 0} paid members`}
+                    hint={`${stats.featured_listings ?? 0} featured, ${stats.premium_listings ?? 0} premium, ${stats.paid_members ?? 0} paid members`}
                     icon={Sparkles}
                     iconTone="slate"
                     actionLabel="View listings"
@@ -557,7 +557,7 @@ function Overview({ stats, counts, breakdowns, methods, onGoPending, onGoPayment
                                             {row.label}
                                         </span>
                                         <span className="tabular-nums text-olive-600 dark:text-olive-300">
-                                            {money(row.total, currency)} · {row.count}
+                                            {money(row.total, currency)}, {row.count}
                                         </span>
                                     </div>
                                     <div className="h-2 overflow-hidden rounded-full bg-olive-100 dark:bg-olive-800">
@@ -588,7 +588,7 @@ function Overview({ stats, counts, breakdowns, methods, onGoPending, onGoPayment
                                             {row.label}
                                         </span>
                                         <span className="tabular-nums text-olive-600 dark:text-olive-300">
-                                            {money(row.total, currency)} · {row.count}
+                                            {money(row.total, currency)}, {row.count}
                                         </span>
                                     </div>
                                     <div className="h-2 overflow-hidden rounded-full bg-olive-100 dark:bg-olive-800">

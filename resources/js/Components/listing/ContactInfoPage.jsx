@@ -11,9 +11,9 @@ import {
 import {
     CheckMark,
     CloseMark,
-    ForwardMark,
     MailMark,
     PhoneMark,
+    SendArrowMark,
     UploadMark,
 } from '@/Components/site/Mark';
 import { showSuccessToast } from '@/Components/site/SuccessToast';
@@ -763,7 +763,7 @@ export function ContactMessageForm({
                             : sending
                               ? 'Sending…'
                               : 'Send message'}
-                        <ForwardMark className="h-4 w-4" />
+                        <SendArrowMark className="h-4 w-4" />
                     </button>
                 </div>
                 {formError ? (

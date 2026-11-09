@@ -12,15 +12,19 @@
         {{ $greeting }}
     </p>
 
-    @foreach ($bodyParagraphs as $paragraph)
-        @if (trim((string) $paragraph) !== '')
-            <p style="margin:0 0 16px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.65;color:#4b533a;">
-                {{ $paragraph }}
-            </p>
-        @else
-            <div style="height:10px;line-height:10px;font-size:0;">&nbsp;</div>
-        @endif
-    @endforeach
+    @if (! empty($bodyHtml))
+        <div class="message-copy" style="margin:0 0 16px 0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.65;color:#4b533a;">{!! $bodyHtml !!}</div>
+    @else
+        @foreach ($bodyParagraphs as $paragraph)
+            @if (trim((string) $paragraph) !== '')
+                <p style="margin:0 0 16px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.65;color:#4b533a;">
+                    {{ $paragraph }}
+                </p>
+            @else
+                <div style="height:10px;line-height:10px;font-size:0;">&nbsp;</div>
+            @endif
+        @endforeach
+    @endif
 
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:8px;border-collapse:collapse;">
         <tr>

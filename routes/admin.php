@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\PageController;
 use App\Http\Controllers\Admin\PricingController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\SearchController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\StoryController;
 use App\Http\Controllers\Admin\UserController;
@@ -26,6 +27,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::middleware(['auth', 'admin'])->group(function () {
         Route::post('logout', [AuthController::class, 'destroy'])->name('logout');
         Route::get('/', DashboardController::class)->name('dashboard');
+
+        Route::get('search', [SearchController::class, 'index'])->name('search');
+        Route::get('search/suggest', [SearchController::class, 'suggest'])
+            ->middleware('throttle:60,1')
+            ->name('search.suggest');
 
         Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -79,6 +85,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::get('messages', [MessageController::class, 'index'])->name('messages.index');
         Route::post('messages', [MessageController::class, 'store'])->name('messages.store');
+        Route::post('messages/read-all', [MessageController::class, 'readAll'])->name('messages.read-all');
         Route::post('messages/star', [MessageController::class, 'star'])->name('messages.star');
         Route::post('messages/label', [MessageController::class, 'label'])->name('messages.label');
         Route::post('messages/delete', [MessageController::class, 'destroy'])->name('messages.destroy');

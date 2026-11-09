@@ -1,16 +1,139 @@
 import AccountLayout from '@/Layouts/AccountLayout';
 import { useConfirm } from '@/Components/ConfirmDialog';
 import {
+    AttachMark,
     BackMark,
     CheckMark,
+    CloseMark,
     ForwardMark,
     MessageMark,
     SearchMark,
+    SendArrowMark,
     TrashMark,
 } from '@/Components/site/Mark';
 import { plainText } from '@/utils/plainText';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+
+const MESSAGE_ACCEPT =
+    'image/jpeg,image/png,image/webp,image/gif,application/pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+const MAX_MESSAGE_FILES = 5;
+const MAX_MESSAGE_FILE_BYTES = 8 * 1024 * 1024;
+
+function formatBytes(bytes) {
+    if (!bytes || bytes < 1024) {
+        return `${bytes || 0} B`;
+    }
+    if (bytes < 1024 * 1024) {
+        return `${(bytes / 1024).toFixed(1)} KB`;
+    }
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function AttachmentPreview({ file, mine, onClose }) {
+    useEffect(() => {
+        if (!file) {
+            return undefined;
+        }
+        const onKey = (e) => {
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        };
+        document.addEventListener('keydown', onKey);
+        const previous = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.removeEventListener('keydown', onKey);
+            document.body.style.overflow = previous;
+        };
+    }, [file, onClose]);
+
+    if (!file || typeof document === 'undefined') {
+        return null;
+    }
+
+    return createPortal(
+        <div className="fixed inset-0 z-[1400] flex items-center justify-center p-4 sm:p-6">
+            <button
+                type="button"
+                aria-label="Close preview"
+                className="absolute inset-0 bg-earth-dusk/70"
+                onClick={onClose}
+            />
+            <div
+                role="dialog"
+                aria-modal="true"
+                aria-label={file.name}
+                className="relative z-[1401] flex max-h-[min(92vh,52rem)] w-full max-w-4xl flex-col overflow-hidden border border-olive-900/15 bg-white shadow-lift dark:border-olive-700 dark:bg-olive-950"
+            >
+                <div className="flex items-center justify-between gap-3 border-b border-olive-900/10 px-4 py-3 dark:border-olive-800">
+                    <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-olive-950 dark:text-olive-50">
+                            {file.name}
+                        </p>
+                        <p className="mt-0.5 text-xs text-olive-500">
+                            {[file.mime, file.size ? formatBytes(file.size) : null]
+                                .filter(Boolean)
+                                .join(' · ')}
+                        </p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                        <a
+                            href={file.download_url || `${file.url}?download=1`}
+                            className="inline-flex items-center gap-1.5 border border-olive-900/15 px-3 py-2 text-xs font-semibold text-olive-800 transition hover:border-mustard hover:bg-mustard hover:text-olive-950 dark:border-olive-700 dark:text-olive-100"
+                        >
+                            Download
+                        </a>
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="inline-flex h-9 w-9 items-center justify-center text-olive-500 transition hover:bg-olive-50 hover:text-olive-950 dark:hover:bg-olive-900 dark:hover:text-olive-50"
+                            aria-label="Close"
+                        >
+                            <CloseMark className="h-4 w-4" />
+                        </button>
+                    </div>
+                </div>
+                <div className="flex min-h-0 flex-1 items-center justify-center bg-olive-50/70 p-4 dark:bg-olive-900/40">
+                    {file.kind === 'image' ? (
+                        <img
+                            src={file.url}
+                            alt={file.name}
+                            className="max-h-[min(75vh,42rem)] max-w-full object-contain"
+                        />
+                    ) : file.kind === 'pdf' ? (
+                        <iframe
+                            title={file.name}
+                            src={file.url}
+                            className="h-[min(75vh,42rem)] w-full border-0 bg-white"
+                        />
+                    ) : (
+                        <div className="max-w-sm px-4 py-10 text-center">
+                            <AttachMark className="mx-auto h-10 w-10 text-olive-400" />
+                            <p className="mt-3 text-sm font-medium text-olive-800 dark:text-olive-100">
+                                Preview isn’t available for this file type.
+                            </p>
+                            <a
+                                href={file.download_url || `${file.url}?download=1`}
+                                className="mt-4 inline-flex items-center gap-1.5 border border-mustard bg-mustard px-4 py-2.5 text-sm font-semibold text-earth-dusk transition hover:bg-olive-900 hover:text-white"
+                            >
+                                Download {file.name}
+                            </a>
+                        </div>
+                    )}
+                </div>
+                {mine ? (
+                    <p className="border-t border-olive-900/10 px-4 py-2 text-[11px] text-olive-400 dark:border-olive-800">
+                        Sent by you
+                    </p>
+                ) : null}
+            </div>
+        </div>,
+        document.body,
+    );
+}
 
 function Avatar({ src, initials, size = 'md', logo = false }) {
     const [failed, setFailed] = useState(false);
@@ -57,20 +180,82 @@ function Avatar({ src, initials, size = 'md', logo = false }) {
 
 function ChatPane({ conversation, onDelete }) {
     const bottomRef = useRef(null);
-    const form = useForm({ body: '' });
+    const fileInputRef = useRef(null);
+    const [preview, setPreview] = useState(null);
+    const form = useForm({ body: '', attachments: [] });
 
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [conversation?.id, conversation?.messages?.length]);
 
+    useEffect(() => {
+        form.reset('body', 'attachments');
+        form.clearErrors();
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+        // Reset composer when switching threads.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [conversation?.id]);
+
+    const canSend =
+        form.data.body.trim().length > 0 ||
+        (Array.isArray(form.data.attachments) &&
+            form.data.attachments.length > 0);
+
+    const addFiles = (fileList) => {
+        const incoming = Array.from(fileList || []);
+        if (incoming.length === 0) {
+            return;
+        }
+
+        const current = Array.isArray(form.data.attachments)
+            ? [...form.data.attachments]
+            : [];
+        const next = [...current];
+
+        for (const file of incoming) {
+            if (next.length >= MAX_MESSAGE_FILES) {
+                break;
+            }
+            if (file.size > MAX_MESSAGE_FILE_BYTES) {
+                form.setError(
+                    'attachments',
+                    'Each file must be 8 MB or smaller.',
+                );
+                continue;
+            }
+            next.push(file);
+        }
+
+        form.setData('attachments', next);
+        if (next.length > 0) {
+            form.clearErrors('attachments');
+        }
+    };
+
+    const removeFile = (index) => {
+        const next = (form.data.attachments || []).filter((_, i) => i !== index);
+        form.setData('attachments', next);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
+
     const submit = (e) => {
         e.preventDefault();
-        if (!form.data.body.trim()) {
+        if (!canSend) {
             return;
         }
         form.post(route('account.messages.reply', conversation.id), {
             preserveScroll: true,
-            onSuccess: () => form.reset('body'),
+            forceFormData: true,
+            onSuccess: () => {
+                form.reset('body', 'attachments');
+                if (fileInputRef.current) {
+                    fileInputRef.current.value = '';
+                }
+            },
         });
     };
 
@@ -152,22 +337,100 @@ function ChatPane({ conversation, onDelete }) {
                                     {message.sender_name}
                                 </p>
                             ) : null}
-                            {/<[a-z][\s\S]*>/i.test(message.body || '') ? (
-                                <div
-                                    className={`nn-editor text-sm leading-relaxed ${
-                                        message.mine
-                                            ? 'text-white [&_a]:text-mustard'
-                                            : ''
+                            {message.body ? (
+                                /<[a-z][\s\S]*>/i.test(message.body) ? (
+                                    <div
+                                        className={`nn-editor text-sm leading-relaxed ${
+                                            message.mine
+                                                ? 'text-white [&_a]:text-mustard'
+                                                : ''
+                                        }`}
+                                        dangerouslySetInnerHTML={{
+                                            __html: message.body,
+                                        }}
+                                    />
+                                ) : (
+                                    <p className="whitespace-pre-wrap text-sm leading-relaxed">
+                                        {message.body}
+                                    </p>
+                                )
+                            ) : null}
+                            {(message.attachments || []).length > 0 ? (
+                                <ul
+                                    className={`space-y-2 ${
+                                        message.body ? 'mt-2.5' : ''
                                     }`}
-                                    dangerouslySetInnerHTML={{
-                                        __html: message.body,
-                                    }}
-                                />
-                            ) : (
-                                <p className="whitespace-pre-wrap text-sm leading-relaxed">
-                                    {message.body}
-                                </p>
-                            )}
+                                >
+                                    {message.attachments.map((file) => (
+                                        <li key={`${message.id}-${file.index}`}>
+                                            {file.kind === 'image' ? (
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setPreview({
+                                                            ...file,
+                                                            mine: message.mine,
+                                                        })
+                                                    }
+                                                    className="block max-w-full overflow-hidden border border-black/10 text-left transition hover:opacity-95"
+                                                    aria-label={`Preview ${file.name}`}
+                                                >
+                                                    <img
+                                                        src={file.url}
+                                                        alt={file.name}
+                                                        className="max-h-56 max-w-full object-cover"
+                                                        loading="lazy"
+                                                    />
+                                                    <span
+                                                        className={`flex items-center justify-between gap-2 px-2.5 py-1.5 text-[11px] font-semibold ${
+                                                            message.mine
+                                                                ? 'bg-black/20 text-white'
+                                                                : 'bg-olive-50 text-olive-700 dark:bg-olive-950 dark:text-olive-200'
+                                                        }`}
+                                                    >
+                                                        <span className="truncate">
+                                                            {file.name}
+                                                        </span>
+                                                        <span className="shrink-0 opacity-80">
+                                                            Preview
+                                                        </span>
+                                                    </span>
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setPreview({
+                                                            ...file,
+                                                            mine: message.mine,
+                                                        })
+                                                    }
+                                                    className={`inline-flex max-w-full items-center gap-2 border px-2.5 py-1.5 text-left text-xs font-semibold transition ${
+                                                        message.mine
+                                                            ? 'border-white/20 bg-white/10 text-white hover:bg-white/20'
+                                                            : 'border-olive-900/15 bg-olive-50 text-olive-800 hover:border-mustard hover:bg-mustard/20 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-100'
+                                                    }`}
+                                                    aria-label={
+                                                        file.previewable
+                                                            ? `Preview ${file.name}`
+                                                            : `Open ${file.name}`
+                                                    }
+                                                >
+                                                    <AttachMark className="h-3.5 w-3.5 shrink-0" />
+                                                    <span className="truncate">
+                                                        {file.name}
+                                                    </span>
+                                                    {file.size ? (
+                                                        <span className="shrink-0 opacity-70">
+                                                            {formatBytes(file.size)}
+                                                        </span>
+                                                    ) : null}
+                                                </button>
+                                            )}
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : null}
                             <p
                                 className={`mt-2 text-[11px] ${
                                     message.mine
@@ -198,30 +461,82 @@ function ChatPane({ conversation, onDelete }) {
                             .join(' · ')}
                     </p>
                 )}
-                <div className="flex items-end gap-3">
-                    <textarea
-                        rows={2}
-                        value={form.data.body}
-                        onChange={(e) => form.setData('body', e.target.value)}
-                        placeholder="Write a reply"
-                        className="max-h-32 min-h-[3rem] flex-1 resize-none border border-olive-900/15 bg-white px-3.5 py-3 text-sm text-olive-900 outline-none transition placeholder:text-olive-400 focus:border-mustard focus:ring-1 focus:ring-mustard dark:border-olive-700 dark:bg-olive-900 dark:text-olive-50 dark:placeholder:text-olive-500"
-                        required
-                    />
+                {(form.data.attachments || []).length > 0 ? (
+                    <ul className="mb-3 flex flex-wrap gap-2">
+                        {form.data.attachments.map((file, index) => (
+                            <li
+                                key={`${file.name}-${index}`}
+                                className="inline-flex max-w-full items-center gap-2 border border-olive-900/15 bg-olive-50 px-2.5 py-1.5 text-xs font-semibold text-olive-800 dark:border-olive-700 dark:bg-olive-900 dark:text-olive-100"
+                            >
+                                <AttachMark className="h-3.5 w-3.5 shrink-0" />
+                                <span className="truncate">{file.name}</span>
+                                <button
+                                    type="button"
+                                    onClick={() => removeFile(index)}
+                                    className="inline-flex h-5 w-5 shrink-0 items-center justify-center text-olive-500 transition hover:text-rose-600"
+                                    aria-label={`Remove ${file.name}`}
+                                >
+                                    <CloseMark className="h-3 w-3" />
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                ) : null}
+                <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="relative min-w-0 flex-1">
+                        <textarea
+                            rows={2}
+                            value={form.data.body}
+                            onChange={(e) => form.setData('body', e.target.value)}
+                            placeholder="Write a reply"
+                            className="max-h-32 min-h-[3rem] w-full resize-none rounded-[2px] border border-olive-900/15 bg-white py-3 pl-3.5 pr-14 text-sm text-olive-900 outline-none transition placeholder:text-olive-400 focus:border-mustard focus:ring-1 focus:ring-mustard dark:border-olive-700 dark:bg-olive-900 dark:text-olive-50 dark:placeholder:text-olive-500"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="absolute right-1 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center text-olive-600 transition hover:text-olive-950 dark:text-olive-300 dark:hover:text-mustard"
+                            aria-label="Attach files"
+                            title="Attach files"
+                        >
+                            <AttachMark className="h-8 w-8" />
+                        </button>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            multiple
+                            accept={MESSAGE_ACCEPT}
+                            className="sr-only"
+                            onChange={(e) => {
+                                addFiles(e.target.files);
+                                e.target.value = '';
+                            }}
+                        />
+                    </div>
                     <button
                         type="submit"
-                        disabled={form.processing || !form.data.body.trim()}
-                        className="inline-flex h-11 w-11 shrink-0 items-center justify-center bg-mustard text-earth-dusk transition hover:bg-olive-900 hover:text-white disabled:opacity-50"
+                        disabled={form.processing || !canSend}
+                        className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-mustard text-earth-dusk transition hover:bg-olive-900 hover:text-white disabled:opacity-50"
                         aria-label="Send"
                     >
-                        <ForwardMark className="h-4 w-4" />
+                        <SendArrowMark className="h-5 w-5" />
                     </button>
                 </div>
                 {form.errors.body ? (
+                    <p className="mt-2 text-sm text-rose-600">{form.errors.body}</p>
+                ) : null}
+                {form.errors.attachments ? (
                     <p className="mt-2 text-sm text-rose-600">
-                        {form.errors.body}
+                        {form.errors.attachments}
                     </p>
                 ) : null}
             </form>
+            {preview ? (
+                <AttachmentPreview
+                    file={preview}
+                    mine={Boolean(preview.mine)}
+                    onClose={() => setPreview(null)}
+                />
+            ) : null}
         </div>
     );
 }

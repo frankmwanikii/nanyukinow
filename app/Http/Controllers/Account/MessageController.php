@@ -11,10 +11,15 @@ use App\Support\MemberNotifications;
 use App\Support\UserAvatar;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class MessageController extends Controller
 {
@@ -37,14 +42,34 @@ class MessageController extends Controller
         abort_unless($conversation->isParticipant($user), 403);
 
         $data = $request->validate([
-            'body' => ['required', 'string', 'max:5000'],
+            'body' => ['nullable', 'string', 'max:5000'],
+            'attachments' => ['nullable', 'array', 'max:5'],
+            'attachments.*' => [
+                'file',
+                'max:8192',
+                'mimes:jpg,jpeg,png,webp,gif,pdf,doc,docx',
+            ],
         ]);
 
-        $body = trim($data['body']);
+        $body = trim((string) ($data['body'] ?? ''));
+        $uploads = $request->file('attachments', []) ?: [];
+
+        if ($body === '' && $uploads === []) {
+            throw ValidationException::withMessages([
+                'body' => 'Write a reply or attach a file.',
+            ]);
+        }
+
+        $attachments = $this->storeAttachments(
+            $uploads,
+            $user->id,
+            $conversation->id,
+        );
 
         $message = $conversation->messages()->create([
             'user_id' => $user->id,
-            'body' => $body,
+            'body' => $body !== '' ? $body : '',
+            'attachments' => $attachments !== [] ? $attachments : null,
         ]);
 
         $conversation->forceFill(['last_message_at' => $message->created_at])->save();
@@ -53,11 +78,56 @@ class MessageController extends Controller
             'last_read_at' => now(),
         ]);
 
-        $this->emailGuestReply($conversation, $user, $body);
+        if ($body !== '') {
+            $this->emailGuestReply($conversation, $user, $body);
+        }
 
         return redirect()
             ->route('account.messages.show', $conversation)
             ->with('success', 'Message sent.');
+    }
+
+    public function downloadAttachment(
+        Request $request,
+        Conversation $conversation,
+        Message $message,
+        int $index,
+    ): StreamedResponse|BinaryFileResponse {
+        $user = $request->user();
+        abort_unless($conversation->isParticipant($user), 403);
+        abort_unless((int) $message->conversation_id === (int) $conversation->id, 404);
+
+        $attachments = is_array($message->attachments) ? $message->attachments : [];
+        $file = $attachments[$index] ?? null;
+        abort_unless(is_array($file) && filled($file['path'] ?? null), 404);
+        abort_unless(Storage::disk('local')->exists($file['path']), 404);
+
+        $name = $file['name'] ?? 'attachment';
+        $mime = $file['mime'] ?? Storage::disk('local')->mimeType($file['path']);
+        $forceDownload = $request->boolean('download');
+
+        if (! $forceDownload && $this->attachmentIsPreviewable($mime)) {
+            return Storage::disk('local')->response(
+                $file['path'],
+                $name,
+                [
+                    'Content-Type' => $mime ?: 'application/octet-stream',
+                    'X-Content-Type-Options' => 'nosniff',
+                ],
+                'inline',
+            );
+        }
+
+        return Storage::disk('local')->download($file['path'], $name);
+    }
+
+    private function attachmentIsPreviewable(?string $mime): bool
+    {
+        if (! is_string($mime) || $mime === '') {
+            return false;
+        }
+
+        return str_starts_with($mime, 'image/') || $mime === 'application/pdf';
     }
 
     public function markAllRead(Request $request): RedirectResponse
@@ -195,6 +265,52 @@ class MessageController extends Controller
         ]);
     }
 
+    /**
+     * @param  array<int, UploadedFile>  $uploads
+     * @return list<array{path: string, name: string, mime: ?string, size: ?int}>
+     */
+    private function storeAttachments(array $uploads, int $userId, int $conversationId): array
+    {
+        $stored = [];
+        $directory = 'message-attachments/'.$userId.'/'.$conversationId;
+        $absolute = storage_path('app/private/'.$directory);
+
+        if (! is_dir($absolute) && ! @mkdir($absolute, 0775, true) && ! is_dir($absolute)) {
+            throw ValidationException::withMessages([
+                'attachments' => 'Could not save the attached files. Try again.',
+            ]);
+        }
+
+        foreach ($uploads as $upload) {
+            if (! $upload) {
+                continue;
+            }
+
+            try {
+                $path = $upload->store($directory, 'local');
+            } catch (\Throwable) {
+                throw ValidationException::withMessages([
+                    'attachments' => 'Could not save one of the attached files. Try again.',
+                ]);
+            }
+
+            if (! is_string($path) || $path === '') {
+                throw ValidationException::withMessages([
+                    'attachments' => 'Could not save one of the attached files. Try again.',
+                ]);
+            }
+
+            $stored[] = [
+                'path' => $path,
+                'name' => $upload->getClientOriginalName() ?: 'attachment',
+                'mime' => $upload->getClientMimeType(),
+                'size' => $upload->getSize() ?: null,
+            ];
+        }
+
+        return $stored;
+    }
+
     private function emailGuestReply(Conversation $conversation, $owner, string $body): void
     {
         $conversation->loadMissing(['listing', 'messages']);
@@ -229,7 +345,7 @@ class MessageController extends Controller
     {
         $conversation->load([
             'listing:id,title,slug',
-            'messages' => fn ($q) => $q->oldest()->with('user'),
+            'messages' => fn ($q) => $q->reorder()->oldest('created_at')->oldest('id')->with('user'),
         ]);
 
         $otherParticipants = $conversation->participants()
@@ -262,8 +378,12 @@ class MessageController extends Controller
                     'phone' => $guest?->guest_phone,
                 ],
             'messages' => $conversation->messages
-                ->map(fn (Message $m) => MemberMessages::transformMessage($m, $user))
+                ->sortBy([
+                    ['created_at', 'asc'],
+                    ['id', 'asc'],
+                ])
                 ->values()
+                ->map(fn (Message $m) => MemberMessages::transformMessage($m, $user))
                 ->all(),
         ];
     }
