@@ -16,7 +16,6 @@ import {
     Menu,
     X,
     Search,
-    ExternalLink,
     LogOut,
     MessagesSquare,
 } from 'lucide-react';
@@ -222,9 +221,9 @@ function TopbarSearch() {
                     }}
                     placeholder="Search admin"
                     autoComplete="off"
-                    className="h-9 w-full rounded-md border border-olive-200 bg-white pl-9 pr-14 text-sm text-olive-900 outline-none placeholder:text-olive-400 focus:border-olive-600 focus:ring-1 focus:ring-olive-600/30 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-50 dark:placeholder:text-olive-500 dark:focus:border-mustard dark:focus:ring-mustard/30"
+                    className="h-9 w-full rounded-md border border-white/20 bg-white/95 pl-9 pr-14 text-sm text-olive-900 outline-none placeholder:text-olive-500 focus:border-mustard focus:ring-1 focus:ring-mustard/40 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-50 dark:placeholder:text-olive-500 dark:focus:border-mustard dark:focus:ring-mustard/30"
                 />
-                <kbd className="pointer-events-none absolute right-2.5 hidden select-none rounded-sm border border-olive-200 bg-olive-50 px-1.5 py-0.5 font-sans text-[10px] font-semibold text-olive-400 sm:inline-block dark:border-olive-700 dark:bg-olive-900 dark:text-olive-500">
+                <kbd className="pointer-events-none absolute right-2.5 hidden select-none rounded-sm border border-olive-200/80 bg-olive-50/90 px-1.5 py-0.5 font-sans text-[10px] font-semibold text-olive-500 sm:inline-block dark:border-olive-700 dark:bg-olive-900 dark:text-olive-500">
                     {isMac ? '⌘K' : 'Ctrl K'}
                 </kbd>
             </label>
@@ -282,7 +281,13 @@ function TopbarSearch() {
 
 function ThemeToggleControl() {
     const { isDark, setTheme } = useAdminTheme();
-    return <ThemeToggle isDark={isDark} setTheme={setTheme} />;
+    return (
+        <ThemeToggle
+            isDark={isDark}
+            setTheme={setTheme}
+            className="border-white/25 bg-white/10 dark:border-olive-700 dark:bg-olive-950"
+        />
+    );
 }
 
 function UserMenu({ user }) {
@@ -296,7 +301,7 @@ function UserMenu({ user }) {
                 aria-expanded={open}
                 aria-haspopup="menu"
                 aria-label="Account menu"
-                className="rounded-md ring-2 ring-transparent transition hover:ring-olive-300 focus:outline-none focus-visible:ring-olive-600 dark:hover:ring-olive-600 dark:focus-visible:ring-mustard"
+                className="rounded-md ring-2 ring-transparent transition hover:ring-white/40 focus:outline-none focus-visible:ring-mustard dark:hover:ring-olive-600 dark:focus-visible:ring-mustard"
             >
                 <UserAvatar user={user} />
             </button>
@@ -399,18 +404,18 @@ function AdminShell({ children }) {
     return (
         <div className={isDark ? 'dark' : ''}>
             <div className="fixed inset-0 flex flex-col overflow-hidden bg-olive-50 text-earth-dusk dark:bg-olive-950 dark:text-olive-50">
-                <header className="z-30 shrink-0 border-b border-olive-200 bg-white dark:border-olive-800 dark:bg-olive-900">
-                    <div className="grid h-14 grid-cols-[minmax(0,1fr)_minmax(0,28rem)_minmax(0,1fr)] items-center gap-3 px-3 sm:gap-4 sm:px-5">
+                <header className="z-30 shrink-0 border-b border-white/10 bg-[#4f5a3e] dark:border-olive-800 dark:bg-olive-900">
+                    <div className="grid h-16 grid-cols-[minmax(0,1fr)_minmax(0,28rem)_minmax(0,1fr)] items-center gap-3 px-3 sm:gap-4 sm:px-5">
                         <div className="flex min-w-0 items-center gap-2.5 justify-self-start">
                             <button
                                 type="button"
-                                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-olive-700 transition hover:bg-olive-100 dark:text-olive-200 dark:hover:bg-olive-800 lg:hidden"
+                                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-white transition hover:bg-white/10 dark:text-olive-200 dark:hover:bg-olive-800 lg:hidden"
                                 onClick={() => setOpen(true)}
                                 aria-label="Open navigation"
                             >
                                 {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
                             </button>
-                            <BrandMark />
+                            <BrandMark className="[&_img]:!mix-blend-lighten" />
                         </div>
 
                         <div className="hidden w-full justify-self-center sm:flex">
@@ -418,26 +423,15 @@ function AdminShell({ children }) {
                         </div>
 
                         <div className="flex items-center justify-end gap-1.5 justify-self-end sm:gap-2">
-                            <a
-                                href={route('home')}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                aria-label="Open public website"
-                                title="View website"
-                                className="relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-olive-700 transition hover:bg-olive-100 hover:text-olive-950 dark:text-olive-200 dark:hover:bg-olive-800 dark:hover:text-mustard"
-                            >
-                                <ExternalLink className="h-[18px] w-[18px]" strokeWidth={1.5} />
-                            </a>
-
                             <ThemeToggleControl />
 
-                            <AdminNotificationsBell />
+                            <AdminNotificationsBell tone="onGreen" />
 
                             <UserMenu user={user} />
                         </div>
                     </div>
 
-                    <div className="border-t border-olive-100 px-3 pb-3 pt-0 sm:hidden dark:border-olive-800">
+                    <div className="border-t border-white/10 px-3 pb-3 pt-0 sm:hidden dark:border-olive-800">
                         <TopbarSearch />
                     </div>
                 </header>

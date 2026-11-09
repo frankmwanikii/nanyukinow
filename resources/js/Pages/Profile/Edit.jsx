@@ -9,22 +9,21 @@ export default function Edit({ mustVerifyEmail, status, avatarUrl = null }) {
         <AccountLayout title="Personal info">
             <Head title="Profile" />
 
-            <div className="space-y-5">
+            <div className="mx-auto w-full max-w-xl space-y-5">
                 <section className="border border-olive-900/15 bg-white p-5 sm:p-6 dark:border-olive-800 dark:bg-olive-900">
                     <UpdateProfileInformationForm
                         mustVerifyEmail={mustVerifyEmail}
                         status={status}
                         avatarUrl={avatarUrl}
-                        className="max-w-xl"
                     />
                 </section>
 
                 <section className="border border-olive-900/15 bg-white p-5 sm:p-6 dark:border-olive-800 dark:bg-olive-900">
-                    <UpdatePasswordForm className="max-w-xl" />
+                    <UpdatePasswordForm />
                 </section>
 
                 <section className="border border-olive-900/15 bg-white p-5 sm:p-6 dark:border-olive-800 dark:bg-olive-900">
-                    <DeleteUserForm className="max-w-xl" />
+                    <DeleteUserForm />
                 </section>
             </div>
         </AccountLayout>

@@ -1,7 +1,6 @@
-import { ChevronLeft, ChevronRight, Expand } from 'lucide-react';
-import { AnimatePresence, motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
-import CloseButton from '@/Components/site/CloseButton';
+import { Expand } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import GalleryLightbox from './GalleryLightbox';
 import DetailSection from './DetailSection';
 
 /**
@@ -73,34 +72,26 @@ export default function MenuGallery({
 }) {
     const items = normalizeMenus(menus, docs);
     const [lightbox, setLightbox] = useState(null);
-
-    useEffect(() => {
-        if (lightbox == null) return undefined;
-        const onKey = (e) => {
-            if (e.key === 'Escape') setLightbox(null);
-            if (e.key === 'ArrowLeft') {
-                setLightbox((i) =>
-                    items.length ? (i - 1 + items.length) % items.length : i,
-                );
-            }
-            if (e.key === 'ArrowRight') {
-                setLightbox((i) =>
-                    items.length ? (i + 1) % items.length : i,
-                );
-            }
-        };
-        document.addEventListener('keydown', onKey);
-        document.body.style.overflow = 'hidden';
-        return () => {
-            document.removeEventListener('keydown', onKey);
-            document.body.style.overflow = '';
-        };
-    }, [lightbox, items.length]);
+    const slides = useMemo(
+        () =>
+            items
+                .filter((item) => item.image)
+                .map((item) => ({
+                    src: item.image,
+                    label: item.title,
+                    alt: item.title,
+                })),
+        [items],
+    );
 
     if (!items.length) return null;
 
-    const active =
-        lightbox != null ? items[Math.min(lightbox, items.length - 1)] : null;
+    const openSlide = (itemId) => {
+        const index = items
+            .filter((item) => item.image)
+            .findIndex((item) => item.id === itemId);
+        if (index >= 0) setLightbox(index);
+    };
 
     return (
         <>
@@ -122,7 +113,7 @@ export default function MenuGallery({
                             {item.image ? (
                                 <button
                                     type="button"
-                                    onClick={() => setLightbox(index)}
+                                    onClick={() => openSlide(item.id)}
                                     className="group relative block w-full overflow-hidden rounded-xl border border-olive-200/70 bg-olive-50 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard"
                                 >
                                     <img
@@ -166,119 +157,14 @@ export default function MenuGallery({
                 </ul>
             </DetailSection>
 
-            <AnimatePresence>
-                {active ? (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[1200] flex flex-col bg-[#0c0a08]/94 backdrop-blur-md"
-                        role="dialog"
-                        aria-modal="true"
-                        aria-label="Menu preview"
-                        onClick={() => setLightbox(null)}
-                    >
-                        <div
-                            className="relative z-20 flex items-center justify-between gap-3 px-4 py-4 sm:px-8"
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            <div className="min-w-0">
-                                <p className="truncate font-display text-sm font-semibold text-white sm:text-base">
-                                    {active.title}
-                                </p>
-                                <p className="text-[11px] font-medium uppercase tracking-wider text-white/55">
-                                    {lightbox + 1} of {items.length}
-                                </p>
-                            </div>
-                            <CloseButton
-                                onClick={() => setLightbox(null)}
-                                size="lg"
-                                tone="onDark"
-                                label="Close menu preview"
-                                className="bg-black/35"
-                            />
-                        </div>
-
-                        <div
-                            className="relative flex min-h-0 flex-1 items-center justify-center px-4 pb-6 sm:px-16"
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            {items.length > 1 ? (
-                                <>
-                                    <button
-                                        type="button"
-                                        aria-label="Previous menu page"
-                                        onClick={() =>
-                                            setLightbox(
-                                                (i) =>
-                                                    (i - 1 + items.length) %
-                                                    items.length,
-                                            )
-                                        }
-                                        className="absolute left-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-olive-900 shadow-lift sm:left-6 sm:h-12 sm:w-12"
-                                    >
-                                        <ChevronLeft className="h-5 w-5" />
-                                    </button>
-                                    <button
-                                        type="button"
-                                        aria-label="Next menu page"
-                                        onClick={() =>
-                                            setLightbox(
-                                                (i) => (i + 1) % items.length,
-                                            )
-                                        }
-                                        className="absolute right-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-olive-900 shadow-lift sm:right-6 sm:h-12 sm:w-12"
-                                    >
-                                        <ChevronRight className="h-5 w-5" />
-                                    </button>
-                                </>
-                            ) : null}
-
-                            <AnimatePresence mode="wait">
-                                <motion.img
-                                    key={active.image}
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -8 }}
-                                    transition={{ duration: 0.25 }}
-                                    src={active.image}
-                                    alt={active.title}
-                                    className="max-h-[min(78vh,900px)] w-auto max-w-full rounded-xl object-contain shadow-[0_30px_80px_-20px_rgba(0,0,0,0.65)] ring-1 ring-white/10"
-                                />
-                            </AnimatePresence>
-                        </div>
-
-                        {items.length > 1 ? (
-                            <div
-                                className="relative z-20 border-t border-white/10 bg-black/25 px-4 py-4 backdrop-blur-md sm:px-8"
-                                onClick={(e) => e.stopPropagation()}
-                            >
-                                <div className="mx-auto flex max-w-4xl gap-2 overflow-x-auto pb-1">
-                                    {items.map((item, index) => (
-                                        <button
-                                            key={item.id}
-                                            type="button"
-                                            onClick={() => setLightbox(index)}
-                                            className={`shrink-0 overflow-hidden rounded-lg transition ${
-                                                index === lightbox
-                                                    ? 'ring-2 ring-mustard ring-offset-2 ring-offset-[#0c0a08]'
-                                                    : 'opacity-65 hover:opacity-100'
-                                            }`}
-                                        >
-                                            <img
-                                                src={item.image}
-                                                alt=""
-                                                className="h-16 w-12 object-cover sm:h-20 sm:w-14"
-                                                loading="lazy"
-                                            />
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        ) : null}
-                    </motion.div>
-                ) : null}
-            </AnimatePresence>
+            {lightbox != null && slides[lightbox] ? (
+                <GalleryLightbox
+                    items={slides}
+                    index={lightbox}
+                    onClose={() => setLightbox(null)}
+                    onIndexChange={setLightbox}
+                />
+            ) : null}
         </>
     );
 }

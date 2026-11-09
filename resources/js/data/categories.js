@@ -131,6 +131,22 @@ export function getCategoryByKey(key) {
     return mainCategories.find((c) => c.key === key) ?? null;
 }
 
+/**
+ * Prefer server-shared directory categories (admin-managed). Fall back to static taxonomy.
+ */
+export function resolveDirectoryCategories(shared) {
+    if (Array.isArray(shared) && shared.length > 0) {
+        return shared;
+    }
+
+    return mainCategories.map((cat) => ({
+        key: cat.key,
+        slug: cat.slug,
+        label: cat.label,
+        children: cat.children || [],
+    }));
+}
+
 export function getCategoryBySlug(slug) {
     return mainCategories.find((c) => c.slug === slug) ?? null;
 }

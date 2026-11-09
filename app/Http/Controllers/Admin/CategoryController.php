@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Listing;
 use App\Support\AdminPagination;
+use App\Support\CategoryTaxonomy;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -60,6 +61,7 @@ class CategoryController extends Controller
         $data['sort_order'] = $data['sort_order'] ?? 0;
 
         Category::query()->create($data);
+        CategoryTaxonomy::forgetCache();
 
         return back()->with('success', 'Category created.');
     }
@@ -86,6 +88,7 @@ class CategoryController extends Controller
         $data['sort_order'] = $data['sort_order'] ?? $category->sort_order;
 
         $category->update($data);
+        CategoryTaxonomy::forgetCache();
 
         return back()->with('success', 'Category updated.');
     }
@@ -125,6 +128,7 @@ class CategoryController extends Controller
         }
 
         $category->delete();
+        CategoryTaxonomy::forgetCache();
 
         return redirect()
             ->route('admin.categories.index')
@@ -142,6 +146,8 @@ class CategoryController extends Controller
         foreach ($data['order'] as $row) {
             Category::query()->whereKey($row['id'])->update(['sort_order' => $row['sort_order']]);
         }
+
+        CategoryTaxonomy::forgetCache();
 
         return back()->with('success', 'Category order saved.');
     }

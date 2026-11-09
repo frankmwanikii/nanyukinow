@@ -187,7 +187,14 @@ function categoryNameLabel(categoryKey) {
     return map[categoryKey] || 'Name';
 }
 
-function subcategoriesFor(categoryKey) {
+function subcategoriesFor(categoryKey, selectedCategory = null) {
+    if (
+        Array.isArray(selectedCategory?.subcategories) &&
+        selectedCategory.subcategories.length > 0
+    ) {
+        return selectedCategory.subcategories;
+    }
+
     return mainCategories.find((c) => c.key === categoryKey)?.children || [];
 }
 
@@ -429,7 +436,7 @@ export default function Form({
     );
 
     const categoryKey = resolveCategoryKey(selectedCategory);
-    const subs = subcategoriesFor(categoryKey);
+    const subs = subcategoriesFor(categoryKey, selectedCategory);
     const isEatDrink = categoryKey === 'eatDrink';
     const isStay = categoryKey === 'stay';
     const isShopping = categoryKey === 'shopping';

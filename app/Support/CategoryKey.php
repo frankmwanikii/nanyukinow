@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use Illuminate\Support\Str;
+
 class CategoryKey
 {
     /**
@@ -49,6 +51,27 @@ class CategoryKey
     public static function isValid(?string $key): bool
     {
         return $key !== null && array_key_exists($key, self::DEFINITIONS);
+    }
+
+    /**
+     * Resolve a DB slug (or key) to a stable UI/filter key, including admin-created categories.
+     */
+    public static function resolve(?string $slug): ?string
+    {
+        if ($slug === null || $slug === '') {
+            return null;
+        }
+
+        $known = self::fromSlug($slug);
+        if ($known !== null) {
+            return $known;
+        }
+
+        if (str_contains($slug, '-') || str_contains($slug, '_')) {
+            return Str::camel(str_replace('_', '-', $slug));
+        }
+
+        return $slug;
     }
 
     public static function slug(?string $key): ?string

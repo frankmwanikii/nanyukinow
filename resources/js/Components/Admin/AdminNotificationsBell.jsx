@@ -83,13 +83,14 @@ function SenderAvatar({ name, avatarUrl }) {
     );
 }
 
-export default function AdminNotificationsBell() {
+export default function AdminNotificationsBell({ tone = 'default' }) {
     const { adminInbox } = usePage().props;
     const [open, setOpen] = useState(false);
     const { triggerRef, coords } = useAnchoredMenu(open, {
         maxWidth: 352,
         edgeGap: 12,
     });
+    const onGreen = tone === 'onGreen';
 
     const messages = adminInbox?.messages || [];
     const alerts = adminInbox?.alerts || [];
@@ -243,11 +244,21 @@ export default function AdminNotificationsBell() {
                 aria-haspopup="menu"
                 aria-label={unread ? `${unread} need attention` : 'Messages'}
                 title="Messages"
-                className="relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-olive-700 transition hover:bg-olive-100 hover:text-olive-950 dark:text-olive-200 dark:hover:bg-olive-800 dark:hover:text-mustard"
+                className={
+                    onGreen
+                        ? 'relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-white transition hover:bg-white/10 hover:text-mustard dark:text-olive-200 dark:hover:bg-olive-800 dark:hover:text-mustard'
+                        : 'relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-olive-700 transition hover:bg-olive-100 hover:text-olive-950 dark:text-olive-200 dark:hover:bg-olive-800 dark:hover:text-mustard'
+                }
             >
                 <BellMark className="h-8 w-8 translate-y-px" />
                 {unread > 0 ? (
-                    <span className="absolute right-0 top-0 flex h-4 min-w-4 translate-x-1/4 -translate-y-1/4 items-center justify-center rounded-full bg-mustard px-1 text-[10px] font-bold leading-none text-earth-dusk ring-2 ring-white dark:ring-olive-900">
+                    <span
+                        className={`absolute right-0 top-0 flex h-4 min-w-4 translate-x-1/4 -translate-y-1/4 items-center justify-center rounded-full bg-mustard px-1 text-[10px] font-bold leading-none text-earth-dusk ring-2 ${
+                            onGreen
+                                ? 'ring-[#4f5a3e] dark:ring-olive-900'
+                                : 'ring-white dark:ring-olive-900'
+                        }`}
+                    >
                         {unread > 9 ? '9+' : unread}
                     </span>
                 ) : null}

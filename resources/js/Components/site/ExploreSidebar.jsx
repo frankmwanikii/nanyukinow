@@ -6,9 +6,13 @@ import {
     Search,
     Star,
 } from 'lucide-react';
+import { usePage } from '@inertiajs/react';
 import { useEffect, useMemo, useState } from 'react';
 import { CloseMark } from '@/Components/site/Mark';
-import { mainCategories, PROPERTY_TYPES } from '@/data/categories';
+import {
+    PROPERTY_TYPES,
+    resolveDirectoryCategories,
+} from '@/data/categories';
 
 const RATING_OPTIONS = [
     { value: 5, label: '5 stars', stars: 5 },
@@ -39,11 +43,16 @@ export default function ExploreSidebar({
     onClear,
     className = '',
 }) {
+    const { directoryCategories: sharedCategories } = usePage().props;
+    const categories = useMemo(
+        () => resolveDirectoryCategories(sharedCategories),
+        [sharedCategories],
+    );
     const [tab, setTab] = useState(categoryKey ? 'categories' : 'filters');
 
     const activeCategory = useMemo(
-        () => mainCategories.find((c) => c.key === categoryKey) ?? null,
-        [categoryKey],
+        () => categories.find((c) => c.key === categoryKey) ?? null,
+        [categories, categoryKey],
     );
 
     useEffect(() => {
@@ -191,7 +200,7 @@ export default function ExploreSidebar({
                                     className="w-full appearance-none rounded-lg border-olive-200 bg-white py-2.5 pl-3 pr-9 text-sm text-earth-dusk focus:border-mustard focus:ring-mustard"
                                 >
                                     <option value="">All categories</option>
-                                    {mainCategories.map((cat) => (
+                                    {categories.map((cat) => (
                                         <option key={cat.key} value={cat.key}>
                                             {cat.label}
                                         </option>
@@ -383,7 +392,7 @@ export default function ExploreSidebar({
                             All listings
                         </button>
 
-                        {mainCategories.map((cat) => (
+                        {categories.map((cat) => (
                             <button
                                 key={cat.key}
                                 type="button"

@@ -137,7 +137,7 @@ export default function UpdatePasswordForm({ className = '' }) {
                     <button
                         type="submit"
                         disabled={processing}
-                        className="inline-flex items-center justify-center border border-mustard bg-mustard px-4 py-2.5 text-sm font-semibold text-earth-dusk transition hover:border-olive-900 hover:bg-olive-900 hover:text-white disabled:opacity-50 dark:hover:bg-olive-100 dark:hover:text-earth-dusk"
+                        className="inline-flex items-center justify-center rounded-[2px] border border-mustard bg-mustard px-4 py-2.5 text-sm font-semibold text-earth-dusk transition hover:border-olive-900 hover:bg-olive-900 hover:text-white disabled:opacity-50 dark:hover:bg-olive-100 dark:hover:text-earth-dusk"
                     >
                         {processing ? 'Saving…' : 'Save'}
                     </button>

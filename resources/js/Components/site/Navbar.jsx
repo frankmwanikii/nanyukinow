@@ -14,31 +14,53 @@ import {
     MemberUserMenu,
 } from './MemberAccountMenu';
 import SearchSuggestions from './SearchSuggestions';
-import { explorePath, getCategoryByKey, mainCategories } from '@/data/categories';
+import {
+    explorePath,
+    getCategoryByKey,
+    resolveDirectoryCategories,
+} from '@/data/categories';
 
-const MORE_KEYS = ['services', 'shopping', 'properties', 'events'];
+const PRIMARY_NAV_KEYS = ['eatDrink', 'stay', 'thingsToDo'];
+const FALLBACK_MORE_KEYS = ['services', 'shopping', 'properties', 'events'];
 
-const moreLabelToKey = Object.fromEntries(
-    MORE_KEYS.map((key) => [getCategoryByKey(key).label, key]),
-);
-
-function buildDropdownItems() {
+function buildDropdownItems(categories) {
     const byKey = Object.fromEntries(
-        mainCategories.map((cat) => [cat.key, cat.children]),
+        categories.map((cat) => [cat.key, cat.children || []]),
     );
 
+    const moreCategories = categories.filter(
+        (cat) => !PRIMARY_NAV_KEYS.includes(cat.key),
+    );
+
+    const more =
+        moreCategories.length > 0
+            ? moreCategories.map((cat) => ({
+                  label: cat.label,
+                  key: cat.key,
+                  children: cat.children || [],
+              }))
+            : FALLBACK_MORE_KEYS.map((key) => {
+                  const cat = getCategoryByKey(key);
+                  return {
+                      label: cat.label,
+                      key: cat.key,
+                      children: cat.children || [],
+                  };
+              });
+
     return {
-        eatDrink: byKey.eatDrink,
-        stay: byKey.stay,
-        thingsToDo: byKey.thingsToDo,
-        more: MORE_KEYS.map((key) => {
-            const cat = getCategoryByKey(key);
-            return { label: cat.label, key: cat.key, children: cat.children };
-        }),
+        eatDrink:
+            byKey.eatDrink ||
+            getCategoryByKey('eatDrink')?.children ||
+            [],
+        stay: byKey.stay || getCategoryByKey('stay')?.children || [],
+        thingsToDo:
+            byKey.thingsToDo ||
+            getCategoryByKey('thingsToDo')?.children ||
+            [],
+        more,
     };
 }
-
-const dropdownItems = buildDropdownItems();
 
 function NavCaret({ open = false }) {
     return (
@@ -63,6 +85,7 @@ function NavCaret({ open = false }) {
 
 function MobileDrawerNav({
     navLinks,
+    dropdownItems,
     accordion,
     setAccordion,
     moreAccordion,
@@ -129,8 +152,7 @@ function MobileDrawerNav({
                                             const categoryKey =
                                                 typeof item === 'string'
                                                     ? link.menu
-                                                    : item.key ||
-                                                      moreLabelToKey[label];
+                                                    : item.key;
                                             const itemHref =
                                                 typeof item === 'string'
                                                     ? explorePath({
@@ -240,8 +262,16 @@ function MobileDrawerNav({
 
 export default function Navbar({ compact = false }) {
     const page = usePage();
-    const { auth } = page.props;
+    const { auth, directoryCategories: sharedCategories } = page.props;
     const user = auth?.user;
+    const directoryCategories = useMemo(
+        () => resolveDirectoryCategories(sharedCategories),
+        [sharedCategories],
+    );
+    const dropdownItems = useMemo(
+        () => buildDropdownItems(directoryCategories),
+        [directoryCategories],
+    );
     const isHomeHeroSearch =
         page.component === 'Home' || page.url === '/' || page.url.startsWith('/?');
     const [open, setOpen] = useState(false);
@@ -396,6 +426,7 @@ export default function Navbar({ compact = false }) {
 
                             <MobileDrawerNav
                                 navLinks={navLinks}
+                                dropdownItems={dropdownItems}
                                 accordion={mobileAccordion}
                                 setAccordion={setMobileAccordion}
                                 moreAccordion={mobileMoreAccordion}
@@ -636,11 +667,7 @@ export default function Navbar({ compact = false }) {
                                                               subcategory: item,
                                                           })
                                                         : explorePath({
-                                                              category:
-                                                                  item.key ||
-                                                                  moreLabelToKey[
-                                                                      label
-                                                                  ],
+                                                              category: item.key,
                                                           });
 
                                                 return (
@@ -699,11 +726,7 @@ export default function Navbar({ compact = false }) {
                                                                     href={explorePath(
                                                                         {
                                                                             category:
-                                                                                flyoutItem.key ||
-                                                                                moreLabelToKey[
-                                                                                    flyoutItem
-                                                                                        .label
-                                                                                ],
+                                                                                flyoutItem.key,
                                                                             subcategory:
                                                                                 child,
                                                                         },

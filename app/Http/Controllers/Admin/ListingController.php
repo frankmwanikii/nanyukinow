@@ -11,6 +11,7 @@ use App\Models\Listing;
 use App\Models\User;
 use App\Notifications\ListingReviewedNotification;
 use App\Support\CategoryKey;
+use App\Support\CategoryTaxonomy;
 use App\Support\EatDrinkTierFeatures;
 use App\Support\EventsTierFeatures;
 use App\Support\ListingGallery;
@@ -549,16 +550,23 @@ class ListingController extends Controller
      */
     private function categories(): array
     {
+        $byKey = CategoryTaxonomy::subcategoriesByKey();
+
         return Category::query()
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get(['id', 'name', 'slug'])
-            ->map(fn (Category $c) => [
-                'id' => $c->id,
-                'name' => $c->name,
-                'slug' => $c->slug,
-                'key' => CategoryKey::fromSlug($c->slug),
-            ])
+            ->map(function (Category $c) use ($byKey) {
+                $key = CategoryKey::fromSlug($c->slug);
+
+                return [
+                    'id' => $c->id,
+                    'name' => $c->name,
+                    'slug' => $c->slug,
+                    'key' => $key,
+                    'subcategories' => $key ? ($byKey[$key] ?? []) : [],
+                ];
+            })
             ->all();
     }
 

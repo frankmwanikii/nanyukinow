@@ -37,6 +37,7 @@ export default function UpdateProfileInformation({
     const { data, setData, post, errors, processing, recentlySuccessful } = useForm({
         name: user.name,
         email: user.email,
+        phone: user.phone || '',
         avatar: null,
         remove_avatar: false,
         _method: 'patch',
@@ -46,6 +47,7 @@ export default function UpdateProfileInformation({
         setData({
             name: user.name,
             email: user.email,
+            phone: user.phone || '',
             avatar: null,
             remove_avatar: false,
             _method: 'patch',
@@ -53,7 +55,7 @@ export default function UpdateProfileInformation({
         setPreview(null);
         setLocalError(null);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [user.name, user.email, avatarUrl]);
+    }, [user.name, user.email, user.phone, avatarUrl]);
 
     useEffect(() => {
         if (!data.avatar) {
@@ -201,7 +203,7 @@ export default function UpdateProfileInformation({
                     Profile
                 </h2>
                 <p className="mt-1 text-sm text-olive-600 dark:text-olive-400">
-                    Add a photo and update your name and email.
+                    Add a photo and update your name, email, and phone.
                 </p>
             </header>
 
@@ -252,11 +254,11 @@ export default function UpdateProfileInformation({
                                         </span>
                                     </span>
                                 </button>
-                                <div className="flex flex-wrap justify-center gap-2 sm:justify-start">
+                                <div className="flex flex-wrap justify-center gap-2">
                                     <button
                                         type="button"
                                         onClick={editCurrentPhoto}
-                                        className="inline-flex items-center gap-1.5 border border-olive-900/15 bg-white px-3 py-2 text-sm font-semibold text-olive-800 transition hover:border-olive-900 hover:bg-olive-50 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-200 dark:hover:bg-olive-800"
+                                        className="inline-flex items-center gap-1.5 rounded-[2px] border border-olive-900/15 bg-white px-3 py-2 text-sm font-semibold text-olive-800 transition hover:border-olive-900 hover:bg-olive-50 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-200 dark:hover:bg-olive-800"
                                     >
                                         <CropMark className="h-3.5 w-3.5" />
                                         Crop & zoom
@@ -264,7 +266,7 @@ export default function UpdateProfileInformation({
                                     <button
                                         type="button"
                                         onClick={clearAvatar}
-                                        className="inline-flex items-center gap-1.5 border border-rose-300 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700 transition hover:border-rose-400 hover:bg-rose-100 dark:border-rose-800 dark:bg-rose-950/50 dark:text-rose-300 dark:hover:border-rose-600 dark:hover:bg-rose-950/80"
+                                        className="inline-flex items-center gap-1.5 rounded-[2px] border border-rose-300 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700 transition hover:border-rose-400 hover:bg-rose-100 dark:border-rose-800 dark:bg-rose-950/50 dark:text-rose-300 dark:hover:border-rose-600 dark:hover:bg-rose-950/80"
                                     >
                                         <TrashMark className="h-3.5 w-3.5" />
                                         Remove photo
@@ -351,6 +353,24 @@ export default function UpdateProfileInformation({
                     {errors.email && <p className="mt-1.5 text-sm text-rose-600">{errors.email}</p>}
                 </div>
 
+                <div>
+                    <label className={labelCls} htmlFor="phone">
+                        Phone number
+                    </label>
+                    <input
+                        id="phone"
+                        type="tel"
+                        className={field}
+                        value={data.phone}
+                        onChange={(e) => setData('phone', e.target.value)}
+                        autoComplete="tel"
+                        placeholder="07XX XXX XXX"
+                    />
+                    {errors.phone && (
+                        <p className="mt-1.5 text-sm text-rose-600">{errors.phone}</p>
+                    )}
+                </div>
+
                 {mustVerifyEmail && user.email_verified_at === null && (
                     <div className="border border-olive-900/15 bg-olive-50/60 px-4 py-3 text-sm text-olive-800 dark:border-olive-800 dark:bg-olive-950/60 dark:text-olive-200">
                         Your email address is unverified.{' '}
@@ -374,7 +394,7 @@ export default function UpdateProfileInformation({
                     <button
                         type="submit"
                         disabled={processing}
-                        className="inline-flex items-center justify-center border border-mustard bg-mustard px-4 py-2.5 text-sm font-semibold text-earth-dusk transition hover:border-olive-900 hover:bg-olive-900 hover:text-white disabled:opacity-50 dark:hover:bg-olive-100 dark:hover:text-earth-dusk"
+                        className="inline-flex items-center justify-center rounded-[2px] border border-mustard bg-mustard px-4 py-2.5 text-sm font-semibold text-earth-dusk transition hover:border-olive-900 hover:bg-olive-900 hover:text-white disabled:opacity-50 dark:hover:bg-olive-100 dark:hover:text-earth-dusk"
                     >
                         {processing ? 'Saving…' : 'Save profile'}
                     </button>

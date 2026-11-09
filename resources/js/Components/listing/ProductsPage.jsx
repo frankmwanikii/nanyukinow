@@ -1,7 +1,6 @@
-import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Expand, Package, Tag } from 'lucide-react';
+import { Expand, Package, Tag } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import CloseButton from '@/Components/site/CloseButton';
+import GalleryLightbox from './GalleryLightbox';
 
 const PAGE_SIZE = 12;
 
@@ -86,33 +85,6 @@ export default function ProductsPage({ listing }) {
         setLightbox(null);
     }, [filter, listing?.id]);
 
-    useEffect(() => {
-        if (lightbox == null) return undefined;
-        const onKey = (e) => {
-            if (e.key === 'Escape') setLightbox(null);
-            if (e.key === 'ArrowLeft') {
-                setLightbox((i) =>
-                    lightboxItems.length
-                        ? (i - 1 + lightboxItems.length) % lightboxItems.length
-                        : i,
-                );
-            }
-            if (e.key === 'ArrowRight') {
-                setLightbox((i) =>
-                    lightboxItems.length
-                        ? (i + 1) % lightboxItems.length
-                        : i,
-                );
-            }
-        };
-        document.addEventListener('keydown', onKey);
-        document.body.style.overflow = 'hidden';
-        return () => {
-            document.removeEventListener('keydown', onKey);
-            document.body.style.overflow = '';
-        };
-    }, [lightbox, lightboxItems.length]);
-
     const goTo = (next) => {
         const clamped = Math.min(totalPages, Math.max(1, next));
         setPage(clamped);
@@ -132,6 +104,15 @@ export default function ProductsPage({ listing }) {
             ? lightboxItems[Math.min(lightbox, lightboxItems.length - 1)]
             : null;
     const activePrice = active ? formatPrice(active.price) : null;
+    const gallerySlides = useMemo(
+        () =>
+            lightboxItems.map((product) => ({
+                src: product.image,
+                label: product.name,
+                alt: product.name,
+            })),
+        [lightboxItems],
+    );
 
     return (
         <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
@@ -327,113 +308,25 @@ export default function ProductsPage({ listing }) {
                 </>
             )}
 
-            <AnimatePresence>
-                {active ? (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[1200] flex flex-col bg-[#0c0a08]/94 backdrop-blur-md"
-                        role="dialog"
-                        aria-modal="true"
-                        aria-label="Product preview"
-                        onClick={() => setLightbox(null)}
-                    >
-                        <div
-                            className="relative z-20 flex items-center justify-between gap-3 px-4 py-4 sm:px-8"
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            <div className="min-w-0">
-                                <p className="truncate font-display text-sm font-semibold text-white sm:text-base">
-                                    {active.name}
-                                </p>
-                                <p className="text-[11px] font-medium uppercase tracking-wider text-white/55">
-                                    {[
-                                        active.category,
-                                        activePrice,
-                                        lightboxItems.length > 1
-                                            ? `${lightbox + 1} of ${lightboxItems.length}`
-                                            : null,
-                                    ]
-                                        .filter(Boolean)
-                                        .join(' · ')}
-                                </p>
-                            </div>
-                            <CloseButton
-                                onClick={() => setLightbox(null)}
-                                size="lg"
-                                tone="onDark"
-                                label="Close product preview"
-                                className="bg-black/35"
-                            />
-                        </div>
-
-                        <div
-                            className="relative flex min-h-0 flex-1 items-center justify-center px-4 pb-6 sm:px-16"
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            {lightboxItems.length > 1 ? (
-                                <>
-                                    <button
-                                        type="button"
-                                        aria-label="Previous product"
-                                        onClick={() =>
-                                            setLightbox(
-                                                (i) =>
-                                                    (i -
-                                                        1 +
-                                                        lightboxItems.length) %
-                                                    lightboxItems.length,
-                                            )
-                                        }
-                                        className="absolute left-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-olive-900 shadow-lift sm:left-6 sm:h-12 sm:w-12"
-                                    >
-                                        <ChevronLeft className="h-5 w-5" />
-                                    </button>
-                                    <button
-                                        type="button"
-                                        aria-label="Next product"
-                                        onClick={() =>
-                                            setLightbox(
-                                                (i) =>
-                                                    (i + 1) %
-                                                    lightboxItems.length,
-                                            )
-                                        }
-                                        className="absolute right-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-olive-900 shadow-lift sm:right-6 sm:h-12 sm:w-12"
-                                    >
-                                        <ChevronRight className="h-5 w-5" />
-                                    </button>
-                                </>
-                            ) : null}
-
-                            <AnimatePresence mode="wait">
-                                <motion.img
-                                    key={active.image}
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -8 }}
-                                    transition={{ duration: 0.25 }}
-                                    src={active.image}
-                                    alt={active.name}
-                                    className="max-h-[min(78vh,900px)] w-auto max-w-full rounded-xl object-contain shadow-[0_30px_80px_-20px_rgba(0,0,0,0.65)] ring-1 ring-white/10"
-                                />
-                            </AnimatePresence>
-                        </div>
-
-                        {active.description ? (
-                            <div
-                                className="relative z-20 border-t border-white/10 bg-black/25 px-4 py-3 backdrop-blur-md sm:px-8"
-                                onClick={(e) => e.stopPropagation()}
-                            >
-                                <p className="mx-auto max-w-3xl text-center text-sm text-white/80">
-                                    {active.description}
-                                </p>
-                            </div>
-                        ) : null}
-                    </motion.div>
-                ) : null}
-            </AnimatePresence>
+            {active ? (
+                <GalleryLightbox
+                    items={gallerySlides}
+                    index={lightbox}
+                    onClose={() => setLightbox(null)}
+                    onIndexChange={setLightbox}
+                    title={active.name}
+                    meta={[active.category, activePrice]
+                        .filter(Boolean)
+                        .join(' · ')}
+                    footer={
+                        active.description ? (
+                            <p className="mx-auto max-w-2xl text-center text-sm text-white/80">
+                                {active.description}
+                            </p>
+                        ) : null
+                    }
+                />
+            ) : null}
         </div>
     );
 }

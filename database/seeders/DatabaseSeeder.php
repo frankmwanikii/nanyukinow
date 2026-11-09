@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             LocationSeeder::class,
             ListingSeeder::class,
             AmenitySeeder::class,
+            CategorySubcategorySeeder::class,
             AdminUserSeeder::class,
         ]);
     }

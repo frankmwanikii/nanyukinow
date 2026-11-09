@@ -7,6 +7,7 @@ use App\Models\ListingClaim;
 use App\Models\ListingReport;
 use App\Models\SiteSetting;
 use App\Support\AdminNotifications;
+use App\Support\CategoryTaxonomy;
 use App\Support\MemberMessages;
 use App\Support\MemberNotifications;
 use App\Support\Membership;
@@ -99,6 +100,7 @@ class HandleInertiaRequests extends Middleware
                         'name' => $user->name,
                         'username' => $user->username,
                         'email' => $user->email,
+                        'phone' => $user->phone,
                         'avatar_url' => UserAvatar::publicUrl($user->avatar_url),
                         'is_admin' => (bool) $user->is_admin,
                         'plan' => $user->effectivePlan(),
@@ -139,6 +141,17 @@ class HandleInertiaRequests extends Middleware
                 $value = SiteSetting::getValue('map_provider', 'google');
 
                 return $value === 'leaflet' ? 'leaflet' : 'google';
+            },
+            'directoryCategories' => function () use ($isAdminArea) {
+                if ($isAdminArea) {
+                    return [];
+                }
+
+                try {
+                    return CategoryTaxonomy::forNavigation();
+                } catch (Throwable) {
+                    return [];
+                }
             },
             'siteContact' => function () {
                 try {

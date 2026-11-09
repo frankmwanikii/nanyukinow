@@ -3,6 +3,7 @@
 use App\Http\Controllers\Account\EditorMediaController;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\CategorySubcategoryController;
 use App\Http\Controllers\Admin\ClaimController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\FinanceController;
@@ -67,6 +68,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('categories', [CategoryController::class, 'store'])->name('categories.store');
         Route::get('categories/{category}/edit', [CategoryController::class, 'edit'])->name('categories.edit');
         Route::get('categories/{category}/listings', [CategoryController::class, 'listings'])->name('categories.listings');
+        Route::get('categories/{category}/subcategories', [CategorySubcategoryController::class, 'index'])->name('categories.subcategories.index');
+        Route::post('categories/{category}/subcategories', [CategorySubcategoryController::class, 'store'])->name('categories.subcategories.store');
+        Route::put('categories/{category}/subcategories/{subcategory}', [CategorySubcategoryController::class, 'update'])->name('categories.subcategories.update');
+        Route::delete('categories/{category}/subcategories/{subcategory}', [CategorySubcategoryController::class, 'destroy'])->name('categories.subcategories.destroy');
         Route::put('categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
         Route::delete('categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
         Route::post('categories/reorder', [CategoryController::class, 'reorder'])->name('categories.reorder');

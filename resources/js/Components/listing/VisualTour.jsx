@@ -1,11 +1,6 @@
-import {
-    ChevronLeft,
-    ChevronRight,
-    Expand,
-} from 'lucide-react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { Expand } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import CloseButton from '@/Components/site/CloseButton';
+import GalleryLightbox from './GalleryLightbox';
 import DetailSection from './DetailSection';
 import { normalizeGallerySpaces } from '@/data/listingDetails';
 
@@ -23,27 +18,6 @@ function flattenSpaces(spaces) {
         });
     });
     return flat;
-}
-
-function ArrowButton({ direction, onClick, className = '', label, size = 'md' }) {
-    const Icon = direction === 'prev' ? ChevronLeft : ChevronRight;
-    const sizeClass =
-        size === 'lg'
-            ? 'h-12 w-12 sm:h-14 sm:w-14'
-            : 'h-10 w-10';
-    return (
-        <button
-            type="button"
-            onClick={(e) => {
-                e.stopPropagation();
-                onClick();
-            }}
-            aria-label={label}
-            className={`flex items-center justify-center rounded-full bg-white/95 text-olive-900 shadow-lift backdrop-blur transition hover:scale-105 hover:bg-mustard ${sizeClass} ${className}`}
-        >
-            <Icon className={size === 'lg' ? 'h-6 w-6' : 'h-5 w-5'} strokeWidth={2} />
-        </button>
-    );
 }
 
 function MosaicTile({ src, alt, onClick, className = '', children }) {
@@ -136,48 +110,21 @@ export default function VisualTour({
         openLightbox(safeSpaceIndex, localIndex);
     };
 
-    const closeLightbox = () => setLightbox(null);
-
-    const lightboxPrev = () => {
-        if (!flat.length) return;
-        setLightbox((i) => (i - 1 + flat.length) % flat.length);
-    };
-
-    const lightboxNext = () => {
-        if (!flat.length) return;
-        setLightbox((i) => (i + 1) % flat.length);
-    };
-
-    useEffect(() => {
-        if (lightbox == null) return undefined;
-
-        const onKey = (e) => {
-            if (e.key === 'Escape') setLightbox(null);
-            if (e.key === 'ArrowLeft') {
-                setLightbox((i) =>
-                    flat.length ? (i - 1 + flat.length) % flat.length : i,
-                );
-            }
-            if (e.key === 'ArrowRight') {
-                setLightbox((i) =>
-                    flat.length ? (i + 1) % flat.length : i,
-                );
-            }
-        };
-
-        document.addEventListener('keydown', onKey);
-        document.body.style.overflow = 'hidden';
-        return () => {
-            document.removeEventListener('keydown', onKey);
-            document.body.style.overflow = '';
-        };
-    }, [lightbox, flat.length]);
-
     useEffect(() => {
         if (lightbox == null || !flat[lightbox]) return;
         const item = flat[lightbox];
         setSpaceIndex(item.spaceIndex);
     }, [lightbox, flat]);
+
+    const lightboxItems = useMemo(
+        () =>
+            flat.map((item) => ({
+                src: item.src,
+                label: item.label,
+                alt: item.label,
+            })),
+        [flat],
+    );
 
     if (!spaces.length || !mosaicSources.length) return null;
 
@@ -325,128 +272,20 @@ export default function VisualTour({
                 ) : null}
             </DetailSection>
 
-            <AnimatePresence>
-                {lightboxItem ? (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[1200] flex flex-col bg-[#0c0a08]/94 backdrop-blur-md"
-                        role="dialog"
-                        aria-modal="true"
-                        aria-label="Image lightbox"
-                        onClick={closeLightbox}
-                    >
-                        <div
-                            className="relative z-20 flex items-center justify-between gap-3 px-4 py-4 sm:px-8"
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            <div className="min-w-0">
-                                <p className="truncate font-display text-sm font-semibold text-white sm:text-base">
-                                    {lightboxItem.label}
-                                </p>
-                                <p className="text-[11px] font-medium uppercase tracking-wider text-white/55">
-                                    Photo {lightboxSpacePos} of {lightboxSpaceCount}
-                                    {' · '}
-                                    {lightbox + 1}/{flat.length} total
-                                </p>
-                            </div>
-                            <CloseButton
-                                onClick={closeLightbox}
-                                size="lg"
-                                tone="onDark"
-                                label="Close lightbox"
-                                className="bg-black/35"
-                            />
-                        </div>
-
-                        <div
-                            className="relative flex min-h-0 flex-1 items-center justify-center px-4 pb-2 sm:px-20"
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            {flat.length > 1 ? (
-                                <>
-                                    <ArrowButton
-                                        direction="prev"
-                                        size="lg"
-                                        label="Previous photo"
-                                        onClick={lightboxPrev}
-                                        className="absolute left-3 top-1/2 z-10 -translate-y-1/2 sm:left-6"
-                                    />
-                                    <ArrowButton
-                                        direction="next"
-                                        size="lg"
-                                        label="Next photo"
-                                        onClick={lightboxNext}
-                                        className="absolute right-3 top-1/2 z-10 -translate-y-1/2 sm:right-6"
-                                    />
-                                </>
-                            ) : null}
-
-                            <AnimatePresence mode="wait">
-                                <motion.div
-                                    key={lightboxItem.src}
-                                    initial={{ opacity: 0, y: 12, scale: 0.985 }}
-                                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                                    exit={{ opacity: 0, y: -8, scale: 0.985 }}
-                                    transition={{ duration: 0.28, ease: 'easeOut' }}
-                                    className="relative max-h-full max-w-6xl"
-                                >
-                                    <img
-                                        src={lightboxItem.src}
-                                        alt={lightboxItem.label}
-                                        className="max-h-[min(72vh,820px)] w-auto max-w-full rounded-2xl object-contain shadow-[0_30px_80px_-20px_rgba(0,0,0,0.65)] ring-1 ring-white/10"
-                                    />
-                                </motion.div>
-                            </AnimatePresence>
-                        </div>
-
-                        <div
-                            className="relative z-20 border-t border-white/10 bg-black/25 px-4 py-4 backdrop-blur-md sm:px-8 sm:py-5"
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            <div className="mx-auto flex max-w-6xl items-center gap-3 overflow-x-auto pb-1">
-                                {flat.map((item, index) => {
-                                    const active = index === lightbox;
-                                    const multiSpace = spaces.length > 1;
-                                    const showLabel =
-                                        multiSpace &&
-                                        (index === 0 ||
-                                            flat[index - 1]?.spaceIndex !==
-                                                item.spaceIndex);
-                                    return (
-                                        <button
-                                            key={`${item.src}-${index}`}
-                                            type="button"
-                                            onClick={() => setLightbox(index)}
-                                            className={`group relative shrink-0 overflow-hidden rounded-xl transition ${
-                                                active
-                                                    ? 'ring-2 ring-mustard ring-offset-2 ring-offset-[#0c0a08]'
-                                                    : 'opacity-65 hover:opacity-100'
-                                            }`}
-                                        >
-                                            <img
-                                                src={item.src}
-                                                alt=""
-                                                className="h-16 w-24 object-cover sm:h-[4.5rem] sm:w-28"
-                                                loading="lazy"
-                                            />
-                                            {showLabel ? (
-                                                <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent px-1.5 pb-1 pt-4 text-left text-[9px] font-semibold text-white sm:text-[10px]">
-                                                    {item.label}
-                                                </span>
-                                            ) : null}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                            <p className="mt-3 text-center text-[11px] font-medium tracking-wide text-white/40">
-                                Use ← → to browse · Esc to close
-                            </p>
-                        </div>
-                    </motion.div>
-                ) : null}
-            </AnimatePresence>
+            {lightboxItem ? (
+                <GalleryLightbox
+                    items={lightboxItems}
+                    index={lightbox}
+                    onClose={() => setLightbox(null)}
+                    onIndexChange={setLightbox}
+                    title={lightboxItem.label}
+                    meta={
+                        spaces.length > 1
+                            ? `Photo ${lightboxSpacePos} of ${lightboxSpaceCount} · ${lightbox + 1}/${flat.length}`
+                            : `${lightbox + 1} / ${flat.length}`
+                    }
+                />
+            ) : null}
         </>
     );
 }

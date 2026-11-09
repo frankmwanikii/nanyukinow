@@ -16,7 +16,7 @@ class ListingPayload
     {
         $category = $listing->category;
         $tier = $listing->tier ?: ($listing->is_featured ? 'featured' : 'free');
-        $categoryKey = CategoryKey::fromSlug($category?->slug);
+        $categoryKey = CategoryKey::resolve($category?->slug);
         $details = is_array($listing->details) ? $listing->details : [];
         $price = filled($details['price'] ?? null) ? (string) $details['price'] : null;
 
@@ -65,7 +65,6 @@ class ListingPayload
     {
         $category = $listing->category;
         $tier = $listing->tier ?: ($listing->is_featured ? 'featured' : 'free');
-        $categoryKey = CategoryKey::fromSlug($category?->slug);
         $details = is_array($listing->details) ? $listing->details : [];
 
         return [

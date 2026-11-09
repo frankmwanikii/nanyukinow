@@ -63,7 +63,7 @@ export default function DeleteUserForm({ className = '' }) {
             <button
                 type="button"
                 onClick={confirmUserDeletion}
-                className="inline-flex items-center justify-center border border-rose-700 bg-rose-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-800"
+                className="inline-flex items-center justify-center rounded-[2px] border border-rose-700 bg-rose-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-800"
             >
                 Delete account
             </button>
@@ -136,7 +136,7 @@ export default function DeleteUserForm({ className = '' }) {
                         <button
                             type="button"
                             onClick={closeModal}
-                            className="inline-flex items-center justify-center border border-olive-900/15 bg-white px-4 py-2.5 text-sm font-semibold text-olive-800 transition hover:border-olive-900 hover:bg-olive-50 dark:border-olive-700 dark:bg-transparent dark:text-olive-200 dark:hover:bg-olive-800"
+                            className="inline-flex items-center justify-center rounded-[2px] border border-olive-900/15 bg-white px-4 py-2.5 text-sm font-semibold text-olive-800 transition hover:border-olive-900 hover:bg-olive-50 dark:border-olive-700 dark:bg-transparent dark:text-olive-200 dark:hover:bg-olive-800"
                         >
                             Cancel
                         </button>
@@ -144,7 +144,7 @@ export default function DeleteUserForm({ className = '' }) {
                         <button
                             type="submit"
                             disabled={processing}
-                            className="inline-flex items-center justify-center border border-rose-700 bg-rose-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-800 disabled:opacity-50"
+                            className="inline-flex items-center justify-center rounded-[2px] border border-rose-700 bg-rose-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-800 disabled:opacity-50"
                         >
                             {processing ? 'Deleting…' : 'Yes, delete my account'}
                         </button>

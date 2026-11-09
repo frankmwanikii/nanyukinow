@@ -33,6 +33,7 @@ class ProfileTest extends TestCase
             ->patch('/profile', [
                 'name' => 'Test User',
                 'email' => 'test@example.com',
+                'phone' => '0712345678',
             ]);
 
         $response
@@ -43,7 +44,30 @@ class ProfileTest extends TestCase
 
         $this->assertSame('Test User', $user->name);
         $this->assertSame('test@example.com', $user->email);
+        $this->assertSame('0712345678', $user->phone);
         $this->assertNull($user->email_verified_at);
+    }
+
+    public function test_updated_phone_is_visible_on_admin_member_profile(): void
+    {
+        $member = User::factory()->create(['phone' => null]);
+        $admin = User::factory()->create(['is_admin' => true]);
+
+        $this->actingAs($member)
+            ->patch('/profile', [
+                'name' => $member->name,
+                'email' => $member->email,
+                'phone' => '0700111222',
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect('/profile');
+
+        $this->actingAs($admin)
+            ->get(route('admin.users.show', $member->username ?: $member->id))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Admin/Users/Show')
+                ->where('user.phone', '0700111222'));
     }
 
     public function test_profile_avatar_can_be_uploaded(): void
