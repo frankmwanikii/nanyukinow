@@ -1,15 +1,15 @@
-You’re on the list — {{ $appName }} Insider
+You’re on the list: {{ $appName }} Insider
 
-Welcome to {{ $appName }} Insider — mambo kwa ground, straight to your inbox.
+Welcome to {{ $appName }} Insider. Mambo kwa ground, straight to your inbox.
 
 Subscribed as: {{ $subscriberEmail }}
 
-Expect weekend offers from top stays, new menus at local eateries, and essential service updates around Nanyuki — plus stories and picks from the team.
+Expect weekend offers from top stays, new menus at local eateries, and essential service updates around Nanyuki, plus stories and picks from the team.
 
 Explore Nanyuki: {{ $exploreUrl }}
 Read stories: {{ $storiesUrl }}
 
-Thanks for joining — we’re glad you’re here.
+Thanks for joining. We’re glad you’re here.
 
 Contact {{ $appName }}:
 Website: {{ $appUrl }}

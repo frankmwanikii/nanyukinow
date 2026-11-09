@@ -1,23 +1,96 @@
 import SiteLayout from '@/Layouts/SiteLayout';
+import CloseButton from '@/Components/site/CloseButton';
 import { MemberAvatar } from '@/Components/site/MemberAccountMenu';
 import {
     BookmarkMark,
     CardMark,
-    CloseMark,
     DashboardMark,
     GearMark,
     ListMark,
     MenuMark,
     MessageMark,
     SignOutMark,
+    TicketMark,
     UpgradePlansMark,
 } from '@/Components/site/Mark';
+import { FlashToast } from '@/Components/site/SuccessToast';
 import ThemeToggle from '@/Components/ThemeToggle';
 import { ThemeProvider, useTheme } from '@/hooks/useUiTheme';
 import { Link, usePage } from '@inertiajs/react';
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { registerAccountMenuOpener } from '@/lib/accountMenuBridge';
+
+const ACCOUNT_FLASH_KEY = 'nn:account-flash';
+
+/**
+ * Persist a one-shot toast across a full page reload (e.g. upgrade polling).
+ * @param {string} message
+ * @param {'success' | 'error'} [tone]
+ */
+export function stashAccountFlash(message, tone = 'success') {
+    if (typeof window === 'undefined' || !message) return;
+    try {
+        window.sessionStorage.setItem(
+            ACCOUNT_FLASH_KEY,
+            JSON.stringify({ message: String(message), tone }),
+        );
+    } catch {
+        // Ignore quota / private-mode failures.
+    }
+}
+
+function readStashedFlash() {
+    if (typeof window === 'undefined') return null;
+    try {
+        const raw = window.sessionStorage.getItem(ACCOUNT_FLASH_KEY);
+        if (!raw) return null;
+        window.sessionStorage.removeItem(ACCOUNT_FLASH_KEY);
+        const parsed = JSON.parse(raw);
+        if (!parsed?.message) return null;
+        return {
+            message: String(parsed.message),
+            tone: parsed.tone === 'error' ? 'error' : 'success',
+        };
+    } catch {
+        return null;
+    }
+}
+
+function AccountFlashToast() {
+    const { flash } = usePage().props;
+    const [toast, setToast] = useState(null);
+
+    useEffect(() => {
+        const stashed = readStashedFlash();
+        if (stashed) {
+            setToast(stashed);
+            return;
+        }
+
+        const message = flash?.success || flash?.error || flash?.status;
+        if (!message) {
+            setToast(null);
+            return;
+        }
+
+        setToast({
+            message: String(message),
+            tone: flash?.error ? 'error' : 'success',
+        });
+    }, [flash?.success, flash?.error, flash?.status]);
+
+    if (!toast) return null;
+
+    return (
+        <FlashToast
+            key={`${toast.tone}:${toast.message}`}
+            message={toast.message}
+            tone={toast.tone}
+            onDismiss={() => setToast(null)}
+        />
+    );
+}
 
 /** Fallback until the real site nav is measured (logo h-14 + py-5 ≈ 96px) */
 const NAV_H_FALLBACK = 96;
@@ -130,6 +203,12 @@ function AccountShell({ title = 'Account', children }) {
                     badge: unreadMessages,
                 },
                 {
+                    label: 'Tickets',
+                    href: route('account.tickets.index'),
+                    icon: TicketMark,
+                    active: navActive(['account.tickets.*']),
+                },
+                {
                     label: 'Plans',
                     href: route('account.upgrade'),
                     icon: UpgradePlansMark,
@@ -240,14 +319,11 @@ function AccountShell({ title = 'Account', children }) {
                                       Account
                                   </p>
                               )}
-                              <button
-                                  type="button"
+                              <CloseButton
                                   onClick={() => setMobileOpen(false)}
-                                  className="inline-flex h-10 w-10 shrink-0 items-center justify-center text-olive-700 transition hover:bg-olive-100 hover:text-olive-950 dark:text-olive-300 dark:hover:bg-olive-800 dark:hover:text-olive-50"
-                                  aria-label="Close menu"
-                              >
-                                  <CloseMark className="h-5 w-5" />
-                              </button>
+                                  size="md"
+                                  label="Close menu"
+                              />
                           </div>
 
                           <nav
@@ -330,6 +406,7 @@ export default function AccountLayout({ title = 'Account', children }) {
         <SiteLayout hideFooter compactNav>
             <ThemeProvider>
                 <AccountShell title={title}>{children}</AccountShell>
+                <AccountFlashToast />
             </ThemeProvider>
         </SiteLayout>
     );

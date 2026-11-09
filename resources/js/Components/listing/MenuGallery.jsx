@@ -1,6 +1,7 @@
-import { ChevronLeft, ChevronRight, Expand, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Expand } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
+import CloseButton from '@/Components/site/CloseButton';
 import DetailSection from './DetailSection';
 
 /**
@@ -189,14 +190,13 @@ export default function MenuGallery({
                                     {lightbox + 1} of {items.length}
                                 </p>
                             </div>
-                            <button
-                                type="button"
+                            <CloseButton
                                 onClick={() => setLightbox(null)}
-                                className="flex h-11 w-11 items-center justify-center rounded-full bg-mustard text-olive-950 shadow-lift ring-2 ring-white/90 transition hover:scale-105 hover:bg-white"
-                                aria-label="Close menu preview"
-                            >
-                                <X className="h-5 w-5" strokeWidth={2.75} />
-                            </button>
+                                size="lg"
+                                tone="onDark"
+                                label="Close menu preview"
+                                className="bg-black/35"
+                            />
                         </div>
 
                         <div

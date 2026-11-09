@@ -10,6 +10,7 @@ import {
     ForwardMark,
     MapMark,
 } from '@/Components/site/Mark';
+import Pagination from '@/Components/site/Pagination';
 import SiteLayout from '@/Layouts/SiteLayout';
 import { explorePath } from '@/data/categories';
 import {
@@ -19,21 +20,6 @@ import {
 } from '@/data/listings';
 
 const PAGE_SIZE = 12;
-const MAX_PAGE_BUTTONS = 5;
-
-function pageWindow(current, total, max = MAX_PAGE_BUTTONS) {
-    if (total <= max) {
-        return Array.from({ length: total }, (_, i) => i + 1);
-    }
-    const half = Math.floor(max / 2);
-    let start = Math.max(1, current - half);
-    let end = start + max - 1;
-    if (end > total) {
-        end = total;
-        start = Math.max(1, end - max + 1);
-    }
-    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
-}
 
 function syncUrl({ category, subcategory, propertyType, q, location }) {
     const next = explorePath({
@@ -347,84 +333,12 @@ function ExploreContent({
                                     ))}
                                 </div>
 
-                                <div className="mt-8 flex flex-col items-center gap-3 pb-6">
-                                    <nav
-                                        className="inline-flex max-w-full items-center gap-1 overflow-x-auto rounded-2xl border border-olive-200/80 bg-white p-1.5 shadow-soft [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-                                        aria-label="Pagination"
-                                    >
-                                        <button
-                                            type="button"
-                                            disabled={safePage <= 1}
-                                            onClick={() =>
-                                                setPage((p) =>
-                                                    Math.max(1, p - 1),
-                                                )
-                                            }
-                                            className="inline-flex h-11 shrink-0 items-center gap-1 rounded-xl px-3 text-sm font-semibold text-olive-700 transition hover:bg-olive-50 disabled:cursor-not-allowed disabled:opacity-35"
-                                            aria-label="Previous page"
-                                        >
-                                            <BackMark className="h-4 w-4" />
-                                            <span className="hidden sm:inline">
-                                                Prev
-                                            </span>
-                                        </button>
-
-                                        <div className="mx-0.5 hidden h-5 w-px shrink-0 bg-olive-200 sm:block" />
-
-                                        {pageWindow(safePage, totalPages).map(
-                                            (n) => {
-                                                const active = n === safePage;
-                                                return (
-                                                    <button
-                                                        key={n}
-                                                        type="button"
-                                                        onClick={() =>
-                                                            setPage(n)
-                                                        }
-                                                        className={`flex h-11 min-w-11 shrink-0 items-center justify-center rounded-xl px-3 text-sm font-semibold transition ${
-                                                            active
-                                                                ? 'bg-[#4f5a3e] text-white shadow-sm'
-                                                                : 'text-earth-dusk hover:bg-olive-50'
-                                                        }`}
-                                                        aria-current={
-                                                            active
-                                                                ? 'page'
-                                                                : undefined
-                                                        }
-                                                    >
-                                                        {n}
-                                                    </button>
-                                                );
-                                            },
-                                        )}
-
-                                        <div className="mx-0.5 hidden h-5 w-px shrink-0 bg-olive-200 sm:block" />
-
-                                        <button
-                                            type="button"
-                                            disabled={safePage >= totalPages}
-                                            onClick={() =>
-                                                setPage((p) =>
-                                                    Math.min(
-                                                        totalPages,
-                                                        p + 1,
-                                                    ),
-                                                )
-                                            }
-                                            className="inline-flex h-11 shrink-0 items-center gap-1 rounded-xl px-3 text-sm font-semibold text-olive-700 transition hover:bg-olive-50 disabled:cursor-not-allowed disabled:opacity-35"
-                                            aria-label="Next page"
-                                        >
-                                            <span className="hidden sm:inline">
-                                                Next
-                                            </span>
-                                            <ForwardMark className="h-4 w-4" />
-                                        </button>
-                                    </nav>
-
-                                    <p className="text-xs font-medium text-olive-500">
-                                        Page {safePage} of {totalPages}
-                                    </p>
-                                </div>
+                                <Pagination
+                                    className="mt-8 pb-6"
+                                    page={safePage}
+                                    totalPages={totalPages}
+                                    onPageChange={setPage}
+                                />
                             </>
                         )}
                     </div>
@@ -456,8 +370,58 @@ function ExploreContent({
     );
 }
 
+function ExploreListingsSkeleton() {
+    return (
+        <div
+            className="flex h-svh flex-col bg-[#f3f1ec] pb-[5.25rem] lg:pb-0"
+            aria-busy="true"
+            aria-label="Loading listings"
+        >
+            <div className="shrink-0 bg-white pt-[5.75rem] sm:pt-[6.25rem] lg:pt-[6.75rem]">
+                <div className="flex gap-2 overflow-hidden px-4 py-3">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                        <div
+                            key={i}
+                            className="h-9 w-24 shrink-0 animate-pulse bg-olive-900/10"
+                        />
+                    ))}
+                </div>
+            </div>
+            <div className="relative flex min-h-0 flex-1">
+                <div className="hidden w-[300px] shrink-0 border-r border-olive-200 bg-white p-4 xl:w-[320px] lg:block">
+                    <div className="space-y-3">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                            <div
+                                key={i}
+                                className="h-10 animate-pulse bg-olive-900/10"
+                            />
+                        ))}
+                    </div>
+                </div>
+                <div className="min-w-0 flex-1 overflow-hidden p-4">
+                    <div className="mb-4 h-5 w-48 animate-pulse bg-olive-900/10" />
+                    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                        {Array.from({ length: 6 }).map((_, i) => (
+                            <div
+                                key={i}
+                                className="overflow-hidden border border-olive-900/10 bg-white"
+                            >
+                                <div className="aspect-[4/3] animate-pulse bg-olive-900/10" />
+                                <div className="space-y-2 p-3">
+                                    <div className="h-4 w-3/4 animate-pulse bg-olive-900/10" />
+                                    <div className="h-3 w-1/2 animate-pulse bg-olive-900/10" />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 export default function Explore({
-    listings = [],
+    listings,
     locations = LOOK_LOCATIONS,
     category,
     subcategory,
@@ -466,9 +430,15 @@ export default function Explore({
     location,
     page = null,
 }) {
+    const loading = listings === undefined;
     const catalogue = useMemo(
-        () => listings.map((item, index) => enrichListing(item, index)),
-        [listings],
+        () =>
+            loading
+                ? []
+                : (listings || []).map((item, index) =>
+                      enrichListing(item, index),
+                  ),
+        [listings, loading],
     );
 
     return (
@@ -478,16 +448,20 @@ export default function Explore({
             compactNav
             lockViewport
         >
-            <ExploreContent
-                catalogue={catalogue}
-                initialCategory={category || null}
-                initialSubcategory={subcategory || null}
-                initialPropertyType={propertyType || null}
-                initialQuery={q || ''}
-                initialLocation={location || null}
-                locations={locations}
-                sitePage={page}
-            />
+            {loading ? (
+                <ExploreListingsSkeleton />
+            ) : (
+                <ExploreContent
+                    catalogue={catalogue}
+                    initialCategory={category || null}
+                    initialSubcategory={subcategory || null}
+                    initialPropertyType={propertyType || null}
+                    initialQuery={q || ''}
+                    initialLocation={location || null}
+                    locations={locations}
+                    sitePage={page}
+                />
+            )}
         </SiteLayout>
     );
 }

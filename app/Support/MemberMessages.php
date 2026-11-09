@@ -38,9 +38,29 @@ class MemberMessages
 
     public static function unreadCount(User $user): int
     {
-        return self::conversationsQuery($user)
-            ->get()
-            ->filter(fn (Conversation $c) => self::isUnread($c, $user))
+        return Conversation::query()
+            ->whereHas('participants', fn ($q) => $q->where('users.id', $user->id))
+            ->whereNotNull('last_message_at')
+            ->where(function ($query) use ($user) {
+                $query
+                    ->whereDoesntHave(
+                        'participants',
+                        fn ($q) => $q
+                            ->where('users.id', $user->id)
+                            ->whereNotNull('conversation_participants.last_read_at'),
+                    )
+                    ->orWhereHas(
+                        'participants',
+                        fn ($q) => $q
+                            ->where('users.id', $user->id)
+                            ->whereNotNull('conversation_participants.last_read_at')
+                            ->whereColumn(
+                                'conversation_participants.last_read_at',
+                                '<',
+                                'conversations.last_message_at',
+                            ),
+                    );
+            })
             ->count();
     }
 

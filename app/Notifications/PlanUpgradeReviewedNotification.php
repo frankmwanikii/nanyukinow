@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Mail\PlanUpgradeReviewedMail;
 use App\Models\PlanUpgrade;
 use App\Support\Membership;
 use Illuminate\Bus\Queueable;
@@ -20,7 +21,17 @@ class PlanUpgradeReviewedNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'mail'];
+    }
+
+    public function toMail(object $notifiable): PlanUpgradeReviewedMail
+    {
+        $email = (string) ($notifiable->email ?? '');
+
+        return (new PlanUpgradeReviewedMail(
+            upgrade: $this->upgrade,
+            userName: (string) ($notifiable->name ?? ''),
+        ))->to($email);
     }
 
     /**

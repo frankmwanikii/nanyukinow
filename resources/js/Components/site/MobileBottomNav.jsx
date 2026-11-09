@@ -1,8 +1,8 @@
 import { Link, router, usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import CloseButton from '@/Components/site/CloseButton';
 import {
-    CloseMark,
     CompassMark,
     NyukiMark,
     PlusMark,
@@ -160,14 +160,13 @@ export default function MobileBottomNav() {
                             autoComplete="off"
                             className="site-nav-search w-full rounded-full border-0 bg-white/10 py-2.5 pl-10 pr-12 text-[15px] text-white placeholder:text-white/65 ring-1 ring-white/20 focus:outline-none focus:ring-2 focus:ring-mustard"
                         />
-                        <button
-                            type="button"
+                        <CloseButton
                             onClick={closeSearch}
-                            className="absolute right-2 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full text-white/80 transition hover:bg-white/10 hover:text-white"
-                            aria-label="Close search"
-                        >
-                            <CloseMark className="h-4 w-4" />
-                        </button>
+                            size="sm"
+                            tone="onDark"
+                            label="Close search"
+                            className="absolute right-2 z-10"
+                        />
                     </form>
 
                     {suggestionsOpen ? (

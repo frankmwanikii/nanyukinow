@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Listing;
 use App\Models\Location;
 use App\Models\SitePage;
-use App\Support\CategoryKey;
 use App\Support\ListingOutbound;
 use App\Support\ListingPayload;
 use App\Support\ListingSearch;
@@ -46,7 +45,7 @@ class ListingController extends Controller
         }
 
         return Inertia::render('Explore', [
-            'listings' => PublishedListingsCatalogue::cards(),
+            'listings' => Inertia::defer(fn () => PublishedListingsCatalogue::cards()),
             'locations' => $allowed,
             'category' => $request->string('category')->toString() ?: null,
             'subcategory' => $request->string('subcategory')->toString() ?: null,
@@ -119,34 +118,19 @@ class ListingController extends Controller
             abort(404);
         }
 
-        $categoryKey = CategoryKey::fromSlug($listing->category?->slug);
+        $relatedModels = ListingSearch::publishedQuery()
+            ->where('id', '!=', $listing->id)
+            ->when(
+                $listing->category_id,
+                fn ($query) => $query->where('category_id', $listing->category_id),
+            )
+            ->orderByDesc('priority')
+            ->orderByDesc('rating')
+            ->orderByDesc('id')
+            ->limit(6)
+            ->get();
 
-        $related = collect(PublishedListingsCatalogue::cards())
-            ->filter(function (array $card) use ($listing, $categoryKey) {
-                if ((int) $card['id'] === (int) $listing->id) {
-                    return false;
-                }
-
-                return ($card['categoryKey'] ?? null) === $categoryKey;
-            })
-            ->take(6)
-            ->values()
-            ->all();
-
-        if ($related === []) {
-            $relatedModels = ListingSearch::publishedQuery()
-                ->where('id', '!=', $listing->id)
-                ->when(
-                    $listing->category_id,
-                    fn ($query) => $query->where('category_id', $listing->category_id),
-                )
-                ->orderByDesc('priority')
-                ->orderByDesc('rating')
-                ->limit(6)
-                ->get();
-
-            $related = ListingPayload::cards($relatedModels);
-        }
+        $related = ListingPayload::cards($relatedModels);
 
         return Inertia::render('Listings/Show', [
             'slug' => $listing->slug,
@@ -264,6 +248,8 @@ class ListingController extends Controller
         } else {
             $bookmarked = $exists;
         }
+
+        Cache::forget('user.'.$user->id.'.bookmark_ids');
 
         return response()->json([
             'bookmarked' => $bookmarked,

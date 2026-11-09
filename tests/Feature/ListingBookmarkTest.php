@@ -76,15 +76,52 @@ class ListingBookmarkTest extends TestCase
         ]);
     }
 
-    private function makeListing(): Listing
+    public function test_member_can_remove_all_bookmarks(): void
     {
-        $category = Category::query()->create([
-            'name' => 'Stay',
-            'slug' => 'stay',
-            'sort_order' => 1,
+        $user = User::factory()->create();
+        $first = $this->makeListing();
+        $second = $this->makeListing([
+            'title' => 'Second Lodge',
+            'slug' => 'second-lodge',
+        ]);
+        $user->bookmarkedListings()->attach([$first->id, $second->id]);
+
+        $this->actingAs($user)
+            ->from(route('account.bookmarks'))
+            ->delete(route('account.bookmarks.destroy-all'))
+            ->assertRedirect(route('account.bookmarks'));
+
+        $this->assertDatabaseMissing('listing_bookmarks', [
+            'user_id' => $user->id,
+            'listing_id' => $first->id,
+        ]);
+        $this->assertDatabaseMissing('listing_bookmarks', [
+            'user_id' => $user->id,
+            'listing_id' => $second->id,
         ]);
 
-        return Listing::query()->create([
+        $this->actingAs($user)
+            ->get(route('account.bookmarks'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Account/Bookmarks')
+                ->has('bookmarks', 0));
+    }
+
+    /**
+     * @param  array<string, mixed>  $overrides
+     */
+    private function makeListing(array $overrides = []): Listing
+    {
+        $category = Category::query()->firstOrCreate(
+            ['slug' => 'stay'],
+            [
+                'name' => 'Stay',
+                'sort_order' => 1,
+            ],
+        );
+
+        return Listing::query()->create(array_merge([
             'category_id' => $category->id,
             'title' => 'Bookmark Lodge',
             'slug' => 'bookmark-lodge',
@@ -92,6 +129,6 @@ class ListingBookmarkTest extends TestCase
             'is_published' => true,
             'tier' => 'free',
             'priority' => 1,
-        ]);
+        ], $overrides));
     }
 }

@@ -7,6 +7,7 @@ use App\Models\Listing;
 use App\Support\PublishedListingsCatalogue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Inertia\Testing\AssertableInertia;
 use Tests\TestCase;
 
 class PublishedListingsCatalogueTest extends TestCase
@@ -81,9 +82,10 @@ class PublishedListingsCatalogueTest extends TestCase
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->component('Explore')
-                ->has('listings', 1)
-                ->where('listings.0.title', 'Card Lodge')
-                ->missing('listings.0.description')
-                ->missing('listings.0.gallery'));
+                ->loadDeferredProps(fn (AssertableInertia $reload) => $reload
+                    ->has('listings', 1)
+                    ->where('listings.0.title', 'Card Lodge')
+                    ->missing('listings.0.description')
+                    ->missing('listings.0.gallery')));
     }
 }

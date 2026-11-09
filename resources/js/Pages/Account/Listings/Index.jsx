@@ -8,8 +8,13 @@ import {
     Th,
 } from '@/Components/Admin/ui';
 import { useConfirm } from '@/Components/ConfirmDialog';
+import Pagination, {
+    useClientPagination,
+} from '@/Components/site/Pagination';
 import { ListMark, PlusMark, UpgradePlansMark } from '@/Components/site/Mark';
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
+
+const PAGE_SIZE = 10;
 
 function formatDate(iso) {
     if (!iso) return '—';
@@ -21,8 +26,11 @@ function formatDate(iso) {
 }
 
 export default function Index({ plan, listings = [] }) {
-    const { flash } = usePage().props;
     const { confirm, dialog } = useConfirm();
+    const { page, totalPages, setPage, pageItems } = useClientPagination(
+        listings,
+        PAGE_SIZE,
+    );
 
     const remove = async (listing) => {
         const ok = await confirm({
@@ -40,18 +48,6 @@ export default function Index({ plan, listings = [] }) {
             <Head title="Listings" />
 
             <div className="space-y-5">
-                {(flash?.success || flash?.error) && (
-                    <div
-                        className={`border px-4 py-3 text-sm ${
-                            flash.error
-                                ? 'border-rose-300 bg-rose-50 text-rose-800 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300'
-                                : 'border-olive-900/15 bg-white text-olive-900 dark:border-olive-800 dark:bg-olive-900 dark:text-olive-100'
-                        }`}
-                    >
-                        {flash.error || flash.success}
-                    </div>
-                )}
-
                 <section className="border border-olive-900/15 bg-white dark:border-olive-800 dark:bg-olive-900">
                     <div className="flex items-center justify-between gap-3 border-b border-olive-900/10 px-4 py-4 sm:px-5 dark:border-olive-800">
                         <div className="flex min-w-0 items-center gap-2.5">
@@ -105,109 +101,118 @@ export default function Index({ plan, listings = [] }) {
                             ) : null}
                         </div>
                     ) : (
-                        <DataTable>
-                            <thead>
-                                <tr>
-                                    <Th>Title</Th>
-                                    <Th>Category</Th>
-                                    <Th>Last modified</Th>
-                                    <Th>Expiry date</Th>
-                                    <Th>Date published</Th>
-                                    <Th>Status</Th>
-                                    <Th align="right">Actions</Th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {listings.map((listing) => (
-                                    <tr
-                                        key={listing.id}
-                                        className="transition hover:bg-olive-50/60 dark:hover:bg-olive-800/40"
-                                    >
-                                        <Td>
-                                            <Link
-                                                href={route(
-                                                    'account.listings.edit',
-                                                    listing.slug || listing.id,
-                                                )}
-                                                className="flex min-w-[12rem] items-center gap-3 outline-none transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-mustard"
-                                            >
-                                                <div className="h-10 w-10 shrink-0 overflow-hidden bg-olive-100 dark:bg-olive-800">
-                                                    {listing.image_url ? (
-                                                        <img
-                                                            src={listing.image_url}
-                                                            alt=""
-                                                            className="h-full w-full object-cover"
-                                                        />
-                                                    ) : (
-                                                        <div className="flex h-full items-center justify-center text-[9px] font-semibold text-olive-400 dark:text-olive-500">
-                                                            N/A
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <p className="truncate text-sm font-semibold text-olive-950 underline-offset-2 hover:underline dark:text-olive-50">
-                                                    {listing.title || 'Untitled'}
-                                                </p>
-                                            </Link>
-                                        </Td>
-                                        <Td>
-                                            <span className="text-sm text-olive-700 dark:text-olive-200">
-                                                {listing.category || '—'}
-                                            </span>
-                                        </Td>
-                                        <Td>
-                                            <span className="whitespace-nowrap text-sm text-olive-600 dark:text-olive-300">
-                                                {formatDate(listing.updated_at)}
-                                            </span>
-                                        </Td>
-                                        <Td>
-                                            <ExpiryCell
-                                                expiresAt={listing.expires_at}
-                                                isExpired={listing.is_expired}
-                                            />
-                                        </Td>
-                                        <Td>
-                                            <span className="whitespace-nowrap text-sm text-olive-600 dark:text-olive-300">
-                                                {formatDate(listing.published_at)}
-                                            </span>
-                                        </Td>
-                                        <Td>
-                                            <StatusBadge status={listing.status} />
-                                        </Td>
-                                        <Td align="right">
-                                            <ActionMenu
-                                                label="Actions"
-                                                items={[
-                                                    ...(listing.is_published &&
-                                                    listing.status === 'published'
-                                                        ? [
-                                                              {
-                                                                  label: 'View',
-                                                                  href: route(
-                                                                      'listings.show',
-                                                                      listing.slug,
-                                                                  ),
-                                                              },
-                                                          ]
-                                                        : []),
-                                                    {
-                                                        label: 'Edit',
-                                                        href: route(
-                                                            'account.listings.edit',
-                                                            listing.slug || listing.id,
-                                                        ),
-                                                    },
-                                                    {
-                                                        label: 'Delete',
-                                                        danger: true,
-                                                        onClick: () => remove(listing),
-                                                    },
-                                                ]}
-                                            />
-                                        </Td>
+                        <>
+                            <DataTable>
+                                <thead>
+                                    <tr>
+                                        <Th>Title</Th>
+                                        <Th>Category</Th>
+                                        <Th>Last modified</Th>
+                                        <Th>Expiry date</Th>
+                                        <Th>Date published</Th>
+                                        <Th>Status</Th>
+                                        <Th align="right">Actions</Th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </DataTable>
+                                </thead>
+                                <tbody>
+                                    {pageItems.map((listing) => (
+                                        <tr
+                                            key={listing.id}
+                                            className="transition hover:bg-olive-50/60 dark:hover:bg-olive-800/40"
+                                        >
+                                            <Td>
+                                                <Link
+                                                    href={route(
+                                                        'account.listings.edit',
+                                                        listing.slug || listing.id,
+                                                    )}
+                                                    className="flex min-w-[12rem] items-center gap-3 outline-none transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-mustard"
+                                                >
+                                                    <div className="h-10 w-10 shrink-0 overflow-hidden bg-olive-100 dark:bg-olive-800">
+                                                        {listing.image_url ? (
+                                                            <img
+                                                                src={listing.image_url}
+                                                                alt=""
+                                                                className="h-full w-full object-cover"
+                                                            />
+                                                        ) : (
+                                                            <div className="flex h-full items-center justify-center text-[9px] font-semibold text-olive-400 dark:text-olive-500">
+                                                                N/A
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <p className="truncate text-sm font-semibold text-olive-950 underline-offset-2 hover:underline dark:text-olive-50">
+                                                        {listing.title || 'Untitled'}
+                                                    </p>
+                                                </Link>
+                                            </Td>
+                                            <Td>
+                                                <span className="text-sm text-olive-700 dark:text-olive-200">
+                                                    {listing.category || '—'}
+                                                </span>
+                                            </Td>
+                                            <Td>
+                                                <span className="whitespace-nowrap text-sm text-olive-600 dark:text-olive-300">
+                                                    {formatDate(listing.updated_at)}
+                                                </span>
+                                            </Td>
+                                            <Td>
+                                                <ExpiryCell
+                                                    expiresAt={listing.expires_at}
+                                                    isExpired={listing.is_expired}
+                                                />
+                                            </Td>
+                                            <Td>
+                                                <span className="whitespace-nowrap text-sm text-olive-600 dark:text-olive-300">
+                                                    {formatDate(listing.published_at)}
+                                                </span>
+                                            </Td>
+                                            <Td>
+                                                <StatusBadge status={listing.status} />
+                                            </Td>
+                                            <Td align="right">
+                                                <ActionMenu
+                                                    label="Actions"
+                                                    items={[
+                                                        ...(listing.is_published &&
+                                                        listing.status === 'published'
+                                                            ? [
+                                                                  {
+                                                                      label: 'View',
+                                                                      href: route(
+                                                                          'listings.show',
+                                                                          listing.slug,
+                                                                      ),
+                                                                  },
+                                                              ]
+                                                            : []),
+                                                        {
+                                                            label: 'Edit',
+                                                            href: route(
+                                                                'account.listings.edit',
+                                                                listing.slug || listing.id,
+                                                            ),
+                                                        },
+                                                        {
+                                                            label: 'Delete',
+                                                            danger: true,
+                                                            onClick: () => remove(listing),
+                                                        },
+                                                    ]}
+                                                />
+                                            </Td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </DataTable>
+                            <Pagination
+                                className="border-t border-olive-900/10 px-4 py-5 dark:border-olive-800"
+                                page={page}
+                                totalPages={totalPages}
+                                onPageChange={setPage}
+                                label="Listings pagination"
+                            />
+                        </>
                     )}
                 </section>
             </div>

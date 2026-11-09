@@ -106,6 +106,26 @@ class ListingReviewTest extends TestCase
             ->assertSessionHasErrors(['rating', 'body']);
     }
 
+    public function test_review_rejects_body_over_400_words(): void
+    {
+        $listing = $this->makeListing();
+        $member = User::factory()->create();
+        $body = implode(' ', array_fill(0, 401, 'wildlife'));
+
+        $this->actingAs($member)
+            ->from(route('listings.show', ['slug' => $listing->slug, 'tab' => 'reviews']))
+            ->post(route('listings.reviews.store', $listing), [
+                'rating' => 5,
+                'body' => $body,
+            ])
+            ->assertRedirect(route('listings.show', ['slug' => $listing->slug, 'tab' => 'reviews']))
+            ->assertSessionHasErrors([
+                'body' => 'Reviews can be at most 400 words.',
+            ]);
+
+        $this->assertDatabaseCount('listing_reviews', 0);
+    }
+
     public function test_member_cannot_review_same_listing_twice(): void
     {
         $listing = $this->makeListing();

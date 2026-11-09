@@ -1,4 +1,4 @@
-import { ExternalLink, MessageCircle, Phone, Star, Ticket } from 'lucide-react';
+import { ExternalLink, MessageCircle, Phone, Ticket } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { listingSubcategories } from '@/utils/listingSubcategories';
 import { plainText } from '@/utils/plainText';
@@ -19,7 +19,11 @@ function actionUrl(listing) {
     );
 }
 
-export default function ListingHero({ listing, secondaryCta }) {
+export default function ListingHero({
+    listing,
+    secondaryCta,
+    onMessage = null,
+}) {
     const tel = listing.phone
         ? `tel:${String(listing.phone).replace(/\s+/g, '')}`
         : null;
@@ -27,6 +31,15 @@ export default function ListingHero({ listing, secondaryCta }) {
     const ticketUrl = listing.ticketUrl;
     const bookUrl = actionUrl(listing);
     const contactHref = `#contact`;
+    const openMessage = () => {
+        if (onMessage) {
+            onMessage();
+            return;
+        }
+        if (typeof window !== 'undefined') {
+            window.location.hash = 'contact';
+        }
+    };
 
     const subtitle = (
         isEvent
@@ -109,12 +122,6 @@ export default function ListingHero({ listing, secondaryCta }) {
                                     {subtitle}
                                 </p>
                             ) : null}
-                            {Number(listing.rating ?? 0) > 0 ? (
-                                <p className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-white">
-                                    <Star className="h-3.5 w-3.5 fill-mustard text-mustard sm:h-4 sm:w-4" />
-                                    {Number(listing.rating).toFixed(1)}
-                                </p>
-                            ) : null}
                         </div>
                     </div>
 
@@ -166,13 +173,14 @@ export default function ListingHero({ listing, secondaryCta }) {
                                 Call
                             </a>
                         ) : null}
-                        <a
-                            href={contactHref}
+                        <button
+                            type="button"
+                            onClick={openMessage}
                             className={`min-w-0 flex-1 sm:flex-none ${secondaryBtn}`}
                         >
                             <MessageCircle className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
                             <span className="truncate">Message</span>
-                        </a>
+                        </button>
                         {secondaryCta &&
                         !ticketUrl &&
                         !bookUrl &&

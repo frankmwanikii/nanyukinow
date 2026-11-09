@@ -212,22 +212,167 @@ class Membership
     }
 
     /**
+     * Paid plan the member should renew (active paid, soft-expired paid, or last paid after expiry).
+     */
+    public static function renewPlanFor(User $user): ?string
+    {
+        $stored = self::normalize($user->plan);
+
+        if ($stored !== self::FREE) {
+            return $stored;
+        }
+
+        $lastPaid = self::normalize($user->last_paid_plan ?? null);
+
+        return $lastPaid !== self::FREE ? $lastPaid : null;
+    }
+
+    /**
+     * True when the member is paying to renew the same paid plan they already have or just lost.
+     */
+    public static function isRenewal(User $user, string $toPlan, ?string $billingPeriod = null): bool
+    {
+        $renewPlan = self::renewPlanFor($user);
+
+        if ($renewPlan === null) {
+            return false;
+        }
+
+        return self::normalize($toPlan) === $renewPlan;
+    }
+
+    /**
+     * Billing period to preselect when renewing.
+     */
+    public static function renewBillingPeriodFor(User $user): string
+    {
+        $renewPlan = self::renewPlanFor($user);
+
+        if ($renewPlan === null) {
+            return 'month';
+        }
+
+        $period = self::billingPeriodFor($user, $renewPlan);
+
+        if ($period === null && $user->last_paid_plan) {
+            $upgrade = PlanUpgrade::query()
+                ->where('user_id', $user->id)
+                ->where('to_plan', $renewPlan)
+                ->where('status', PlanUpgrade::STATUS_APPROVED)
+                ->latest('reviewed_at')
+                ->latest('id')
+                ->first();
+
+            if ($upgrade && in_array($upgrade->billing_period, ['month', 'year', 'one_time'], true)) {
+                $period = $upgrade->billing_period === 'year' || $upgrade->billing_period === 'one_time'
+                    ? 'year'
+                    : 'month';
+            }
+        }
+
+        return $period === 'year' ? 'year' : 'month';
+    }
+
+    /**
+     * Drop an expired paid member to Free and hide their listings without deleting them.
+     */
+    public static function expireToFree(User $user): bool
+    {
+        if (! $user->planIsExpired()) {
+            return false;
+        }
+
+        $stored = self::normalize($user->plan);
+        $lastPaid = $stored !== self::FREE
+            ? $stored
+            : self::normalize($user->last_paid_plan ?? null);
+
+        if ($lastPaid === self::FREE) {
+            return false;
+        }
+
+        $user->forceFill([
+            'last_paid_plan' => $lastPaid,
+            'plan' => self::FREE,
+            'plan_renewal_reminder_7d_sent_at' => null,
+            'plan_renewal_reminder_3d_sent_at' => null,
+        ])->save();
+
+        $user->listings()
+            ->where(function ($query) {
+                $query->where('is_published', true)
+                    ->orWhere('suppressed_by_plan_expiry', true);
+            })
+            ->where(function ($query) {
+                $query->whereNull('status')
+                    ->orWhere('status', '!=', 'draft');
+            })
+            ->update([
+                'is_published' => false,
+                'suppressed_by_plan_expiry' => true,
+            ]);
+
+        return true;
+    }
+
+    /**
+     * Restore listings hidden by plan expiry after a successful renewal.
+     */
+    public static function restoreSuppressedListings(User $user): void
+    {
+        $user->listings()
+            ->where('suppressed_by_plan_expiry', true)
+            ->update([
+                'is_published' => true,
+                'suppressed_by_plan_expiry' => false,
+                'status' => 'published',
+                'published_at' => now(),
+            ]);
+    }
+
+    /**
      * Activate (or change) a member's plan and boost existing listings to match.
+     * Renewing the same active plan extends from the current expiry so unused days are kept.
      */
     public static function activate(User $user, string $plan, ?int $days = 30): void
     {
         $plan = self::normalize($plan);
         $days = max(1, $days ?? 30);
 
-        $user->forceFill([
-            'plan' => $plan,
-            'plan_started_at' => now(),
-            'plan_expires_at' => $plan === self::FREE ? null : now()->addDays($days),
-        ])->save();
-
         if ($plan === self::FREE) {
+            $user->forceFill([
+                'plan' => self::FREE,
+                'plan_started_at' => now(),
+                'plan_expires_at' => null,
+                'plan_renewal_reminder_7d_sent_at' => null,
+                'plan_renewal_reminder_3d_sent_at' => null,
+            ])->save();
+
             return;
         }
+
+        $sameActivePlan = self::normalize($user->plan) === $plan
+            && $user->plan_expires_at !== null
+            && $user->plan_expires_at->isFuture();
+
+        if ($sameActivePlan) {
+            $expiresAt = $user->plan_expires_at->copy()->addDays($days);
+            $startedAt = $user->plan_started_at ?? now();
+        } else {
+            $startedAt = now();
+            $expiresAt = now()->addDays($days);
+        }
+
+        $user->forceFill([
+            'plan' => $plan,
+            'last_paid_plan' => $plan,
+            'plan_started_at' => $startedAt,
+            'plan_expires_at' => $expiresAt,
+            'plan_renewal_reminder_7d_sent_at' => null,
+            'plan_renewal_reminder_3d_sent_at' => null,
+        ])->save();
+
+        self::restoreSuppressedListings($user);
 
         $lowerTiers = match ($plan) {
             self::PREMIUM => [self::FREE, self::STANDARD],
@@ -260,19 +405,21 @@ class Membership
     public static function planSummary(User $user): array
     {
         $plan = $user->effectivePlan();
+        $renewPlan = self::renewPlanFor($user);
         $limit = self::listingLimit($plan);
         $used = self::activeListingCount($user);
         $startedAt = $user->plan_started_at;
         $expiresAt = $user->plan_expires_at;
-        $isExpired = $user->planIsExpired();
-        $isPaid = $plan !== self::FREE && $expiresAt !== null;
+        $isExpired = $user->planIsExpired() || ($plan === self::FREE && $renewPlan !== null && $expiresAt !== null && $expiresAt->isPast());
+        $isPaid = $plan !== self::FREE && $expiresAt !== null && $expiresAt->isFuture();
+        $displayPlan = $isExpired && $renewPlan ? $renewPlan : $plan;
 
         $daysRemaining = null;
         $daysTotal = null;
         $daysUsed = null;
         $usagePercent = null;
 
-        if ($isPaid) {
+        if ($isPaid || ($isExpired && $expiresAt && $startedAt)) {
             if ($expiresAt->isPast()) {
                 $daysRemaining = 0;
             } else {
@@ -288,22 +435,24 @@ class Membership
         }
 
         $status = match (true) {
+            $isExpired && $renewPlan !== null => 'expired',
             $plan === self::FREE => 'free',
-            $isExpired => 'expired',
             $daysRemaining !== null && $daysRemaining <= 7 => 'expiring_soon',
             default => 'active',
         };
 
+        $renewBillingPeriod = $renewPlan ? self::renewBillingPeriodFor($user) : null;
+
         return [
             'key' => $plan,
-            'label' => self::label($plan),
-            'badge_label' => self::badgeLabel($plan),
+            'label' => self::label($displayPlan),
+            'badge_label' => self::badgeLabel($displayPlan),
             'listing_limit' => $limit,
             'listings_used' => $used,
             'listings_remaining' => max(0, $limit - $used),
             'can_create' => $used < $limit,
             'allowed_tiers' => self::allowedTiers($plan),
-            'billing_period' => self::billingPeriodFor($user, $plan),
+            'billing_period' => $isPaid ? self::billingPeriodFor($user, $plan) : $renewBillingPeriod,
             'started_at' => $startedAt?->toIso8601String(),
             'expires_at' => $expiresAt?->toIso8601String(),
             'is_expired' => $isExpired,
@@ -313,6 +462,9 @@ class Membership
             'days_total' => $daysTotal,
             'days_used' => $daysUsed,
             'period_percent' => $usagePercent,
+            'renew_plan' => $renewPlan,
+            'renew_billing_period' => $renewBillingPeriod,
+            'can_renew' => $renewPlan !== null,
         ];
     }
 
@@ -323,6 +475,10 @@ class Membership
     public static function billingPeriodFor(User $user, ?string $plan = null): ?string
     {
         $plan = self::normalize($plan ?? $user->effectivePlan());
+
+        if ($plan === self::FREE) {
+            $plan = self::normalize($user->last_paid_plan ?? null);
+        }
 
         if ($plan === self::FREE) {
             return null;

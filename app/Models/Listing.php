@@ -57,6 +57,7 @@ class Listing extends Model
         'is_featured',
         'is_trending',
         'is_published',
+        'suppressed_by_plan_expiry',
     ];
 
     protected function casts(): array
@@ -81,6 +82,7 @@ class Listing extends Model
             'is_featured' => 'boolean',
             'is_trending' => 'boolean',
             'is_published' => 'boolean',
+            'suppressed_by_plan_expiry' => 'boolean',
         ];
     }
 
@@ -113,6 +115,7 @@ class Listing extends Model
     public function scopePublished(Builder $query): Builder
     {
         return $query->where('is_published', true)
+            ->where('suppressed_by_plan_expiry', false)
             ->where(function (Builder $q) {
                 $q->whereNull('status')->orWhere('status', 'published');
             })

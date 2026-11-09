@@ -3,11 +3,12 @@
 namespace App\Mail;
 
 use App\Models\Listing;
-use App\Models\SiteSetting;
+use App\Support\MailBranding;
 use App\Support\SafeHtml;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Address;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -36,25 +37,29 @@ class ListingOwnerReplyMail extends Mailable
 
     public function content(): Content
     {
-        $appUrl = rtrim((string) config('app.url'), '/');
-        $appName = (string) SiteSetting::getValue('site_name', config('app.name', 'Nanyuki Now'));
-        $contactEmail = (string) SiteSetting::getValue(
-            'contact_email',
-            config('mail.from.address', 'hello@nanyukinow.co.ke'),
-        );
+        $brand = MailBranding::context();
 
         return new Content(
+            html: 'mail.listing-owner-reply',
             text: 'mail.listing-owner-reply-text',
             with: [
+                ...$brand,
                 'listingTitle' => $this->listing->title,
                 'listingUrl' => route('listings.show', $this->listing->slug),
                 'ownerName' => $this->ownerName,
+                'ownerEmail' => $this->ownerEmail,
                 'guestName' => $this->guestName,
+                'messageBody' => $this->messageBody,
                 'messagePlain' => SafeHtml::toPlainText($this->messageBody),
-                'appName' => $appName,
-                'appUrl' => $appUrl,
-                'contactEmail' => $contactEmail,
             ],
         );
+    }
+
+    /**
+     * @return array<int, Attachment>
+     */
+    public function attachments(): array
+    {
+        return [];
     }
 }

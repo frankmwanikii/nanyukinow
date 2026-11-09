@@ -26,6 +26,9 @@ use Illuminate\Notifications\Notifiable;
     'plan',
     'plan_started_at',
     'plan_expires_at',
+    'last_paid_plan',
+    'plan_renewal_reminder_7d_sent_at',
+    'plan_renewal_reminder_3d_sent_at',
 ])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
@@ -44,6 +47,8 @@ class User extends Authenticatable
             'is_admin' => 'boolean',
             'plan_started_at' => 'datetime',
             'plan_expires_at' => 'datetime',
+            'plan_renewal_reminder_7d_sent_at' => 'datetime',
+            'plan_renewal_reminder_3d_sent_at' => 'datetime',
         ];
     }
 
@@ -91,6 +96,11 @@ class User extends Authenticatable
     public function planUpgrades(): HasMany
     {
         return $this->hasMany(PlanUpgrade::class);
+    }
+
+    public function supportTickets(): HasMany
+    {
+        return $this->hasMany(SupportTicket::class);
     }
 
     public function isAdmin(): bool

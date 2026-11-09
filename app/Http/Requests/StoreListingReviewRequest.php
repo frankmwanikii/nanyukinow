@@ -2,10 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Support\ListingTierSupport;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 class StoreListingReviewRequest extends FormRequest
 {
+    public const MAX_WORDS = 400;
+
     public function authorize(): bool
     {
         return $this->user() !== null;
@@ -18,7 +22,30 @@ class StoreListingReviewRequest extends FormRequest
     {
         return [
             'rating' => ['required', 'integer', 'min:1', 'max:5'],
-            'body' => ['required', 'string', 'min:10', 'max:2000'],
+            'body' => ['required', 'string', 'min:10', 'max:20000'],
+        ];
+    }
+
+    /**
+     * @return array<int, \Closure(Validator): void>
+     */
+    public function after(): array
+    {
+        return [
+            function (Validator $validator): void {
+                if ($validator->errors()->has('body')) {
+                    return;
+                }
+
+                $words = ListingTierSupport::wordCount((string) $this->input('body'));
+
+                if ($words > self::MAX_WORDS) {
+                    $validator->errors()->add(
+                        'body',
+                        'Reviews can be at most '.self::MAX_WORDS.' words.',
+                    );
+                }
+            },
         ];
     }
 
@@ -33,7 +60,6 @@ class StoreListingReviewRequest extends FormRequest
             'rating.max' => 'Please choose a star rating.',
             'body.required' => 'Please write a short review.',
             'body.min' => 'Please write at least 10 characters.',
-            'body.max' => 'Reviews can be at most 2000 characters.',
         ];
     }
 }

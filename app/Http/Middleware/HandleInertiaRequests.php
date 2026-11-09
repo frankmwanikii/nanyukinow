@@ -12,6 +12,7 @@ use App\Support\Membership;
 use App\Support\UserAvatar;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Middleware;
 use Inertia\Support\Header;
 use Symfony\Component\HttpFoundation\Response;
@@ -76,12 +77,18 @@ class HandleInertiaRequests extends Middleware
                         'listings_remaining' => Membership::remainingSlots($request->user()),
                         'bookmarkedListingIds' => (function () use ($request) {
                             try {
-                                return $request->user()
-                                    ->bookmarkedListings()
-                                    ->pluck('listings.id')
-                                    ->map(fn ($id) => (int) $id)
-                                    ->values()
-                                    ->all();
+                                $userId = (int) $request->user()->id;
+
+                                return Cache::remember(
+                                    'user.'.$userId.'.bookmark_ids',
+                                    120,
+                                    fn () => $request->user()
+                                        ->bookmarkedListings()
+                                        ->pluck('listings.id')
+                                        ->map(fn ($id) => (int) $id)
+                                        ->values()
+                                        ->all(),
+                                );
                             } catch (Throwable) {
                                 return [];
                             }

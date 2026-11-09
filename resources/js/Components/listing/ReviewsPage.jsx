@@ -4,6 +4,17 @@ import { useMemo, useState } from 'react';
 import DetailSection from './DetailSection';
 
 const PAGE_SIZE = 5;
+const MAX_REVIEW_WORDS = 400;
+
+function countWords(value) {
+    const text = String(value || '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    if (!text) {
+        return 0;
+    }
+    return text.split(' ').filter(Boolean).length;
+}
 
 function Stars({ value = 0, size = 'md', interactive = false, onSelect }) {
     const cls = size === 'lg' ? 'h-7 w-7' : 'h-4 w-4';
@@ -50,52 +61,135 @@ function Stars({ value = 0, size = 'md', interactive = false, onSelect }) {
 }
 
 function ReviewForm({ listing }) {
-    const { data, setData, post, processing, errors, reset } = useForm({
-        rating: 0,
-        body: '',
-    });
+    const { data, setData, post, processing, errors, reset, clearErrors } =
+        useForm({
+            rating: 0,
+            body: '',
+        });
+    const [touched, setTouched] = useState({ rating: false, body: false });
+    const [attempted, setAttempted] = useState(false);
+
+    const wordCount = countWords(data.body);
+    const ratingMissing = !data.rating;
+    const bodyEmpty = !String(data.body || '').trim();
+    const bodyTooShort =
+        !bodyEmpty && String(data.body || '').trim().length < 10;
+    const bodyOverLimit = wordCount > MAX_REVIEW_WORDS;
+
+    const ratingError =
+        errors.rating ||
+        ((touched.rating || attempted) && ratingMissing
+            ? 'Please choose a star rating.'
+            : null);
+    const bodyError =
+        errors.body ||
+        ((touched.body || attempted) && bodyEmpty
+            ? 'Please write a short review.'
+            : null) ||
+        ((touched.body || attempted) && bodyTooShort
+            ? 'Please write at least 10 characters.'
+            : null) ||
+        (bodyOverLimit
+            ? `Reviews can be at most ${MAX_REVIEW_WORDS} words.`
+            : null);
+
+    const canSubmit =
+        !processing &&
+        !ratingMissing &&
+        !bodyEmpty &&
+        !bodyTooShort &&
+        !bodyOverLimit;
 
     const submit = (event) => {
         event.preventDefault();
+        setAttempted(true);
+        if (!canSubmit) {
+            return;
+        }
         post(route('listings.reviews.store', listing.slug), {
             preserveScroll: true,
-            onSuccess: () => reset('rating', 'body'),
+            onSuccess: () => {
+                reset('rating', 'body');
+                setTouched({ rating: false, body: false });
+                setAttempted(false);
+            },
         });
     };
 
     return (
-        <form onSubmit={submit} className="flex flex-col gap-4">
+        <form onSubmit={submit} className="flex flex-col gap-4" noValidate>
             <div>
-                <p className="mb-2 text-sm font-medium text-olive-800">Your rating</p>
+                <p className="mb-2 text-sm font-medium text-olive-800">
+                    Your rating <span className="text-olive-500">*</span>
+                </p>
                 <Stars
                     value={data.rating}
                     size="lg"
                     interactive
-                    onSelect={(n) => setData('rating', n)}
+                    onSelect={(n) => {
+                        clearErrors('rating');
+                        setTouched((prev) => ({ ...prev, rating: true }));
+                        setData('rating', n);
+                    }}
                 />
-                {errors.rating ? (
-                    <p className="mt-2 text-sm text-red-600">{errors.rating}</p>
+                {ratingError ? (
+                    <p className="mt-2 text-sm text-red-600" role="alert">
+                        {ratingError}
+                    </p>
                 ) : null}
             </div>
             <div>
-                <label htmlFor="review-body" className="mb-2 block text-sm font-medium text-olive-800">
-                    Your review
+                <label
+                    htmlFor="review-body"
+                    className="mb-2 block text-sm font-medium text-olive-800"
+                >
+                    Your review <span className="text-olive-500">*</span>
                 </label>
                 <textarea
                     id="review-body"
                     rows={4}
+                    required
+                    aria-required="true"
+                    aria-invalid={bodyError ? true : undefined}
                     value={data.body}
-                    onChange={(event) => setData('body', event.target.value)}
+                    onChange={(event) => {
+                        clearErrors('body');
+                        setTouched((prev) => ({ ...prev, body: true }));
+                        setData('body', event.target.value);
+                    }}
+                    onBlur={() =>
+                        setTouched((prev) => ({ ...prev, body: true }))
+                    }
                     placeholder="Share what stood out about your visit"
-                    className="w-full rounded-xl border border-olive-200 bg-white px-3 py-2.5 text-sm text-olive-900 shadow-sm outline-none transition placeholder:text-olive-400 focus:border-olive-500 focus:ring-2 focus:ring-olive-500/20"
+                    className={`w-full rounded-xl border bg-white px-3 py-2.5 text-sm text-olive-900 shadow-sm outline-none transition placeholder:text-olive-400 focus:ring-2 ${
+                        bodyError
+                            ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20'
+                            : 'border-olive-200 focus:border-olive-500 focus:ring-olive-500/20'
+                    }`}
                 />
-                {errors.body ? (
-                    <p className="mt-2 text-sm text-red-600">{errors.body}</p>
-                ) : null}
+                <div className="mt-2 flex flex-wrap items-start justify-between gap-2">
+                    {bodyError ? (
+                        <p className="text-sm text-red-600" role="alert">
+                            {bodyError}
+                        </p>
+                    ) : (
+                        <span />
+                    )}
+                    <p
+                        className={`ml-auto text-sm tabular-nums ${
+                            bodyOverLimit
+                                ? 'font-semibold text-red-600'
+                                : 'text-olive-500'
+                        }`}
+                        aria-live="polite"
+                    >
+                        {wordCount} / {MAX_REVIEW_WORDS} words
+                    </p>
+                </div>
             </div>
             <button
                 type="submit"
-                disabled={processing}
+                disabled={!canSubmit}
                 className="inline-flex min-h-11 w-full items-center justify-center rounded-full bg-olive-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-mustard hover:text-olive-950 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
             >
                 {processing ? 'Posting…' : 'Post review'}

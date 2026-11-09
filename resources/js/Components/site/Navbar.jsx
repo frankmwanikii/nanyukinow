@@ -1,8 +1,8 @@
 import { Link, router, usePage } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import CloseButton from '@/Components/site/CloseButton';
 import {
-    CloseMark,
     MenuMark,
     SearchMark,
 } from '@/Components/site/Mark';
@@ -386,14 +386,12 @@ export default function Navbar({ compact = false }) {
                         >
                             <div className="flex shrink-0 items-center justify-between gap-3 border-b border-white/10 px-4 py-3.5">
                                 <Logo className="min-w-0" />
-                                <button
-                                    type="button"
+                                <CloseButton
                                     onClick={() => setOpen(false)}
-                                    className="inline-flex rounded-lg p-2 text-white transition hover:bg-white/10"
-                                    aria-label="Close menu"
-                                >
-                                    <CloseMark className="h-5 w-5" />
-                                </button>
+                                    size="md"
+                                    tone="onDark"
+                                    label="Close menu"
+                                />
                             </div>
 
                             <MobileDrawerNav
@@ -537,17 +535,16 @@ export default function Navbar({ compact = false }) {
                         }`}
                     />
                     {query.trim() ? (
-                        <button
-                            type="button"
+                        <CloseButton
                             onClick={() => {
                                 setQuery('');
                                 setSearchOpen(false);
                             }}
-                            className="absolute right-0 z-10 inline-flex h-7 w-7 items-center justify-center rounded-full text-white/75 transition hover:bg-white/10 hover:text-white"
-                            aria-label="Clear search"
-                        >
-                            <CloseMark className="h-4 w-4" />
-                        </button>
+                            size="sm"
+                            tone="onDark"
+                            label="Clear search"
+                            className="absolute right-0 z-10 h-7 w-7 border-transparent"
+                        />
                     ) : null}
                     {searchOpen ? (
                         <SearchSuggestions

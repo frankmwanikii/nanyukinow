@@ -1,6 +1,7 @@
 import { createPortal } from 'react-dom';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
-import { AlertTriangle, Info, Link2, Trash2, X } from 'lucide-react';
+import { AlertTriangle, Info, Link2, Trash2 } from 'lucide-react';
+import CloseButton from '@/Components/site/CloseButton';
 
 const SHELL =
     'fixed inset-0 z-[1600] flex items-end justify-center sm:items-center sm:p-4';
@@ -78,14 +79,7 @@ export default function ConfirmDialog({
                             >
                                 {title}
                             </h2>
-                            <button
-                                type="button"
-                                onClick={onCancel}
-                                className="rounded-lg p-1 text-olive-400 transition hover:bg-olive-100 hover:text-olive-800 dark:hover:bg-olive-800 dark:hover:text-olive-100"
-                                aria-label="Close"
-                            >
-                                <X className="h-4 w-4" />
-                            </button>
+                            <CloseButton onClick={onCancel} size="sm" />
                         </div>
                         {message ? (
                             <p className="mt-1.5 text-sm leading-relaxed text-olive-600 dark:text-olive-300">
@@ -188,14 +182,7 @@ export function AlertDialog({
                             >
                                 {title}
                             </h2>
-                            <button
-                                type="button"
-                                onClick={onConfirm}
-                                className="rounded-lg p-1 text-olive-400 transition hover:bg-olive-100 hover:text-olive-800 dark:hover:bg-olive-800 dark:hover:text-olive-100"
-                                aria-label="Close"
-                            >
-                                <X className="h-4 w-4" />
-                            </button>
+                            <CloseButton onClick={onConfirm} size="sm" />
                         </div>
                         {message ? (
                             <p className="mt-1.5 text-sm leading-relaxed text-olive-600 dark:text-olive-300">
@@ -298,14 +285,7 @@ export function PromptDialog({
                                 >
                                     {title}
                                 </h2>
-                                <button
-                                    type="button"
-                                    onClick={onCancel}
-                                    className="rounded-lg p-1 text-olive-400 transition hover:bg-olive-100 hover:text-olive-800 dark:hover:bg-olive-800 dark:hover:text-olive-100"
-                                    aria-label="Close"
-                                >
-                                    <X className="h-4 w-4" />
-                                </button>
+                                <CloseButton onClick={onCancel} size="sm" />
                             </div>
                             {message ? (
                                 <p className="mt-1.5 text-sm leading-relaxed text-olive-600 dark:text-olive-300">

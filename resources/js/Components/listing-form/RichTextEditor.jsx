@@ -154,6 +154,7 @@ export default function RichTextEditor({
     compact = false,
     allowImages = true,
     uploadUrl = null,
+    required = false,
 }) {
     const { alert, dialog: alertDialog } = useAlert();
     const { prompt, dialog: promptDialog } = usePrompt();
@@ -348,7 +349,9 @@ export default function RichTextEditor({
         <div>
             {alertDialog}
             {promptDialog}
-            <FieldLabel htmlFor={id}>{labelText}</FieldLabel>
+            <FieldLabel htmlFor={id} required={required}>
+                {labelText}
+            </FieldLabel>
             <div
                 className={`overflow-hidden border bg-white transition focus-within:border-olive-900 dark:bg-olive-950 dark:focus-within:border-mustard ${
                     error

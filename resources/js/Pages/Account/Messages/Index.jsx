@@ -9,7 +9,7 @@ import {
     TrashMark,
 } from '@/Components/site/Mark';
 import { plainText } from '@/utils/plainText';
-import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 function Avatar({ src, initials, size = 'md', logo = false }) {
@@ -319,7 +319,6 @@ export default function Index({
     active = null,
     unread = { chats: 0, alerts: 0, total: 0 },
 }) {
-    const { flash } = usePage().props;
     const { confirm, dialog } = useConfirm();
     const [query, setQuery] = useState(q || '');
     const hasActive = Boolean(activeType && active);
@@ -465,12 +464,6 @@ export default function Index({
                         </button>
                     ) : null}
                 </div>
-
-                {flash?.success ? (
-                    <div className="border border-mint/40 bg-mint/20 px-4 py-3 text-sm text-olive-900 dark:border-mint/30 dark:bg-mint/15 dark:text-olive-100">
-                        {flash.success}
-                    </div>
-                ) : null}
 
                 <div className="overflow-hidden border border-olive-900/15 bg-white dark:border-olive-800 dark:bg-olive-950">
                     <div className="grid h-[min(72vh,760px)] min-h-[32rem] lg:grid-cols-[24rem_minmax(0,1fr)]">

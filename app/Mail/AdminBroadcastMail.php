@@ -2,7 +2,7 @@
 
 namespace App\Mail;
 
-use App\Models\SiteSetting;
+use App\Support\MailBranding;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Address;
@@ -23,34 +23,19 @@ class AdminBroadcastMail extends Mailable
 
     public function envelope(): Envelope
     {
-        $appName = (string) SiteSetting::getValue('site_name', config('app.name', 'Nanyuki Now'));
+        $brand = MailBranding::context();
 
         return new Envelope(
             subject: $this->subjectLine,
             replyTo: [
-                new Address(
-                    (string) SiteSetting::getValue(
-                        'contact_email',
-                        config('mail.from.address', 'hello@nanyukinow.co.ke'),
-                    ),
-                    $appName,
-                ),
+                new Address($brand['contactEmail'], $brand['appName']),
             ],
         );
     }
 
     public function content(): Content
     {
-        $appUrl = rtrim((string) config('app.url'), '/');
-        $appName = (string) SiteSetting::getValue('site_name', config('app.name', 'Nanyuki Now'));
-        $contactEmail = (string) SiteSetting::getValue(
-            'contact_email',
-            config('mail.from.address', 'hello@nanyukinow.co.ke'),
-        );
-        $contactPhone = trim((string) SiteSetting::getValue('contact_phone', '+254 700 000 000'));
-        if ($contactPhone === '') {
-            $contactPhone = '+254 700 000 000';
-        }
+        $brand = MailBranding::context();
 
         $greeting = filled($this->recipientName) && ! str_contains($this->recipientName, '@')
             ? 'Hi '.$this->recipientName.','
@@ -60,11 +45,7 @@ class AdminBroadcastMail extends Mailable
             html: 'mail.admin-broadcast',
             text: 'mail.admin-broadcast-text',
             with: [
-                'appName' => $appName,
-                'appUrl' => $appUrl,
-                'logoUrl' => $appUrl.'/images/logo.png',
-                'contactEmail' => $contactEmail,
-                'contactPhone' => $contactPhone,
+                ...$brand,
                 'greeting' => $greeting,
                 'subjectLine' => $this->subjectLine,
                 'bodyParagraphs' => preg_split("/\r\n|\n|\r/", trim($this->bodyText)) ?: [],

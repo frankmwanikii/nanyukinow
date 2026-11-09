@@ -1,3 +1,5 @@
+{{ $subjectLine }}
+
 {{ $greeting }}
 
 @foreach ($bodyParagraphs as $paragraph)
@@ -8,6 +10,9 @@
 @endforeach
 Explore: {{ $exploreUrl }}
 
+Contact {{ $appName }}:
+Website: {{ $appUrl }}
+Email: {{ $contactEmail }}
+Phone: {{ $contactPhone }}
+
 — {{ $appName }}
-{{ $contactEmail }} · {{ $contactPhone }}
-{{ $appUrl }}

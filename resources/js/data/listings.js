@@ -1481,6 +1481,13 @@ export function getRelatedListings(listing, relatedIds = [], limit = 3) {
     return picked;
 }
 
+/** Lowercase letters/digits only so "olpejeta" matches "Ol Pejeta". */
+export function compactSearchText(value) {
+    return String(value || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '');
+}
+
 export function filterListings(
     items,
     {
@@ -1535,7 +1542,19 @@ export function filterListings(
             .filter(Boolean)
             .join(' ')
             .toLowerCase();
+        const compactHaystack = compactSearchText(haystack);
 
-        return tokens.every((token) => haystack.includes(token));
+        return tokens.every((token) => {
+            if (haystack.includes(token)) {
+                return true;
+            }
+
+            const compactToken = compactSearchText(token);
+
+            return (
+                compactToken.length > 0 &&
+                compactHaystack.includes(compactToken)
+            );
+        });
     });
 }

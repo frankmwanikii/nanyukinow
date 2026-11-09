@@ -41,6 +41,22 @@ class ListingSearch
     }
 
     /**
+     * Letters and digits only so "olpejeta" matches "Ol Pejeta".
+     */
+    public static function compact(?string $value): string
+    {
+        return (string) preg_replace('/[^a-z0-9]+/u', '', Str::lower(trim((string) $value)));
+    }
+
+    /**
+     * SQL expression that strips spaces, hyphens, and underscores from a column.
+     */
+    protected static function compactSql(string $column): string
+    {
+        return "REPLACE(REPLACE(REPLACE(LOWER(COALESCE({$column}, '')), ' ', ''), '-', ''), '_', '')";
+    }
+
+    /**
      * Apply robust full-text-ish filters across listing fields.
      *
      * @param  list<string>|string|null  $query
@@ -55,8 +71,10 @@ class ListingSearch
 
         foreach ($tokens as $token) {
             $like = '%'.$token.'%';
+            $compact = self::compact($token);
+            $compactLike = $compact !== '' ? '%'.$compact.'%' : null;
 
-            $builder->where(function (Builder $group) use ($like) {
+            $builder->where(function (Builder $group) use ($like, $compactLike) {
                 $group->whereRaw('LOWER(title) LIKE ?', [$like])
                     ->orWhereRaw('LOWER(COALESCE(slug, "")) LIKE ?', [$like])
                     ->orWhereRaw('LOWER(COALESCE(tagline, "")) LIKE ?', [$like])
@@ -79,6 +97,15 @@ class ListingSearch
                 // JSON amenities / details (MySQL & SQLite-friendly LIKE on cast)
                 $group->orWhereRaw('LOWER(CAST(amenities AS CHAR)) LIKE ?', [$like])
                     ->orWhereRaw('LOWER(CAST(details AS CHAR)) LIKE ?', [$like]);
+
+                if ($compactLike !== null) {
+                    $group->orWhereRaw(self::compactSql('title').' LIKE ?', [$compactLike])
+                        ->orWhereRaw(self::compactSql('slug').' LIKE ?', [$compactLike])
+                        ->orWhereRaw(self::compactSql('tagline').' LIKE ?', [$compactLike])
+                        ->orWhereRaw(self::compactSql('location').' LIKE ?', [$compactLike])
+                        ->orWhereRaw(self::compactSql('venue').' LIKE ?', [$compactLike])
+                        ->orWhereRaw(self::compactSql('address').' LIKE ?', [$compactLike]);
+                }
             });
         }
 

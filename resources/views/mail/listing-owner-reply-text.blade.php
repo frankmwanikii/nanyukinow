@@ -9,6 +9,9 @@ Hi {{ $guestName }},
 Reply to this email to continue the conversation with {{ $ownerName }}.
 View listing: {{ $listingUrl }}
 
+Contact {{ $appName }}:
+Website: {{ $appUrl }}
+Email: {{ $contactEmail }}
+Phone: {{ $contactPhone }}
+
 — {{ $appName }}
-{{ $appUrl }}
-{{ $contactEmail }}

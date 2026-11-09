@@ -178,13 +178,13 @@ function BillingSwitcher({ value, onChange, savingsPercent = 0 }) {
                 Yearly
                 {savingsPercent > 0 ? (
                     <span
-                        className={`border px-1.5 py-0.5 text-[11px] font-semibold ${
+                        className={`rounded-sm border px-1.5 py-0.5 text-[11px] font-semibold ${
                             yearly
                                 ? 'border-white/30 text-white'
                                 : 'border-olive-900/15 text-olive-700'
                         }`}
                     >
-                        save {savingsPercent}%
+                        Save {savingsPercent}%
                     </span>
                 ) : null}
             </button>
@@ -294,15 +294,14 @@ export default function Pricing({
 
                             <div id="pricing-plans" className="space-y-8">
                                 <div className="mx-auto max-w-2xl text-center">
-                                    <p className="text-sm font-medium text-olive-500">
+                                    <p className="font-display text-xl font-semibold tracking-tight text-olive-950 sm:text-2xl">
                                         {breakdown.label}
                                     </p>
-                                    <h2 className="mt-2 font-display text-3xl font-semibold tracking-tight text-olive-950 sm:text-4xl">
+                                    <h2 className="mt-2 font-display text-2xl font-semibold tracking-tight text-olive-950 sm:text-3xl">
                                         Plans & inclusions
                                     </h2>
                                     <p className="mt-2 text-sm leading-relaxed text-olive-600 sm:text-base">
-                                        Unlock advanced features and grow your visibility in
-                                        Nanyuki.
+                                        Compare what each plan includes for this category.
                                     </p>
                                     {showSwitcher ? (
                                         <div className="mt-6">
@@ -399,10 +398,10 @@ export default function Pricing({
                                         }
 
                                         const ctaClass = ctaDisabled
-                                            ? 'mt-6 inline-flex w-full cursor-not-allowed items-center justify-center border border-olive-900/10 bg-olive-50 px-4 py-3 text-center text-sm font-semibold text-olive-400'
+                                            ? 'mt-6 inline-flex w-full cursor-not-allowed items-center justify-center rounded-sm border border-olive-900/10 bg-olive-50 px-4 py-2.5 text-center text-sm font-semibold text-olive-400'
                                             : featured
-                                              ? 'mt-6 inline-flex w-full items-center justify-center border border-olive-900 bg-olive-900 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-mustard hover:text-earth-dusk'
-                                              : 'mt-6 inline-flex w-full items-center justify-center border border-olive-900/15 bg-white px-4 py-3 text-center text-sm font-semibold text-olive-900 transition hover:border-olive-900 hover:bg-olive-900 hover:text-white';
+                                              ? 'mt-6 inline-flex w-full items-center justify-center rounded-sm bg-olive-900 px-4 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-mustard hover:text-earth-dusk'
+                                              : 'mt-6 inline-flex w-full items-center justify-center rounded-sm border border-olive-900/20 bg-white px-4 py-2.5 text-center text-sm font-semibold text-olive-900 transition hover:border-olive-900/40 hover:bg-olive-50';
 
                                         return (
                                             <article
@@ -414,18 +413,18 @@ export default function Pricing({
                                                 }`}
                                             >
                                                 {featured ? (
-                                                    <span className="absolute right-4 top-4 border border-olive-900 bg-olive-900 px-2 py-0.5 text-[11px] font-semibold text-white">
+                                                    <span className="absolute right-4 top-4 rounded-sm bg-mustard px-2 py-0.5 text-xs font-semibold text-earth-dusk">
                                                         Popular
                                                     </span>
                                                 ) : null}
 
                                                 <div className="flex items-baseline justify-between gap-3 pr-16">
-                                                    <h3 className="font-display text-3xl font-semibold tracking-tight text-olive-950">
+                                                    <h3 className="font-display text-2xl font-semibold tracking-tight text-olive-950">
                                                         {plan.name}
                                                     </h3>
                                                 </div>
 
-                                                <div className="mt-4">
+                                                <div className="mt-3">
                                                     {(() => {
                                                         const label = String(
                                                             plan.price_label || '',
@@ -440,15 +439,15 @@ export default function Pricing({
 
                                                         if (customLabel) {
                                                             return (
-                                                                <p className="font-display text-4xl font-semibold tracking-tight text-olive-950">
+                                                                <p className="text-2xl font-semibold tracking-tight text-olive-950">
                                                                     {customLabel}
                                                                 </p>
                                                             );
                                                         }
 
                                                         return (
-                                                            <p className="flex flex-wrap items-baseline gap-x-1.5 font-display tracking-tight text-olive-950">
-                                                                <span className="text-4xl font-semibold tabular-nums">
+                                                            <p className="flex flex-wrap items-baseline gap-x-1.5 tracking-tight text-olive-950">
+                                                                <span className="text-2xl font-semibold tabular-nums">
                                                                     {plan.currency || 'KES'}{' '}
                                                                     {showZero
                                                                         ? '0'
@@ -456,7 +455,7 @@ export default function Pricing({
                                                                               amount,
                                                                           )}
                                                                 </span>
-                                                                <span className="text-base font-medium text-olive-500">
+                                                                <span className="text-sm font-medium text-olive-500">
                                                                     {periodShort(period)}
                                                                 </span>
                                                             </p>

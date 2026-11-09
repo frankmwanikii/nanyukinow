@@ -11,8 +11,8 @@ import {
 import {
     CheckMark,
     CloseMark,
+    ForwardMark,
     MailMark,
-    MessageMark,
     PhoneMark,
     UploadMark,
 } from '@/Components/site/Mark';
@@ -113,6 +113,8 @@ const fieldOkClass = `${fieldClass} border-emerald-600 focus:border-emerald-700`
 const EMAIL_RE =
     /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z]{2,})+$/;
 
+const MAX_MESSAGE_WORDS = 200;
+
 function plainTextFromHtml(html) {
     if (typeof document === 'undefined') {
         return String(html || '')
@@ -123,6 +125,14 @@ function plainTextFromHtml(html) {
     const div = document.createElement('div');
     div.innerHTML = String(html || '');
     return (div.textContent || '').replace(/\u200b/g, '').replace(/\s+/g, ' ').trim();
+}
+
+function countWords(html) {
+    const text = plainTextFromHtml(html);
+    if (!text) {
+        return 0;
+    }
+    return text.split(' ').filter(Boolean).length;
 }
 
 function validateContactField(name, value) {
@@ -166,7 +176,9 @@ function validateContactField(name, value) {
             const text = plainTextFromHtml(raw);
             if (!text) return 'Please write a message.';
             if (text.length < 10) return 'Message is too short (min 10 characters).';
-            if (text.length > 5000) return 'Message is too long.';
+            if (countWords(raw) > MAX_MESSAGE_WORDS) {
+                return `Messages can be at most ${MAX_MESSAGE_WORDS} words.`;
+            }
             return '';
         }
         default:
@@ -220,13 +232,18 @@ function ContactMethod({ href, icon: Icon, label, value, external = false }) {
     );
 }
 
-function ContactMessageForm({ listing }) {
+export function ContactMessageForm({
+    listing,
+    framed = true,
+    onSuccess = null,
+}) {
     const fileInputRef = useRef(null);
     const { auth } = usePage().props;
+    const user = auth?.user;
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
-    const [email, setEmail] = useState(auth?.user?.email || '');
-    const [phone, setPhone] = useState('');
+    const [email, setEmail] = useState(user?.email || '');
+    const [phone, setPhone] = useState(user?.phone || '');
     const [message, setMessage] = useState('');
     const [docs, setDocs] = useState([]);
     const [captchaToken, setCaptchaToken] = useState('');
@@ -239,6 +256,20 @@ function ContactMessageForm({ listing }) {
     const [submitted, setSubmitted] = useState(false);
 
     useEffect(() => {
+        if (user?.name) {
+            const parts = String(user.name).trim().split(/\s+/);
+            setFirstName((prev) => prev || parts[0] || '');
+            setLastName((prev) => prev || parts.slice(1).join(' ') || '');
+        }
+        if (user?.email) {
+            setEmail((prev) => prev || user.email);
+        }
+        if (user?.phone) {
+            setPhone((prev) => prev || user.phone);
+        }
+    }, [user]);
+
+    useEffect(() => {
         return () => {
             docs.forEach((doc) => {
                 if (doc.previewUrl) URL.revokeObjectURL(doc.previewUrl);
@@ -246,6 +277,8 @@ function ContactMessageForm({ listing }) {
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    const messageWordCount = useMemo(() => countWords(message), [message]);
 
     const fieldErrors = useMemo(
         () => ({
@@ -412,8 +445,8 @@ function ContactMessageForm({ listing }) {
 
             setFirstName('');
             setLastName('');
-            setEmail(auth?.user?.email || '');
-            setPhone('');
+            setEmail(user?.email || '');
+            setPhone(user?.phone || '');
             setMessage('');
             clearDocs();
             setCaptchaToken('');
@@ -423,6 +456,7 @@ function ContactMessageForm({ listing }) {
             showSuccessToast(
                 data?.message || 'Message sent successfully.',
             );
+            onSuccess?.(data);
             window.setTimeout(() => setSent(false), 8000);
         } catch (err) {
             const serverErrors = err?.response?.data?.errors || {};
@@ -458,18 +492,27 @@ function ContactMessageForm({ listing }) {
         }
     };
 
-    return (
-        <DetailSection title="Send a message">
+    const form = (
+        <>
             <form
                 onSubmit={submit}
                 className="space-y-5"
                 encType="multipart/form-data"
                 noValidate
             >
+                {framed ? (
+                    <p className="text-sm leading-relaxed text-olive-700">
+                        We reply within minutes in Messages and by email.
+                    </p>
+                ) : null}
                 <div className="grid gap-4 sm:grid-cols-2">
                     <div className="min-w-0">
                         <label htmlFor="contact-fname" className={labelClass}>
-                            First name
+                            First name{' '}
+                            <span className="text-rose-600" aria-hidden="true">
+                                *
+                            </span>
+                            <span className="sr-only"> (required)</span>
                         </label>
                         <input
                             id="contact-fname"
@@ -495,7 +538,11 @@ function ContactMessageForm({ listing }) {
                     </div>
                     <div className="min-w-0">
                         <label htmlFor="contact-lname" className={labelClass}>
-                            Last name
+                            Last name{' '}
+                            <span className="text-rose-600" aria-hidden="true">
+                                *
+                            </span>
+                            <span className="sr-only"> (required)</span>
                         </label>
                         <input
                             id="contact-lname"
@@ -523,7 +570,11 @@ function ContactMessageForm({ listing }) {
                 <div className="grid gap-4 sm:grid-cols-2">
                     <div className="min-w-0">
                         <label htmlFor="contact-email" className={labelClass}>
-                            Your email
+                            Your email{' '}
+                            <span className="text-rose-600" aria-hidden="true">
+                                *
+                            </span>
+                            <span className="sr-only"> (required)</span>
                         </label>
                         <input
                             id="contact-email"
@@ -574,16 +625,19 @@ function ContactMessageForm({ listing }) {
                     <RichTextEditor
                         id="contact-message"
                         label="Message"
+                        required
                         value={message}
                         onChange={(html) =>
                             updateField('message', html, setMessage)
                         }
                         onBlur={() => markTouched('message')}
-                        placeholder="How can they help you?"
+                        placeholder="How should we help you?"
                         error={showError('message')}
                         ok={showOk('message')}
                         allowImages={false}
-                        help=""
+                        help={`${messageWordCount} / ${MAX_MESSAGE_WORDS} words${
+                            framed ? ' · We reply within minutes.' : ''
+                        }`}
                     />
                 </div>
 
@@ -698,18 +752,18 @@ function ContactMessageForm({ listing }) {
                     error={captchaError}
                 />
 
-                <div className="flex flex-wrap items-center gap-3 border-t border-olive-900/10 pt-5">
+                <div className="flex flex-wrap items-center justify-end gap-3 border-t border-olive-900/10 pt-5">
                     <button
                         type="submit"
                         disabled={uploading || sending || (submitted && !formIsValid)}
                         className="inline-flex min-h-11 w-full items-center justify-center gap-2 border border-olive-900 bg-olive-900 px-6 py-3 text-sm font-semibold text-white transition hover:border-mustard hover:bg-mustard hover:text-olive-950 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
                     >
-                        <MessageMark className="h-4 w-4" />
                         {uploading
                             ? 'Uploading…'
                             : sending
                               ? 'Sending…'
                               : 'Send message'}
+                        <ForwardMark className="h-4 w-4" />
                     </button>
                 </div>
                 {formError ? (
@@ -729,12 +783,20 @@ function ContactMessageForm({ listing }) {
                             Message sent successfully
                         </p>
                         <p className="mt-0.5 text-sm text-olive-600">
-                            Thanks — they’ll get your note and can reply by email.
+                            We reply within minutes in Messages and by email.
                         </p>
                     </div>
                 </div>
             ) : null}
-        </DetailSection>
+        </>
+    );
+
+    if (!framed) {
+        return form;
+    }
+
+    return (
+        <DetailSection title="Send us a message">{form}</DetailSection>
     );
 }
 

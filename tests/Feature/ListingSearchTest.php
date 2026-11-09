@@ -7,6 +7,7 @@ use App\Models\Listing;
 use App\Models\User;
 use App\Support\PublishedListingsCatalogue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia;
 use Tests\TestCase;
 
 class ListingSearchTest extends TestCase
@@ -60,6 +61,32 @@ class ListingSearchTest extends TestCase
             ->assertJsonPath('count', 0);
     }
 
+    public function test_public_search_matches_titles_without_spaces(): void
+    {
+        $category = Category::query()->create([
+            'name' => 'Things to do',
+            'slug' => 'things-to-do',
+            'sort_order' => 1,
+        ]);
+
+        Listing::query()->create([
+            'user_id' => User::factory()->create()->id,
+            'category_id' => $category->id,
+            'title' => 'Ol Pejeta Conservancy',
+            'slug' => 'ol-pejeta-conservancy',
+            'location' => 'Nanyuki',
+            'status' => 'published',
+            'tier' => 'free',
+            'is_published' => true,
+            'published_at' => now(),
+        ]);
+
+        $this->getJson(route('listings.search', ['q' => 'olpejeta']))
+            ->assertOk()
+            ->assertJsonPath('count', 1)
+            ->assertJsonPath('results.0.title', 'Ol Pejeta Conservancy');
+    }
+
     public function test_explore_includes_published_admin_listings(): void
     {
         PublishedListingsCatalogue::forget();
@@ -86,8 +113,9 @@ class ListingSearchTest extends TestCase
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->component('Explore')
-                ->has('listings')
                 ->where('q', 'Admin Lodge')
-                ->where('listings.0.title', 'Admin Lodge'));
+                ->loadDeferredProps(fn (AssertableInertia $reload) => $reload
+                    ->has('listings')
+                    ->where('listings.0.title', 'Admin Lodge')));
     }
 }

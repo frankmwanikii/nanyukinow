@@ -7,6 +7,7 @@ use App\Mail\ListingInquiryMail;
 use App\Models\Conversation;
 use App\Models\Listing;
 use App\Models\Message;
+use App\Support\ListingTierSupport;
 use App\Support\Recaptcha;
 use App\Support\SafeHtml;
 use Illuminate\Http\JsonResponse;
@@ -30,12 +31,13 @@ class ListingContactController extends Controller
                 'string',
                 'max:20000',
                 function (string $attribute, mixed $value, \Closure $fail): void {
-                    $length = SafeHtml::plainTextLength(is_string($value) ? $value : '');
+                    $html = is_string($value) ? $value : '';
+                    $length = SafeHtml::plainTextLength($html);
                     if ($length < 10) {
                         $fail('Please write a message of at least 10 characters.');
                     }
-                    if ($length > 5000) {
-                        $fail('Message is too long.');
+                    if (ListingTierSupport::wordCount($html) > 200) {
+                        $fail('Messages can be at most 200 words.');
                     }
                 },
             ],

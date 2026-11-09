@@ -2,6 +2,7 @@ import { Link, router, usePage } from '@inertiajs/react';
 import { tryOpenAccountMenu } from '@/lib/accountMenuBridge';
 import {
     BellMark,
+    BookmarkMark,
     CheckMark,
     DashboardMark,
     DisclosureMark,
@@ -9,6 +10,7 @@ import {
     ListMark,
     MessageMark,
     SignOutMark,
+    TicketMark,
     UpgradePlansMark,
 } from '@/Components/site/Mark';
 import { plainText } from '@/utils/plainText';
@@ -156,6 +158,11 @@ export function MemberUserMenu({ user, compact = false }) {
             icon: DashboardMark,
         },
         {
+            label: 'Bookmarks',
+            href: route('account.bookmarks'),
+            icon: BookmarkMark,
+        },
+        {
             label: 'Listings',
             href: route('account.listings.index'),
             icon: ListMark,
@@ -170,6 +177,11 @@ export function MemberUserMenu({ user, compact = false }) {
             label: 'Messages',
             href: route('account.messages'),
             icon: MessageMark,
+        },
+        {
+            label: 'Tickets',
+            href: route('account.tickets.index'),
+            icon: TicketMark,
         },
         {
             label: 'Settings',

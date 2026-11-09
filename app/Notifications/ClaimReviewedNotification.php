@@ -2,11 +2,11 @@
 
 namespace App\Notifications;
 
+use App\Mail\ClaimReviewedMail;
 use App\Models\Listing;
 use App\Models\ListingClaim;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\AnonymousNotifiable;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class ClaimReviewedNotification extends Notification
@@ -31,32 +31,21 @@ class ClaimReviewedNotification extends Notification
         return ['database', 'mail'];
     }
 
-    public function toMail(object $notifiable): MailMessage
+    public function toMail(object $notifiable): ClaimReviewedMail
     {
-        $approved = $this->outcome === 'approved';
         $name = $notifiable->name
             ?? $this->claim->fullName()
             ?: 'there';
+        $email = (string) ($notifiable->routeNotificationFor('mail')
+            ?? $notifiable->email
+            ?? '');
 
-        $mail = (new MailMessage)
-            ->subject($approved
-                ? 'Your claim for “'.$this->listing->title.'” was approved'
-                : 'Update on your claim for “'.$this->listing->title.'”')
-            ->greeting('Hello '.$name.',')
-            ->line($approved
-                ? 'Good news — your ownership claim for “'.$this->listing->title.'” was approved. You can manage the listing from your account.'
-                : 'Your ownership claim for “'.$this->listing->title.'” was not approved.');
-
-        if (! $approved && filled($this->claim->admin_notes)) {
-            $mail->line('Note from the team: '.$this->claim->admin_notes);
-        }
-
-        return $mail
-            ->action(
-                $approved ? 'Open account' : 'View listing',
-                $approved ? route('account.index') : route('listings.show', $this->listing->slug),
-            )
-            ->line('Thank you for helping keep Nanyuki Now accurate.');
+        return (new ClaimReviewedMail(
+            claim: $this->claim,
+            listing: $this->listing,
+            outcome: $this->outcome,
+            userName: (string) $name,
+        ))->to($email);
     }
 
     /**

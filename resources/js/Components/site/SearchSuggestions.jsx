@@ -12,7 +12,6 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { explorePath } from '@/data/categories';
-import { subcategoryLabel } from '@/utils/listingSubcategories';
 
 const FEATURED = [
     {
@@ -79,23 +78,23 @@ function SuggestionRow({ href, Icon, label, meta, image, onSelect }) {
         <Link
             href={href}
             onClick={onSelect}
-            className="group flex items-center gap-3.5 px-4 py-2.5 text-left transition hover:bg-olive-50"
+            className="flex items-center gap-3 px-4 py-2.5 text-left transition hover:bg-olive-50"
         >
             {image ? (
-                <span className="h-9 w-9 shrink-0 overflow-hidden rounded-lg bg-olive-100 ring-1 ring-olive-200/70">
+                <span className="h-10 w-10 shrink-0 overflow-hidden border border-olive-900/10 bg-olive-100">
                     <img src={image} alt="" className="h-full w-full object-cover" />
                 </span>
             ) : (
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center text-olive-800 transition group-hover:rounded-full group-hover:bg-mustard group-hover:text-olive-950">
-                    <Icon className="h-5 w-5" strokeWidth={1.6} />
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center border border-olive-900/10 bg-olive-50 text-olive-700">
+                    <Icon className="h-4 w-4" strokeWidth={1.5} />
                 </span>
             )}
             <span className="min-w-0 flex-1">
-                <span className="block truncate text-[15px] font-medium text-olive-900">
+                <span className="block truncate text-sm font-semibold text-earth-dusk">
                     {label}
                 </span>
                 {meta ? (
-                    <span className="block truncate text-xs text-olive-500">
+                    <span className="mt-0.5 block truncate text-xs text-olive-600">
                         {meta}
                     </span>
                 ) : null}
@@ -242,11 +241,10 @@ export default function SearchSuggestions({
         >
             {hasFeatured ? (
                 <div>
-                    <p className="px-4 pb-2 pt-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-olive-500">
+                    <p className="px-4 pb-1.5 pt-3 text-xs font-semibold text-olive-500">
                         Featured
                     </p>
-                    <div className="mx-4 border-t border-olive-100" />
-                    <ul className="py-1.5">
+                    <ul className="pb-1.5">
                         {featured.map((item) => (
                             <li key={item.id}>
                                 <SuggestionRow
@@ -263,15 +261,14 @@ export default function SearchSuggestions({
 
             {rawQ ? (
                 <div className={hasFeatured ? 'border-t border-olive-100' : ''}>
-                    <p className="flex items-center gap-2 px-4 pb-2 pt-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-olive-500">
-                        Results
+                    <p className="flex items-center gap-2 px-4 pb-1.5 pt-3 text-xs font-semibold text-olive-500">
+                        Listings
                         {loading ? (
                             <Loader2 className="h-3.5 w-3.5 animate-spin text-olive-400" />
                         ) : null}
                     </p>
-                    <div className="mx-4 border-t border-olive-100" />
                     {hasListings ? (
-                        <ul className="py-1.5">
+                        <ul className="pb-1.5">
                             {listings.map((listing) => (
                                 <li key={listing.id}>
                                     <SuggestionRow
@@ -282,13 +279,7 @@ export default function SearchSuggestions({
                                         Icon={Search}
                                         image={listing.image}
                                         label={listing.title}
-                                        meta={[
-                                            subcategoryLabel(listing) ||
-                                                listing.category,
-                                            listing.location,
-                                        ]
-                                            .filter(Boolean)
-                                            .join(' · ')}
+                                        meta={listing.location || null}
                                         onSelect={onSelect}
                                     />
                                 </li>

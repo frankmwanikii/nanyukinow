@@ -4,7 +4,7 @@ import {
     ListMark,
     UpgradePlansMark,
 } from '@/Components/site/Mark';
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 
 function MetricCard({ label, children, href }) {
     const inner = (
@@ -38,8 +38,6 @@ export default function Index({
     bookmarksCount = 0,
     pendingUpgrade = null,
 }) {
-    const { flash } = usePage().props;
-
     const usedPct = plan.listing_limit
         ? Math.min(100, (plan.listings_used / plan.listing_limit) * 100)
         : 0;
@@ -49,18 +47,6 @@ export default function Index({
             <Head title="Dashboard" />
 
             <div className="space-y-5">
-                {(flash?.success || flash?.error) && (
-                    <div
-                        className={`border px-4 py-3 text-sm ${
-                            flash.error
-                                ? 'border-rose-300 bg-rose-50 text-rose-800 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300'
-                                : 'border-olive-900/15 bg-white text-olive-900 dark:border-olive-800 dark:bg-olive-900 dark:text-olive-100'
-                        }`}
-                    >
-                        {flash.error || flash.success}
-                    </div>
-                )}
-
                 <section className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
                     <MetricCard label="Plan">
                         <p className="font-display text-2xl font-semibold text-olive-950 dark:text-olive-50">
@@ -95,20 +81,39 @@ export default function Index({
                             </h2>
                             <p className="mt-0.5 text-sm text-olive-600 dark:text-olive-400">
                                 {plan.is_expired
-                                    ? 'Plan expired. You’re on Free until renewed.'
-                                    : plan.expires_at
-                                      ? `Renews ${new Date(plan.expires_at).toLocaleDateString()}`
-                                      : 'Free plan limits apply'}
+                                    ? `Plan expired. You’re on Free until you renew${plan.label ? ` ${plan.label}` : ''}. Listings stay saved and go live again after renewal.`
+                                    : plan.status === 'expiring_soon' && plan.days_remaining != null
+                                      ? `${plan.days_remaining} day${plan.days_remaining === 1 ? '' : 's'} left. Renew to keep listings visible.`
+                                      : plan.expires_at
+                                        ? `${plan.days_remaining != null ? `${plan.days_remaining} days left · ` : ''}Renews ${new Date(plan.expires_at).toLocaleDateString()}`
+                                        : 'Free plan limits apply'}
                             </p>
                         </div>
                         <div className="flex flex-wrap gap-2">
-                            {plan.key !== 'premium' && !pendingUpgrade ? (
+                            {plan.can_renew && !pendingUpgrade ? (
                                 <Link
-                                    href={route('account.upgrade')}
+                                    href={route('account.upgrade', {
+                                        plan: plan.renew_plan,
+                                        billing: plan.renew_billing_period || 'month',
+                                        renew: 1,
+                                    })}
                                     className="inline-flex items-center gap-1.5 rounded-sm border border-mustard bg-mustard px-4 py-2 text-sm font-semibold text-earth-dusk transition hover:bg-olive-900 hover:text-white dark:hover:bg-olive-100 dark:hover:text-earth-dusk"
                                 >
                                     <UpgradePlansMark className="h-4 w-4" />
-                                    Upgrade plan
+                                    Renew plan
+                                </Link>
+                            ) : null}
+                            {plan.key !== 'premium' && !plan.is_expired && !pendingUpgrade ? (
+                                <Link
+                                    href={route('account.upgrade')}
+                                    className={`inline-flex items-center gap-1.5 rounded-sm px-4 py-2 text-sm font-semibold transition ${
+                                        plan.can_renew
+                                            ? 'border border-olive-900/20 bg-white text-olive-900 hover:border-olive-900/40 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-100'
+                                            : 'border border-mustard bg-mustard text-earth-dusk hover:bg-olive-900 hover:text-white dark:hover:bg-olive-100 dark:hover:text-earth-dusk'
+                                    }`}
+                                >
+                                    <UpgradePlansMark className="h-4 w-4" />
+                                    {plan.can_renew ? 'Change plan' : 'Upgrade plan'}
                                 </Link>
                             ) : null}
                         </div>

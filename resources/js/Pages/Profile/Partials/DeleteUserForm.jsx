@@ -1,5 +1,6 @@
 import { field, label as labelCls } from '@/Components/listing-form/fieldStyles';
-import { CloseMark, EyeMark, EyeOffMark } from '@/Components/site/Mark';
+import CloseButton from '@/Components/site/CloseButton';
+import { EyeMark, EyeOffMark } from '@/Components/site/Mark';
 import Modal from '@/Components/Modal';
 import { useForm } from '@inertiajs/react';
 import { useRef, useState } from 'react';
@@ -69,14 +70,11 @@ export default function DeleteUserForm({ className = '' }) {
 
             <Modal show={confirmingUserDeletion} onClose={closeModal} maxWidth="md">
                 <form onSubmit={deleteUser} className="relative p-6">
-                    <button
-                        type="button"
+                    <CloseButton
                         onClick={closeModal}
-                        aria-label="Close"
-                        className="absolute right-4 top-4 p-1.5 text-olive-500 transition hover:bg-olive-100 hover:text-olive-900 dark:hover:bg-olive-800 dark:hover:text-olive-100"
-                    >
-                        <CloseMark className="h-5 w-5" />
-                    </button>
+                        size="sm"
+                        className="absolute right-4 top-4"
+                    />
 
                     <h2 className="pr-10 font-display text-lg font-semibold text-olive-950 dark:text-olive-50">
                         Delete your account?

@@ -1,6 +1,7 @@
-import { CloudUpload, FileText, Loader2, Send, X } from 'lucide-react';
+import { CloudUpload, FileText, Loader2, Send } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { router, usePage } from '@inertiajs/react';
+import { CloseMark } from '@/Components/site/Mark';
 import ListingModal from './ListingModal';
 
 const fieldClass =
@@ -356,10 +357,10 @@ export default function ClaimListingModal({ open, onClose, listing }) {
                                         <button
                                             type="button"
                                             onClick={() => removeFile(doc.id)}
-                                            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white text-olive-700 ring-1 ring-olive-200 transition hover:bg-mustard"
+                                            className="flex h-7 w-7 shrink-0 items-center justify-center border border-olive-900/20 bg-white text-olive-700 transition hover:border-mustard hover:bg-mustard"
                                             aria-label={`Remove ${doc.file.name}`}
                                         >
-                                            <X className="h-3.5 w-3.5" />
+                                            <CloseMark className="h-3.5 w-3.5" />
                                         </button>
                                     </div>
                                 </li>

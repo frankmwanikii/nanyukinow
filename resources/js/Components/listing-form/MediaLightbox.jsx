@@ -1,6 +1,7 @@
 import { createPortal } from 'react-dom';
-import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEffect, useId } from 'react';
+import CloseButton from '@/Components/site/CloseButton';
 
 /**
  * Full-screen image lightbox with keyboard + optional prev/next.
@@ -73,14 +74,13 @@ export default function MediaLightbox({
                         {item.hint ? ` · ${item.hint}` : ''}
                     </p>
                 </div>
-                <button
-                    type="button"
+                <CloseButton
                     onClick={onClose}
-                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-sm bg-mustard text-olive-950 shadow-lift ring-2 ring-white/90 transition hover:scale-105 hover:bg-white"
-                    aria-label="Close lightbox"
-                >
-                    <X className="h-5 w-5" strokeWidth={2.75} />
-                </button>
+                    size="lg"
+                    tone="onDark"
+                    label="Close lightbox"
+                    className="bg-black/35"
+                />
             </div>
 
             <div

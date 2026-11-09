@@ -6,6 +6,7 @@ import ListingSubnav from '@/Components/listing/ListingSubnav';
 import ListingActionBar from '@/Components/listing/ListingActionBar';
 import RelatedListings from '@/Components/listing/RelatedListings';
 import ContactInfoPage from '@/Components/listing/ContactInfoPage';
+import MessageListingModal from '@/Components/listing/MessageListingModal';
 import ProductsPage from '@/Components/listing/ProductsPage';
 import ReviewsPage from '@/Components/listing/ReviewsPage';
 import { renderListingSection } from '@/Components/listing/renderListingSection';
@@ -47,6 +48,7 @@ export default function ListingShow({
     }, [subnav]);
 
     const [tab, setTab] = useState(() => readTabFromHash(allowedTabs));
+    const [messageOpen, setMessageOpen] = useState(false);
 
     useEffect(() => {
         setTab(readTabFromHash(allowedTabs));
@@ -103,6 +105,7 @@ export default function ListingShow({
             <ListingHero
                 listing={listing}
                 secondaryCta={layout.ctaSecondary}
+                onMessage={() => setMessageOpen(true)}
             />
             <ListingSubnav
                 items={subnav}
@@ -110,6 +113,11 @@ export default function ListingShow({
                 onChange={changeTab}
             />
             <ListingActionBar listing={listing} />
+            <MessageListingModal
+                open={messageOpen}
+                onClose={() => setMessageOpen(false)}
+                listing={listing}
+            />
 
             <div className="bg-earth-sand pb-8 pt-4 sm:pt-6 lg:pb-14">
                 {tab === 'overview' ? (

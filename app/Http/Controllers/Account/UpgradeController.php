@@ -33,13 +33,20 @@ class UpgradeController extends Controller
             ->latest()
             ->first();
 
+        $summary = Membership::planSummary($user);
+
         $billing = $request->string('billing')->toString();
         if (! in_array($billing, ['month', 'year'], true)) {
-            $billing = 'month';
+            $billing = $summary['renew_billing_period'] ?? 'month';
+        }
+
+        $initialPlan = Membership::normalize($request->string('plan')->toString());
+        if ($initialPlan === Membership::FREE) {
+            $initialPlan = $summary['renew_plan'] ?? null;
         }
 
         return Inertia::render('Account/Upgrade', [
-            'plan' => Membership::planSummary($user),
+            'plan' => $summary,
             'plans' => Membership::publicPlans(
                 CategoryKey::fromSlug($request->string('category')->toString())
             ),
@@ -49,6 +56,8 @@ class UpgradeController extends Controller
             'pendingUpgrade' => $pending?->toMemberArray(),
             'paymentMethods' => PaymentMethods::memberOptions(),
             'initialBilling' => $billing,
+            'initialPlan' => $initialPlan && $initialPlan !== Membership::FREE ? $initialPlan : null,
+            'forceRenew' => $request->boolean('renew'),
             'upgradeContact' => [
                 'whatsapp' => SiteSetting::getValue('upgrade_whatsapp', ''),
                 'phone' => SiteSetting::getValue('contact_phone', ''),
@@ -98,8 +107,9 @@ class UpgradeController extends Controller
         $billingPeriod = $data['billing_period'] ?? 'month';
         $current = $user->effectivePlan();
         $isPeriodUpgrade = Membership::isBillingPeriodUpgrade($user, $toPlan, $billingPeriod);
+        $isRenewal = Membership::isRenewal($user, $toPlan, $billingPeriod);
 
-        if ($toPlan === Membership::FREE || ($toPlan === $current && ! $isPeriodUpgrade)) {
+        if ($toPlan === Membership::FREE || ($toPlan === $current && ! $isPeriodUpgrade && ! $isRenewal)) {
             return response()->json([
                 'ok' => false,
                 'message' => 'Choose a higher plan than your current one.',
@@ -107,7 +117,7 @@ class UpgradeController extends Controller
             ], 422);
         }
 
-        if ($current === Membership::PREMIUM && ! $isPeriodUpgrade) {
+        if ($current === Membership::PREMIUM && ! $isPeriodUpgrade && ! $isRenewal) {
             return response()->json([
                 'ok' => false,
                 'message' => 'You are already on Premium.',
@@ -203,17 +213,18 @@ class UpgradeController extends Controller
         $billingPeriod = $request->validated('billing_period') ?? 'month';
         $current = $user->effectivePlan();
         $isPeriodUpgrade = Membership::isBillingPeriodUpgrade($user, $toPlan, $billingPeriod);
+        $isRenewal = Membership::isRenewal($user, $toPlan, $billingPeriod);
 
-        if ($toPlan === Membership::FREE || ($toPlan === $current && ! $isPeriodUpgrade)) {
+        if ($toPlan === Membership::FREE || ($toPlan === $current && ! $isPeriodUpgrade && ! $isRenewal)) {
             return back()->withErrors(['to_plan' => 'Choose a higher plan than your current one.']);
         }
 
-        if ($current === Membership::PREMIUM && ! $isPeriodUpgrade) {
+        if ($current === Membership::PREMIUM && ! $isPeriodUpgrade && ! $isRenewal) {
             return back()->with('error', 'You are already on Premium.');
         }
 
         $rank = [Membership::FREE => 0, Membership::STANDARD => 1, Membership::PREMIUM => 2];
-        if (! $isPeriodUpgrade && ($rank[$toPlan] ?? 0) <= ($rank[$current] ?? 0)) {
+        if (! $isPeriodUpgrade && ! $isRenewal && ($rank[$toPlan] ?? 0) <= ($rank[$current] ?? 0)) {
             return back()->withErrors(['to_plan' => 'Choose a higher plan than your current one.']);
         }
 
@@ -247,7 +258,12 @@ class UpgradeController extends Controller
 
         return redirect()
             ->route('account.index')
-            ->with('success', 'Upgrade request submitted. We will confirm payment and activate your plan.');
+            ->with(
+                'success',
+                $isRenewal
+                    ? 'Renewal request submitted. We will confirm payment and extend your plan.'
+                    : 'Upgrade request submitted. We will confirm payment and activate your plan.',
+            );
     }
 
     public function cancel(Request $request, PlanUpgrade $upgrade): RedirectResponse

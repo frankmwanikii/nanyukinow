@@ -7,6 +7,7 @@ import {
     Star,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import { CloseMark } from '@/Components/site/Mark';
 import { mainCategories, PROPERTY_TYPES } from '@/data/categories';
 
 const RATING_OPTIONS = [
@@ -107,19 +108,35 @@ export default function ExploreSidebar({
                         </section>
 
                         <Field label="What are you looking for?">
-                            <input
-                                type="search"
-                                value={query}
-                                onChange={(e) => onQueryChange(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                        e.preventDefault();
-                                        onSearch?.();
+                            <div className="relative">
+                                <input
+                                    type="search"
+                                    value={query}
+                                    onChange={(e) =>
+                                        onQueryChange(e.target.value)
                                     }
-                                }}
-                                placeholder="What are you looking for?"
-                                className="w-full rounded-lg border-olive-200 bg-white py-2.5 text-sm text-earth-dusk placeholder:text-olive-400 focus:border-mustard focus:ring-mustard"
-                            />
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            onSearch?.();
+                                        }
+                                    }}
+                                    placeholder="What are you looking for?"
+                                    className={`w-full rounded-lg border-olive-200 bg-white py-2.5 text-sm text-earth-dusk placeholder:text-olive-400 focus:border-mustard focus:ring-mustard ${
+                                        query ? 'pr-10' : ''
+                                    }`}
+                                />
+                                {query ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => onQueryChange('')}
+                                        aria-label="Clear search"
+                                        className="absolute right-1.5 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center text-olive-600 transition hover:text-olive-900"
+                                    >
+                                        <CloseMark className="h-4 w-4" />
+                                    </button>
+                                ) : null}
+                            </div>
                         </Field>
 
                         <section>

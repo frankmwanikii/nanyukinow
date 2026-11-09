@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Mail\PlanUpgradeReviewedMail;
 use App\Models\Category;
 use App\Models\Listing;
 use App\Models\PlanUpgrade;
@@ -11,8 +12,8 @@ use App\Notifications\ListingReviewedNotification;
 use App\Notifications\PlanUpgradeReviewedNotification;
 use App\Notifications\WelcomeMemberNotification;
 use App\Support\Membership;
-use App\Support\Recaptcha;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class MemberNotificationsTest extends TestCase
@@ -70,6 +71,7 @@ class MemberNotificationsTest extends TestCase
 
     public function test_admin_approve_upgrade_notifies_member(): void
     {
+        Notification::fake();
         PricingPlan::ensureDefaults();
         $user = User::factory()->create();
         $admin = User::factory()->admin()->create();
@@ -91,10 +93,61 @@ class MemberNotificationsTest extends TestCase
             ])
             ->assertRedirect();
 
-        $this->assertDatabaseHas('notifications', [
-            'notifiable_id' => $user->id,
-            'type' => PlanUpgradeReviewedNotification::class,
+        Notification::assertSentTo(
+            $user,
+            PlanUpgradeReviewedNotification::class,
+            function (PlanUpgradeReviewedNotification $notification, array $channels) use ($user): bool {
+                $this->assertContains('mail', $channels);
+                $this->assertContains('database', $channels);
+
+                $mail = $notification->toMail($user);
+
+                return $mail instanceof PlanUpgradeReviewedMail
+                    && $mail->envelope()->subject === 'Your Standard plan is active';
+            },
+        );
+    }
+
+    public function test_admin_reject_upgrade_emails_member(): void
+    {
+        Notification::fake();
+        PricingPlan::ensureDefaults();
+        $user = User::factory()->create();
+        $admin = User::factory()->admin()->create();
+
+        $upgrade = PlanUpgrade::query()->create([
+            'user_id' => $user->id,
+            'from_plan' => Membership::FREE,
+            'to_plan' => Membership::PREMIUM,
+            'amount' => 5500,
+            'currency' => 'KES',
+            'billing_period' => 'month',
+            'status' => PlanUpgrade::STATUS_PENDING,
+            'payment_reference' => 'REJECT123',
         ]);
+
+        $this->actingAs($admin)
+            ->post(route('admin.upgrades.reject', $upgrade), [
+                'admin_notes' => 'Reference could not be verified.',
+            ])
+            ->assertRedirect();
+
+        Notification::assertSentTo(
+            $user,
+            PlanUpgradeReviewedNotification::class,
+            function (PlanUpgradeReviewedNotification $notification, array $channels) use ($user): bool {
+                $this->assertContains('mail', $channels);
+
+                $mail = $notification->toMail($user);
+                $html = $mail->render();
+
+                return $mail instanceof PlanUpgradeReviewedMail
+                    && $mail->envelope()->subject === 'Update on your Premium upgrade'
+                    && str_contains($html, 'Reference could not be verified.')
+                    && str_contains($html, '#f2b82e')
+                    && str_contains($html, '#3d4430');
+            },
+        );
     }
 
     public function test_publishing_listing_notifies_owner(): void

@@ -73,9 +73,19 @@ export function SendMark({ className = 'h-4 w-4' }) {
 
 export function CloseMark({ className = 'h-4 w-4' }) {
     return (
-        <Mark className={className}>
-            <path d="M6.7 5.3a1 1 0 0 1 1.4 0L12 9.2l3.9-3.9a1 1 0 1 1 1.4 1.4L13.4 10.6l3.9 3.9a1 1 0 1 1-1.4 1.4L12 12l-3.9 3.9a1 1 0 1 1-1.4-1.4l3.9-3.9-3.9-3.9a1 1 0 0 1 0-1.4z" />
-        </Mark>
+        <OutlineMark className={className}>
+            <path d="M7 7l10 10M17 7 7 17" />
+        </OutlineMark>
+    );
+}
+
+/** Support ticket stub. */
+export function TicketMark({ className = 'h-4 w-4' }) {
+    return (
+        <OutlineMark className={className}>
+            <path d="M7 5.5h10a1.5 1.5 0 0 1 1.5 1.5v2a1.75 1.75 0 0 0 0 3.5v2A1.5 1.5 0 0 1 17 16.5H7A1.5 1.5 0 0 1 5.5 15v-2a1.75 1.75 0 0 0 0-3.5v-2A1.5 1.5 0 0 1 7 5.5Z" />
+            <path d="M9.5 9.25h5M9.5 12.25h3.5" />
+        </OutlineMark>
     );
 }
 

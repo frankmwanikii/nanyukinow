@@ -24,5 +24,10 @@ class AppServiceProvider extends ServiceProvider
     {
         Listing::observe(ListingObserver::class);
         Vite::prefetch(concurrency: 3);
+
+        // Never let a local `public/hot` file point production at Vite dev.
+        if ($this->app->environment('production')) {
+            Vite::useHotFile(storage_path('framework/vite-hot-disabled'));
+        }
     }
 }

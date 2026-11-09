@@ -32,8 +32,6 @@ const PHOTO_INTERVAL_MS = 9000;
 
 const HERO_PLACES = ['Nanyuki', 'Timau', 'Naromoru', 'Laikipia'];
 const PLACE_INTERVAL_MS = 3200;
-/** Longest place name — keeps the headline width stable while rotating. */
-const HERO_PLACE_SIZER = 'Naromoru';
 
 const OPEN_MOBILE_SEARCH = 'nn:open-mobile-search';
 
@@ -263,10 +261,10 @@ export default function HeroSlider() {
 
             <span className="sr-only">{activePhoto.alt}</span>
 
-            {/* Desktop: equal-length vertical progress + slide caption */}
-            <div className="pointer-events-none absolute inset-y-0 left-8 z-20 hidden lg:flex lg:flex-col lg:justify-between lg:py-28 xl:left-10 xl:py-32">
+            {/* Desktop: centered vertical progress */}
+            <div className="pointer-events-none absolute inset-y-0 left-8 z-20 hidden lg:flex lg:items-center xl:left-10">
                 <div
-                    className="pointer-events-auto flex flex-col items-center gap-2"
+                    className="pointer-events-auto flex flex-col items-center gap-3"
                     role="tablist"
                     aria-label="Hero photos"
                 >
@@ -281,15 +279,15 @@ export default function HeroSlider() {
                                 aria-selected={active}
                                 aria-label={`Show ${photo.title}`}
                                 onClick={() => goToPhoto(i)}
-                                className="relative block h-14 w-[3px] overflow-visible bg-white/35 transition hover:bg-white/55 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mustard"
+                                className="relative block h-20 w-1 overflow-visible bg-white/35 transition hover:bg-white/55 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mustard"
                             >
                                 {completed ? (
-                                    <span className="absolute inset-0 bg-white" />
+                                    <span className="absolute inset-0 bg-mustard" />
                                 ) : null}
                                 {active ? (
                                     <span
                                         key={progressKey}
-                                        className={`absolute inset-x-0 top-0 w-full bg-white ${
+                                        className={`absolute inset-x-0 top-0 w-full bg-mustard ${
                                             reduceMotion
                                                 ? 'h-full'
                                                 : 'animate-hero-progress-y'
@@ -297,7 +295,7 @@ export default function HeroSlider() {
                                     >
                                         <span
                                             aria-hidden="true"
-                                            className="absolute bottom-0 left-1/2 h-2 w-2 -translate-x-1/2 translate-y-1/2 rounded-full bg-white"
+                                            className="absolute bottom-0 left-1/2 h-3.5 w-3.5 -translate-x-1/2 translate-y-1/2 rounded-full bg-mustard"
                                         />
                                     </span>
                                 ) : null}
@@ -305,15 +303,16 @@ export default function HeroSlider() {
                         );
                     })}
                 </div>
+            </div>
 
-                <div className="max-w-[14rem] text-white">
-                    <p className="text-[15px] font-semibold leading-snug">
-                        {activePhoto.title}
-                    </p>
-                    <p className="mt-1 text-sm leading-snug text-white/70">
-                        {activePhoto.credit}
-                    </p>
-                </div>
+            {/* Desktop: slide caption */}
+            <div className="pointer-events-none absolute bottom-28 left-8 z-20 hidden max-w-[14rem] text-white lg:block xl:bottom-32 xl:left-10">
+                <p className="text-[15px] font-semibold leading-snug">
+                    {activePhoto.title}
+                </p>
+                <p className="mt-1 text-sm leading-snug text-white/70">
+                    {activePhoto.credit}
+                </p>
             </div>
 
             {/*
@@ -337,24 +336,16 @@ export default function HeroSlider() {
                             {desktopLayout ? (
                                 <span className="inline-flex flex-nowrap items-baseline gap-[0.28em] whitespace-nowrap">
                                     <span>Find</span>
-                                    <span className="relative inline-grid overflow-hidden align-baseline">
-                                        <span
-                                            className="invisible col-start-1 row-start-1 whitespace-nowrap"
-                                            aria-hidden="true"
-                                        >
-                                            {HERO_PLACE_SIZER}
-                                        </span>
-                                        <span
-                                            key={HERO_PLACES[placeIndex]}
-                                            className={`col-start-1 row-start-1 whitespace-nowrap ${
-                                                reduceMotion
-                                                    ? ''
-                                                    : 'animate-hero-place-in'
-                                            }`}
-                                            aria-live="polite"
-                                        >
-                                            {HERO_PLACES[placeIndex]}
-                                        </span>
+                                    <span
+                                        key={HERO_PLACES[placeIndex]}
+                                        className={`inline-block whitespace-nowrap ${
+                                            reduceMotion
+                                                ? ''
+                                                : 'animate-hero-place-in'
+                                        }`}
+                                        aria-live="polite"
+                                    >
+                                        {HERO_PLACES[placeIndex]}
                                     </span>
                                 </span>
                             ) : (
@@ -364,24 +355,16 @@ export default function HeroSlider() {
                                     className="inline-flex flex-nowrap items-baseline gap-[0.28em] whitespace-nowrap text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-mustard"
                                 >
                                     <span>Find</span>
-                                    <span className="relative inline-grid overflow-hidden align-baseline">
-                                        <span
-                                            className="invisible col-start-1 row-start-1 whitespace-nowrap"
-                                            aria-hidden="true"
-                                        >
-                                            {HERO_PLACE_SIZER}
-                                        </span>
-                                        <span
-                                            key={HERO_PLACES[placeIndex]}
-                                            className={`col-start-1 row-start-1 whitespace-nowrap ${
-                                                reduceMotion
-                                                    ? ''
-                                                    : 'animate-hero-place-in'
-                                            }`}
-                                            aria-live="polite"
-                                        >
-                                            {HERO_PLACES[placeIndex]}
-                                        </span>
+                                    <span
+                                        key={HERO_PLACES[placeIndex]}
+                                        className={`inline-block whitespace-nowrap ${
+                                            reduceMotion
+                                                ? ''
+                                                : 'animate-hero-place-in'
+                                        }`}
+                                        aria-live="polite"
+                                    >
+                                        {HERO_PLACES[placeIndex]}
                                     </span>
                                 </button>
                             )}

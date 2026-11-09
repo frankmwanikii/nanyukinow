@@ -10,6 +10,7 @@ use App\Http\Controllers\Account\MessageController;
 use App\Http\Controllers\Account\NotificationController;
 use App\Http\Controllers\Account\PaypalReturnController;
 use App\Http\Controllers\Account\PlaceSearchController;
+use App\Http\Controllers\Account\SupportTicketController as AccountSupportTicketController;
 use App\Http\Controllers\Account\UpgradeController as AccountUpgradeController;
 use App\Http\Controllers\ListingClaimController;
 use App\Http\Controllers\ListingContactController;
@@ -99,7 +100,9 @@ Route::middleware('auth')->group(function () {
     })->name('dashboard');
 
     Route::get('/account', AccountDashboardController::class)->name('account.index');
-    Route::get('/account/bookmarks', AccountBookmarkController::class)->name('account.bookmarks');
+    Route::get('/account/bookmarks', [AccountBookmarkController::class, 'index'])->name('account.bookmarks');
+    Route::delete('/account/bookmarks', [AccountBookmarkController::class, 'destroyAll'])
+        ->name('account.bookmarks.destroy-all');
 
     Route::get('/account/listings', [AccountListingController::class, 'index'])->name('account.listings.index');
     Route::get('/account/listings/create', [AccountListingController::class, 'create'])->name('account.listings.create');
@@ -147,6 +150,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/account/messages/{conversation}', [MessageController::class, 'show'])->name('account.messages.show');
     Route::post('/account/messages/{conversation}', [MessageController::class, 'reply'])->name('account.messages.reply');
     Route::delete('/account/messages/{conversation}', [MessageController::class, 'destroy'])->name('account.messages.destroy');
+
+    Route::get('/account/tickets', [AccountSupportTicketController::class, 'index'])->name('account.tickets.index');
+    Route::post('/account/tickets', [AccountSupportTicketController::class, 'store'])
+        ->middleware('throttle:20,1')
+        ->name('account.tickets.store');
+    Route::get('/account/tickets/{ticket}', [AccountSupportTicketController::class, 'show'])->name('account.tickets.show');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

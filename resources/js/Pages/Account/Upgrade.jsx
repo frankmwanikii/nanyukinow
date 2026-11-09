@@ -1,5 +1,5 @@
 import { CategoryPicker } from '@/Components/pricing/CategoryPricingBreakdown';
-import AccountLayout from '@/Layouts/AccountLayout';
+import AccountLayout, { stashAccountFlash } from '@/Layouts/AccountLayout';
 import {
     categoryInclusionsForPlan,
     getPricingCategoryBreakdown,
@@ -8,7 +8,8 @@ import {
 } from '@/data/pricingCategoryBreakdown';
 import { Head, useForm } from '@inertiajs/react';
 import axios from 'axios';
-import { Check, ChevronDown, RefreshCw, Send, X, Zap } from 'lucide-react';
+import CloseButton from '@/Components/site/CloseButton';
+import { Check, ChevronDown, RefreshCw, Send } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 const field =
@@ -183,7 +184,7 @@ function PlanCardFeatures({ planName, listingLimit = null, inclusions, categoryL
                 aria-expanded={open}
                 onClick={() => setOpen((value) => !value)}
             >
-                <span className="text-sm font-bold text-olive-950 dark:text-olive-50">
+                <span className="text-sm font-semibold text-olive-950 dark:text-olive-50">
                     Key features
                 </span>
                 <ChevronDown
@@ -220,9 +221,11 @@ function PlanCardFeatures({ planName, listingLimit = null, inclusions, categoryL
                                             : 'text-olive-700 dark:text-olive-300'
                                     }`}
                                 >
-                                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-olive-100 text-olive-800 dark:bg-olive-800 dark:text-mustard">
-                                        <Check className="h-3 w-3" strokeWidth={2.75} />
-                                    </span>
+                                    <Check
+                                        className="mt-0.5 h-4 w-4 shrink-0 text-olive-700 dark:text-olive-300"
+                                        strokeWidth={2}
+                                        aria-hidden="true"
+                                    />
                                     <span className="min-w-0 text-pretty pt-0.5">{item}</span>
                                 </li>
                             );
@@ -234,7 +237,23 @@ function PlanCardFeatures({ planName, listingLimit = null, inclusions, categoryL
     );
 }
 
-function planCtaState(plan, currentPlan, pending, viewingPeriod) {
+function normalizeBillingPeriod(period) {
+    if (period === 'year' || period === 'yearly' || period === 'annual') {
+        return 'year';
+    }
+    if (period === 'month' || period === 'monthly') {
+        return 'month';
+    }
+    return period || null;
+}
+
+function planCtaState(
+    plan,
+    currentPlan,
+    pendingPlanKey,
+    pendingBillingPeriod,
+    viewingPeriod,
+) {
     const sameTier =
         normalizePlanKey(currentPlan?.key) === normalizePlanKey(plan.key);
     const isFreeTier = normalizePlanKey(plan.key) === 'free';
@@ -252,12 +271,20 @@ function planCtaState(plan, currentPlan, pending, viewingPeriod) {
         !isFreeTier &&
         ownedPeriod === 'month' &&
         viewingPeriod === 'year';
+    const pendingPeriod = normalizeBillingPeriod(pendingBillingPeriod);
+    const viewPeriod = normalizeBillingPeriod(viewingPeriod);
+    const isPendingTarget =
+        pendingPlanKey != null &&
+        normalizePlanKey(pendingPlanKey) === normalizePlanKey(plan.key) &&
+        pendingPeriod != null &&
+        viewPeriod != null &&
+        pendingPeriod === viewPeriod;
 
     let ctaLabel = plan.cta_label || 'Upgrade';
     let ctaDisabled = false;
     let canCheckout = false;
 
-    if (pending) {
+    if (isPendingTarget) {
         ctaLabel = 'Pending';
         ctaDisabled = true;
     } else if (isLowerThanCurrent || isFreeTier) {
@@ -267,8 +294,8 @@ function planCtaState(plan, currentPlan, pending, viewingPeriod) {
         ctaLabel = 'Switch to yearly';
         canCheckout = true;
     } else if (ownsThisPeriod) {
-        ctaLabel = 'Current plan';
-        ctaDisabled = true;
+        ctaLabel = 'Renew';
+        canCheckout = true;
     } else {
         ctaLabel = plan.cta_label || 'Upgrade';
         canCheckout = true;
@@ -284,7 +311,8 @@ function planCtaState(plan, currentPlan, pending, viewingPeriod) {
 function PlanCards({
     plans,
     currentPlan,
-    pending,
+    pendingPlanKey = null,
+    pendingBillingPeriod = null,
     onUpgrade,
     billing = 'month',
     inclusionsByPlan,
@@ -305,42 +333,39 @@ function PlanCards({
                 const { ctaLabel, ctaDisabled, canCheckout } = planCtaState(
                     plan,
                     currentPlan,
-                    pending,
+                    pendingPlanKey,
+                    pendingBillingPeriod,
                     period,
                 );
 
                 const ctaClass = ctaDisabled
-                    ? 'mt-6 inline-flex w-full cursor-not-allowed items-center justify-center rounded-full bg-olive-100/70 px-4 py-3 text-center text-sm font-bold text-olive-400 dark:bg-olive-800/50 dark:text-olive-500'
+                    ? 'mt-6 inline-flex w-full cursor-not-allowed items-center justify-center rounded-sm border border-olive-900/10 bg-olive-50 px-4 py-2.5 text-center text-sm font-semibold text-olive-400 dark:border-olive-800 dark:bg-olive-950/50 dark:text-olive-500'
                     : featured
-                      ? 'mt-6 inline-flex w-full items-center justify-center rounded-full bg-olive-900 px-4 py-3 text-center text-sm font-bold text-white shadow-soft transition hover:bg-mustard hover:text-earth-dusk dark:bg-mustard dark:text-earth-dusk dark:hover:bg-olive-100'
-                      : 'mt-6 inline-flex w-full items-center justify-center rounded-full bg-olive-100 px-4 py-3 text-center text-sm font-bold text-olive-900 transition hover:bg-mustard hover:text-earth-dusk dark:bg-olive-800 dark:text-olive-50 dark:hover:bg-mustard dark:hover:text-earth-dusk';
+                      ? 'mt-6 inline-flex w-full items-center justify-center rounded-sm bg-olive-900 px-4 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-mustard hover:text-earth-dusk dark:bg-mustard dark:text-earth-dusk dark:hover:bg-olive-100'
+                      : 'mt-6 inline-flex w-full items-center justify-center rounded-sm border border-olive-900/20 bg-white px-4 py-2.5 text-center text-sm font-semibold text-olive-900 transition hover:border-olive-900/40 hover:bg-olive-50 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-50 dark:hover:bg-olive-800';
 
                 return (
                     <article
                         key={plan.id}
-                        className={`relative flex flex-col rounded-3xl bg-white p-6 shadow-soft sm:p-8 dark:bg-olive-900 dark:shadow-none ${
+                        className={`relative flex flex-col border bg-white p-5 sm:p-6 dark:bg-olive-900 ${
                             featured
-                                ? 'ring-2 ring-olive-800 dark:ring-mustard/50 lg:scale-[1.02]'
-                                : 'ring-1 ring-olive-100 dark:ring-olive-800'
+                                ? 'border-olive-900 dark:border-mustard'
+                                : 'border-olive-900/15 dark:border-olive-800'
                         }`}
                     >
                         {featured ? (
-                            <span className="absolute right-5 top-5 inline-flex items-center gap-1 rounded-full bg-olive-800 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white dark:bg-mustard dark:text-earth-dusk">
-                                <Zap
-                                    className="h-3 w-3 fill-mustard text-mustard dark:fill-earth-dusk dark:text-earth-dusk"
-                                    strokeWidth={0}
-                                />
+                            <span className="absolute right-4 top-4 rounded-sm bg-mustard px-2 py-0.5 text-xs font-semibold text-earth-dusk">
                                 Popular
                             </span>
                         ) : null}
 
-                        <div className="flex items-baseline justify-between gap-3">
-                            <h3 className="font-display text-3xl font-bold tracking-tight text-olive-950 dark:text-olive-50">
+                        <div className="flex items-baseline justify-between gap-3 pr-16">
+                            <h3 className="font-display text-2xl font-semibold tracking-tight text-olive-950 dark:text-olive-50">
                                 {plan.name}
                             </h3>
                         </div>
 
-                        <div className="mt-4">
+                        <div className="mt-3">
                             {(() => {
                                 const label = String(plan.price_label || '').trim();
                                 const showZero = amount === 0 || /^free$/i.test(label);
@@ -349,19 +374,19 @@ function PlanCards({
 
                                 if (customLabel) {
                                     return (
-                                        <p className="font-display text-4xl font-bold tracking-tight text-olive-950 dark:text-olive-50">
+                                        <p className="text-2xl font-semibold tracking-tight text-olive-950 dark:text-olive-50">
                                             {customLabel}
                                         </p>
                                     );
                                 }
 
                                 return (
-                                    <p className="flex flex-wrap items-baseline gap-x-1.5 font-display tracking-tight text-olive-950 dark:text-olive-50">
-                                        <span className="text-4xl font-bold tabular-nums">
+                                    <p className="flex flex-wrap items-baseline gap-x-1.5 tracking-tight text-olive-950 dark:text-olive-50">
+                                        <span className="text-2xl font-semibold tabular-nums">
                                             {plan.currency || 'KES'}{' '}
                                             {showZero ? '0' : formatAmountOnly(amount)}
                                         </span>
-                                        <span className="text-base font-medium text-olive-500 dark:text-olive-400">
+                                        <span className="text-sm font-medium text-olive-500 dark:text-olive-400">
                                             {periodShort(period)}
                                         </span>
                                     </p>
@@ -578,14 +603,11 @@ function PaymentCheckout({
             />
 
             <div className="relative z-10 w-full max-w-xl sm:mx-8">
-                <button
-                    type="button"
+                <CloseButton
                     onClick={onClose}
-                    className="absolute right-3 top-3 z-20 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-olive-600 shadow-md ring-1 ring-olive-200/80 transition hover:bg-mustard hover:text-earth-dusk dark:bg-olive-800 dark:text-olive-200 dark:ring-olive-700 dark:hover:bg-mustard dark:hover:text-earth-dusk sm:-right-12 sm:top-0"
-                    aria-label="Close"
-                >
-                    <X className="h-5 w-5" strokeWidth={2.25} />
-                </button>
+                    size="lg"
+                    className="absolute right-3 top-3 z-20 bg-white shadow-sm dark:bg-olive-900 sm:-right-12 sm:top-0"
+                />
 
                 <div
                     role="dialog"
@@ -1034,6 +1056,8 @@ export default function Upgrade({
     paymentMethods = [],
     upgradeContact = {},
     initialBilling = 'month',
+    initialPlan = null,
+    forceRenew = false,
 }) {
     const [checkoutPlan, setCheckoutPlan] = useState(null);
     const [categoryKey, setCategoryKey] = useState(
@@ -1043,11 +1067,12 @@ export default function Upgrade({
         if (initialBilling === 'year') {
             return 'year';
         }
-        if (plan?.billing_period === 'year') {
+        if (plan?.renew_billing_period === 'year' || plan?.billing_period === 'year') {
             return 'year';
         }
         return 'month';
     });
+    const [didOpenRenewCheckout, setDidOpenRenewCheckout] = useState(false);
 
     const [stkSent] = useState(() => {
         if (typeof window === 'undefined') {
@@ -1072,9 +1097,21 @@ export default function Upgrade({
                 }
 
                 stopped = true;
-                const next =
-                    data.status === 'approved' ? route('account.billing') : route('account.upgrade');
-                window.location.assign(next);
+                if (data.status === 'approved') {
+                    stashAccountFlash(
+                        data.message ||
+                            'Payment approved. Your plan is now active.',
+                    );
+                    window.location.assign(route('account.billing'));
+                    return;
+                }
+
+                stashAccountFlash(
+                    data.message ||
+                        'Your upgrade request was not approved. You can try again.',
+                    'error',
+                );
+                window.location.assign(route('account.upgrade'));
             } catch {
                 // The next interval retries. A failed status check must not replace the page.
             }
@@ -1102,6 +1139,29 @@ export default function Upgrade({
         }
         return plans;
     }, [categoryKey, plansByCategory, plans]);
+
+    useEffect(() => {
+        if (didOpenRenewCheckout || pendingUpgrade || !forceRenew || !initialPlan) {
+            return;
+        }
+
+        const target = (categoryPlans || []).find(
+            (item) => normalizePlanKey(item.key) === normalizePlanKey(initialPlan),
+        );
+
+        if (!target || normalizePlanKey(target.key) === 'free') {
+            return;
+        }
+
+        setCheckoutPlan(target);
+        setDidOpenRenewCheckout(true);
+    }, [
+        categoryPlans,
+        didOpenRenewCheckout,
+        forceRenew,
+        initialPlan,
+        pendingUpgrade,
+    ]);
 
     const inclusionsByPlan = useMemo(() => {
         if (!breakdown) {
@@ -1164,7 +1224,7 @@ export default function Upgrade({
 
             <div className="space-y-8">
                 {pendingUpgrade && (
-                    <div className="rounded-2xl border border-mustard/40 bg-mustard/15 px-5 py-4 text-sm text-earth-dusk dark:border-mustard/30 dark:bg-mustard/10 dark:text-mustard">
+                    <div className="border border-mustard/40 bg-mustard/15 px-4 py-3 text-sm text-earth-dusk dark:border-mustard/30 dark:bg-mustard/10 dark:text-mustard">
                         Pending upgrade to <strong>{pendingUpgrade.to_label}</strong> via{' '}
                         <strong className="capitalize">
                             {pendingUpgrade.payment_method || 'mpesa'}
@@ -1199,14 +1259,14 @@ export default function Upgrade({
                         </div>
 
                         <div className="mx-auto max-w-2xl text-center">
-                            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-olive-400 dark:text-olive-500">
+                            <p className="font-display text-xl font-semibold tracking-tight text-olive-950 dark:text-olive-50 sm:text-2xl">
                                 {breakdown.label}
                             </p>
-                            <h2 className="mt-2 font-display text-3xl font-semibold tracking-tight text-olive-950 dark:text-olive-50 sm:text-4xl">
+                            <h2 className="mt-2 font-display text-2xl font-semibold tracking-tight text-olive-950 dark:text-olive-50 sm:text-3xl">
                                 Plans & inclusions
                             </h2>
                             <p className="mt-2 text-sm leading-relaxed text-olive-600 dark:text-olive-400 sm:text-base">
-                                Unlock advanced features and grow your visibility in Nanyuki.
+                                Compare what each plan includes for this category.
                             </p>
                             {showSwitcher ? (
                                 <div className="mt-6">
@@ -1222,7 +1282,10 @@ export default function Upgrade({
                         <PlanCards
                             plans={categoryPlans}
                             currentPlan={plan}
-                            pending={Boolean(pendingUpgrade)}
+                            pendingPlanKey={pendingUpgrade?.to_plan ?? null}
+                            pendingBillingPeriod={
+                                pendingUpgrade?.billing_period ?? null
+                            }
                             onUpgrade={openCheckout}
                             billing={billing}
                             inclusionsByPlan={inclusionsByPlan}

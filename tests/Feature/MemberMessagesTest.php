@@ -90,6 +90,79 @@ class MemberMessagesTest extends TestCase
         });
     }
 
+    public function test_contact_message_rejects_over_200_words(): void
+    {
+        Mail::fake();
+
+        $owner = User::factory()->create(['email' => 'owner@example.com']);
+        $listing = $this->makeListing($owner);
+        $body = implode(' ', array_fill(0, 201, 'safari'));
+
+        $this->from(route('listings.show', $listing->slug))
+            ->post(route('listings.contact', $listing->slug), [
+                'first_name' => 'Jane',
+                'last_name' => 'Wanjiru',
+                'email' => 'jane@example.com',
+                'message' => $body,
+                'g-recaptcha-response' => Recaptcha::FALLBACK_TOKEN,
+            ])
+            ->assertSessionHasErrors([
+                'message' => 'Messages can be at most 200 words.',
+            ]);
+
+        $this->assertDatabaseCount('messages', 0);
+        Mail::assertNothingSent();
+    }
+
+    public function test_authenticated_member_message_lands_in_owner_inbox_and_email(): void
+    {
+        Mail::fake();
+
+        $owner = User::factory()->create(['email' => 'owner@example.com']);
+        $member = User::factory()->create([
+            'name' => 'Amina Otieno',
+            'email' => 'amina@example.com',
+        ]);
+        $listing = $this->makeListing($owner);
+
+        $this->actingAs($member)
+            ->from(route('listings.show', $listing->slug))
+            ->post(route('listings.contact', $listing->slug), [
+                'first_name' => 'Amina',
+                'last_name' => 'Otieno',
+                'email' => 'amina@example.com',
+                'phone' => '0700111222',
+                'message' => 'Can we book a table for Saturday evening?',
+                'g-recaptcha-response' => Recaptcha::FALLBACK_TOKEN,
+            ])
+            ->assertRedirect();
+
+        $conversation = Conversation::query()->where('listing_id', $listing->id)->first();
+        $this->assertNotNull($conversation);
+        $this->assertTrue($conversation->isParticipant($owner));
+        $this->assertTrue($conversation->isParticipant($member));
+        $this->assertDatabaseHas('messages', [
+            'conversation_id' => $conversation->id,
+            'user_id' => $member->id,
+            'body' => 'Can we book a table for Saturday evening?',
+        ]);
+
+        Mail::assertSent(ListingInquiryMail::class, function (ListingInquiryMail $mail) {
+            $mail->assertTo('lodge@example.com');
+            $mail->assertSeeInText('Can we book a table for Saturday evening?');
+
+            return $mail->senderEmail === 'amina@example.com';
+        });
+
+        $this->actingAs($owner)
+            ->get(route('account.messages'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Account/Messages/Index')
+                ->has('conversations', 1)
+                ->where('conversations.0.listing_title', $listing->title));
+    }
+
     public function test_contact_inquiry_email_includes_uploaded_attachments(): void
     {
         Mail::fake();
