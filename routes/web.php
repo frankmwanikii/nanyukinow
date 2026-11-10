@@ -21,6 +21,7 @@ use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\NyukiController;
 use App\Http\Controllers\PricingPageController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SitePreviewController;
 use App\Http\Controllers\Webhooks\PalplussWebhookController;
 use App\Http\Controllers\Webhooks\PaypalWebhookController;
 use App\Models\SitePage;
@@ -30,6 +31,10 @@ use Inertia\Inertia;
 Route::post('/webhooks/palpluss', PalplussWebhookController::class)->name('webhooks.palpluss');
 Route::post('/webhooks/paypal', PaypalWebhookController::class)->name('webhooks.paypal');
 Route::get('/account/upgrade/paypal/return', PaypalReturnController::class)->name('account.upgrade.paypal.return');
+
+Route::get('/'.trim((string) config('site.preview_path'), '/'), SitePreviewController::class)
+    ->middleware('throttle:20,1')
+    ->name('site.preview');
 
 Route::get('/', [ListingController::class, 'home'])->name('home');
 

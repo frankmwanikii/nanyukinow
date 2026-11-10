@@ -3,148 +3,207 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="robots" content="noindex,nofollow">
-    <title>Coming soon — {{ config('app.name', 'Nanyuki Now') }}</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Coming soon. {{ config('app.name', 'Nanyuki Now') }}</title>
     <link rel="icon" href="/favicon.ico?v=4" sizes="any">
     <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=dm-sans:400,500,600,700|fraunces:500,600,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.bunny.net/css?family=dm-sans:400,500,600,700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --olive-950: #0f160e;
-            --olive-900: #162016;
-            --olive-800: #1f2f1e;
-            --olive-700: #355038;
-            --olive-300: #b7c9b0;
-            --olive-100: #e7efe3;
-            --cream: #f4f1ea;
-            --mustard: #e0b02a;
+        @font-face {
+            font-family: "Geometry Soft Pro";
+            src: url("/fonts/GeometrySoftPro-BoldN.otf") format("opentype");
+            font-weight: 700;
+            font-style: normal;
+            font-display: swap;
         }
+
+        :root {
+            --olive-950: #161911;
+            --olive-900: #1c2218;
+            --olive-800: #2a2e23;
+            --olive-600: #6b7a5c;
+            --sand: #ebe4d6;
+            --mustard: #f2b82e;
+            --ink: #f4f5f1;
+        }
+
         * { box-sizing: border-box; }
-        html, body { height: 100%; margin: 0; }
-        body {
-            font-family: "DM Sans", system-ui, sans-serif;
-            color: var(--cream);
-            background: var(--olive-900);
+
+        html, body {
+            margin: 0;
             min-height: 100%;
             min-height: 100dvh;
-            overflow-x: hidden;
-            margin: 0;
+        }
+
+        body {
+            font-family: "DM Sans", system-ui, sans-serif;
+            color: var(--ink);
+            background: var(--olive-950);
+        }
+
+        .page {
+            position: relative;
+            min-height: 100dvh;
+            width: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 0 1.25rem 2rem;
-        }
-        .stage {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
+            justify-content: center;
             overflow: hidden;
         }
-        .orb {
+
+        .photo {
             position: absolute;
-            border-radius: 999px;
-            filter: blur(48px);
-            opacity: 0.55;
-            animation: drift 18s ease-in-out infinite alternate;
+            inset: -24px;
+            z-index: 0;
+            background:
+                url("/images/hero/slide-2.webp") center / cover no-repeat;
+            filter: blur(14px);
+            transform: scale(1.08);
         }
-        .orb-a {
-            width: min(48vw, 28rem);
-            height: min(48vw, 28rem);
-            left: -8%;
-            top: -12%;
-            background: radial-gradient(circle, rgba(224, 176, 42, 0.45), transparent 68%);
-        }
-        .orb-b {
-            width: min(55vw, 34rem);
-            height: min(55vw, 34rem);
-            right: -14%;
-            top: 18%;
-            background: radial-gradient(circle, rgba(74, 120, 72, 0.55), transparent 70%);
-            animation-delay: -6s;
-            animation-duration: 22s;
-        }
-        .orb-c {
-            width: min(60vw, 36rem);
-            height: min(42vw, 24rem);
-            left: 20%;
-            bottom: -18%;
-            background: radial-gradient(circle, rgba(20, 40, 22, 0.95), transparent 72%);
-            animation-delay: -11s;
-            animation-duration: 26s;
-        }
-        .grain {
+
+        .photo::after {
+            content: "";
             position: absolute;
             inset: 0;
-            opacity: 0.07;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-            mix-blend-mode: overlay;
+            background: rgba(22, 25, 17, 0.52);
         }
-        .top-badge {
-            position: relative;
-            z-index: 2;
-            width: 100%;
-            max-width: 42rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.65rem;
-            padding: clamp(1.35rem, 4vw, 2rem) 1rem clamp(1rem, 3vw, 1.5rem);
-            font-family: Fraunces, Georgia, serif;
-            font-size: clamp(1.75rem, 6vw, 2.75rem);
-            font-weight: 600;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-            color: var(--cream);
-            animation: rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
-        }
-        .top-badge-dot {
-            width: clamp(0.55rem, 2vw, 0.7rem);
-            height: clamp(0.55rem, 2vw, 0.7rem);
-            border-radius: 999px;
-            background: var(--mustard);
-            box-shadow: 0 0 0 0 rgba(224, 176, 42, 0.45);
-            animation: pulse 2.2s ease-out infinite;
-            flex-shrink: 0;
-        }
-        .card {
+
+        .content {
             position: relative;
             z-index: 1;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: min(34rem, 100%);
+            width: 100%;
+            max-width: 36rem;
+            margin: 0 auto;
+            padding: 2rem 1.25rem calc(1.75rem + env(safe-area-inset-bottom));
             text-align: center;
-            padding-bottom: 2rem;
+            animation: rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
         }
+
+        @media (min-width: 640px) {
+            .content {
+                padding: 2.5rem 2rem calc(2.25rem + env(safe-area-inset-bottom));
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .content {
+                max-width: 40rem;
+                padding: 3rem 2rem;
+            }
+        }
+
         .logo {
             display: block;
             width: auto;
-            height: clamp(5.75rem, 18vw, 8.75rem);
-            margin: 0 auto 1.15rem;
+            height: clamp(4.25rem, 16vw, 6rem);
+            margin: 0 auto 1.5rem;
             object-fit: contain;
-            filter: drop-shadow(0 18px 40px rgba(0, 0, 0, 0.4));
-            animation: rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
+            filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.35));
         }
+
         h1 {
-            margin: 0 0 0.85rem;
-            font-family: Fraunces, Georgia, serif;
-            font-size: clamp(1.65rem, 4.8vw, 2.35rem);
-            font-weight: 600;
-            line-height: 1.2;
-            letter-spacing: -0.02em;
-            color: var(--cream);
-            animation: rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
-        }
-        .lead {
             margin: 0 auto;
-            max-width: 26rem;
-            font-size: 1.02rem;
-            line-height: 1.65;
-            color: var(--olive-300);
-            animation: rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
+            max-width: 12ch;
+            font-family: "Geometry Soft Pro", "DM Sans", sans-serif;
+            font-size: clamp(2.35rem, 8vw, 4.25rem);
+            font-weight: 700;
+            line-height: 0.98;
+            letter-spacing: -0.035em;
+            color: var(--ink);
+            text-shadow: 0 2px 24px rgba(0, 0, 0, 0.35);
         }
+
+        .lead {
+            margin: 1rem auto 0;
+            max-width: 32rem;
+            font-size: clamp(1rem, 2.4vw, 1.125rem);
+            line-height: 1.55;
+            color: rgba(244, 245, 241, 0.86);
+            text-shadow: 0 1px 12px rgba(0, 0, 0, 0.28);
+        }
+
+        .form-block {
+            margin: 1.65rem auto 0;
+            max-width: 34rem;
+        }
+
+        .form {
+            display: grid;
+            gap: 0.65rem;
+        }
+
+        @media (min-width: 640px) {
+            .form {
+                grid-template-columns: minmax(0, 1fr) auto;
+                gap: 0.55rem;
+            }
+        }
+
+        .form input[type="email"] {
+            width: 100%;
+            min-width: 0;
+            border: 1px solid rgba(244, 245, 241, 0.22);
+            background: rgba(22, 25, 17, 0.55);
+            color: var(--ink);
+            font: inherit;
+            font-size: 1rem;
+            padding: 0.95rem 1rem;
+            outline: none;
+        }
+
+        .form input[type="email"]::placeholder {
+            color: rgba(244, 245, 241, 0.45);
+        }
+
+        .form input[type="email"]:focus {
+            border-color: var(--mustard);
+            background: rgba(22, 25, 17, 0.72);
+        }
+
+        .form button {
+            border: 1px solid var(--mustard);
+            background: var(--mustard);
+            color: var(--olive-950);
+            font-family: "Geometry Soft Pro", "DM Sans", sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            padding: 0.95rem 1.35rem;
+            cursor: pointer;
+            transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+        }
+
+        .form button:hover {
+            background: var(--olive-950);
+            border-color: var(--ink);
+            color: var(--ink);
+        }
+
+        .form button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .status {
+            min-height: 1.25rem;
+            margin: 0.65rem 0 0;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            color: rgba(244, 245, 241, 0.7);
+        }
+
+        .status.is-error { color: #fecaca; }
+        .status.is-ok { color: #bbf7d0; }
+
+        .meta {
+            margin-top: 1.75rem;
+            font-size: 0.8rem;
+            letter-spacing: 0.02em;
+            color: rgba(244, 245, 241, 0.42);
+        }
+
         .sr-only {
             position: absolute;
             width: 1px;
@@ -156,60 +215,129 @@
             white-space: nowrap;
             border: 0;
         }
+
         @keyframes rise {
             from {
                 opacity: 0;
-                transform: translateY(18px);
+                transform: translateY(16px);
             }
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(224, 176, 42, 0.5); }
-            70% { box-shadow: 0 0 0 10px rgba(224, 176, 42, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(224, 176, 42, 0); }
-        }
-        @keyframes drift {
-            from { transform: translate3d(0, 0, 0) scale(1); }
-            to { transform: translate3d(3%, 4%, 0) scale(1.08); }
-        }
+
         @media (prefers-reduced-motion: reduce) {
-            .orb, .logo, .top-badge, h1, .lead, .top-badge-dot {
-                animation: none !important;
-            }
+            .content { animation: none !important; }
+            .form button { transition: none !important; }
         }
     </style>
 </head>
 <body>
-    <div class="stage" aria-hidden="true">
-        <span class="orb orb-a"></span>
-        <span class="orb orb-b"></span>
-        <span class="orb orb-c"></span>
-        <span class="grain"></span>
+    <div class="page">
+        <div class="photo" role="img" aria-label="Nanyuki highlands"></div>
+
+        <div class="content">
+            <img
+                class="logo"
+                src="/images/logo.png"
+                alt="{{ config('app.name', 'Nanyuki Now') }}"
+                width="220"
+                height="123"
+                decoding="async"
+            >
+
+            <h1>Almost ready</h1>
+            <p class="lead">
+                Nanyuki Now is finishing up. Leave your email for launch day,
+                plus an early look at places to eat, stay, and explore.
+            </p>
+
+            <div class="form-block">
+                <form class="form" id="notify-form" action="{{ route('newsletter.subscribe') }}" method="post" novalidate>
+                    @csrf
+                    <label class="sr-only" for="email">Email</label>
+                    <input
+                        id="email"
+                        type="email"
+                        name="email"
+                        autocomplete="email"
+                        required
+                        placeholder="Enter your email"
+                    >
+                    <button type="submit" id="notify-btn">Notify me</button>
+                </form>
+                <p class="status" id="notify-status" role="status" aria-live="polite"></p>
+            </div>
+
+            <p class="meta">Coming soon to Nanyuki</p>
+        </div>
     </div>
 
-    <p class="top-badge">
-        <span class="top-badge-dot" aria-hidden="true"></span>
-        Coming soon
-    </p>
+    <script>
+        (function () {
+            const form = document.getElementById("notify-form");
+            const button = document.getElementById("notify-btn");
+            const status = document.getElementById("notify-status");
+            const email = document.getElementById("email");
+            if (!form || !button || !status || !email) return;
 
-    <main class="card">
-        <img
-            class="logo"
-            src="/images/logo.png"
-            alt="{{ config('app.name', 'Nanyuki Now') }}"
-            width="969"
-            height="542"
-            decoding="async"
-        >
-        <p class="sr-only">{{ config('app.name', 'Nanyuki Now') }}</p>
-        <h1>Eat, stay &amp; explore.</h1>
-        <p class="lead">
-            We’re putting the finishing touches on Nanyuki’s local guide.
-            Check back shortly.
-        </p>
-    </main>
+            form.addEventListener("submit", async function (event) {
+                event.preventDefault();
+                status.textContent = "";
+                status.className = "status";
+
+                const value = String(email.value || "").trim();
+                if (!value || !value.includes("@")) {
+                    status.textContent = "Enter a valid email address.";
+                    status.classList.add("is-error");
+                    email.focus();
+                    return;
+                }
+
+                button.disabled = true;
+                button.textContent = "Sending…";
+
+                try {
+                    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "";
+                    const response = await fetch(form.action, {
+                        method: "POST",
+                        headers: {
+                            Accept: "application/json",
+                            "Content-Type": "application/json",
+                            "X-CSRF-TOKEN": token,
+                            "X-Requested-With": "XMLHttpRequest",
+                        },
+                        credentials: "same-origin",
+                        body: JSON.stringify({ email: value }),
+                    });
+
+                    const payload = await response.json().catch(function () {
+                        return {};
+                    });
+
+                    if (!response.ok) {
+                        status.textContent =
+                            payload?.errors?.email?.[0] ||
+                            payload?.message ||
+                            "Could not subscribe. Try again.";
+                        status.classList.add("is-error");
+                        return;
+                    }
+
+                    status.textContent =
+                        payload?.message || "You are on the list. We will be in touch.";
+                    status.classList.add("is-ok");
+                    form.reset();
+                } catch (error) {
+                    status.textContent = "Could not subscribe. Check your connection and try again.";
+                    status.classList.add("is-error");
+                } finally {
+                    button.disabled = false;
+                    button.textContent = "Notify me";
+                }
+            });
+        })();
+    </script>
 </body>
 </html>
