@@ -212,7 +212,7 @@ export default function StoriesIndex({
     return (
         <SiteLayout title={page?.meta_title || 'Stories & travel tips'}>
             <section className="border-b border-olive-200/70 bg-olive-800 pb-10 pt-28 sm:pb-12 sm:pt-32">
-                <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
+                <div className="mx-auto max-w-site px-4 sm:px-6">
                     <p className="text-xs font-semibold uppercase tracking-[0.22em] text-mint sm:text-sm">
                         Stories
                     </p>
@@ -227,7 +227,7 @@ export default function StoriesIndex({
             </section>
 
             <section className="py-8 sm:py-12 lg:py-14">
-                <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
+                <div className="mx-auto max-w-site px-4 sm:px-6">
                     <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
                         <div>
                             <h2 className="font-display text-2xl font-semibold text-earth-dusk">

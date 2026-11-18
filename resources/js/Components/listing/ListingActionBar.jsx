@@ -116,7 +116,7 @@ export default function ListingActionBar({ listing }) {
         <>
             <div className="border-b border-olive-200/50 bg-earth-sand">
                 <div className="overflow-x-auto overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                    <div className="mx-auto flex w-max min-w-full max-w-[1400px] flex-nowrap items-center justify-start gap-1 px-4 py-2.5 sm:justify-center sm:gap-2.5 sm:px-6 sm:py-3">
+                    <div className="mx-auto flex w-max min-w-full max-w-site flex-nowrap items-center justify-start gap-1 px-4 py-2.5 sm:justify-center sm:gap-2.5 sm:px-6 sm:py-3">
                         {actions.map((action) => {
                             const Icon = action.icon;
                             const iconClass = `h-[1.15rem] w-[1.15rem] ${

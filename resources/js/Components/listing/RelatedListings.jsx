@@ -5,7 +5,7 @@ export default function RelatedListings({ listings = [] }) {
 
     return (
         <section className="border-t border-olive-200/80 bg-white py-10 sm:py-14">
-            <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
+            <div className="mx-auto max-w-site px-4 sm:px-6">
                 <h2 className="font-display text-2xl font-semibold text-earth-dusk sm:text-3xl">
                     You may also be interested in
                 </h2>

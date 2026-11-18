@@ -56,6 +56,10 @@ export default {
                     ...defaultTheme.fontFamily.sans,
                 ],
             },
+            maxWidth: {
+                /** Public site shell. Wide enough that large desktops do not look boxed. */
+                site: '1920px',
+            },
             boxShadow: {
                 lift: '0 12px 40px -12px rgba(28, 23, 18, 0.28)',
                 soft: '0 4px 24px -8px rgba(28, 23, 18, 0.12)',

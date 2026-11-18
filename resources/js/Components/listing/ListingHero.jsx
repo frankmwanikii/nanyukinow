@@ -71,7 +71,7 @@ export default function ListingHero({
                 <div className="absolute inset-0 bg-grain opacity-40 mix-blend-overlay" />
             </div>
 
-            <div className="relative mx-auto w-full max-w-[1400px] px-4 pb-7 sm:px-6 sm:pb-10">
+            <div className="relative mx-auto w-full max-w-site px-4 pb-7 sm:px-6 sm:pb-10">
                 <div className="flex flex-col gap-4 sm:gap-5 lg:flex-row lg:items-end lg:justify-between lg:gap-8">
                     {/* Identity */}
                     <div className="flex min-w-0 items-center gap-3.5 sm:gap-5">

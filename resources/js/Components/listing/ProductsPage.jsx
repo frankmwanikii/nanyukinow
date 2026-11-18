@@ -115,7 +115,7 @@ export default function ProductsPage({ listing }) {
     );
 
     return (
-        <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
+        <div className="mx-auto max-w-site px-4 sm:px-6">
             <div className="mb-6 flex flex-col gap-3 sm:mb-8 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <h2 className="font-display text-2xl font-semibold text-earth-dusk sm:text-3xl">

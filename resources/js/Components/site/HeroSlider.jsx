@@ -319,7 +319,7 @@ export default function HeroSlider() {
               Mobile: Find + place + search icon at bottom (opens bottom-nav search).
               Desktop: search reveals at top; big white icon beside headline.
             */}
-            <div className="relative z-10 mx-auto flex w-full max-w-[1400px] flex-1 flex-col justify-end px-4 pb-14 pt-10 sm:px-6 sm:pb-16 sm:pt-14 lg:justify-start lg:px-8 lg:pb-16 lg:pt-6 xl:px-10">
+            <div className="relative z-10 mx-auto flex w-full max-w-site flex-1 flex-col justify-end px-4 pb-14 pt-10 sm:px-6 sm:pb-16 sm:pt-14 lg:justify-start lg:px-8 lg:pb-16 lg:pt-6 xl:px-10">
                 {desktopLayout && searchFieldVisible ? (
                     <div
                         className={`relative order-1 mx-auto w-full max-w-3xl xl:max-w-4xl ${

@@ -12,7 +12,7 @@ export default function ListingSubnav({
             aria-label="Listing pages"
         >
             <div className="overflow-x-auto overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                <div className="mx-auto flex w-max min-w-full max-w-[1400px] flex-nowrap justify-start gap-1 px-4 py-3.5 sm:justify-center sm:gap-1.5 sm:px-6 sm:py-4">
+                <div className="mx-auto flex w-max min-w-full max-w-site flex-nowrap justify-start gap-1 px-4 py-3.5 sm:justify-center sm:gap-1.5 sm:px-6 sm:py-4">
                     {items.map((item) => {
                         const isActive = active === item.id;
                         return (

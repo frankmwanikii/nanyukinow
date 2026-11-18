@@ -15,6 +15,8 @@ import { testimonials } from '@/data/listings';
 
 const CTA_IMAGE = '/images/designed-for-you.webp';
 const PAGE_SIZE = 9;
+/** 4 cols × 3 rows on large desktop; still even at 3 cols. */
+const GOLD_LIST_PAGE_SIZE = 12;
 
 function ListingsSoonPlaceholder({ light = false }) {
     return (
@@ -40,7 +42,7 @@ function ListingGridSkeleton({ light = false }) {
 
     return (
         <div
-            className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
+            className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
             aria-hidden="true"
         >
             {Array.from({ length: 3 }).map((_, i) => (
@@ -75,13 +77,13 @@ function ListingLoadMore({ onClick, light = false }) {
 }
 
 function GoldListSection({ items = [], title, subtitle }) {
-    const [visible, setVisible] = useState(PAGE_SIZE);
+    const [visible, setVisible] = useState(GOLD_LIST_PAGE_SIZE);
     const shown = useMemo(() => items.slice(0, visible), [items, visible]);
     const hasMore = visible < items.length;
 
     return (
         <section id="listings" className="bg-olive-600 py-14 sm:py-20">
-            <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
+            <div className="mx-auto max-w-site px-4 sm:px-6">
                 <Reveal>
                     <SectionHeading
                         light
@@ -96,7 +98,7 @@ function GoldListSection({ items = [], title, subtitle }) {
                     <ListingsSoonPlaceholder light />
                 ) : (
                     <>
-                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
                             {shown.map((listing) => (
                                 <div key={listing.id} className="min-w-0">
                                     <ListingCard
@@ -111,7 +113,10 @@ function GoldListSection({ items = [], title, subtitle }) {
                                 light
                                 onClick={() =>
                                     setVisible((n) =>
-                                        Math.min(n + PAGE_SIZE, items.length),
+                                        Math.min(
+                                            n + GOLD_LIST_PAGE_SIZE,
+                                            items.length,
+                                        ),
                                     )
                                 }
                             />
@@ -133,7 +138,7 @@ function AirbnbsSection({ items = [], title, subtitle }) {
             id="airbnbs"
             className="relative z-10 bg-olive-700 py-14 sm:py-20"
         >
-            <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
+            <div className="mx-auto max-w-site px-4 sm:px-6">
                 <Reveal>
                     <SectionHeading
                         light
@@ -148,7 +153,7 @@ function AirbnbsSection({ items = [], title, subtitle }) {
                     <ListingsSoonPlaceholder light />
                 ) : (
                     <>
-                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
                             {shown.map((listing) => (
                                 <div key={listing.id} className="min-w-0">
                                     <ListingCard listing={listing} />
@@ -182,7 +187,7 @@ function WildlifeSafarisSection({ items = [] }) {
             id="wildlife"
             className="relative z-10 bg-earth-sand py-14 sm:py-20"
         >
-            <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
+            <div className="mx-auto max-w-site px-4 sm:px-6">
                 <Reveal>
                     <SectionHeading
                         title="Wildlife Safaris"
@@ -193,7 +198,7 @@ function WildlifeSafarisSection({ items = [] }) {
                     <ListingsSoonPlaceholder />
                 ) : (
                     <>
-                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
                             {shown.map((listing) => (
                                 <div key={listing.id} className="min-w-0">
                                     <ListingCard listing={listing} />
@@ -240,7 +245,7 @@ function HomeContent({
                         : 'relative z-10 -mt-10 bg-earth-sand pb-10 pt-20 sm:-mt-14 sm:pb-16 sm:pt-28 md:pb-24 md:pt-32'
                 }
             >
-                <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
+                <div className="mx-auto max-w-site px-4 sm:px-6">
                     <Reveal>
                         <div className="mx-auto max-w-xl text-center sm:max-w-2xl md:max-w-3xl">
                             <h2 className="text-balance font-display text-3xl font-semibold tracking-tight text-earth-dusk sm:text-4xl md:text-[2.75rem] md:leading-tight">
@@ -269,7 +274,7 @@ function HomeContent({
 
             {goldList === undefined ? (
                 <section className="bg-olive-600 py-14 sm:py-20">
-                    <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
+                    <div className="mx-auto max-w-site px-4 sm:px-6">
                         <SectionHeading
                             light
                             title="The Nanyuki Gold List"
@@ -289,7 +294,7 @@ function HomeContent({
             <CategoryGrid />
 
             <section id="eat" className="bg-olive-800 py-14 sm:py-20">
-                <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
+                <div className="mx-auto max-w-site px-4 sm:px-6">
                     <Reveal>
                         <SectionHeading
                             light
@@ -339,7 +344,7 @@ function HomeContent({
 
             {wildlifeSafaris === undefined ? (
                 <section className="relative z-10 bg-earth-sand py-14 sm:py-20">
-                    <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
+                    <div className="mx-auto max-w-site px-4 sm:px-6">
                         <SectionHeading
                             title="Wildlife Safaris"
                             subtitle="Seeking untamed adventures?"
@@ -355,7 +360,7 @@ function HomeContent({
 
             {airbnbs === undefined ? (
                 <section className="relative z-10 bg-olive-700 py-14 sm:py-20">
-                    <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
+                    <div className="mx-auto max-w-site px-4 sm:px-6">
                         <SectionHeading
                             light
                             title="Highland Airbnbs"
@@ -373,7 +378,7 @@ function HomeContent({
             )}
 
             <section className="relative z-10 bg-earth-clay py-14 sm:py-20">
-                <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
+                <div className="mx-auto max-w-site px-4 sm:px-6">
                     <Reveal>
                         <SectionHeading
                             light

@@ -494,7 +494,7 @@ export default function Navbar({ compact = false }) {
                     : 'bg-[#4f5a3e] lg:bg-transparent'
             }`}
         >
-            <div className="relative mx-auto flex max-w-[1400px] items-center gap-3 px-3 py-3.5 sm:px-5 sm:py-5 lg:px-6 xl:gap-5">
+            <div className="relative mx-auto flex max-w-site items-center gap-3 px-3 py-3.5 sm:px-5 sm:py-5 lg:px-6 xl:gap-5">
                 {/* Mobile: menu + logo · account/cart */}
                 <div className="flex w-full items-center justify-between lg:hidden">
                     <div className="flex min-w-0 items-center gap-1.5">

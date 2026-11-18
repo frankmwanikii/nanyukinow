@@ -19,7 +19,7 @@ export default function ListingVisit({
             */}
             <div className="flex min-h-svh flex-col pt-[4.75rem] sm:pt-[5.5rem]">
                 <div className="shrink-0 border-b border-olive-200/70 bg-white">
-                    <div className="mx-auto flex max-w-[1400px] items-center gap-3 px-4 py-3 sm:px-6">
+                    <div className="mx-auto flex max-w-site items-center gap-3 px-4 py-3 sm:px-6">
                         <Link
                             href={backHref}
                             className="group inline-flex shrink-0 items-center gap-2 rounded-full bg-mustard px-4 py-2.5 text-sm font-bold text-earth-dusk shadow-sm transition hover:bg-olive-900 hover:text-white hover:shadow-md sm:px-5"

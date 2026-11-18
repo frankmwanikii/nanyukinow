@@ -41,14 +41,14 @@ const cards = [
 export default function CategoryGrid() {
     return (
         <section id="categories" className="bg-earth-sand py-14 sm:py-20">
-            <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
+            <div className="mx-auto max-w-site px-4 sm:px-6">
                 <Reveal>
                     <SectionHeading
                         title="Find it by category"
                         subtitle="From lodges to coffee, tours to nightlife."
                     />
                 </Reveal>
-                <div className="mx-auto grid max-w-4xl grid-cols-4 gap-2 sm:gap-4">
+                <div className="grid grid-cols-4 gap-2 sm:gap-3 md:gap-4">
                     {cards.map((card) => {
                         const Icon = card.Icon;
                         return (

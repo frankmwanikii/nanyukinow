@@ -865,7 +865,7 @@ export default function ContactInfoPage({ listing }) {
     ) : null;
 
     return (
-        <div className="mx-auto grid max-w-[1400px] gap-4 px-4 sm:px-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(280px,1fr)] lg:items-start lg:gap-5">
+        <div className="mx-auto grid max-w-site gap-4 px-4 sm:px-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(280px,1fr)] lg:items-start lg:gap-5">
             {/* Mobile: contact first for quick reach; desktop: form main, contact side */}
             <div className="order-1 flex min-w-0 flex-col gap-4 lg:order-2 lg:sticky lg:top-36">
                 {contactPanel}

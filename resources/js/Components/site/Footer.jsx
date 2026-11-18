@@ -62,7 +62,7 @@ export default function Footer() {
 
     return (
         <footer className="relative z-10 bg-earth-dusk text-white">
-            <div className="mx-auto grid max-w-[1400px] gap-10 px-4 py-14 sm:px-6 md:grid-cols-2 lg:grid-cols-4 lg:gap-8 lg:py-16">
+            <div className="mx-auto grid max-w-site gap-10 px-4 py-14 sm:px-6 md:grid-cols-2 lg:grid-cols-4 lg:gap-8 lg:py-16">
                 <div className="space-y-4">
                     <Logo />
                     <p className="max-w-sm text-sm leading-relaxed text-white/70">
@@ -198,7 +198,7 @@ export default function Footer() {
             </div>
 
             <div className="border-t border-white/10">
-                <div className="mx-auto flex max-w-[1400px] flex-col items-center justify-between gap-2 px-4 py-4 text-center text-xs text-white/50 sm:flex-row sm:px-6 sm:text-left">
+                <div className="mx-auto flex max-w-site flex-col items-center justify-between gap-2 px-4 py-4 text-center text-xs text-white/50 sm:flex-row sm:px-6 sm:text-left">
                     <p>
                         © {year} Nanyuki Now. All rights reserved.{' '}
                         <span className="text-white/35">·</span>{' '}

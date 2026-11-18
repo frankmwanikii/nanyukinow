@@ -133,7 +133,7 @@ export default function MobileBottomNav() {
                     <form
                         ref={searchFormRef}
                         onSubmit={submitSearch}
-                        className="relative mx-auto flex max-w-[1400px] items-center"
+                        className="relative mx-auto flex max-w-site items-center"
                     >
                         <SearchMark className="pointer-events-none absolute left-3.5 z-10 h-4 w-4 text-white/75" />
                         <FlippingSearchHint

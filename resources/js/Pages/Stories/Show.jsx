@@ -364,7 +364,7 @@ export default function StoryShow({ slug }) {
 
             {related.length > 0 ? (
                 <section className="border-t border-olive-200/80 bg-white py-12 sm:py-16">
-                    <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
+                    <div className="mx-auto max-w-site px-4 sm:px-6">
                         <h2 className="font-display text-2xl font-semibold text-earth-dusk sm:text-3xl">
                             Keep reading
                         </h2>

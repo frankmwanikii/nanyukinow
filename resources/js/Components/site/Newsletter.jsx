@@ -75,7 +75,7 @@ export default function Newsletter() {
         >
             <div className="pointer-events-none absolute inset-y-0 left-0 hidden w-2 bg-olive-600 sm:block lg:w-2.5" />
 
-            <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
+            <div className="mx-auto max-w-site px-4 sm:px-6">
                 <Reveal>
                     <div className="mx-auto mb-10 max-w-xl text-center sm:mb-14">
                         <h2 className="font-display text-3xl font-semibold tracking-tight text-earth-dusk sm:text-4xl md:text-5xl">

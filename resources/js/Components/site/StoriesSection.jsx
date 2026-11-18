@@ -23,7 +23,7 @@ export default function StoriesSection() {
             className="relative z-10 py-14 sm:py-20"
             style={{ backgroundColor: '#3f3127' }}
         >
-            <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
+            <div className="mx-auto max-w-site px-4 sm:px-6">
                 <Reveal>
                     <SectionHeading
                         light
