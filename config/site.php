@@ -18,4 +18,17 @@ return [
 
     'preview_session_key' => 'site_preview_unlocked',
 
+    /*
+    |--------------------------------------------------------------------------
+    | Claim plan grace
+    |--------------------------------------------------------------------------
+    |
+    | After a claim is approved, paid placement (tier / featured / promoted)
+    | stays for this many days, then the listing moves to Free. Verified
+    | status is kept either way.
+    |
+    */
+
+    'claim_plan_grace_days' => (int) env('CLAIM_PLAN_GRACE_DAYS', 30),
+
 ];

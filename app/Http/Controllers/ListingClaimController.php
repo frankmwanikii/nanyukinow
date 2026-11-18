@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Listing;
 use App\Models\ListingClaim;
 use App\Support\ListingMedia;
+use App\Support\Recaptcha;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -44,7 +45,13 @@ class ListingClaimController extends Controller
                 'mimes:jpg,jpeg,png,webp,gif,pdf,doc,docx',
             ],
             'confirmed' => ['accepted'],
+            'g-recaptcha-response' => ['nullable', 'string'],
         ]);
+
+        Recaptcha::validateRequest(
+            $data['g-recaptcha-response'] ?? null,
+            $request->ip(),
+        );
 
         $documents = [];
         foreach ($request->file('documents', []) as $file) {

@@ -8,6 +8,7 @@ use App\Models\ListingClaim;
 use App\Models\User;
 use App\Notifications\ClaimReviewedNotification;
 use App\Support\AdminPagination;
+use App\Support\ClaimPlanGrace;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -136,6 +137,8 @@ class ClaimController extends Controller
             }
 
             $listing->claim_status = 'claimed';
+            $listing->is_verified = true;
+            ClaimPlanGrace::startIfNeeded($listing);
             $listing->save();
 
             $claim->update([

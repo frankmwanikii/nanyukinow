@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\Listing;
 use App\Models\ListingClaim;
 use App\Models\User;
+use App\Support\Recaptcha;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -48,6 +49,7 @@ class AdminClaimsTest extends TestCase
             'phone' => '+254700000000',
             'reason' => 'I own this restaurant and can provide business documents.',
             'confirmed' => '1',
+            'g-recaptcha-response' => Recaptcha::FALLBACK_TOKEN,
             'documents' => [
                 UploadedFile::fake()->image('license.jpg'),
             ],
@@ -63,6 +65,26 @@ class AdminClaimsTest extends TestCase
             'id' => $listing->id,
             'claim_status' => 'pending',
         ]);
+    }
+
+    public function test_listing_claim_requires_recaptcha(): void
+    {
+        Storage::fake('public');
+        $listing = $this->makeListing();
+
+        $this->post(route('listings.claim', $listing->slug), [
+            'first_name' => 'Jane',
+            'last_name' => 'Wanjiru',
+            'email' => 'jane@example.com',
+            'phone' => '+254700000000',
+            'reason' => 'I own this restaurant and can provide business documents.',
+            'confirmed' => '1',
+            'documents' => [
+                UploadedFile::fake()->image('license.jpg'),
+            ],
+        ])->assertSessionHasErrors('g-recaptcha-response');
+
+        $this->assertDatabaseCount('listing_claims', 0);
     }
 
     public function test_admin_claims_index_lists_pending_claims(): void
@@ -117,6 +139,7 @@ class AdminClaimsTest extends TestCase
 
         $this->assertSame(ListingClaim::STATUS_APPROVED, $claim->status);
         $this->assertSame('claimed', $listing->claim_status);
+        $this->assertTrue($listing->is_verified);
         $this->assertNotNull($listing->user_id);
         $this->assertDatabaseHas('users', [
             'email' => 'jane.owner@example.com',

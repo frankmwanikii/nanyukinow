@@ -11,6 +11,7 @@ import {
     ServicesMark,
     ShopMark,
     StayMark,
+    VerifiedMark,
 } from '@/Components/site/Mark';
 import ListingTierBadge from '@/Components/site/ListingTierBadge';
 import { explorePath } from '@/data/categories';
@@ -258,8 +259,18 @@ export default function ListingCard({
                         ) : null}
                         <div className="min-w-0 flex-1">
                             <h3 className="font-display text-base font-semibold leading-snug tracking-tight sm:text-lg">
-                                <span className="line-clamp-2">
-                                    {listing.title}
+                                <span className="inline-flex max-w-full items-start gap-1.5">
+                                    {listing.is_verified ? (
+                                        <span
+                                            className="mt-0.5 inline-flex shrink-0"
+                                            aria-label="Verified listing"
+                                        >
+                                            <VerifiedMark className="h-4 w-4 text-[#0095F6] sm:h-[1.125rem] sm:w-[1.125rem]" />
+                                        </span>
+                                    ) : null}
+                                    <span className="line-clamp-2 min-w-0">
+                                        {listing.title}
+                                    </span>
                                 </span>
                             </h3>
                             {regionLabel ? (

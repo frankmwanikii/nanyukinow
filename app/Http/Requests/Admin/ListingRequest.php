@@ -149,6 +149,7 @@ class ListingRequest extends FormRequest
             'expires_at' => ['nullable', 'date'],
             'published_at' => ['nullable', 'date'],
             'claim_status' => ['required', Rule::in(['unclaimed', 'pending', 'claimed'])],
+            'is_verified' => ['boolean'],
             'is_featured' => ['boolean'],
             'is_trending' => ['boolean'],
             'is_published' => ['boolean'],

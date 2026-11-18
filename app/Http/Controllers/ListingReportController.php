@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Listing;
 use App\Models\ListingReport;
+use App\Support\Recaptcha;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,7 +18,13 @@ class ListingReportController extends Controller
             'details' => ['required', 'string', 'min:10', 'max:5000'],
             'reporter_name' => ['nullable', 'string', 'max:120'],
             'reporter_email' => ['nullable', 'email', 'max:255'],
+            'g-recaptcha-response' => ['nullable', 'string'],
         ]);
+
+        Recaptcha::validateRequest(
+            $data['g-recaptcha-response'] ?? null,
+            $request->ip(),
+        );
 
         $user = $request->user();
 
@@ -34,7 +41,7 @@ class ListingReportController extends Controller
             'status' => ListingReport::STATUS_PENDING,
         ]);
 
-        $success = 'Thanks — we received your report.';
+        $success = 'Thanks. We received your report.';
 
         if ($request->expectsJson()) {
             return response()->json([

@@ -11,6 +11,7 @@ use App\Models\Category;
 use App\Models\Listing;
 use App\Support\CategoryKey;
 use App\Support\CategoryTaxonomy;
+use App\Support\ClaimPlanGrace;
 use App\Support\EatDrinkTierFeatures;
 use App\Support\EventsTierFeatures;
 use App\Support\ListingGallery;
@@ -256,6 +257,8 @@ class ListingController extends Controller
      */
     private function listingTablePayload(Listing $listing): array
     {
+        $graceActive = ClaimPlanGrace::isActive($listing);
+
         return [
             'id' => $listing->id,
             'title' => $listing->title,
@@ -270,6 +273,10 @@ class ListingController extends Controller
             'expires_at' => $listing->expires_at?->toIso8601String(),
             'published_at' => $listing->published_at?->toIso8601String(),
             'is_expired' => $listing->isExpired(),
+            'claim_grace_ends_at' => $graceActive
+                ? $listing->claim_grace_ends_at?->toIso8601String()
+                : null,
+            'claim_grace_active' => $graceActive,
         ];
     }
 

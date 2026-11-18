@@ -394,6 +394,7 @@ export default function Form({
         expires_at: listing?.expires_at || '',
         published_at: listing?.published_at || '',
         is_published: listing?.is_published ?? true,
+        is_verified: listing?.is_verified || false,
         is_featured: listing?.is_featured || false,
         is_trending: listing?.is_trending || false,
     });
@@ -1904,7 +1905,23 @@ function AdminControls({
                     />
                     <span className="text-sm font-medium text-olive-700 dark:text-olive-200">Trending</span>
                 </label>
+                <label className="flex items-center gap-2">
+                    <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-olive-300 text-mustard focus:ring-mustard"
+                        checked={data.is_verified}
+                        onChange={(e) => setData('is_verified', e.target.checked)}
+                    />
+                    <span className="text-sm font-medium text-olive-700 dark:text-olive-200">
+                        Verified badge
+                    </span>
+                </label>
             </div>
+            <p className="mt-2 text-xs text-olive-500 dark:text-olive-400">
+                Verified badge shows a blue tick before the listing title. It turns
+                on automatically when a claim is approved, and you can toggle it
+                here anytime.
+            </p>
         </div>
     );
 }

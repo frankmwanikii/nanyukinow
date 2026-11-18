@@ -40,6 +40,7 @@ class ListingPayload
             'propertyType' => $listing->property_type,
             'is_featured' => (bool) $listing->is_featured,
             'is_trending' => (bool) $listing->is_trending,
+            'is_verified' => (bool) $listing->is_verified,
             'tier' => $tier,
             'lat' => $listing->latitude,
             'lng' => $listing->longitude,

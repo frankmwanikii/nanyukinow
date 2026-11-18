@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\Listing;
 use App\Models\ListingReport;
 use App\Models\User;
+use App\Support\Recaptcha;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -45,6 +46,7 @@ class ListingReportTest extends TestCase
                 'details' => 'This listing looks duplicated and outdated.',
                 'reporter_name' => 'Amina',
                 'reporter_email' => 'amina@example.com',
+                'g-recaptcha-response' => Recaptcha::FALLBACK_TOKEN,
             ])
             ->assertRedirect();
 
@@ -54,6 +56,22 @@ class ListingReportTest extends TestCase
             'status' => ListingReport::STATUS_PENDING,
             'reporter_email' => 'amina@example.com',
         ]);
+    }
+
+    public function test_report_requires_recaptcha(): void
+    {
+        $listing = $this->makeListing();
+
+        $this->from(route('listings.show', $listing->slug))
+            ->post(route('listings.report', $listing->slug), [
+                'reason' => 'Spam or fake listing',
+                'details' => 'This listing looks duplicated and outdated.',
+                'reporter_name' => 'Amina',
+                'reporter_email' => 'amina@example.com',
+            ])
+            ->assertSessionHasErrors('g-recaptcha-response');
+
+        $this->assertDatabaseCount('listing_reports', 0);
     }
 
     public function test_admin_can_resolve_report(): void

@@ -1,5 +1,6 @@
 import { ExternalLink, MessageCircle, Phone, Ticket } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { VerifiedMark } from '@/Components/site/Mark';
 import { listingSubcategories } from '@/utils/listingSubcategories';
 import { plainText } from '@/utils/plainText';
 
@@ -115,7 +116,17 @@ export default function ListingHero({
                                 </p>
                             ) : null}
                             <h1 className="font-display text-[1.65rem] font-semibold leading-tight tracking-tight text-white sm:text-4xl md:text-5xl">
-                                {listing.title}
+                                <span className="inline-flex items-center gap-2">
+                                    {listing.is_verified ? (
+                                        <span
+                                            className="inline-flex shrink-0"
+                                            aria-label="Verified listing"
+                                        >
+                                            <VerifiedMark className="h-5 w-5 text-[#0095F6] sm:h-7 sm:w-7" />
+                                        </span>
+                                    ) : null}
+                                    <span>{listing.title}</span>
+                                </span>
                             </h1>
                             {subtitle ? (
                                 <p className="mt-1 line-clamp-2 text-[13px] leading-snug text-white/80 sm:mt-2 sm:text-base sm:leading-normal">

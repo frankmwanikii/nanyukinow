@@ -380,6 +380,7 @@ class Membership
         ])->save();
 
         self::restoreSuppressedListings($user);
+        ClaimPlanGrace::clearForUserListings($user);
 
         $lowerTiers = match ($plan) {
             self::PREMIUM => [self::FREE, self::STANDARD],

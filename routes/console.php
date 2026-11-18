@@ -12,6 +12,10 @@ Schedule::command('membership:process-renewals')
     ->dailyAt('08:00')
     ->withoutOverlapping(30);
 
+Schedule::command('listings:process-claim-grace')
+    ->dailyAt('08:15')
+    ->withoutOverlapping(30);
+
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');

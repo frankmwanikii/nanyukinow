@@ -25,12 +25,28 @@ function formatDate(iso) {
     });
 }
 
+function formatGraceDate(iso) {
+    if (!iso) return null;
+    return new Date(iso).toLocaleDateString(undefined, {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+    });
+}
+
 export default function Index({ plan, listings = [] }) {
     const { confirm, dialog } = useConfirm();
     const { page, totalPages, setPage, pageItems } = useClientPagination(
         listings,
         PAGE_SIZE,
     );
+
+    const graceListings = listings.filter((listing) => listing.claim_grace_active);
+    const graceEndsAt = graceListings
+        .map((listing) => listing.claim_grace_ends_at)
+        .filter(Boolean)
+        .sort()[0];
+    const graceDateLabel = formatGraceDate(graceEndsAt);
 
     const remove = async (listing) => {
         const ok = await confirm({
@@ -48,6 +64,24 @@ export default function Index({ plan, listings = [] }) {
             <Head title="Listings" />
 
             <div className="space-y-5">
+                {graceListings.length > 0 && graceDateLabel ? (
+                    <div className="border border-mustard/40 bg-mustard/15 px-4 py-3 text-sm text-earth-dusk dark:border-mustard/30 dark:bg-mustard/10 dark:text-mustard sm:px-5">
+                        <p>
+                            {graceListings.length === 1
+                                ? `“${graceListings[0].title || 'Your listing'}” keeps its current plan until ${graceDateLabel}. After that it moves to Free. Verified status stays.`
+                                : `Claimed listings keep their current plan until ${graceDateLabel}. After that they move to Free. Verified status stays.`}
+                        </p>
+                        {plan.key !== 'premium' ? (
+                            <Link
+                                href={route('account.upgrade')}
+                                className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold underline-offset-2 hover:underline"
+                            >
+                                Upgrade to keep paid placement
+                            </Link>
+                        ) : null}
+                    </div>
+                ) : null}
+
                 <section className="border border-olive-900/15 bg-white dark:border-olive-800 dark:bg-olive-900">
                     <div className="flex items-center justify-between gap-3 border-b border-olive-900/10 px-4 py-4 sm:px-5 dark:border-olive-800">
                         <div className="flex min-w-0 items-center gap-2.5">
@@ -141,9 +175,20 @@ export default function Index({ plan, listings = [] }) {
                                                             </div>
                                                         )}
                                                     </div>
-                                                    <p className="truncate text-sm font-semibold text-olive-950 underline-offset-2 hover:underline dark:text-olive-50">
-                                                        {listing.title || 'Untitled'}
-                                                    </p>
+                                                    <div className="min-w-0">
+                                                        <p className="truncate text-sm font-semibold text-olive-950 underline-offset-2 hover:underline dark:text-olive-50">
+                                                            {listing.title || 'Untitled'}
+                                                        </p>
+                                                        {listing.claim_grace_active &&
+                                                        listing.claim_grace_ends_at ? (
+                                                            <p className="mt-0.5 truncate text-xs text-earth-dusk dark:text-mustard">
+                                                                Plan grace until{' '}
+                                                                {formatGraceDate(
+                                                                    listing.claim_grace_ends_at,
+                                                                )}
+                                                            </p>
+                                                        ) : null}
+                                                    </div>
                                                 </Link>
                                             </Td>
                                             <Td>

@@ -251,6 +251,7 @@ class ListingController extends Controller
                 'expires_at' => $listing->expires_at?->format('Y-m-d\TH:i'),
                 'published_at' => $listing->published_at?->format('Y-m-d\TH:i'),
                 'is_published' => $listing->is_published,
+                'is_verified' => $listing->is_verified,
                 'is_featured' => $listing->is_featured,
                 'is_trending' => $listing->is_trending,
             ],
@@ -405,6 +406,7 @@ class ListingController extends Controller
             isset($data['slug']) ? (string) $data['slug'] : null,
         );
 
+        $data['is_verified'] = (bool) ($data['is_verified'] ?? false);
         $data['is_featured'] = (bool) ($data['is_featured'] ?? false);
         $data['is_trending'] = (bool) ($data['is_trending'] ?? false);
         $data['is_published'] = (bool) ($data['is_published'] ?? false);
@@ -666,6 +668,7 @@ class ListingController extends Controller
             'claim_status' => $listing->claim_status,
             'priority' => $listing->priority,
             'is_published' => $listing->is_published,
+            'is_verified' => $listing->is_verified,
             'is_featured' => $listing->is_featured,
             'is_trending' => $listing->is_trending,
         ];

@@ -54,6 +54,15 @@ export function ForwardMark({ className = 'h-4 w-4' }) {
     );
 }
 
+/** Diagonal leave arrow — links that open another view. */
+export function LeaveMark({ className = 'h-4 w-4' }) {
+    return (
+        <OutlineMark className={className}>
+            <path d="M7 17 17 7M9 7h8v8" />
+        </OutlineMark>
+    );
+}
+
 export function BackMark({ className = 'h-4 w-4' }) {
     return (
         <OutlineMark className={className}>
@@ -108,6 +117,26 @@ export function CheckMark({ className = 'h-4 w-4' }) {
         <Mark className={className}>
             <path d="M9.2 16.3a1 1 0 0 1-1.4 0l-3.5-3.5a1 1 0 1 1 1.4-1.4l2.8 2.8 6.4-6.4a1 1 0 1 1 1.4 1.4l-7.1 7.1z" />
         </Mark>
+    );
+}
+
+/** Instagram-style verified badge — scalloped seal with white check. */
+export function VerifiedMark({ className = 'h-4 w-4' }) {
+    return (
+        <svg
+            viewBox="0 0 24 24"
+            className={className}
+            aria-hidden="true"
+        >
+            <path
+                fill="currentColor"
+                d="M12 1.15 13.95 3.4l2.95-.55.95 2.85 2.85.95-.55 2.95L22.85 12l-2.25 1.95.55 2.95-2.85.95-.95 2.85-2.95-.55L12 22.85l-1.95-2.25-2.95.55-.95-2.85-2.85-.95.55-2.95L1.15 12l2.25-1.95-.55-2.95 2.85-.95.95-2.85 2.95.55L12 1.15Z"
+            />
+            <path
+                fill="#fff"
+                d="M10.35 15.55a.95.95 0 0 1-1.34 0l-2.2-2.2a.95.95 0 1 1 1.34-1.34l1.53 1.53 4.7-4.7a.95.95 0 1 1 1.34 1.34l-5.37 5.37Z"
+            />
+        </svg>
     );
 }
 

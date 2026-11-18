@@ -25,6 +25,7 @@ class ListingController extends Controller
             'featured' => $this->featuredCards(),
             'trending' => Inertia::defer(fn () => $this->trendingCards(), 'below'),
             'goldList' => Inertia::defer(fn () => $this->goldListCards(), 'below'),
+            'placesToEat' => Inertia::defer(fn () => $this->eatDrinkCards(), 'below'),
             'airbnbs' => Inertia::defer(fn () => $this->airbnbCards(), 'below'),
             'wildlifeSafaris' => Inertia::defer(fn () => $this->wildlifeCards(), 'below'),
             'page' => $page,
@@ -293,6 +294,18 @@ class ListingController extends Controller
     private function goldListCards(): array
     {
         return array_slice(PublishedListingsCatalogue::cards(), 0, 24);
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function eatDrinkCards(): array
+    {
+        return collect(PublishedListingsCatalogue::cards())
+            ->filter(fn (array $card) => ($card['categoryKey'] ?? null) === 'eatDrink')
+            ->take(12)
+            ->values()
+            ->all();
     }
 
     /**

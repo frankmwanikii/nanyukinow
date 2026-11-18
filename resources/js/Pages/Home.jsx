@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import SiteLayout from '@/Layouts/SiteLayout';
 import Reveal from '@/Components/site/Reveal';
 import ListingCard from '@/Components/site/ListingCard';
@@ -10,13 +10,76 @@ import HeroSlider from '@/Components/site/HeroSlider';
 import FeaturedMarquee from '@/Components/site/FeaturedMarquee';
 import TrendingCarousel from '@/Components/site/TrendingCarousel';
 import StoriesSection from '@/Components/site/StoriesSection';
-import { EmptyListingsMark } from '@/Components/site/Mark';
+import { EmptyListingsMark, SendArrowMark } from '@/Components/site/Mark';
+import { explorePath } from '@/data/categories';
 import { testimonials } from '@/data/listings';
 
 const CTA_IMAGE = '/images/designed-for-you.webp';
-const PAGE_SIZE = 9;
-/** 4 cols × 3 rows on large desktop; still even at 3 cols. */
-const GOLD_LIST_PAGE_SIZE = 12;
+/** Mobile / laptop (1–3 cols): 6 cards. XL desktop (4 cols): 2 full rows = 8. */
+const GOLD_LIST_MOBILE_PAGE_SIZE = 6;
+const GOLD_LIST_DESKTOP_PAGE_SIZE = 8;
+
+/**
+ * Two full rows for the shared listing grid:
+ * 1 / 2 / 3 / 4 cols → 2 / 4 / 6 / 8 cards.
+ */
+function twoRowPageSizeForWidth() {
+    if (window.matchMedia('(min-width: 1280px)').matches) {
+        return 8;
+    }
+    if (window.matchMedia('(min-width: 1024px)').matches) {
+        return 6;
+    }
+    if (window.matchMedia('(min-width: 640px)').matches) {
+        return 4;
+    }
+
+    return 2;
+}
+
+function useGoldListPageSize() {
+    const [pageSize, setPageSize] = useState(GOLD_LIST_MOBILE_PAGE_SIZE);
+
+    useEffect(() => {
+        const media = window.matchMedia('(min-width: 1280px)');
+        const sync = () =>
+            setPageSize(
+                media.matches
+                    ? GOLD_LIST_DESKTOP_PAGE_SIZE
+                    : GOLD_LIST_MOBILE_PAGE_SIZE,
+            );
+
+        sync();
+        media.addEventListener('change', sync);
+
+        return () => media.removeEventListener('change', sync);
+    }, []);
+
+    return pageSize;
+}
+
+function useTwoRowPageSize() {
+    const [pageSize, setPageSize] = useState(2);
+
+    useEffect(() => {
+        const sync = () => setPageSize(twoRowPageSizeForWidth());
+        const queries = [
+            window.matchMedia('(min-width: 640px)'),
+            window.matchMedia('(min-width: 1024px)'),
+            window.matchMedia('(min-width: 1280px)'),
+        ];
+
+        sync();
+        queries.forEach((media) => media.addEventListener('change', sync));
+
+        return () =>
+            queries.forEach((media) =>
+                media.removeEventListener('change', sync),
+            );
+    }, []);
+
+    return pageSize;
+}
 
 function ListingsSoonPlaceholder({ light = false }) {
     return (
@@ -58,7 +121,7 @@ function ListingGridSkeleton({ light = false }) {
     );
 }
 
-function ListingLoadMore({ onClick, light = false }) {
+function ListingSeeMore({ onClick, light = false }) {
     return (
         <div className="mt-10 flex justify-center">
             <button
@@ -70,16 +133,40 @@ function ListingLoadMore({ onClick, light = false }) {
                         : 'inline-flex min-h-11 items-center rounded-md bg-olive-600 px-8 py-3 text-sm font-semibold text-white transition hover:bg-mustard hover:text-olive-950 sm:px-10 sm:text-base'
                 }
             >
-                Load more
+                See more
             </button>
         </div>
     );
 }
 
+function ListingSeeAll({ href, light = false }) {
+    return (
+        <div className="mt-10 flex justify-center">
+            <Link
+                href={href}
+                prefetch
+                className={
+                    light
+                        ? 'inline-flex min-h-11 items-center gap-2 rounded-md border border-white/25 bg-white/10 px-7 py-3 text-sm font-semibold text-white transition hover:border-mustard hover:bg-mustard hover:text-olive-950 sm:px-8'
+                        : 'inline-flex min-h-11 items-center gap-2 rounded-md border border-olive-900/15 bg-olive-600 px-7 py-3 text-sm font-semibold text-white transition hover:border-mustard hover:bg-mustard hover:text-olive-950 sm:px-8'
+                }
+            >
+                See all
+                <SendArrowMark className="h-4 w-4 -rotate-45" />
+            </Link>
+        </div>
+    );
+}
+
 function GoldListSection({ items = [], title, subtitle }) {
-    const [visible, setVisible] = useState(GOLD_LIST_PAGE_SIZE);
+    const pageSize = useGoldListPageSize();
+    const [visible, setVisible] = useState(pageSize);
     const shown = useMemo(() => items.slice(0, visible), [items, visible]);
     const hasMore = visible < items.length;
+
+    useEffect(() => {
+        setVisible((current) => Math.max(current, pageSize));
+    }, [pageSize]);
 
     return (
         <section id="listings" className="bg-olive-600 py-14 sm:py-20">
@@ -109,14 +196,11 @@ function GoldListSection({ items = [], title, subtitle }) {
                             ))}
                         </div>
                         {hasMore ? (
-                            <ListingLoadMore
+                            <ListingSeeMore
                                 light
                                 onClick={() =>
                                     setVisible((n) =>
-                                        Math.min(
-                                            n + GOLD_LIST_PAGE_SIZE,
-                                            items.length,
-                                        ),
+                                        Math.min(n + pageSize, items.length),
                                     )
                                 }
                             />
@@ -128,10 +212,52 @@ function GoldListSection({ items = [], title, subtitle }) {
     );
 }
 
+function PlacesToEatSection({ items = [] }) {
+    const pageSize = useTwoRowPageSize();
+    const shown = useMemo(
+        () => items.slice(0, pageSize),
+        [items, pageSize],
+    );
+
+    return (
+        <section
+            id="eat"
+            className="relative z-10 bg-earth-sand py-14 sm:py-20"
+        >
+            <div className="mx-auto max-w-site px-4 sm:px-6">
+                <Reveal>
+                    <SectionHeading
+                        title="Places to Eat"
+                        subtitle="Cafés, restaurants, and bars across Nanyuki and nearby."
+                    />
+                </Reveal>
+                {items.length === 0 ? (
+                    <ListingsSoonPlaceholder />
+                ) : (
+                    <>
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
+                            {shown.map((listing) => (
+                                <div key={listing.id} className="min-w-0">
+                                    <ListingCard listing={listing} />
+                                </div>
+                            ))}
+                        </div>
+                        <ListingSeeAll
+                            href={explorePath({ category: 'eatDrink' })}
+                        />
+                    </>
+                )}
+            </div>
+        </section>
+    );
+}
+
 function AirbnbsSection({ items = [], title, subtitle }) {
-    const [visible, setVisible] = useState(PAGE_SIZE);
-    const shown = useMemo(() => items.slice(0, visible), [items, visible]);
-    const hasMore = visible < items.length;
+    const pageSize = useTwoRowPageSize();
+    const shown = useMemo(
+        () => items.slice(0, pageSize),
+        [items, pageSize],
+    );
 
     return (
         <section
@@ -142,7 +268,7 @@ function AirbnbsSection({ items = [], title, subtitle }) {
                 <Reveal>
                     <SectionHeading
                         light
-                        title={title || 'Highland Airbnbs'}
+                        title={title || 'Highland Stays'}
                         subtitle={
                             subtitle ||
                             'Homes with character across Nanyuki, Timau, and Naromoru.'
@@ -160,16 +286,10 @@ function AirbnbsSection({ items = [], title, subtitle }) {
                                 </div>
                             ))}
                         </div>
-                        {hasMore ? (
-                            <ListingLoadMore
-                                light
-                                onClick={() =>
-                                    setVisible((n) =>
-                                        Math.min(n + PAGE_SIZE, items.length),
-                                    )
-                                }
-                            />
-                        ) : null}
+                        <ListingSeeAll
+                            light
+                            href={explorePath({ category: 'stay' })}
+                        />
                     </>
                 )}
             </div>
@@ -178,9 +298,11 @@ function AirbnbsSection({ items = [], title, subtitle }) {
 }
 
 function WildlifeSafarisSection({ items = [] }) {
-    const [visible, setVisible] = useState(PAGE_SIZE);
-    const shown = useMemo(() => items.slice(0, visible), [items, visible]);
-    const hasMore = visible < items.length;
+    const pageSize = useTwoRowPageSize();
+    const shown = useMemo(
+        () => items.slice(0, pageSize),
+        [items, pageSize],
+    );
 
     return (
         <section
@@ -205,15 +327,9 @@ function WildlifeSafarisSection({ items = [] }) {
                                 </div>
                             ))}
                         </div>
-                        {hasMore ? (
-                            <ListingLoadMore
-                                onClick={() =>
-                                    setVisible((n) =>
-                                        Math.min(n + PAGE_SIZE, items.length),
-                                    )
-                                }
-                            />
-                        ) : null}
+                        <ListingSeeAll
+                            href={explorePath({ category: 'thingsToDo' })}
+                        />
                     </>
                 )}
             </div>
@@ -225,6 +341,7 @@ function HomeContent({
     featured = [],
     trending,
     goldList,
+    placesToEat,
     airbnbs,
     wildlifeSafaris,
     pageContent = {},
@@ -293,7 +410,7 @@ function HomeContent({
 
             <CategoryGrid />
 
-            <section id="eat" className="bg-olive-800 py-14 sm:py-20">
+            <section id="trending" className="bg-olive-800 py-14 sm:py-20">
                 <div className="mx-auto max-w-site px-4 sm:px-6">
                     <Reveal>
                         <SectionHeading
@@ -342,6 +459,39 @@ function HomeContent({
                 </div>
             </section>
 
+            {placesToEat === undefined ? (
+                <section className="relative z-10 bg-earth-sand py-14 sm:py-20">
+                    <div className="mx-auto max-w-site px-4 sm:px-6">
+                        <SectionHeading
+                            title="Places to Eat"
+                            subtitle="Cafés, restaurants, and bars across Nanyuki and nearby."
+                        />
+                        <ListingGridSkeleton />
+                    </div>
+                </section>
+            ) : (
+                <PlacesToEatSection items={placesToEat} />
+            )}
+
+            {airbnbs === undefined ? (
+                <section className="relative z-10 bg-olive-700 py-14 sm:py-20">
+                    <div className="mx-auto max-w-site px-4 sm:px-6">
+                        <SectionHeading
+                            light
+                            title="Highland Stays"
+                            subtitle="Homes with character across Nanyuki, Timau, and Naromoru."
+                        />
+                        <ListingGridSkeleton light />
+                    </div>
+                </section>
+            ) : (
+                <AirbnbsSection
+                    items={airbnbs}
+                    title={pageContent.airbnbs_title}
+                    subtitle={pageContent.airbnbs_subtitle}
+                />
+            )}
+
             {wildlifeSafaris === undefined ? (
                 <section className="relative z-10 bg-earth-sand py-14 sm:py-20">
                     <div className="mx-auto max-w-site px-4 sm:px-6">
@@ -357,25 +507,6 @@ function HomeContent({
             )}
 
             <StoriesSection />
-
-            {airbnbs === undefined ? (
-                <section className="relative z-10 bg-olive-700 py-14 sm:py-20">
-                    <div className="mx-auto max-w-site px-4 sm:px-6">
-                        <SectionHeading
-                            light
-                            title="Highland Airbnbs"
-                            subtitle="Homes with character across Nanyuki, Timau, and Naromoru."
-                        />
-                        <ListingGridSkeleton light />
-                    </div>
-                </section>
-            ) : (
-                <AirbnbsSection
-                    items={airbnbs}
-                    title={pageContent.airbnbs_title}
-                    subtitle={pageContent.airbnbs_subtitle}
-                />
-            )}
 
             <section className="relative z-10 bg-earth-clay py-14 sm:py-20">
                 <div className="mx-auto max-w-site px-4 sm:px-6">
@@ -428,6 +559,7 @@ export default function Home({
     featured = [],
     trending,
     goldList,
+    placesToEat,
     airbnbs,
     wildlifeSafaris,
     page = null,
@@ -438,6 +570,7 @@ export default function Home({
                 featured={featured}
                 trending={trending}
                 goldList={goldList}
+                placesToEat={placesToEat}
                 airbnbs={airbnbs}
                 wildlifeSafaris={wildlifeSafaris}
                 pageContent={page?.content || {}}
