@@ -781,11 +781,11 @@ class PaymentGateway
             : 'https://sandbox.intasend.com';
     }
 
-    private static function palplussBaseUrl(string $mode): string
+    private static function palplussBaseUrl(string $_mode): string
     {
-        return $mode === self::MODE_LIVE
-            ? 'https://api.palpluss.com/v1'
-            : 'https://sandbox.palpluss.com/v1';
+        // Palpluss has no separate sandbox host. Test and live keys share this API.
+        // Mode only selects which stored API key (pp_test_ vs pp_live_) we send.
+        return 'https://api.palpluss.com/v1';
     }
 
     private static function palplussAccountReference(): string

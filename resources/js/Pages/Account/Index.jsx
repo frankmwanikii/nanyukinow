@@ -5,6 +5,21 @@ import {
     UpgradePlansMark,
 } from '@/Components/site/Mark';
 import { Head, Link, router } from '@inertiajs/react';
+import {
+    isAwaitingMpesaPrompt,
+    memberFacingPaymentReference,
+} from '@/utils/paymentReference';
+
+function PendingPaymentSummary({ upgrade }) {
+    const ref = memberFacingPaymentReference(upgrade.payment_reference);
+
+    return (
+        <>
+            Pending payment for <strong>{upgrade.to_label}</strong>
+            {ref ? ` (ref ${ref})` : ''}
+        </>
+    );
+}
 
 function MetricCard({ label, children, href }) {
     const inner = (
@@ -128,10 +143,15 @@ export default function Index({
                         {pendingUpgrade && (
                             <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border border-olive-900/10 bg-earth-sand px-3 py-2.5 text-sm text-olive-800 dark:border-olive-800 dark:bg-olive-950 dark:text-olive-200">
                                 <span>
-                                    Pending upgrade to <strong>{pendingUpgrade.to_label}</strong>
-                                    {pendingUpgrade.payment_reference
-                                        ? ` · ${pendingUpgrade.payment_reference}`
-                                        : ''}
+                                    {isAwaitingMpesaPrompt(pendingUpgrade) ? (
+                                        <>
+                                            <strong>M-Pesa prompt sent</strong> for{' '}
+                                            <strong>{pendingUpgrade.to_label}</strong>.
+                                            Check your phone and enter your PIN.
+                                        </>
+                                    ) : (
+                                        <PendingPaymentSummary upgrade={pendingUpgrade} />
+                                    )}
                                 </span>
                                 <button
                                     type="button"

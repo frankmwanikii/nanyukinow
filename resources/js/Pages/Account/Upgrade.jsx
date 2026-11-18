@@ -10,7 +10,244 @@ import { Head, useForm } from '@inertiajs/react';
 import axios from 'axios';
 import CloseButton from '@/Components/site/CloseButton';
 import { Check, ChevronDown, RefreshCw, Send } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+    isAwaitingMpesaPrompt,
+    memberFacingPaymentReference,
+} from '@/utils/paymentReference';
+
+const PENDING_WAIT_SECONDS = 5;
+const PENDING_PAY_SECONDS = 30;
+
+function httpClient() {
+    return window.axios || axios;
+}
+
+function isLivePendingPayment(upgrade, emphasizeStk = false) {
+    if (!upgrade) {
+        return false;
+    }
+
+    const method = upgrade.payment_method || 'mpesa';
+    if (method === 'paypal') {
+        return true;
+    }
+
+    return emphasizeStk || isAwaitingMpesaPrompt(upgrade);
+}
+
+function PendingPaymentBanner({ upgrade, emphasizeStk = false }) {
+    const live = isLivePendingPayment(upgrade, emphasizeStk);
+    const visibleRef = memberFacingPaymentReference(upgrade.payment_reference);
+    const isPaypal = (upgrade.payment_method || '') === 'paypal';
+    const [phase, setPhase] = useState(live ? 'wait' : 'review');
+    const [waitLeft, setWaitLeft] = useState(PENDING_WAIT_SECONDS);
+    const [payLeft, setPayLeft] = useState(PENDING_PAY_SECONDS);
+    const [timingOut, setTimingOut] = useState(false);
+    const stoppedRef = useRef(false);
+
+    useEffect(() => {
+        stoppedRef.current = false;
+        if (live) {
+            setPhase('wait');
+            setWaitLeft(PENDING_WAIT_SECONDS);
+            setPayLeft(PENDING_PAY_SECONDS);
+            setTimingOut(false);
+        } else {
+            setPhase('review');
+        }
+
+        return () => {
+            stoppedRef.current = true;
+        };
+    }, [upgrade?.id, live]);
+
+    useEffect(() => {
+        if (!live || phase !== 'wait') {
+            return undefined;
+        }
+
+        const tick = window.setInterval(() => {
+            setWaitLeft((seconds) => {
+                if (seconds <= 1) {
+                    window.clearInterval(tick);
+                    setPhase('pay');
+                    return 0;
+                }
+
+                return seconds - 1;
+            });
+        }, 1000);
+
+        return () => window.clearInterval(tick);
+    }, [live, phase, upgrade?.id]);
+
+    useEffect(() => {
+        if (!live || phase !== 'pay') {
+            return undefined;
+        }
+
+        setPayLeft(PENDING_PAY_SECONDS);
+
+        const checkStatus = async () => {
+            if (stoppedRef.current) {
+                return;
+            }
+
+            try {
+                const { data } = await httpClient().get(
+                    route('account.upgrade.status'),
+                );
+                if (stoppedRef.current) {
+                    return;
+                }
+                if (data?.status === 'pending' || data?.status === 'none') {
+                    return;
+                }
+
+                stoppedRef.current = true;
+                if (data.status === 'approved') {
+                    stashAccountFlash(
+                        data.message ||
+                            'Payment approved. Your plan is now active.',
+                    );
+                    window.location.assign(route('account.billing'));
+                    return;
+                }
+
+                stashAccountFlash(
+                    data.message ||
+                        (data.status === 'cancelled'
+                            ? 'The payment was cancelled or timed out. You can try again.'
+                            : 'Your upgrade request was not approved. You can try again.'),
+                    'error',
+                );
+                window.location.assign(route('account.upgrade'));
+            } catch {
+                // Keep waiting until the pay window ends.
+            }
+        };
+
+        checkStatus();
+        const poll = window.setInterval(checkStatus, 3000);
+        const tick = window.setInterval(() => {
+            setPayLeft((seconds) => {
+                if (seconds <= 1) {
+                    window.clearInterval(tick);
+                    window.clearInterval(poll);
+                    return 0;
+                }
+
+                return seconds - 1;
+            });
+        }, 1000);
+
+        return () => {
+            window.clearInterval(poll);
+            window.clearInterval(tick);
+        };
+    }, [live, phase, upgrade?.id]);
+
+    useEffect(() => {
+        if (!live || phase !== 'pay' || payLeft > 0 || timingOut) {
+            return undefined;
+        }
+
+        let cancelled = false;
+
+        const timeoutPayment = async () => {
+            setTimingOut(true);
+            try {
+                await httpClient().post(
+                    route('account.upgrade.cancel', upgrade.id),
+                );
+            } catch {
+                // Still send the member back to retry.
+            }
+            if (cancelled || stoppedRef.current) {
+                return;
+            }
+            stoppedRef.current = true;
+            stashAccountFlash(
+                'Payment timed out. Start the payment again to continue.',
+                'error',
+            );
+            window.location.assign(route('account.upgrade'));
+        };
+
+        timeoutPayment();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [live, phase, payLeft, timingOut, upgrade?.id]);
+
+    if (!live) {
+        return (
+            <div className="border border-mustard/40 bg-mustard/15 px-4 py-3 text-sm text-earth-dusk dark:border-mustard/30 dark:bg-mustard/10 dark:text-mustard">
+                Pending payment for <strong>{upgrade.to_label}</strong> via{' '}
+                <strong className="capitalize">
+                    {upgrade.payment_method || 'mpesa'}
+                </strong>
+                {visibleRef ? <> (ref {visibleRef})</> : null}. Cancel it from
+                your dashboard if you need to submit a new one.
+            </div>
+        );
+    }
+
+    const countdown = phase === 'wait' ? waitLeft : payLeft;
+    const total = phase === 'wait' ? PENDING_WAIT_SECONDS : PENDING_PAY_SECONDS;
+    const progress = Math.max(0, Math.min(100, (countdown / total) * 100));
+    const title = isPaypal ? 'Complete PayPal checkout' : 'M-Pesa prompt sent';
+    const body = isPaypal
+        ? `Finish checkout for ${upgrade.to_label} in the PayPal window.`
+        : `Check your phone and enter your PIN to finish paying for ${upgrade.to_label}.`;
+    const statusLine =
+        phase === 'wait'
+            ? `Waiting ${countdown} second${countdown === 1 ? '' : 's'} before we check payment status.`
+            : timingOut
+              ? 'Time is up. Cancelling this attempt…'
+              : `Approve within ${countdown} second${countdown === 1 ? '' : 's'} or you will need to start again.`;
+
+    return (
+        <div
+            className="overflow-hidden border border-mustard/50 bg-gradient-to-br from-mustard/20 via-mustard/10 to-olive-50 px-4 py-4 text-earth-dusk shadow-soft dark:border-mustard/30 dark:from-mustard/15 dark:via-olive-950 dark:to-olive-950 dark:text-mustard dark:shadow-none sm:px-5"
+            role="status"
+            aria-live="polite"
+        >
+            <div className="flex items-start gap-4">
+                <div
+                    className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-full border-2 border-mustard/70 bg-white/90 dark:border-mustard/50 dark:bg-olive-900"
+                    aria-hidden
+                >
+                    <span className="font-display text-xl font-semibold tabular-nums text-olive-950 dark:text-mustard">
+                        {String(Math.max(0, countdown)).padStart(2, '0')}
+                    </span>
+                    <span className="text-[9px] font-semibold uppercase tracking-wide text-olive-500 dark:text-olive-400">
+                        sec
+                    </span>
+                </div>
+                <div className="min-w-0 flex-1">
+                    <p className="font-display text-base font-semibold tracking-tight text-olive-950 dark:text-mustard sm:text-lg">
+                        {title}
+                    </p>
+                    <p className="mt-1 text-sm leading-relaxed text-olive-800 dark:text-olive-200">
+                        {body}
+                    </p>
+                    <p className="mt-2 text-sm font-medium text-olive-700 dark:text-olive-300">
+                        {statusLine}
+                    </p>
+                    <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-olive-900/10 dark:bg-olive-800">
+                        <div
+                            className="h-full rounded-full bg-mustard transition-[width] duration-1000 ease-linear motion-reduce:transition-none"
+                            style={{ width: `${progress}%` }}
+                        />
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
 
 const field =
     'w-full rounded-lg border border-olive-200 bg-white px-3.5 py-3 text-base text-olive-900 outline-none transition placeholder:text-olive-400 focus:border-mustard focus:ring-2 focus:ring-mustard/30 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-50 dark:placeholder:text-olive-500 dark:focus:border-mustard dark:focus:ring-mustard/30';
@@ -514,6 +751,8 @@ function PaymentCheckout({
 
         form.transform((data) => ({
             ...data,
+            to_plan: plan.key,
+            billing_period: data.billing_period || period,
             member_notes: buildNotes(),
         }));
 
@@ -527,7 +766,8 @@ function PaymentCheckout({
     };
 
     const paymentPayload = () => ({
-        to_plan: form.data.to_plan || plan.key,
+        // Always use the checkout card plan. Form state can lag on Renew auto-open.
+        to_plan: plan.key,
         category: form.data.category || undefined,
         billing_period: form.data.billing_period || period,
         payment_method: method,
@@ -562,23 +802,36 @@ function PaymentCheckout({
 
         setPaying(true);
         try {
-            const { data } = await axios.post(route('account.upgrade.pay'), paymentPayload());
+            const client = window.axios || axios;
+            const { data } = await client.post(
+                route('account.upgrade.pay'),
+                paymentPayload(),
+            );
             if (data?.checkout_url) {
                 window.location.href = data.checkout_url;
                 return;
             }
             if (data?.ok) {
-                const url = new URL(route('account.upgrade'), window.location.origin);
+                const url = new URL(
+                    route('account.upgrade'),
+                    window.location.origin,
+                );
                 url.searchParams.set('stk', '1');
                 window.location.assign(url.toString());
                 return;
             }
-            setPayError('Please try again.');
+            setPayError(
+                data?.message || 'Payment failed. Please try again.',
+            );
         } catch (err) {
+            const payload = err?.response?.data;
             const fieldError =
-                err?.response?.data?.errors?.phone?.[0] ||
-                err?.response?.data?.errors?.email?.[0];
-            setPayError(fieldError || 'Please try again.');
+                payload?.errors?.phone?.[0] || payload?.errors?.email?.[0];
+            setPayError(
+                fieldError ||
+                    payload?.message ||
+                    'Payment failed. Please try again.',
+            );
         } finally {
             setPaying(false);
         }
@@ -1082,49 +1335,6 @@ export default function Upgrade({
         return new URLSearchParams(window.location.search).get('stk') === '1';
     });
 
-    useEffect(() => {
-        if (!pendingUpgrade) {
-            return undefined;
-        }
-
-        let stopped = false;
-
-        const checkStatus = async () => {
-            try {
-                const { data } = await axios.get(route('account.upgrade.status'));
-                if (stopped || data?.status === 'pending' || data?.status === 'none') {
-                    return;
-                }
-
-                stopped = true;
-                if (data.status === 'approved') {
-                    stashAccountFlash(
-                        data.message ||
-                            'Payment approved. Your plan is now active.',
-                    );
-                    window.location.assign(route('account.billing'));
-                    return;
-                }
-
-                stashAccountFlash(
-                    data.message ||
-                        'Your upgrade request was not approved. You can try again.',
-                    'error',
-                );
-                window.location.assign(route('account.upgrade'));
-            } catch {
-                // The next interval retries. A failed status check must not replace the page.
-            }
-        };
-
-        const timer = window.setInterval(checkStatus, 8000);
-
-        return () => {
-            stopped = true;
-            window.clearInterval(timer);
-        };
-    }, [pendingUpgrade]);
-
     const breakdown = useMemo(
         () => getPricingCategoryBreakdown(categoryKey),
         [categoryKey],
@@ -1139,29 +1349,6 @@ export default function Upgrade({
         }
         return plans;
     }, [categoryKey, plansByCategory, plans]);
-
-    useEffect(() => {
-        if (didOpenRenewCheckout || pendingUpgrade || !forceRenew || !initialPlan) {
-            return;
-        }
-
-        const target = (categoryPlans || []).find(
-            (item) => normalizePlanKey(item.key) === normalizePlanKey(initialPlan),
-        );
-
-        if (!target || normalizePlanKey(target.key) === 'free') {
-            return;
-        }
-
-        setCheckoutPlan(target);
-        setDidOpenRenewCheckout(true);
-    }, [
-        categoryPlans,
-        didOpenRenewCheckout,
-        forceRenew,
-        initialPlan,
-        pendingUpgrade,
-    ]);
 
     const inclusionsByPlan = useMemo(() => {
         if (!breakdown) {
@@ -1218,26 +1405,39 @@ export default function Upgrade({
         setCheckoutPlan(selected);
     };
 
+    useEffect(() => {
+        if (didOpenRenewCheckout || pendingUpgrade || !forceRenew || !initialPlan) {
+            return;
+        }
+
+        const target = (categoryPlans || []).find(
+            (item) => normalizePlanKey(item.key) === normalizePlanKey(initialPlan),
+        );
+
+        if (!target || normalizePlanKey(target.key) === 'free') {
+            return;
+        }
+
+        openCheckout(target);
+        setDidOpenRenewCheckout(true);
+    }, [
+        categoryPlans,
+        didOpenRenewCheckout,
+        forceRenew,
+        initialPlan,
+        pendingUpgrade,
+    ]);
+
     return (
         <AccountLayout title="Plans">
             <Head title="View plans" />
 
             <div className="space-y-8">
                 {pendingUpgrade && (
-                    <div className="border border-mustard/40 bg-mustard/15 px-4 py-3 text-sm text-earth-dusk dark:border-mustard/30 dark:bg-mustard/10 dark:text-mustard">
-                        Pending upgrade to <strong>{pendingUpgrade.to_label}</strong> via{' '}
-                        <strong className="capitalize">
-                            {pendingUpgrade.payment_method || 'mpesa'}
-                        </strong>{' '}
-                        (ref {pendingUpgrade.payment_reference}). Cancel it from your dashboard if
-                        you need to submit a new one.
-                        {stkSent && (
-                            <p className="mt-2">
-                                Check your phone and approve the M-Pesa prompt. Your plan activates
-                                as soon as the payment succeeds.
-                            </p>
-                        )}
-                    </div>
+                    <PendingPaymentBanner
+                        upgrade={pendingUpgrade}
+                        emphasizeStk={stkSent}
+                    />
                 )}
 
                 {!breakdown ? (

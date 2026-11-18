@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Support\Membership;
+use App\Support\PalplussFulfillment;
+use App\Support\PaymentMethods;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -85,6 +87,9 @@ class PlanUpgrade extends Model
 
     public function toMemberArray(): array
     {
+        $awaitingMpesaPrompt = $this->payment_method === PaymentMethods::MPESA
+            && PalplussFulfillment::isPalplussReference($this->payment_reference);
+
         return [
             'id' => $this->id,
             'from_plan' => $this->from_plan,
@@ -95,8 +100,10 @@ class PlanUpgrade extends Model
             'currency' => $this->currency,
             'billing_period' => $this->billing_period,
             'status' => $this->status,
-            'payment_reference' => $this->payment_reference,
+            // Hide Palpluss tracking UUIDs from members. Show M-Pesa receipts and typed refs only.
+            'payment_reference' => $awaitingMpesaPrompt ? null : $this->payment_reference,
             'payment_method' => $this->payment_method,
+            'awaiting_mpesa_prompt' => $awaitingMpesaPrompt,
             'member_notes' => $this->member_notes,
             'admin_notes' => $this->status === self::STATUS_REJECTED ? $this->admin_notes : null,
             'reviewed_at' => $this->reviewed_at?->toIso8601String(),

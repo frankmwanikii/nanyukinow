@@ -66,6 +66,7 @@ class AccountUpgradePageTest extends TestCase
             ->assertExactJson([
                 'status' => 'none',
                 'plan' => Membership::FREE,
+                'message' => null,
             ]);
     }
 
@@ -91,6 +92,7 @@ class AccountUpgradePageTest extends TestCase
             ->assertExactJson([
                 'status' => PlanUpgrade::STATUS_PENDING,
                 'plan' => Membership::FREE,
+                'message' => null,
             ]);
     }
 
@@ -379,7 +381,7 @@ class AccountUpgradePageTest extends TestCase
 
         Http::preventStrayRequests();
         Http::fake([
-            'sandbox.palpluss.com/v1/payments/stk' => Http::response([
+            'api.palpluss.com/v1/payments/stk' => Http::response([
                 'success' => true,
                 'data' => [
                     'transactionId' => 'fa98a577-95ea-4a8f-8467-1fbe74f5d6f4',
@@ -417,7 +419,7 @@ class AccountUpgradePageTest extends TestCase
         Http::assertSent(function (Request $request) {
             $authorization = $request->header('Authorization')[0] ?? '';
 
-            return $request->url() === 'https://sandbox.palpluss.com/v1/payments/stk'
+            return $request->url() === 'https://api.palpluss.com/v1/payments/stk'
                 && $authorization === 'Basic '.base64_encode('pk_test_xxx:')
                 && $request['phone'] === '254712345678'
                 && $request['amount'] === 2500
@@ -426,6 +428,83 @@ class AccountUpgradePageTest extends TestCase
                 && $request['transactionDesc'] === 'Nanyuki Now'
                 && str_ends_with((string) $request['callbackUrl'], '/webhooks/palpluss');
         });
+    }
+
+    public function test_premium_member_can_renew_current_plan_via_palpluss_stk(): void
+    {
+        PricingPlan::ensureDefaults();
+        $this->configurePalpluss();
+
+        Http::preventStrayRequests();
+        Http::fake([
+            'api.palpluss.com/v1/payments/stk' => Http::response([
+                'success' => true,
+                'data' => [
+                    'transactionId' => '1c2fdb6e-36d7-4fb8-a84b-9d01ceac9d76',
+                    'status' => 'PENDING',
+                ],
+            ], 200),
+        ]);
+
+        $user = User::factory()->premium()->create([
+            'plan_expires_at' => now()->addDays(5),
+        ]);
+
+        $this->actingAs($user)
+            ->postJson(route('account.upgrade.pay'), [
+                'to_plan' => Membership::PREMIUM,
+                'billing_period' => 'month',
+                'payment_method' => 'mpesa',
+                'phone' => '0712345678',
+            ])
+            ->assertOk()
+            ->assertJson([
+                'ok' => true,
+                'provider_ref' => '1c2fdb6e-36d7-4fb8-a84b-9d01ceac9d76',
+            ]);
+
+        $this->assertDatabaseHas('plan_upgrades', [
+            'user_id' => $user->id,
+            'from_plan' => Membership::PREMIUM,
+            'to_plan' => Membership::PREMIUM,
+            'status' => 'pending',
+            'payment_reference' => '1c2fdb6e-36d7-4fb8-a84b-9d01ceac9d76',
+        ]);
+
+        Http::assertSent(fn (Request $request) => $request->url() === 'https://api.palpluss.com/v1/payments/stk');
+    }
+
+    public function test_premium_member_can_renew_again_while_still_on_premium(): void
+    {
+        PricingPlan::ensureDefaults();
+        $this->configurePalpluss();
+
+        Http::fake([
+            'api.palpluss.com/v1/payments/stk' => Http::response([
+                'success' => true,
+                'data' => [
+                    'transactionId' => 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+                    'status' => 'PENDING',
+                ],
+            ], 200),
+        ]);
+
+        $user = User::factory()->premium()->create([
+            'plan_started_at' => now()->subDays(5),
+            'plan_expires_at' => now()->addDays(40),
+        ]);
+
+        $this->actingAs($user)
+            ->postJson(route('account.upgrade.pay'), [
+                'to_plan' => Membership::PREMIUM,
+                'billing_period' => 'month',
+                'payment_method' => 'mpesa',
+                'phone' => '0742451220',
+            ])
+            ->assertOk()
+            ->assertJson(['ok' => true]);
+
+        $this->assertTrue(Membership::isRenewal($user, Membership::PREMIUM, 'month'));
     }
 
     public function test_palpluss_live_provider_uses_live_api_and_hides_provider_errors(): void

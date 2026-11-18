@@ -229,16 +229,23 @@ class Membership
 
     /**
      * True when the member is paying to renew the same paid plan they already have or just lost.
+     * Repeat renewals are allowed and stack extra days onto the current expiry.
      */
     public static function isRenewal(User $user, string $toPlan, ?string $billingPeriod = null): bool
     {
-        $renewPlan = self::renewPlanFor($user);
+        $toPlan = self::normalize($toPlan);
 
-        if ($renewPlan === null) {
+        if ($toPlan === self::FREE) {
             return false;
         }
 
-        return self::normalize($toPlan) === $renewPlan;
+        $renewPlan = self::renewPlanFor($user);
+
+        if ($renewPlan !== null && $toPlan === $renewPlan) {
+            return true;
+        }
+
+        return self::normalize($user->effectivePlan()) === $toPlan;
     }
 
     /**

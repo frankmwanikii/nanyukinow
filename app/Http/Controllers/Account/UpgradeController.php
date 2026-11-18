@@ -84,8 +84,24 @@ class UpgradeController extends Controller
     public function status(Request $request): JsonResponse
     {
         $user = $request->user();
-        PalplussFulfillment::confirmForUser($user);
-        $user->refresh();
+
+        $pending = PlanUpgrade::query()
+            ->where('user_id', $user->id)
+            ->where('status', PlanUpgrade::STATUS_PENDING)
+            ->latest('id')
+            ->first();
+
+        if ($pending !== null) {
+            PalplussFulfillment::confirm($pending);
+            $pending->refresh();
+            $user->refresh();
+
+            return response()->json([
+                'status' => $pending->status,
+                'plan' => $user->effectivePlan(),
+                'message' => $this->statusMessage($pending->status),
+            ]);
+        }
 
         $latest = PlanUpgrade::query()
             ->where('user_id', $user->id)
@@ -95,7 +111,18 @@ class UpgradeController extends Controller
         return response()->json([
             'status' => $latest?->status ?? 'none',
             'plan' => $user->effectivePlan(),
+            'message' => $this->statusMessage($latest?->status),
         ]);
+    }
+
+    private function statusMessage(?string $status): ?string
+    {
+        return match ($status) {
+            PlanUpgrade::STATUS_APPROVED => 'Payment approved. Your plan is now active.',
+            PlanUpgrade::STATUS_CANCELLED => 'The M-Pesa prompt was cancelled or timed out. You can try again.',
+            PlanUpgrade::STATUS_REJECTED => 'Your upgrade request was not approved. You can try again.',
+            default => null,
+        };
     }
 
     public function initiate(InitiateUpgradePaymentRequest $request): JsonResponse

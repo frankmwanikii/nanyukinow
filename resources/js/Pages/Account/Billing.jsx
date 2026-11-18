@@ -8,8 +8,72 @@ import {
     ForwardMark,
 } from '@/Components/site/Mark';
 import { Head, Link, router } from '@inertiajs/react';
+import {
+    isAwaitingMpesaPrompt,
+    memberFacingPaymentReference,
+} from '@/utils/paymentReference';
 
 const HISTORY_PAGE_SIZE = 10;
+
+function PendingBillingNotice({ upgrade }) {
+    const awaitingPrompt = isAwaitingMpesaPrompt(upgrade);
+    const visibleRef = memberFacingPaymentReference(upgrade.payment_reference);
+
+    return (
+        <section className="border border-amber-300 bg-amber-50 px-4 py-4 sm:px-5 dark:border-amber-900/50 dark:bg-amber-950/30">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                    {awaitingPrompt ? (
+                        <>
+                            <p className="text-sm font-semibold text-olive-950 dark:text-olive-50">
+                                M-Pesa prompt sent for {upgrade.to_label}
+                            </p>
+                            <p className="mt-1 text-sm text-olive-700 dark:text-olive-300">
+                                {formatMoney(upgrade.amount, upgrade.currency)}.
+                                Check your phone and enter your PIN. Your plan
+                                updates when payment succeeds.
+                            </p>
+                        </>
+                    ) : (
+                        <>
+                            <p className="text-sm font-semibold text-olive-950 dark:text-olive-50">
+                                Pending payment for {upgrade.to_label}
+                            </p>
+                            <p className="mt-1 text-sm text-olive-700 dark:text-olive-300">
+                                {formatMoney(upgrade.amount, upgrade.currency)}
+                                {visibleRef ? ` · Ref ${visibleRef}` : ''}
+                                {' · '}
+                                Submitted {formatDate(upgrade.created_at)}
+                            </p>
+                        </>
+                    )}
+                </div>
+                <button
+                    type="button"
+                    onClick={() =>
+                        router.post(route('account.upgrade.cancel', upgrade.id))
+                    }
+                    className="text-sm font-semibold text-rose-700 hover:underline dark:text-rose-400"
+                >
+                    Cancel request
+                </button>
+            </div>
+        </section>
+    );
+}
+
+function HistoryPaymentRef({ reference }) {
+    const visibleRef = memberFacingPaymentReference(reference);
+    if (!visibleRef) {
+        return null;
+    }
+
+    return (
+        <span className="mt-0.5 block text-xs font-normal text-olive-500 dark:text-olive-500">
+            Ref {visibleRef}
+        </span>
+    );
+}
 
 function formatMoney(amount, currency = 'KES') {
     const n = Number(amount) || 0;
@@ -226,32 +290,7 @@ export default function Billing({ plan, pendingUpgrade = null, history = [] }) {
                 </section>
 
                 {pendingUpgrade && (
-                    <section className="border border-amber-300 bg-amber-50 px-4 py-4 sm:px-5 dark:border-amber-900/50 dark:bg-amber-950/30">
-                        <div className="flex flex-wrap items-start justify-between gap-3">
-                            <div>
-                                <p className="text-sm font-semibold text-olive-950 dark:text-olive-50">
-                                    Pending upgrade to {pendingUpgrade.to_label}
-                                </p>
-                                <p className="mt-1 text-sm text-olive-700 dark:text-olive-300">
-                                    {formatMoney(pendingUpgrade.amount, pendingUpgrade.currency)}
-                                    {pendingUpgrade.payment_reference
-                                        ? ` · Ref ${pendingUpgrade.payment_reference}`
-                                        : ''}
-                                    {' · '}
-                                    Submitted {formatDate(pendingUpgrade.created_at)}
-                                </p>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    router.post(route('account.upgrade.cancel', pendingUpgrade.id))
-                                }
-                                className="text-sm font-semibold text-rose-700 hover:underline dark:text-rose-400"
-                            >
-                                Cancel request
-                            </button>
-                        </div>
-                    </section>
+                    <PendingBillingNotice upgrade={pendingUpgrade} />
                 )}
 
                 <section className="border border-olive-900/15 bg-white dark:border-olive-800 dark:bg-olive-900">
@@ -319,11 +358,9 @@ export default function Billing({ plan, pendingUpgrade = null, history = [] }) {
                                                 </td>
                                                 <td className="px-4 py-3 font-medium text-olive-950 dark:text-olive-50 sm:px-5">
                                                     {row.from_label} → {row.to_label}
-                                                    {row.payment_reference && (
-                                                        <span className="mt-0.5 block text-xs font-normal text-olive-500 dark:text-olive-500">
-                                                            Ref {row.payment_reference}
-                                                        </span>
-                                                    )}
+                                                    <HistoryPaymentRef
+                                                        reference={row.payment_reference}
+                                                    />
                                                 </td>
                                                 <td className="whitespace-nowrap px-4 py-3 tabular-nums text-olive-800 dark:text-olive-200 sm:px-5">
                                                     {formatMoney(

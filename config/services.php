@@ -46,4 +46,16 @@ return [
         'secret' => env('RECAPTCHA_SECRET_KEY'),
     ],
 
+    /*
+    | Mobitech Bulk SMS — https://bulk.mobitechtechnologies.com/dev/sms
+    | API: POST https://api.mobitechtechnologies.com/sms/sendsms
+    | Auth header: h_api_key
+    */
+    'mobitech' => [
+        'api_key' => env('MOBITECH_SMS_API_KEY'),
+        'sender_name' => env('MOBITECH_SMS_SENDER_NAME', 'NanyukiNow'),
+        'service_id' => (int) env('MOBITECH_SMS_SERVICE_ID', 0),
+        'base_url' => env('MOBITECH_SMS_BASE_URL', 'https://api.mobitechtechnologies.com'),
+    ],
+
 ];

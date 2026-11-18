@@ -120,6 +120,26 @@ class ProcessMembershipRenewalsTest extends TestCase
         ));
     }
 
+    public function test_renewing_the_same_plan_twice_stacks_days_from_expiry(): void
+    {
+        PricingPlan::ensureDefaults();
+        $expires = now()->addDays(12);
+        $user = User::factory()->premium()->create([
+            'plan_started_at' => now()->subDays(18),
+            'plan_expires_at' => $expires,
+        ]);
+
+        Membership::activate($user, Membership::PREMIUM, 30);
+        Membership::activate($user, Membership::PREMIUM, 30);
+        $user->refresh();
+
+        $this->assertTrue($user->plan_expires_at->between(
+            $expires->copy()->addDays(59),
+            $expires->copy()->addDays(61),
+        ));
+        $this->assertSame(Membership::PREMIUM, $user->plan);
+    }
+
     public function test_dashboard_shows_renew_plan_for_expiring_member(): void
     {
         PricingPlan::ensureDefaults();

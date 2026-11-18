@@ -44,7 +44,7 @@ class PalplussWebhookTest extends TestCase
         $upgrade = PlanUpgrade::query()->firstOrFail();
 
         Http::fake([
-            'sandbox.palpluss.com/v1/transactions/*' => Http::response([
+            'api.palpluss.com/v1/transactions/*' => Http::response([
                 'success' => true,
                 'data' => [
                     'transactionId' => 'fa98a577-95ea-4a8f-8467-1fbe74f5d6f4',
@@ -77,7 +77,7 @@ class PalplussWebhookTest extends TestCase
         $upgrade = PlanUpgrade::query()->firstOrFail();
 
         Http::fake([
-            'sandbox.palpluss.com/v1/transactions/*' => Http::response([
+            'api.palpluss.com/v1/transactions/*' => Http::response([
                 'success' => true,
                 'data' => [
                     'status' => 'SUCCESS',
@@ -100,7 +100,7 @@ class PalplussWebhookTest extends TestCase
         $user = $this->startPalplussUpgrade();
 
         Http::fake([
-            'sandbox.palpluss.com/v1/transactions/*' => Http::response([
+            'api.palpluss.com/v1/transactions/*' => Http::response([
                 'success' => true,
                 'data' => [
                     'status' => 'SUCCESS',
@@ -145,7 +145,7 @@ class PalplussWebhookTest extends TestCase
 
         Http::preventStrayRequests();
         Http::fake([
-            'sandbox.palpluss.com/v1/transactions/*' => Http::failedConnection(),
+            'api.palpluss.com/v1/transactions/*' => Http::failedConnection(),
         ]);
 
         $this->postJson(route('webhooks.palpluss'), $this->successPayload())
@@ -194,7 +194,7 @@ class PalplussWebhookTest extends TestCase
 
         Http::preventStrayRequests();
         Http::fake([
-            'sandbox.palpluss.com/v1/transactions/*' => Http::response([
+            'api.palpluss.com/v1/transactions/*' => Http::response([
                 'success' => true,
                 'data' => [
                     'status' => 'SUCCESS',
@@ -210,6 +210,7 @@ class PalplussWebhookTest extends TestCase
             ->assertExactJson([
                 'status' => PlanUpgrade::STATUS_APPROVED,
                 'plan' => Membership::PREMIUM,
+                'message' => 'Payment approved. Your plan is now active.',
             ]);
 
         $listing->refresh();
@@ -238,7 +239,7 @@ class PalplussWebhookTest extends TestCase
 
         Http::preventStrayRequests();
         Http::fake([
-            'sandbox.palpluss.com/v1/transactions/*' => Http::response([
+            'api.palpluss.com/v1/transactions/*' => Http::response([
                 'success' => true,
                 'data' => [
                     'status' => 'PENDING',
@@ -253,6 +254,7 @@ class PalplussWebhookTest extends TestCase
             ->assertExactJson([
                 'status' => PlanUpgrade::STATUS_PENDING,
                 'plan' => Membership::FREE,
+                'message' => null,
             ]);
     }
 
@@ -279,6 +281,7 @@ class PalplussWebhookTest extends TestCase
             ->assertExactJson([
                 'status' => PlanUpgrade::STATUS_PENDING,
                 'plan' => Membership::FREE,
+                'message' => null,
             ]);
     }
 
@@ -302,7 +305,7 @@ class PalplussWebhookTest extends TestCase
 
         Http::preventStrayRequests();
         Http::fake([
-            'sandbox.palpluss.com/v1/transactions/*' => Http::response([
+            'api.palpluss.com/v1/transactions/*' => Http::response([
                 'success' => true,
                 'data' => [
                     'status' => 'SUCCESS',
@@ -327,7 +330,7 @@ class PalplussWebhookTest extends TestCase
 
         Http::preventStrayRequests();
         Http::fake([
-            'sandbox.palpluss.com/v1/payments/stk' => Http::response([
+            'api.palpluss.com/v1/payments/stk' => Http::response([
                 'success' => true,
                 'data' => [
                     'transactionId' => 'fa98a577-95ea-4a8f-8467-1fbe74f5d6f4',
