@@ -127,15 +127,10 @@ class ClaimController extends Controller
         DB::transaction(function () use ($request, $claim, $data, $createAccount, &$listing): void {
             $listing = Listing::query()->lockForUpdate()->findOrFail($claim->listing_id);
 
-            $ownerId = $data['assign_to_user_id'] ?? $claim->user_id;
-            if (! $ownerId && $createAccount) {
-                $ownerId = $this->resolveOrCreateClaimantUser($claim)?->id;
-            }
+            $owner = $this->resolveClaimOwner($claim, $data['assign_to_user_id'] ?? null, $createAccount);
+            abort_unless($owner !== null, 422, 'Could not assign ownership. The claimant needs a valid email or account.');
 
-            if ($ownerId) {
-                $listing->user_id = $ownerId;
-            }
-
+            $listing->user_id = $owner->id;
             $listing->claim_status = 'claimed';
             $listing->is_verified = true;
             ClaimPlanGrace::startIfNeeded($listing);
@@ -143,7 +138,7 @@ class ClaimController extends Controller
 
             $claim->update([
                 'status' => ListingClaim::STATUS_APPROVED,
-                'user_id' => $claim->user_id ?: $ownerId,
+                'user_id' => $owner->id,
                 'admin_notes' => $data['admin_notes'] ?? null,
                 'reviewed_by' => $request->user()->id,
                 'reviewed_at' => now(),
@@ -305,9 +300,26 @@ class ClaimController extends Controller
         }
     }
 
-    private function resolveOrCreateClaimantUser(ListingClaim $claim): ?User
+    private function resolveClaimOwner(ListingClaim $claim, ?int $assignToUserId, bool $createAccount): ?User
     {
-        $email = Str::lower(trim($claim->email));
+        if ($assignToUserId) {
+            return User::query()->find($assignToUserId);
+        }
+
+        if ($claim->user_id) {
+            $claim->loadMissing('user');
+
+            if ($claim->user) {
+                return $claim->user;
+            }
+        }
+
+        return $this->resolveOrCreateClaimantUser($claim, $createAccount);
+    }
+
+    private function resolveOrCreateClaimantUser(ListingClaim $claim, bool $createAccount = true): ?User
+    {
+        $email = Str::lower(trim((string) $claim->email));
         if ($email === '') {
             return null;
         }
@@ -315,6 +327,10 @@ class ClaimController extends Controller
         $existing = User::query()->where('email', $email)->first();
         if ($existing) {
             return $existing;
+        }
+
+        if (! $createAccount) {
+            return null;
         }
 
         $base = Str::slug(Str::before($email, '@')) ?: 'member';

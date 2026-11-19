@@ -4,7 +4,6 @@ import {
     categoryInclusionsForPlan,
     getPricingCategoryBreakdown,
     normalizePlanKey,
-    PRICING_CATEGORY_OPTIONS,
 } from '@/data/pricingCategoryBreakdown';
 import { Head, useForm } from '@inertiajs/react';
 import axios from 'axios';
@@ -1314,7 +1313,7 @@ export default function Upgrade({
 }) {
     const [checkoutPlan, setCheckoutPlan] = useState(null);
     const [categoryKey, setCategoryKey] = useState(
-        () => initialCategory || PRICING_CATEGORY_OPTIONS[0]?.key || null,
+        () => initialCategory || null,
     );
     const [billing, setBilling] = useState(() => {
         if (initialBilling === 'year') {

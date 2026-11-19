@@ -34,7 +34,22 @@ class AccountUpgradePageTest extends TestCase
                 ->has('paymentMethods', 2)
                 ->has('upgradeContact')
                 ->where('initialBilling', 'month')
+                ->where('initialCategory', null)
                 ->has('plan'));
+    }
+
+    public function test_upgrade_page_accepts_category_query(): void
+    {
+        PricingPlan::ensureDefaults();
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get(route('account.upgrade', ['category' => 'eat-drink']))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Account/Upgrade')
+                ->where('initialCategory', 'eatDrink')
+                ->etc());
     }
 
     public function test_upgrade_status_returns_401_for_guests(): void

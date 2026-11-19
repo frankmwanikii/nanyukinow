@@ -116,7 +116,11 @@ class AdminClaimsTest extends TestCase
     public function test_admin_can_approve_a_claim(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
-        $listing = $this->makeListing(['claim_status' => 'pending']);
+        $previousOwner = User::factory()->create(['email' => 'old.owner@example.com']);
+        $listing = $this->makeListing([
+            'claim_status' => 'pending',
+            'user_id' => $previousOwner->id,
+        ]);
 
         $claim = ListingClaim::query()->create([
             'listing_id' => $listing->id,
@@ -141,10 +145,45 @@ class AdminClaimsTest extends TestCase
         $this->assertSame('claimed', $listing->claim_status);
         $this->assertTrue($listing->is_verified);
         $this->assertNotNull($listing->user_id);
+        $this->assertNotSame($previousOwner->id, $listing->user_id);
+        $this->assertSame($listing->user_id, $claim->user_id);
         $this->assertDatabaseHas('users', [
             'email' => 'jane.owner@example.com',
             'id' => $listing->user_id,
         ]);
+    }
+
+    public function test_approving_claim_assigns_listing_to_existing_claimant_account(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        $claimant = User::factory()->create(['email' => 'existing.claimant@example.com']);
+        $previousOwner = User::factory()->create();
+        $listing = $this->makeListing([
+            'claim_status' => 'pending',
+            'user_id' => $previousOwner->id,
+        ]);
+
+        $claim = ListingClaim::query()->create([
+            'listing_id' => $listing->id,
+            'user_id' => $claimant->id,
+            'first_name' => 'Existing',
+            'last_name' => 'Claimant',
+            'email' => $claimant->email,
+            'phone' => '+254733333333',
+            'reason' => 'This is my place.',
+            'status' => ListingClaim::STATUS_PENDING,
+        ]);
+
+        $this->actingAs($admin)
+            ->post(route('admin.claims.approve', $claim))
+            ->assertRedirect(route('admin.claims.index', ['status' => 'pending']));
+
+        $listing->refresh();
+        $claim->refresh();
+
+        $this->assertSame($claimant->id, $listing->user_id);
+        $this->assertSame($claimant->id, $claim->user_id);
+        $this->assertSame('claimed', $listing->claim_status);
     }
 
     public function test_admin_can_reject_a_claim(): void

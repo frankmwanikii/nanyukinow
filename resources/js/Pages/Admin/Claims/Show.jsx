@@ -77,7 +77,7 @@ export default function Show({ claim, suggestedOwners = [] }) {
     const [action, setAction] = useState(null); // approve | reject
     const form = useForm({
         admin_notes: '',
-        assign_to_user_id: claim.user_id || suggestedOwners[0]?.id || '',
+        assign_to_user_id: claim.user_id || '',
         create_account: true,
         notify_claimant: true,
     });
@@ -342,7 +342,7 @@ export default function Show({ claim, suggestedOwners = [] }) {
                 <div className="w-full space-y-5">
                     <FormPanel
                         title="Ownership on approve"
-                        description="Control who receives the listing when this claim is approved."
+                        description="Approval always moves the listing into the claimant’s account. Override only if you need a different member."
                     >
                         <div className="space-y-4">
                             <AdminSelect
@@ -472,7 +472,7 @@ export default function Show({ claim, suggestedOwners = [] }) {
                             >
                                 <p className="text-sm text-olive-600 dark:text-olive-300">
                                     {action === 'approve'
-                                        ? 'Approving assigns this listing to the claimant and marks it as claimed. Ownership options under Advanced are included.'
+                                        ? 'Approving moves this listing into the claimant’s ownership and marks it as claimed.'
                                         : 'Rejecting returns the listing to unclaimed if no other claims are pending.'}
                                 </p>
                                 <AdminTextarea
