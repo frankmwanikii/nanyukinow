@@ -317,7 +317,7 @@ function ExploreContent({
                                     className={`grid gap-4 ${
                                         mapOpen
                                             ? 'grid-cols-1'
-                                            : 'sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+                                            : 'sm:grid-cols-2 lg:grid-cols-3'
                                     }`}
                                 >
                                     {pageItems.map((listing) => (
@@ -400,7 +400,7 @@ function ExploreListingsSkeleton() {
                 </div>
                 <div className="min-w-0 flex-1 overflow-hidden p-4">
                     <div className="mb-4 h-5 w-48 animate-pulse bg-olive-900/10" />
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         {Array.from({ length: 6 }).map((_, i) => (
                             <div
                                 key={i}

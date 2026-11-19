@@ -31,4 +31,16 @@ export function eventDateRangeLabel(startDate, endDate) {
     return `${start} – ${end}`;
 }
 
+/** Compact start date for listing cards: "19 Dec 2026". */
+export function eventCardDateLabel(startDate) {
+    if (!startDate) return null;
+    const date = startDate instanceof Date ? startDate : new Date(startDate);
+    if (Number.isNaN(date.getTime())) return null;
+    return date.toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+    });
+}
+
 export { formatEventDate, formatEventTime };

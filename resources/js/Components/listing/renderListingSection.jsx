@@ -5,7 +5,9 @@ import BulletList from './BulletList';
 import ChipRow from './ChipRow';
 import DetailSection from './DetailSection';
 import DirectionsMap from './DirectionsMap';
+import EventDressCode from './EventDressCode';
 import EventLineup from './EventLineup';
+import EventOrganiser from './EventOrganiser';
 import EventSchedule from './EventSchedule';
 import EventSponsors from './EventSponsors';
 import EventTickets from './EventTickets';
@@ -32,6 +34,7 @@ export function renderListingSection(key, listing) {
                     key={key}
                     gallery={listing.gallery}
                     hideTabs={listing.categoryKey === 'events'}
+                    containImages={listing.categoryKey === 'events'}
                     title={
                         listing.categoryKey === 'thingsToDo' ||
                         listing.categoryKey === 'events'
@@ -322,6 +325,10 @@ export function renderListingSection(key, listing) {
             return <EventWhere key={key} listing={listing} />;
         case 'eventTickets':
             return <EventTickets key={key} listing={listing} />;
+        case 'eventDressCode':
+            return <EventDressCode key={key} listing={listing} />;
+        case 'eventOrganiser':
+            return <EventOrganiser key={key} listing={listing} />;
         case 'sponsors':
             return (
                 <EventSponsors key={key} sponsors={listing.sponsors} />

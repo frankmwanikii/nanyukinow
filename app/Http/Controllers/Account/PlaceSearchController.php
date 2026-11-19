@@ -4,7 +4,11 @@ namespace App\Http\Controllers\Account;
 
 use App\Http\Controllers\Controller;
 use App\Models\Listing;
+use App\Models\SiteSetting;
+use App\Support\FoursquarePlaces;
+use App\Support\ListingSearch;
 use Illuminate\Http\Client\Pool;
+use Illuminate\Http\Client\Response;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -42,8 +46,9 @@ class PlaceSearchController extends Controller
         usort($sorted, function (array $a, array $b) {
             $rank = static fn (array $r): int => match ($r['source'] ?? '') {
                 'local' => 0,
-                'photon' => 1,
-                default => 2,
+                'foursquare' => 1,
+                'photon' => 2,
+                default => 3,
             };
 
             return $rank($a) <=> $rank($b);
@@ -103,7 +108,7 @@ class PlaceSearchController extends Controller
      */
     private function searchLocalListings(string $q): array
     {
-        $listings = \App\Support\ListingSearch::results($q, 6);
+        $listings = ListingSearch::results($q, 6);
 
         return $listings->map(function (Listing $listing) {
             $lat = $listing->latitude;
@@ -147,59 +152,92 @@ class PlaceSearchController extends Controller
     {
         $localised = $this->localisedQueries($q);
         $ua = 'NanyukiNow/1.0 (https://nanyukinow.co.ke; places@nanyukinow.co.ke)';
+        $fsqKey = $this->foursquareSearchKey();
 
-        $responses = Http::pool(fn (Pool $pool) => [
-            $pool->as('photon')
-                ->withHeaders(['User-Agent' => $ua, 'Accept' => 'application/json'])
-                ->timeout(6)
-                ->get('https://photon.komoot.io/api/', [
-                    'q' => $localised[0],
-                    'limit' => 8,
-                    'lat' => self::NANYUKI_LAT,
-                    'lon' => self::NANYUKI_LNG,
-                    'lang' => 'en',
-                ]),
-            $pool->as('photon2')
-                ->withHeaders(['User-Agent' => $ua, 'Accept' => 'application/json'])
-                ->timeout(6)
-                ->get('https://photon.komoot.io/api/', [
-                    'q' => $q,
-                    'limit' => 6,
-                    'lat' => self::NANYUKI_LAT,
-                    'lon' => self::NANYUKI_LNG,
-                    'lang' => 'en',
-                ]),
-            $pool->as('nominatim')
-                ->withHeaders(['User-Agent' => $ua, 'Accept' => 'application/json'])
-                ->timeout(6)
-                ->get('https://nominatim.openstreetmap.org/search', [
-                    'format' => 'jsonv2',
-                    'addressdetails' => 1,
-                    'limit' => 6,
-                    'countrycodes' => 'ke',
-                    'viewbox' => self::VIEWBOX,
-                    'bounded' => 0,
-                    'q' => $localised[0],
-                ]),
-        ]);
+        $responses = Http::pool(function (Pool $pool) use ($localised, $q, $ua, $fsqKey) {
+            $requests = [
+                $pool->as('photon')
+                    ->withHeaders(['User-Agent' => $ua, 'Accept' => 'application/json'])
+                    ->timeout(6)
+                    ->get('https://photon.komoot.io/api/', [
+                        'q' => $localised[0],
+                        'limit' => 8,
+                        'lat' => self::NANYUKI_LAT,
+                        'lon' => self::NANYUKI_LNG,
+                        'lang' => 'en',
+                    ]),
+                $pool->as('photon2')
+                    ->withHeaders(['User-Agent' => $ua, 'Accept' => 'application/json'])
+                    ->timeout(6)
+                    ->get('https://photon.komoot.io/api/', [
+                        'q' => $q,
+                        'limit' => 6,
+                        'lat' => self::NANYUKI_LAT,
+                        'lon' => self::NANYUKI_LNG,
+                        'lang' => 'en',
+                    ]),
+                $pool->as('nominatim')
+                    ->withHeaders(['User-Agent' => $ua, 'Accept' => 'application/json'])
+                    ->timeout(6)
+                    ->get('https://nominatim.openstreetmap.org/search', [
+                        'format' => 'jsonv2',
+                        'addressdetails' => 1,
+                        'limit' => 6,
+                        'countrycodes' => 'ke',
+                        'viewbox' => self::VIEWBOX,
+                        'bounded' => 0,
+                        'q' => $localised[0],
+                    ]),
+            ];
+
+            if ($fsqKey !== '') {
+                $requests[] = $pool->as('foursquare')
+                    ->withHeaders([
+                        'Accept' => 'application/json',
+                        'Authorization' => 'Bearer '.$fsqKey,
+                        'X-Places-Api-Version' => (string) config(
+                            'services.foursquare.api_version',
+                            FoursquarePlaces::API_VERSION,
+                        ),
+                    ])
+                    ->connectTimeout(3)
+                    ->timeout(8)
+                    ->get(FoursquarePlaces::BASE_URL.'/places/search', [
+                        'query' => $q,
+                        'll' => self::NANYUKI_LAT.','.self::NANYUKI_LNG,
+                        'radius' => 25000,
+                        'limit' => 8,
+                        'sort' => 'RELEVANCE',
+                    ]);
+            }
+
+            return $requests;
+        });
 
         $out = [];
 
+        $fsq = $responses['foursquare'] ?? null;
+        if ($fsq instanceof Response) {
+            foreach (FoursquarePlaces::mapSearchResponse($fsq) as $item) {
+                $out[$item['place_id']] = $item;
+            }
+        }
+
         foreach (['photon', 'photon2'] as $key) {
             $res = $responses[$key] ?? null;
-            if (! $res instanceof \Illuminate\Http\Client\Response || ! $res->successful()) {
+            if (! $res instanceof Response || ! $res->successful()) {
                 continue;
             }
             foreach ($res->json('features') ?? [] as $feature) {
                 $item = $this->photonToResult($feature);
                 if ($item && $this->isKenyaLocal($item)) {
-                    $out[$item['place_id']] = $item;
+                    $out[$item['place_id']] = $out[$item['place_id']] ?? $item;
                 }
             }
         }
 
         $nominatim = $responses['nominatim'] ?? null;
-        if ($nominatim instanceof \Illuminate\Http\Client\Response && $nominatim->successful()) {
+        if ($nominatim instanceof Response && $nominatim->successful()) {
             foreach ($nominatim->json() ?? [] as $row) {
                 $item = $this->nominatimToResult($row);
                 if ($item) {
@@ -209,6 +247,16 @@ class PlaceSearchController extends Controller
         }
 
         return array_values($out);
+    }
+
+    private function foursquareSearchKey(): string
+    {
+        $mode = strtolower(trim((string) SiteSetting::getValue('place_search_provider', 'foursquare')));
+        if ($mode === 'osm') {
+            return '';
+        }
+
+        return FoursquarePlaces::apiKey();
     }
 
     /**

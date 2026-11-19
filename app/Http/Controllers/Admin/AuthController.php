@@ -48,9 +48,26 @@ class AuthController extends Controller
             ]);
         }
 
+        $previewKey = (string) config('site.preview_session_key');
+        $previewUnlocked = $request->session()->get($previewKey) === true;
+        $intended = $request->session()->pull('url.intended');
+
         $request->session()->regenerate();
 
-        return redirect()->intended(route('admin.dashboard'));
+        if ($previewUnlocked) {
+            $request->session()->put($previewKey, true);
+        }
+
+        // Only honor intended URLs inside admin; public intended URLs can strand
+        // staff behind the preview gate after a session rotate.
+        if (is_string($intended) && $intended !== '') {
+            $path = parse_url($intended, PHP_URL_PATH) ?: '';
+            if (str_starts_with($path, '/admin')) {
+                return redirect()->to($intended);
+            }
+        }
+
+        return redirect()->route('admin.dashboard');
     }
 
     public function destroy(Request $request): RedirectResponse

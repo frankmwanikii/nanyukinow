@@ -27,6 +27,10 @@ class AdminMapSettingsTest extends TestCase
                 ->where('groupedSettings.maps.0.options.1.value', 'leaflet')
                 ->where('groupedSettings.maps.1.key', 'google_maps_api_key')
                 ->where('groupedSettings.maps.1.type', 'password')
+                ->where('groupedSettings.maps.2.key', 'place_search_provider')
+                ->where('groupedSettings.maps.2.value', 'foursquare')
+                ->where('groupedSettings.maps.3.key', 'foursquare_api_key')
+                ->where('groupedSettings.maps.3.type', 'password')
                 ->etc());
     }
 
@@ -58,6 +62,33 @@ class AdminMapSettingsTest extends TestCase
                 ->etc());
     }
 
+    public function test_admin_can_save_foursquare_api_key(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+
+        $this->actingAs($admin)->get(route('admin.settings.index'))->assertOk();
+
+        $this->actingAs($admin)
+            ->put(route('admin.settings.update'), [
+                'settings' => [
+                    ['key' => 'foursquare_api_key', 'value' => 'fsq-test-service-key'],
+                ],
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('site_settings', [
+            'key' => 'foursquare_api_key',
+            'value' => 'fsq-test-service-key',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('home'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->missing('foursquareApiKey')
+                ->etc());
+    }
+
     public function test_admin_can_switch_map_provider_to_leaflet(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
@@ -68,6 +99,7 @@ class AdminMapSettingsTest extends TestCase
             ->put(route('admin.settings.update'), [
                 'settings' => [
                     ['key' => 'map_provider', 'value' => 'leaflet'],
+                    ['key' => 'place_search_provider', 'value' => 'foursquare'],
                 ],
             ])
             ->assertRedirect();
@@ -83,6 +115,34 @@ class AdminMapSettingsTest extends TestCase
             ->assertInertia(fn ($page) => $page
                 ->where('mapProvider', 'leaflet')
                 ->etc());
+
+        $this->actingAs($admin)
+            ->get(route('explore'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('mapProvider', 'leaflet')
+                ->etc());
+    }
+
+    public function test_admin_can_save_place_search_provider(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+
+        $this->actingAs($admin)->get(route('admin.settings.index'))->assertOk();
+
+        $this->actingAs($admin)
+            ->put(route('admin.settings.update'), [
+                'settings' => [
+                    ['key' => 'map_provider', 'value' => 'leaflet'],
+                    ['key' => 'place_search_provider', 'value' => 'osm'],
+                ],
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('site_settings', [
+            'key' => 'place_search_provider',
+            'value' => 'osm',
+        ]);
     }
 
     public function test_map_provider_defaults_to_google_when_unset(): void

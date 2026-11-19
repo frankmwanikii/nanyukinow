@@ -413,21 +413,16 @@ class SettingController extends Controller
 
     private function ensureMapsDefaults(): void
     {
-        SiteSetting::query()->firstOrCreate(
-            ['key' => 'map_provider'],
+        $defaults = [
             [
                 'group' => 'maps',
                 'key' => 'map_provider',
                 'label' => 'Map provider',
                 'type' => 'select',
                 'value' => 'google',
-                'help' => 'Google Maps needs an API key. OpenStreetMap (Leaflet) is free and needs no key.',
+                'help' => 'Site-wide. Switches Explore, listing directions, and the listing location picker together.',
                 'sort_order' => 1,
             ],
-        );
-
-        SiteSetting::query()->firstOrCreate(
-            ['key' => 'google_maps_api_key'],
             [
                 'group' => 'maps',
                 'key' => 'google_maps_api_key',
@@ -437,7 +432,40 @@ class SettingController extends Controller
                 'help' => 'Browser key from Google Cloud. Enable Maps JavaScript API and Places API, then restrict by HTTP referrer.',
                 'sort_order' => 2,
             ],
-        );
+            [
+                'group' => 'maps',
+                'key' => 'place_search_provider',
+                'label' => 'Place search',
+                'type' => 'select',
+                'value' => 'foursquare',
+                'help' => 'Search box on the listing location picker when Map provider is OpenStreetMap. Google Maps always uses Google Places.',
+                'sort_order' => 3,
+            ],
+            [
+                'group' => 'maps',
+                'key' => 'foursquare_api_key',
+                'label' => 'Foursquare API key',
+                'type' => 'password',
+                'value' => (string) (config('services.foursquare.api_key') ?: ''),
+                'help' => 'Service key from the Foursquare Developer Console. Kept on the server. Needed when Place search is Foursquare.',
+                'sort_order' => 4,
+            ],
+        ];
+
+        foreach ($defaults as $row) {
+            $setting = SiteSetting::query()->firstOrCreate(
+                ['key' => $row['key']],
+                $row,
+            );
+
+            $setting->fill([
+                'group' => $row['group'],
+                'label' => $row['label'],
+                'type' => $row['type'],
+                'help' => $row['help'],
+                'sort_order' => $row['sort_order'],
+            ])->save();
+        }
     }
 
     /**
@@ -458,6 +486,10 @@ class SettingController extends Controller
             'map_provider' => [
                 ['value' => 'google', 'label' => 'Google Maps'],
                 ['value' => 'leaflet', 'label' => 'OpenStreetMap (Leaflet)'],
+            ],
+            'place_search_provider' => [
+                ['value' => 'foursquare', 'label' => 'Foursquare'],
+                ['value' => 'osm', 'label' => 'OpenStreetMap only'],
             ],
             default => null,
         };

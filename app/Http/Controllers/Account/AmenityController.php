@@ -25,6 +25,7 @@ class AmenityController extends Controller
                 'id' => $amenity->id,
                 'name' => $amenity->name,
                 'slug' => $amenity->slug,
+                'icon_key' => $amenity->icon_key,
                 'category_key' => $amenity->category_key,
             ],
         ], 201);

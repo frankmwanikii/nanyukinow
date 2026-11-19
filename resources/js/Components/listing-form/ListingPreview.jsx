@@ -163,7 +163,39 @@ export default function ListingPreview({
             ? new Date(formData.end_at).toISOString()
             : null,
         tier: formData.tier || 'free',
-        ticketPrice: formData.ticket_price || null,
+        ticketPrice: (() => {
+            const amounts = (formData.ticket_options || [])
+                .map((row) => Number(row?.amount))
+                .filter((n) => Number.isFinite(n));
+            if (amounts.length === 0) return null;
+            const min = Math.min(...amounts);
+            return amounts.length === 1
+                ? min === 0
+                    ? 'Free'
+                    : `KES ${min.toLocaleString()}`
+                : min === 0
+                  ? 'From free'
+                  : `From KES ${min.toLocaleString()}`;
+        })(),
+        tickets: (formData.ticket_options || [])
+            .filter(
+                (row) =>
+                    Boolean(row?.name?.trim?.() || row?.name) ||
+                    (row?.amount !== '' && row?.amount != null),
+            )
+            .map((row) => ({
+                name: row.name || 'Ticket',
+                amount:
+                    row.amount === '' || row.amount == null
+                        ? null
+                        : Number(row.amount),
+                priceLabel:
+                    row.amount === '' || row.amount == null
+                        ? 'On request'
+                        : Number(row.amount) === 0
+                          ? 'Free'
+                          : `KES ${Number(row.amount).toLocaleString()}`,
+            })),
         details,
         tagline: formData.tagline || null,
     };
@@ -364,16 +396,26 @@ export default function ListingPreview({
                                     />
                                     <Row label="Ends" value={formData.end_at} />
                                     <Row
-                                        label="Ticket price"
-                                        value={formData.ticket_price}
-                                    />
-                                    <Row
-                                        label="Early bird"
-                                        value={formData.early_bird_price}
-                                    />
-                                    <Row
-                                        label="Gate price"
-                                        value={formData.gate_price}
+                                        label="Tickets"
+                                        value={
+                                            (formData.ticket_options || [])
+                                                .filter(
+                                                    (row) =>
+                                                        Boolean(row?.name) ||
+                                                        (row?.amount !== '' &&
+                                                            row?.amount !=
+                                                                null),
+                                                )
+                                                .map((row) => {
+                                                    const amount =
+                                                        row.amount === '' ||
+                                                        row.amount == null
+                                                            ? 'On request'
+                                                            : `KSh ${Number(row.amount).toLocaleString()}`;
+                                                    return `${row.name || 'Ticket'}: ${amount}`;
+                                                })
+                                                .join(', ') || null
+                                        }
                                     />
                                     <Row
                                         label="Ticket URL"
@@ -477,44 +519,47 @@ export default function ListingPreview({
                     {section === 'media' ? (
                         <div className="space-y-5">
                             <dl>
-                                <Row
-                                    label="Cover"
-                                    value={
-                                        cover ? (
-                                            <img
-                                                src={cover}
-                                                alt=""
-                                                className="h-24 w-36 rounded-lg object-cover ring-1 ring-olive-200"
-                                            />
-                                        ) : null
-                                    }
-                                />
-                                <Row
-                                    label="Logo"
-                                    value={
-                                        logo ? (
-                                            <img
-                                                src={logo}
-                                                alt=""
-                                                className="h-14 w-14 rounded-lg object-cover ring-1 ring-olive-200"
-                                            />
-                                        ) : null
-                                    }
-                                />
                                 {isEvent ? (
                                     <Row
-                                        label="Poster"
+                                        label="Event poster"
                                         value={
-                                            poster ? (
+                                            poster || cover ? (
                                                 <img
-                                                    src={poster}
+                                                    src={poster || cover}
                                                     alt=""
-                                                    className="h-24 w-16 rounded-lg object-cover ring-1 ring-olive-200"
+                                                    className="h-28 w-20 rounded-lg bg-olive-950 object-contain ring-1 ring-olive-200"
                                                 />
                                             ) : null
                                         }
                                     />
-                                ) : null}
+                                ) : (
+                                    <>
+                                        <Row
+                                            label="Cover"
+                                            value={
+                                                cover ? (
+                                                    <img
+                                                        src={cover}
+                                                        alt=""
+                                                        className="h-24 w-36 rounded-lg object-cover ring-1 ring-olive-200"
+                                                    />
+                                                ) : null
+                                            }
+                                        />
+                                        <Row
+                                            label="Logo"
+                                            value={
+                                                logo ? (
+                                                    <img
+                                                        src={logo}
+                                                        alt=""
+                                                        className="h-14 w-14 rounded-lg object-cover ring-1 ring-olive-200"
+                                                    />
+                                                ) : null
+                                            }
+                                        />
+                                    </>
+                                )}
                                 <Row
                                     label="Gallery"
                                     value={

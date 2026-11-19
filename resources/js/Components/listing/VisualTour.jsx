@@ -20,20 +20,47 @@ function flattenSpaces(spaces) {
     return flat;
 }
 
-function MosaicTile({ src, alt, onClick, className = '', children }) {
+function MosaicTile({
+    src,
+    alt,
+    onClick,
+    className = '',
+    contain = false,
+    children,
+}) {
     return (
         <button
             type="button"
             onClick={onClick}
-            className={`group relative block overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-mustard ${className}`}
+            className={`group relative block overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-mustard ${
+                contain ? 'bg-olive-950' : ''
+            } ${className}`}
             aria-label={alt}
         >
-            <img
-                src={src}
-                alt=""
-                className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
-                loading="lazy"
-            />
+            {contain ? (
+                <>
+                    <img
+                        src={src}
+                        alt=""
+                        aria-hidden="true"
+                        className="absolute inset-0 h-full w-full scale-110 object-cover opacity-40 blur-2xl"
+                        loading="lazy"
+                    />
+                    <img
+                        src={src}
+                        alt=""
+                        className="relative z-[1] h-full w-full object-contain transition duration-500 group-hover:scale-[1.02]"
+                        loading="lazy"
+                    />
+                </>
+            ) : (
+                <img
+                    src={src}
+                    alt=""
+                    className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                    loading="lazy"
+                />
+            )}
             <div className="pointer-events-none absolute inset-0 bg-black/0 transition group-hover:bg-black/10" />
             {children}
         </button>
@@ -44,6 +71,7 @@ export default function VisualTour({
     gallery = [],
     title = 'Visual tour',
     hideTabs = false,
+    containImages = false,
 }) {
     const spaces = useMemo(() => {
         const normalized = normalizeGallerySpaces(gallery);
@@ -182,16 +210,19 @@ export default function VisualTour({
                         src={primary}
                         alt={`Open ${space.label} gallery`}
                         onClick={() => openMosaicAt(0)}
+                        contain={containImages}
                         className={
                             showSide
                                 ? 'aspect-[4/3] sm:col-span-2 sm:row-span-2 sm:aspect-auto sm:h-full sm:min-h-[260px] lg:min-h-[300px]'
-                                : 'aspect-[16/10]'
+                                : containImages
+                                  ? 'mx-auto aspect-[3/4] max-h-[70vh] w-full max-w-md sm:max-w-lg'
+                                  : 'aspect-[16/10]'
                         }
                     >
                         {!showSide ? (
-                            <span className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3.5 py-2 text-xs font-bold text-olive-900 shadow-soft">
+                            <span className="absolute bottom-3 right-3 z-10 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3.5 py-2 text-xs font-bold text-olive-900 shadow-soft">
                                 <Expand className="h-3.5 w-3.5" />
-                                View photo
+                                View full size
                             </span>
                         ) : null}
                     </MosaicTile>
@@ -205,6 +236,7 @@ export default function VisualTour({
                                       src={src}
                                       alt={`Open photo ${index + 2}`}
                                       onClick={() => openMosaicAt(index + 1)}
+                                      contain={containImages}
                                       className={`hidden aspect-[4/3] sm:block sm:aspect-auto sm:h-full sm:min-h-[126px] lg:min-h-[146px] ${
                                           side.length === 1
                                               ? 'sm:col-span-2 sm:row-span-2'
@@ -284,6 +316,7 @@ export default function VisualTour({
                             ? `Photo ${lightboxSpacePos} of ${lightboxSpaceCount} · ${lightbox + 1}/${flat.length}`
                             : `${lightbox + 1} / ${flat.length}`
                     }
+                    padBlur
                 />
             ) : null}
         </>

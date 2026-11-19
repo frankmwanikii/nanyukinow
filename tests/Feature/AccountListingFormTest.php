@@ -105,7 +105,9 @@ class AccountListingFormTest extends TestCase
         Storage::fake('public');
         $this->seedCategories();
 
-        $user = User::factory()->create();
+        $user = User::factory()->create([
+            'plan' => 'featured',
+        ]);
         $category = Category::query()->where('slug', 'events')->firstOrFail();
 
         $this->actingAs($user)->post(route('account.listings.store'), [
@@ -116,8 +118,10 @@ class AccountListingFormTest extends TestCase
             'venue' => 'Town Terrace',
             'start_at' => '2026-10-01T19:00',
             'end_at' => '2026-10-01T22:00',
-            'ticket_price' => 'From KES 1,200',
-            'tier' => 'free',
+            'ticket_options' => json_encode([
+                ['name' => 'General admission', 'amount' => 1200],
+            ]),
+            'tier' => 'featured',
             'details' => json_encode([
                 'organiser' => 'Nanyuki Arts',
                 'age_limit' => '18+',
@@ -132,7 +136,10 @@ class AccountListingFormTest extends TestCase
         $listing = Listing::query()->where('title', 'Nanyuki Jazz Night')->first();
         $this->assertNotNull($listing);
         $this->assertSame('Town Terrace', $listing->venue);
-        $this->assertSame('From KES 1,200', $listing->ticket_price);
+        $this->assertSame([
+            ['name' => 'General admission', 'amount' => 1200],
+        ], $listing->ticket_options);
+        $this->assertSame('KES 1,200', $listing->ticket_price);
         $this->assertNotNull($listing->start_at);
     }
 

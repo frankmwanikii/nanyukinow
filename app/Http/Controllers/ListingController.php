@@ -28,6 +28,7 @@ class ListingController extends Controller
             'placesToEat' => Inertia::defer(fn () => $this->eatDrinkCards(), 'below'),
             'airbnbs' => Inertia::defer(fn () => $this->airbnbCards(), 'below'),
             'wildlifeSafaris' => Inertia::defer(fn () => $this->wildlifeCards(), 'below'),
+            'events' => Inertia::defer(fn () => $this->eventCards(), 'below'),
             'page' => $page,
         ]);
     }
@@ -327,6 +328,26 @@ class ListingController extends Controller
     {
         return collect(PublishedListingsCatalogue::cards())
             ->filter(fn (array $card) => ($card['categoryKey'] ?? null) === 'thingsToDo')
+            ->take(12)
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function eventCards(): array
+    {
+        $now = now()->toIso8601String();
+
+        return collect(PublishedListingsCatalogue::cards())
+            ->filter(fn (array $card) => ($card['categoryKey'] ?? null) === 'events')
+            ->sortBy(function (array $card) use ($now) {
+                $start = $card['startDate'] ?? null;
+                $isPast = is_string($start) && $start < $now;
+
+                return [($isPast ? 1 : 0), $start ?? '9999-12-31'];
+            })
             ->take(12)
             ->values()
             ->all();

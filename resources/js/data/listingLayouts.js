@@ -125,6 +125,7 @@ export const categoryLayouts = {
             'eventWhen',
             'eventWhere',
             'eventTickets',
+            'eventDressCode',
             'facts',
             'amenities',
             'sponsors',
@@ -132,7 +133,7 @@ export const categoryLayouts = {
             'video',
             'chips',
         ],
-        side: ['map', 'eventSchedule', 'payments'],
+        side: ['map', 'eventSchedule', 'payments', 'eventOrganiser'],
         ctaSecondary: 'Get tickets',
     },
 };

@@ -123,6 +123,62 @@ function ImagePickButton({ image, onPick, onClear }) {
     );
 }
 
+/**
+ * Logo slot for event sponsors: square frame, contain-fit preview, no tinted icon chip.
+ */
+function SponsorLogoField({ image, onPick, onClear }) {
+    return (
+        <div className="min-w-0">
+            <p className={label}>Logo</p>
+            {image ? (
+                <div className="overflow-hidden border border-olive-900/15 bg-white dark:border-olive-700 dark:bg-olive-950">
+                    <button
+                        type="button"
+                        onClick={onPick}
+                        className="relative block aspect-square w-full bg-olive-50 transition hover:bg-olive-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-mustard dark:bg-olive-900 dark:hover:bg-olive-800"
+                        aria-label="Replace sponsor logo"
+                    >
+                        <img
+                            src={image}
+                            alt=""
+                            className="h-full w-full object-contain p-3"
+                        />
+                    </button>
+                    <div className="flex items-center gap-3 border-t border-olive-900/10 px-3 py-2 dark:border-olive-800">
+                        <button
+                            type="button"
+                            onClick={onPick}
+                            className="text-xs font-semibold text-olive-800 transition hover:text-olive-950 dark:text-olive-200 dark:hover:text-white"
+                        >
+                            Replace
+                        </button>
+                        <button
+                            type="button"
+                            onClick={onClear}
+                            className="text-xs font-semibold text-olive-500 transition hover:text-rose-700 dark:text-olive-400 dark:hover:text-rose-400"
+                        >
+                            Remove
+                        </button>
+                    </div>
+                </div>
+            ) : (
+                <button
+                    type="button"
+                    onClick={onPick}
+                    className="flex aspect-square w-full min-h-[7.5rem] flex-col items-center justify-center gap-1 border border-dashed border-olive-300 bg-olive-50/60 px-3 text-center transition hover:border-olive-800 hover:bg-olive-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard dark:border-olive-700 dark:bg-olive-950/50 dark:hover:border-olive-500 dark:hover:bg-olive-900"
+                >
+                    <span className="text-sm font-semibold text-olive-900 dark:text-olive-100">
+                        Add logo
+                    </span>
+                    <span className="text-xs text-olive-500 dark:text-olive-400">
+                        PNG or SVG preferred
+                    </span>
+                </button>
+            )}
+        </div>
+    );
+}
+
 function ImageDropzonePick({
     image,
     onClear,
@@ -1155,14 +1211,14 @@ export default function CategoryExtrasEditor({
                         title="Sponsors"
                         blurb="Optional logos and names shown on the event page."
                     >
-                        <ul className="space-y-4">
+                        <ul className="space-y-3">
                             {sponsors.map((item, index) => (
                                 <li
                                     key={`sponsor-${index}`}
-                                    className="space-y-3 rounded-xl border border-olive-100 bg-olive-50/40 p-3"
+                                    className="min-w-0 rounded-xl border border-olive-100 bg-olive-50/40 p-3 sm:p-4 dark:border-olive-800 dark:bg-olive-950/40"
                                 >
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-xs font-semibold uppercase tracking-wide text-olive-500">
+                                    <div className="mb-3 flex items-center justify-between gap-2">
+                                        <span className="text-xs font-semibold text-olive-500 dark:text-olive-400">
                                             Sponsor {index + 1}
                                         </span>
                                         <RowActions
@@ -1171,34 +1227,48 @@ export default function CategoryExtrasEditor({
                                             }
                                         />
                                     </div>
-                                    <div>
-                                        <label className={label}>Name</label>
-                                        <input
-                                            className={field}
-                                            value={item.name || ''}
-                                            onChange={(e) =>
-                                                updateItem('sponsors', index, {
-                                                    name: e.target.value,
+                                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-[9rem_minmax(0,1fr)] sm:items-start">
+                                        <SponsorLogoField
+                                            image={item.logo}
+                                            onPick={() =>
+                                                setImageTarget({
+                                                    list: 'sponsors',
+                                                    index,
+                                                    key: 'logo',
                                                 })
                                             }
-                                            placeholder="Sponsor name"
+                                            onClear={() =>
+                                                updateItem('sponsors', index, {
+                                                    logo: '',
+                                                })
+                                            }
                                         />
+                                        <div className="min-w-0">
+                                            <label
+                                                className={label}
+                                                htmlFor={`sponsor_name_${index}`}
+                                            >
+                                                Name
+                                            </label>
+                                            <input
+                                                id={`sponsor_name_${index}`}
+                                                className={field}
+                                                value={item.name || ''}
+                                                onChange={(e) =>
+                                                    updateItem(
+                                                        'sponsors',
+                                                        index,
+                                                        {
+                                                            name: e.target
+                                                                .value,
+                                                        },
+                                                    )
+                                                }
+                                                placeholder="Sponsor name"
+                                                autoComplete="off"
+                                            />
+                                        </div>
                                     </div>
-                                    <ImagePickButton
-                                        image={item.logo}
-                                        onPick={() =>
-                                            setImageTarget({
-                                                list: 'sponsors',
-                                                index,
-                                                key: 'logo',
-                                            })
-                                        }
-                                        onClear={() =>
-                                            updateItem('sponsors', index, {
-                                                logo: '',
-                                            })
-                                        }
-                                    />
                                 </li>
                             ))}
                         </ul>
@@ -1207,7 +1277,7 @@ export default function CategoryExtrasEditor({
                             onClick={() =>
                                 addItem('sponsors', { name: '', logo: '' })
                             }
-                            className="inline-flex items-center gap-1.5 rounded-sm bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white"
+                            className="mt-1 inline-flex min-h-11 items-center gap-1.5 rounded-sm bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-olive-800 dark:bg-mustard dark:text-olive-950 dark:hover:bg-mustard/90"
                         >
                             <Plus className="h-4 w-4" />
                             Add sponsor
@@ -1591,7 +1661,13 @@ export default function CategoryExtrasEditor({
                 libraryRoute={libraryRoute}
                 initialPanel={libraryRoute ? 'library' : 'menu'}
                 remaining={1}
-                target="cover"
+                target={
+                    imageTarget?.list === 'sponsors'
+                        ? 'sponsor'
+                        : imageTarget?.list === 'products'
+                          ? 'cover'
+                          : 'logo'
+                }
                 onUpload={() => {
                     pendingSingleRef.current = imageTarget;
                     singleInputRef.current?.click();

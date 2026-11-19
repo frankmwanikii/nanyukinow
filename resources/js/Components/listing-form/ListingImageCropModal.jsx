@@ -91,8 +91,8 @@ export default function ListingImageCropModal({
             <div className="border-b border-olive-100 px-5 py-4">
                 <h3 className="text-base font-semibold text-olive-950">{title}</h3>
                 <p className="mt-1 text-sm text-olive-500">
-                    Drag to reposition, then zoom — or skip cropping and use the
-                    original.
+                    Drag to reposition, then zoom. Or skip cropping and keep the
+                    original layout.
                 </p>
             </div>
 

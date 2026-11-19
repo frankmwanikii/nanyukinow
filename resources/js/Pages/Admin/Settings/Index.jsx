@@ -31,7 +31,7 @@ const groupMeta = {
     },
     maps: {
         title: 'Maps',
-        blurb: 'Choose Google Maps or free OpenStreetMap (Leaflet) for Explore, listing directions, and location pickers.',
+        blurb: 'One switch for every map on the site: Explore, listing directions, and the listing location picker. Place search is separate when you use OpenStreetMap.',
     },
     social: {
         title: 'Social links',
@@ -237,6 +237,8 @@ function MapsFields({ items, valueFor, updateValue }) {
         );
     };
 
+    const placeSearch = valueFor('place_search_provider') || 'foursquare';
+
     return (
         <div className="space-y-4">
             <FieldGrid>
@@ -248,12 +250,30 @@ function MapsFields({ items, valueFor, updateValue }) {
                           'sm:col-span-2',
                       )
                     : null}
+                {provider === 'leaflet'
+                    ? field('place_search_provider', 'Place search', 'sm:col-span-2')
+                    : null}
+                {provider === 'leaflet' && placeSearch === 'foursquare'
+                    ? field(
+                          'foursquare_api_key',
+                          'Foursquare API key',
+                          'sm:col-span-2',
+                      )
+                    : null}
             </FieldGrid>
             {provider === 'leaflet' ? (
                 <p className="text-sm text-olive-500 dark:text-olive-400">
-                    OpenStreetMap (Leaflet) needs no API key.
+                    OpenStreetMap needs no tile key. This provider choice updates
+                    Explore, directions maps, and the location picker everywhere
+                    after you save.
                 </p>
-            ) : null}
+            ) : (
+                <p className="text-sm text-olive-500 dark:text-olive-400">
+                    Google Maps uses Google Places for the location search box.
+                    Switch Map provider to OpenStreetMap to use Foursquare
+                    search instead.
+                </p>
+            )}
         </div>
     );
 }

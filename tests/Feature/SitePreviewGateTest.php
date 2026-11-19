@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -44,6 +45,13 @@ class SitePreviewGateTest extends TestCase
         ]);
     }
 
+    public function test_admin_login_remains_reachable_while_locked(): void
+    {
+        $this->get(route('admin.login'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page->component('Admin/Login'));
+    }
+
     public function test_preview_path_unlocks_the_site_for_the_session(): void
     {
         $this->get('/nn-dev-preview')
@@ -53,6 +61,33 @@ class SitePreviewGateTest extends TestCase
 
         $this->get('/')
             ->assertOk();
+    }
+
+    public function test_admin_can_sign_in_after_preview_unlock(): void
+    {
+        User::factory()->create([
+            'email' => 'admin@example.com',
+            'password' => 'password',
+            'is_admin' => true,
+        ]);
+
+        $this->get('/nn-dev-preview')->assertRedirect(route('home'));
+        $this->assertTrue(session('site_preview_unlocked'));
+
+        $this->from(route('admin.login'))
+            ->post(route('admin.login.store'), [
+                'login' => 'admin@example.com',
+                'password' => 'password',
+                'remember' => true,
+            ])
+            ->assertRedirect(route('admin.dashboard'));
+
+        $this->assertAuthenticated();
+        $this->assertTrue(session('site_preview_unlocked'));
+
+        $this->get(route('admin.dashboard'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page->component('Admin/Dashboard'));
     }
 
     public function test_webhooks_remain_reachable_while_locked(): void

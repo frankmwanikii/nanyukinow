@@ -391,11 +391,21 @@ function PosterSlot({
     onFile,
     onClear,
     onView,
+    error = null,
 }) {
     return (
-        <div className="max-w-[14rem]">
+        <div className="max-w-xl">
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                <p className={label}>Event poster</p>
+                <div className="flex flex-wrap items-center gap-2">
+                    <FieldLabel as="p" required>
+                        Event poster
+                    </FieldLabel>
+                    {preview ? (
+                        <span className="bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">
+                            Set
+                        </span>
+                    ) : null}
+                </div>
                 {onOpenLibrary ? (
                     <button
                         type="button"
@@ -407,21 +417,33 @@ function PosterSlot({
                     </button>
                 ) : null}
             </div>
-            <p className={`${help} mb-2.5`}>Portrait poster on event cards.</p>
+            <p className={`${help} mb-2.5`}>
+                This is the event cover on cards and the listing page. Portrait
+                or landscape both work. Tap the image to view it full size.
+            </p>
             <DropZone onFiles={onFile} className="overflow-hidden rounded-2xl">
                 {preview ? (
-                    <div className="group relative aspect-[3/4] overflow-hidden rounded-2xl ring-1 ring-olive-200/80">
+                    <div className="group relative overflow-hidden rounded-2xl bg-olive-950 ring-1 ring-olive-200/80">
                         <button
                             type="button"
                             onClick={onView}
-                            className="absolute inset-0 cursor-zoom-in focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-mustard"
+                            className="relative flex aspect-[4/5] w-full cursor-zoom-in items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-mustard sm:aspect-[3/4]"
                             aria-label="View event poster full size"
                         >
                             <img
                                 src={preview}
-                                alt="Event poster"
-                                className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"
+                                alt=""
+                                aria-hidden="true"
+                                className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover opacity-40 blur-2xl"
                             />
+                            <img
+                                src={preview}
+                                alt="Event poster"
+                                className="relative z-10 max-h-full max-w-full object-contain transition duration-300 group-hover:scale-[1.01]"
+                            />
+                            <span className="absolute bottom-3 right-3 z-20 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-[11px] font-bold text-olive-900 shadow-soft">
+                                View full size
+                            </span>
                         </button>
                         <HoverActions>
                             <MediaToolbar
@@ -435,15 +457,25 @@ function PosterSlot({
                     <button
                         type="button"
                         onClick={onBrowse}
-                        className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-2 rounded-sm bg-gradient-to-br from-olive-50 via-white to-olive-100/80 text-olive-600 ring-1 ring-dashed ring-olive-300 transition hover:bg-mustard/5 hover:ring-mustard"
+                        className="flex aspect-[4/5] w-full flex-col items-center justify-center gap-2 rounded-sm bg-gradient-to-br from-olive-50 via-white to-olive-100/80 text-olive-600 ring-1 ring-dashed ring-olive-300 transition hover:bg-mustard/5 hover:ring-mustard sm:aspect-[3/4]"
                     >
                         <ImagePlus className="h-5 w-5" />
                         <span className="text-xs font-semibold text-olive-900">
-                            Add poster
+                            Add event poster
                         </span>
                     </button>
                 )}
             </DropZone>
+            {error ? (
+                <p
+                    className="mt-2 rounded-sm border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300"
+                    role="alert"
+                    data-error-field="event_poster"
+                    id="event_poster"
+                >
+                    {error}
+                </p>
+            ) : null}
         </div>
     );
 }
@@ -457,6 +489,7 @@ export default function GalleryUploader({
     posterPreview,
     galleryItems = [],
     showPoster = false,
+    hideCover = false,
     libraryRoute = null,
     onCoverChange,
     onLogoChange,
@@ -529,37 +562,30 @@ export default function GalleryUploader({
 
     const lightboxItems = useMemo(() => {
         const items = [];
-        if (coverPreview) {
-            items.push({
-                src: coverPreview,
-                label: 'Cover image',
-                hint: 'Listing card',
-            });
+        const seen = new Set();
+        const push = (src, label, hint) => {
+            if (!src || seen.has(src)) return;
+            seen.add(src);
+            items.push({ src, label, hint });
+        };
+
+        if (showPoster && posterPreview) {
+            push(posterPreview, 'Event poster', 'Cover');
+        } else if (coverPreview) {
+            push(coverPreview, 'Cover image', 'Listing card');
         }
         if (logoPreview) {
-            items.push({
-                src: logoPreview,
-                label: 'Logo',
-                hint: 'Card badge',
-            });
-        }
-        if (showPoster && posterPreview) {
-            items.push({
-                src: posterPreview,
-                label: 'Event poster',
-                hint: 'Portrait',
-            });
+            push(logoPreview, 'Logo', 'Card badge');
         }
         galleryItems.forEach((item, index) => {
             const src = item.preview || item.url;
-            if (!src) return;
-            items.push({
+            push(
                 src,
-                label: item.label
+                item.label
                     ? `${item.label} · ${index + 1}`
                     : `Gallery ${index + 1}`,
-                hint: item.url && !item.file ? 'Saved' : 'Preview',
-            });
+                item.url && !item.file ? 'Saved' : 'Preview',
+            );
         });
         return items;
     }, [coverPreview, logoPreview, posterPreview, galleryItems, showPoster]);
@@ -1087,64 +1113,6 @@ export default function GalleryUploader({
                 />
             ) : (
                 <>
-            <CoverLogoStage
-                coverPreview={coverPreview}
-                logoPreview={logoPreview}
-                hideLogo={hideLogo}
-                onBrowseCover={() => openAddMenu('cover')}
-                onBrowseLogo={() => openAddMenu('logo')}
-                onOpenLibraryCover={
-                    libraryRoute ? () => openAdminGallery('cover') : null
-                }
-                onOpenLibraryLogo={
-                    libraryRoute ? () => openAdminGallery('logo') : null
-                }
-                onFileCover={(file) => handleSingle(file, 'cover')}
-                onFileLogo={(file) => handleSingle(file, 'logo')}
-                onViewCover={
-                    coverPreview
-                        ? () => openLightboxAt(coverPreview)
-                        : undefined
-                }
-                onViewLogo={
-                    logoPreview
-                        ? () => openLightboxAt(logoPreview)
-                        : undefined
-                }
-                onClearCover={() => {
-                    setCoverUrlDraft('');
-                    setCoverUrlError(null);
-                    onCoverChange?.({
-                        file: null,
-                        preview: null,
-                        url: '',
-                    });
-                }}
-                onClearLogo={() => {
-                    setLogoUrlDraft('');
-                    setLogoUrlError(null);
-                    onLogoChange?.({
-                        file: null,
-                        preview: null,
-                        url: '',
-                    });
-                }}
-                coverUrl={coverUrlDraft}
-                logoUrl={logoUrlDraft}
-                onCoverUrlChange={(value) => {
-                    setCoverUrlDraft(value);
-                    setCoverUrlError(null);
-                }}
-                onLogoUrlChange={(value) => {
-                    setLogoUrlDraft(value);
-                    setLogoUrlError(null);
-                }}
-                onSubmitCoverUrl={submitCoverUrl}
-                onSubmitLogoUrl={submitLogoUrl}
-                coverUrlError={coverUrlError}
-                logoUrlError={logoUrlError}
-            />
-
             {showPoster ? (
                 <PosterSlot
                     preview={posterPreview}
@@ -1165,11 +1133,83 @@ export default function GalleryUploader({
                             url: null,
                         })
                     }
+                    error={
+                        errors.event_poster ||
+                        errors.event_poster_url ||
+                        errors.cover ||
+                        errors.image_url ||
+                        null
+                    }
                 />
             ) : null}
 
-            {errors.cover || errors.image_url ? (
-                <p className="-mt-4 text-sm text-rose-600">
+            {!hideCover ? (
+                <CoverLogoStage
+                    coverPreview={coverPreview}
+                    logoPreview={logoPreview}
+                    hideLogo={hideLogo}
+                    onBrowseCover={() => openAddMenu('cover')}
+                    onBrowseLogo={() => openAddMenu('logo')}
+                    onOpenLibraryCover={
+                        libraryRoute ? () => openAdminGallery('cover') : null
+                    }
+                    onOpenLibraryLogo={
+                        libraryRoute ? () => openAdminGallery('logo') : null
+                    }
+                    onFileCover={(file) => handleSingle(file, 'cover')}
+                    onFileLogo={(file) => handleSingle(file, 'logo')}
+                    onViewCover={
+                        coverPreview
+                            ? () => openLightboxAt(coverPreview)
+                            : undefined
+                    }
+                    onViewLogo={
+                        logoPreview
+                            ? () => openLightboxAt(logoPreview)
+                            : undefined
+                    }
+                    onClearCover={() => {
+                        setCoverUrlDraft('');
+                        setCoverUrlError(null);
+                        onCoverChange?.({
+                            file: null,
+                            preview: null,
+                            url: '',
+                        });
+                    }}
+                    onClearLogo={() => {
+                        setLogoUrlDraft('');
+                        setLogoUrlError(null);
+                        onLogoChange?.({
+                            file: null,
+                            preview: null,
+                            url: '',
+                        });
+                    }}
+                    coverUrl={coverUrlDraft}
+                    logoUrl={logoUrlDraft}
+                    onCoverUrlChange={(value) => {
+                        setCoverUrlDraft(value);
+                        setCoverUrlError(null);
+                    }}
+                    onLogoUrlChange={(value) => {
+                        setLogoUrlDraft(value);
+                        setLogoUrlError(null);
+                    }}
+                    onSubmitCoverUrl={submitCoverUrl}
+                    onSubmitLogoUrl={submitLogoUrl}
+                    coverUrlError={coverUrlError}
+                    logoUrlError={logoUrlError}
+                />
+            ) : null}
+
+            {!hideCover && (errors.cover || errors.image_url) ? (
+                <p
+                    className="-mt-2 rounded-sm border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300"
+                    role="alert"
+                    data-error-field="cover"
+                    id="cover"
+                >
                     {errors.cover || errors.image_url}
                 </p>
             ) : null}
@@ -1530,6 +1570,7 @@ export default function GalleryUploader({
                     index={lightboxIndex}
                     onClose={() => setLightboxIndex(null)}
                     onIndexChange={setLightboxIndex}
+                    padBlur
                 />
             ) : null}
 

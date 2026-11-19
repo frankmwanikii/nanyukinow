@@ -39,6 +39,7 @@ class ListingRequest extends FormRequest
         $merge['hours'] = $this->decodeArrayField('hours');
         $merge['social_links'] = $this->decodeArrayField('social_links');
         $merge['details'] = $this->decodeArrayField('details');
+        $merge['ticket_options'] = $this->decodeArrayField('ticket_options');
         $merge['gallery_urls'] = $this->decodeArrayField('gallery_urls');
         $merge['gallery_file_meta'] = $this->decodeArrayField('gallery_file_meta');
         $merge['subcategory'] = $this->decodeSubcategoryField();
@@ -137,6 +138,9 @@ class ListingRequest extends FormRequest
             'details' => ['nullable', 'array'],
             'start_at' => ['nullable', 'date'],
             'end_at' => ['nullable', 'date', 'after_or_equal:start_at'],
+            'ticket_options' => ['nullable', 'array', 'max:40'],
+            'ticket_options.*.name' => ['nullable', 'string', 'max:120'],
+            'ticket_options.*.amount' => ['nullable', 'integer', 'min:0', 'max:999999999'],
             'ticket_price' => ['nullable', 'string', 'max:120'],
             'early_bird_price' => ['nullable', 'string', 'max:120'],
             'gate_price' => ['nullable', 'string', 'max:120'],

@@ -11,6 +11,10 @@ import {
     emptyDetailsFor,
 } from '@/Components/listing-form/categoryFieldConfig';
 import { compactPricingOptions } from '@/Components/listing-form/PricingOptionsInput';
+import {
+    asTicketOptions,
+    compactTicketOptions,
+} from '@/Components/listing-form/TicketOptionsInput';
 import FieldLabel from '@/Components/listing-form/FieldLabel';
 
 function serializeListingDetails(details) {
@@ -23,12 +27,21 @@ function serializeListingDetails(details) {
     return next;
 }
 
+function serializeTicketOptions(rows) {
+    return compactTicketOptions(rows).map((row) => ({
+        name: row.name.trim(),
+        amount: row.amount === '' ? null : Number(row.amount),
+    }));
+}
+
 import {
     defaultHours,
     field,
+    fieldClass,
     label,
     sectionCard,
 } from '@/Components/listing-form/fieldStyles';
+import FieldError from '@/Components/listing-form/FieldError';
 import AccountLayout from '@/Layouts/AccountLayout';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { PROPERTY_TYPES, mainCategories } from '@/data/categories';
@@ -208,6 +221,128 @@ const STEPS = [
     { id: 'preview', title: 'Preview' },
 ];
 
+const ERROR_FIELD_LABELS = {
+    title: 'Name',
+    category_id: 'Category',
+    subcategory: 'Subcategory',
+    property_type: 'Property type',
+    tagline: 'Tagline',
+    description: 'About',
+    location: 'Area',
+    address: 'Address',
+    latitude: 'Map pin',
+    longitude: 'Map pin',
+    start_at: 'Starts',
+    end_at: 'Ends',
+    venue: 'Venue name',
+    ticket_url: 'Ticket link',
+    ticket_options: 'Tickets',
+    ticket_price: 'Tickets',
+    cover: 'Cover image',
+    image_url: 'Cover image',
+    logo: 'Logo',
+    logo_url: 'Logo',
+    event_poster: 'Event poster',
+    gallery_files: 'Gallery',
+    gallery_urls: 'Gallery',
+    phone: 'Phone',
+    whatsapp: 'WhatsApp',
+    email: 'Email',
+    website: 'Website',
+    amenities: 'Amenities',
+    hours: 'Hours',
+};
+
+const ERROR_STEP_BY_FIELD = {
+    title: 'basics',
+    category_id: 'basics',
+    subcategory: 'basics',
+    property_type: 'basics',
+    tagline: 'basics',
+    description: 'basics',
+    location: 'location',
+    address: 'location',
+    latitude: 'location',
+    longitude: 'location',
+    start_at: 'details',
+    end_at: 'details',
+    venue: 'details',
+    ticket_url: 'details',
+    ticket_options: 'details',
+    ticket_price: 'details',
+    early_bird_price: 'details',
+    gate_price: 'details',
+    amenities: 'amenities',
+    hours: 'amenities',
+    cover: 'media',
+    image_url: 'media',
+    logo: 'media',
+    logo_url: 'media',
+    event_poster: 'media',
+    event_poster_url: 'media',
+    gallery_files: 'media',
+    gallery_urls: 'media',
+    phone: 'contact',
+    whatsapp: 'contact',
+    email: 'contact',
+    website: 'contact',
+    social_links: 'contact',
+};
+
+function stepIdForErrorKey(key) {
+    if (ERROR_STEP_BY_FIELD[key]) {
+        return ERROR_STEP_BY_FIELD[key];
+    }
+    if (String(key).startsWith('details')) {
+        return 'details';
+    }
+    if (String(key).startsWith('social_links')) {
+        return 'contact';
+    }
+    if (String(key).startsWith('gallery') || String(key).startsWith('ticket')) {
+        return String(key).startsWith('ticket') ? 'details' : 'media';
+    }
+    return 'basics';
+}
+
+function friendlyErrorLabel(key) {
+    return ERROR_FIELD_LABELS[key] || String(key).replaceAll('_', ' ');
+}
+
+function friendlyErrorMessage(key, message) {
+    const text = String(message || '');
+    if (
+        key === 'end_at' &&
+        /after or equal to start/i.test(text)
+    ) {
+        return 'Ends must be on or after Starts.';
+    }
+    if (
+        key === 'start_at' &&
+        /required/i.test(text)
+    ) {
+        return 'Starts is required for events.';
+    }
+    return text;
+}
+
+function focusErrorField(key) {
+    if (!key || typeof document === 'undefined') {
+        return;
+    }
+    const el =
+        document.getElementById(key) ||
+        document.querySelector(`[data-error-field="${key}"]`) ||
+        document.getElementById(`detail_${key}`);
+    if (!el) {
+        return;
+    }
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (typeof el.focus === 'function') {
+        el.focus({ preventScroll: true });
+    }
+}
+
 function normalizeStayGalleryKind(kind) {
     const value = kind || 'bedroom';
     return STAY_GALLERY_SPACES.some((s) => s.value === value)
@@ -349,9 +484,15 @@ export default function Form({
         latitude: listing?.latitude ?? '',
         longitude: listing?.longitude ?? '',
         price_range: listing?.price_range || '',
-        image_url: persistedMediaUrl(listing?.image_url),
+        image_url: persistedMediaUrl(
+            listing?.image_url ||
+                (initialKey === 'events' ? listing?.event_poster_url : null),
+        ),
         logo_url: persistedMediaUrl(listing?.logo_url),
-        event_poster_url: persistedMediaUrl(listing?.event_poster_url),
+        event_poster_url: persistedMediaUrl(
+            listing?.event_poster_url ||
+                (initialKey === 'events' ? listing?.image_url : null),
+        ),
         amenities: listing?.amenities || [],
         hours:
             listing?.hours?.length
@@ -375,9 +516,7 @@ export default function Form({
         },
         start_at: listing?.start_at || '',
         end_at: listing?.end_at || '',
-        ticket_price: listing?.ticket_price || '',
-        early_bird_price: listing?.early_bird_price || '',
-        gate_price: listing?.gate_price || '',
+        ticket_options: asTicketOptions(listing?.ticket_options || []),
         ticket_url: listing?.ticket_url || '',
         tier: listing?.tier || plan?.key || 'free',
         cover: null,
@@ -402,13 +541,19 @@ export default function Form({
     formDataRef.current = form.data;
 
     const [coverPreview, setCoverPreview] = useState(
-        previewMediaUrl(listing?.image_url),
+        previewMediaUrl(
+            listing?.image_url ||
+                (initialKey === 'events' ? listing?.event_poster_url : null),
+        ),
     );
     const [logoPreview, setLogoPreview] = useState(
         previewMediaUrl(listing?.logo_url),
     );
     const [posterPreview, setPosterPreview] = useState(
-        previewMediaUrl(listing?.event_poster_url),
+        previewMediaUrl(
+            listing?.event_poster_url ||
+                (initialKey === 'events' ? listing?.image_url : null),
+        ),
     );
     const [galleryItems, setGalleryItems] = useState(() =>
         galleryFromListing(listing),
@@ -541,9 +686,10 @@ export default function Form({
         }
         append('start_at', data.start_at || '');
         append('end_at', data.end_at || '');
-        append('ticket_price', data.ticket_price || '');
-        append('early_bird_price', data.early_bird_price || '');
-        append('gate_price', data.gate_price || '');
+        append(
+            'ticket_options',
+            JSON.stringify(serializeTicketOptions(data.ticket_options)),
+        );
         append('ticket_url', data.ticket_url || '');
 
         if (isAdmin) {
@@ -552,7 +698,10 @@ export default function Form({
             append('priority', data.priority ?? 0);
         }
 
-        if (data.cover) append('cover', data.cover);
+        // Events use the poster as cover; only upload poster to avoid duplicates.
+        if (data.cover && categoryKey !== 'events') {
+            append('cover', data.cover);
+        }
         if (data.logo) append('logo', data.logo);
         if (data.event_poster) append('event_poster', data.event_poster);
         galleryItems
@@ -645,12 +794,20 @@ export default function Form({
                     setLogoPreview(savedLogo);
                 }
                 const savedPoster = persistedMediaUrl(
-                    json.listing.event_poster_url,
+                    json.listing.event_poster_url ||
+                        (categoryKey === 'events'
+                            ? json.listing.image_url
+                            : null),
                 );
                 if (savedPoster) {
                     form.setData('event_poster_url', savedPoster);
                     form.setData('event_poster', null);
                     setPosterPreview(savedPoster);
+                    if (categoryKey === 'events') {
+                        form.setData('image_url', savedPoster);
+                        form.setData('cover', null);
+                        setCoverPreview(savedPoster);
+                    }
                 }
                 if (Array.isArray(json.listing.gallery)) {
                     const savedGallery = json.listing.gallery
@@ -753,10 +910,28 @@ export default function Form({
         });
     };
 
+    const pendingErrorFocus = useRef(null);
+
     const patch = (partial) => {
         form.setData((data) => ({ ...data, ...partial }));
+        const keys = Object.keys(partial || {});
+        if (keys.length) {
+            form.clearErrors(...keys);
+        }
         scheduleAutosave();
     };
+
+    useEffect(() => {
+        const key = pendingErrorFocus.current;
+        if (!key) {
+            return undefined;
+        }
+        const timer = window.setTimeout(() => {
+            pendingErrorFocus.current = null;
+            focusErrorField(key);
+        }, 80);
+        return () => window.clearTimeout(timer);
+    }, [stepIndex, form.errors]);
 
     useEffect(() => {
         // Skip the initial mount dump; save when the user starts editing.
@@ -790,7 +965,7 @@ export default function Form({
         form.data.social_links,
         form.data.start_at,
         form.data.end_at,
-        form.data.ticket_price,
+        form.data.ticket_options,
         form.data.tier,
         galleryItems,
         phase,
@@ -821,24 +996,56 @@ export default function Form({
         }
         if (step === 'details' && categoryKey === 'events') {
             if (!form.data.start_at) {
-                form.setError('start_at', 'Start date is required for events.');
+                form.setError('start_at', 'Starts is required for events.');
+                pendingErrorFocus.current = 'start_at';
+                return false;
+            }
+            if (
+                form.data.end_at &&
+                form.data.start_at &&
+                form.data.end_at < form.data.start_at
+            ) {
+                form.setError(
+                    'end_at',
+                    'Ends must be on or after Starts.',
+                );
+                pendingErrorFocus.current = 'end_at';
                 return false;
             }
             if (!form.data.venue?.trim()) {
-                form.setError('venue', 'Venue is required for events.');
+                form.setError('venue', 'Venue name is required for events.');
+                pendingErrorFocus.current = 'venue';
                 return false;
             }
         }
-        if (step === 'media' && !coverPreview && !form.data.image_url) {
-            form.setError('cover', 'Please add a cover image.');
-            return false;
+        if (step === 'media') {
+            if (isEvents) {
+                if (!posterPreview && !form.data.event_poster_url) {
+                    form.setError(
+                        'event_poster',
+                        'Please add an event poster.',
+                    );
+                    pendingErrorFocus.current = 'event_poster';
+                    return false;
+                }
+            } else if (!coverPreview && !form.data.image_url) {
+                form.setError('cover', 'Please add a cover image.');
+                pendingErrorFocus.current = 'cover';
+                return false;
+            }
         }
         form.clearErrors();
         return true;
     };
 
     const next = () => {
-        if (!isAdmin && !validateStep()) return;
+        if (!isAdmin && !validateStep()) {
+            const key = pendingErrorFocus.current;
+            if (key) {
+                requestAnimationFrame(() => focusErrorField(key));
+            }
+            return;
+        }
         setStepIndex((i) => Math.min(i + 1, STEPS.length - 1));
     };
 
@@ -900,6 +1107,9 @@ export default function Form({
                     serializeListingDetails(data.details),
                 ),
                 social_links: JSON.stringify(data.social_links || {}),
+                ticket_options: JSON.stringify(
+                    serializeTicketOptions(data.ticket_options),
+                ),
                 latitude: data.latitude === '' ? null : data.latitude,
                 longitude: data.longitude === '' ? null : data.longitude,
             };
@@ -928,7 +1138,18 @@ export default function Form({
 
         const options = {
             forceFormData: true,
-            onError: () => setStepIndex(0),
+            onError: (errors) => {
+                const firstKey = Object.keys(errors || {})[0];
+                if (!firstKey) {
+                    return;
+                }
+                pendingErrorFocus.current = firstKey;
+                const stepId = stepIdForErrorKey(firstKey);
+                const idx = STEPS.findIndex((s) => s.id === stepId);
+                if (idx >= 0) {
+                    setStepIndex(idx);
+                }
+            },
         };
 
         if (isAdmin) {
@@ -1222,15 +1443,9 @@ export default function Form({
                                                               form.data.start_at,
                                                           end_at: form.data.end_at,
                                                           venue: form.data.venue,
-                                                          ticket_price:
+                                                          ticket_options:
                                                               form.data
-                                                                  .ticket_price,
-                                                          early_bird_price:
-                                                              form.data
-                                                                  .early_bird_price,
-                                                          gate_price:
-                                                              form.data
-                                                                  .gate_price,
+                                                                  .ticket_options,
                                                           ticket_url:
                                                               form.data
                                                                   .ticket_url,
@@ -1241,6 +1456,17 @@ export default function Form({
                                                 patch(partial)
                                             }
                                             tier={listingTier}
+                                            errors={Object.fromEntries(
+                                                Object.entries(
+                                                    form.errors,
+                                                ).map(([key, message]) => [
+                                                    key,
+                                                    friendlyErrorMessage(
+                                                        key,
+                                                        message,
+                                                    ),
+                                                ]),
+                                            )}
                                         />
                                         <CategoryExtrasEditor
                                             categoryKey={categoryKey}
@@ -1326,7 +1552,8 @@ export default function Form({
                                         logoPreview={logoPreview}
                                         posterPreview={posterPreview}
                                         galleryItems={galleryItems}
-                                        showPoster={categoryKey === 'events'}
+                                        showPoster={isEvents}
+                                        hideCover={isEvents}
                                         maxGallery={galleryMax}
                                         maxPerSpace={galleryPerRoomMax}
                                         categorized={
@@ -1334,7 +1561,7 @@ export default function Form({
                                         }
                                         spaceOptions={STAY_GALLERY_SPACES}
                                         hideGallery={galleryLocked}
-                                        hideLogo={logoLocked}
+                                        hideLogo={logoLocked || isEvents}
                                         libraryRoute={
                                             isAdmin
                                                 ? route('admin.gallery.browse')
@@ -1372,19 +1599,23 @@ export default function Form({
                                             preview,
                                             url,
                                         }) => {
-                                            setPosterPreview(
-                                                previewMediaUrl(preview),
-                                            );
+                                            const nextPreview =
+                                                previewMediaUrl(preview);
+                                            const nextUrl = file
+                                                ? persistedMediaUrl(
+                                                      form.data
+                                                          .event_poster_url,
+                                                  )
+                                                : persistedMediaUrl(
+                                                      url || preview,
+                                                  );
+                                            setPosterPreview(nextPreview);
+                                            setCoverPreview(nextPreview);
                                             patch({
                                                 event_poster: file || null,
-                                                event_poster_url: file
-                                                    ? persistedMediaUrl(
-                                                          form.data
-                                                              .event_poster_url,
-                                                      )
-                                                    : persistedMediaUrl(
-                                                          url || preview,
-                                                      ),
+                                                event_poster_url: nextUrl,
+                                                cover: null,
+                                                image_url: nextUrl || '',
                                             });
                                         }}
                                         onGalleryChange={setGalleryItems}
@@ -1514,13 +1745,59 @@ export default function Form({
                         </AnimatePresence>
 
                         {Object.keys(form.errors).length > 0 ? (
-                            <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300">
-                                Please fix the highlighted fields before continuing.
-                                <ul className="mt-2 list-disc pl-5">
+                            <div
+                                className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300"
+                                role="alert"
+                            >
+                                <p className="font-semibold">
+                                    Please fix the highlighted fields before
+                                    continuing.
+                                </p>
+                                <ul className="mt-2 space-y-1.5">
                                     {Object.entries(form.errors)
                                         .slice(0, 6)
                                         .map(([key, msg]) => (
-                                            <li key={key}>{msg}</li>
+                                            <li key={key}>
+                                                <button
+                                                    type="button"
+                                                    className="text-left underline decoration-rose-300 underline-offset-2 transition hover:text-rose-900 dark:hover:text-rose-200"
+                                                    onClick={() => {
+                                                        const stepId =
+                                                            stepIdForErrorKey(
+                                                                key,
+                                                            );
+                                                        const idx =
+                                                            STEPS.findIndex(
+                                                                (s) =>
+                                                                    s.id ===
+                                                                    stepId,
+                                                            );
+                                                        pendingErrorFocus.current =
+                                                            key;
+                                                        if (idx >= 0) {
+                                                            setStepIndex(idx);
+                                                        }
+                                                        if (
+                                                            idx === stepIndex
+                                                        ) {
+                                                            focusErrorField(
+                                                                key,
+                                                            );
+                                                        }
+                                                    }}
+                                                >
+                                                    <span className="font-semibold">
+                                                        {friendlyErrorLabel(
+                                                            key,
+                                                        )}
+                                                        :
+                                                    </span>{' '}
+                                                    {friendlyErrorMessage(
+                                                        key,
+                                                        msg,
+                                                    )}
+                                                </button>
+                                            </li>
                                         ))}
                                 </ul>
                             </div>
@@ -1959,13 +2236,13 @@ function BasicsStep({
 
     return (
         <>
-            <div>
+            <div data-error-field="title">
                 <FieldLabel htmlFor="title" required>
                     {categoryNameLabel(categoryKey)}
                 </FieldLabel>
                 <input
                     id="title"
-                    className={field}
+                    className={fieldClass(Boolean(form.errors.title))}
                     value={form.data.title}
                     onChange={(e) => {
                         const value = e.target.value;
@@ -1975,13 +2252,16 @@ function BasicsStep({
                                 : { title: value, slug: slugifyTitle(value) },
                         );
                     }}
+                    aria-invalid={form.errors.title ? true : undefined}
+                    aria-describedby={
+                        form.errors.title ? 'title-error' : undefined
+                    }
                     required
                 />
-                {form.errors.title ? (
-                    <p className="mt-1.5 text-sm text-rose-600">
-                        {form.errors.title}
-                    </p>
-                ) : null}
+                <FieldError
+                    id="title-error"
+                    message={form.errors.title}
+                />
             </div>
 
             <div className="grid gap-4">

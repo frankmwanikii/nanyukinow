@@ -8,6 +8,7 @@ export default function MediaLightbox({
     index = 0,
     onClose,
     onIndexChange,
+    padBlur = false,
 }) {
     return (
         <GalleryLightbox
@@ -15,6 +16,7 @@ export default function MediaLightbox({
             index={index}
             onClose={onClose}
             onIndexChange={onIndexChange}
+            padBlur={padBlur}
         />
     );
 }

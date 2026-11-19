@@ -2102,12 +2102,6 @@ function buildFactsFromDetails(listing) {
         if (d.floor_plan_pdf) {
             pairs.push({ label: 'Floor plan', value: 'Download PDF', href: d.floor_plan_pdf });
         }
-    } else if (key === 'events') {
-        if (listing.venue) pairs.push({ label: 'Venue', value: String(listing.venue) });
-        if (d.organiser) pairs.push({ label: 'Organiser', value: String(d.organiser) });
-        if (d.age_limit) pairs.push({ label: 'Age limit', value: String(d.age_limit) });
-        if (d.doors_open) pairs.push({ label: 'Doors open', value: String(d.doors_open) });
-        if (d.dress_code) pairs.push({ label: 'Dress code', value: String(d.dress_code) });
     }
 
     return pairs;
@@ -2477,22 +2471,34 @@ export function getListingDetail(listing) {
                   ? base.gallery
                   : (explicit?.gallery ?? base.gallery),
           );
+    // Events: fold the poster into the gallery as the first image (no Poster tab).
     if (listing.categoryKey === 'events' && posterSrc) {
-        const spaces = normalizeGallerySpaces(gallery);
-        const hasPosterSpace = spaces.some(
-            (space) => space.kind === 'poster' || space.label === 'Poster',
+        const spaces = normalizeGallerySpaces(gallery).filter(
+            (space) => space.kind !== 'poster' && space.label !== 'Poster',
         );
-        if (!hasPosterSpace) {
-            gallery = [
-                {
-                    label: 'Poster',
-                    kind: 'poster',
-                    images: [posterSrc],
-                    cover: posterSrc,
-                },
-                ...spaces,
-            ];
+        const seen = new Set();
+        const images = [];
+        const push = (src) => {
+            if (!src || seen.has(src)) return;
+            seen.add(src);
+            images.push(src);
+        };
+        push(posterSrc);
+        for (const space of spaces) {
+            for (const src of space.images || []) {
+                push(src);
+            }
         }
+        gallery = images.length
+            ? [
+                  {
+                      label: 'Gallery',
+                      kind: 'main',
+                      images,
+                      cover: posterSrc,
+                  },
+              ]
+            : [];
     }
 
     return {

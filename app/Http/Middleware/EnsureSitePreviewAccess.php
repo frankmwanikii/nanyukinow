@@ -17,6 +17,9 @@ class EnsureSitePreviewAccess
         'up',
         'webhooks/*',
         'newsletter',
+        // Staff must reach sign-in and the dashboard without the public unlock.
+        'admin',
+        'admin/*',
     ];
 
     /**

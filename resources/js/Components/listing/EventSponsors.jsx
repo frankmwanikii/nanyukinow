@@ -9,20 +9,22 @@ export default function EventSponsors({ sponsors = [] }) {
     return (
         <DetailSection title="Sponsors">
             <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-                {list.map((sponsor) => (
+                {list.map((sponsor, index) => (
                     <li
-                        key={sponsor.name || sponsor.logo}
-                        className="flex flex-col items-center justify-center gap-2 rounded-xl bg-olive-50/80 px-3 py-4 ring-1 ring-olive-100"
+                        key={sponsor.name || sponsor.logo || index}
+                        className="flex min-w-0 flex-col items-center gap-2 border border-olive-900/10 bg-olive-50/50 px-3 py-4"
                     >
                         {sponsor.logo ? (
-                            <img
-                                src={sponsor.logo}
-                                alt={sponsor.name || 'Sponsor'}
-                                className="h-12 w-12 rounded-full object-cover shadow-sm sm:h-14 sm:w-14"
-                                loading="lazy"
-                            />
+                            <span className="flex h-16 w-full items-center justify-center bg-white px-2 py-2 sm:h-20">
+                                <img
+                                    src={sponsor.logo}
+                                    alt={sponsor.name || 'Sponsor'}
+                                    className="max-h-full max-w-full object-contain"
+                                    loading="lazy"
+                                />
+                            </span>
                         ) : (
-                            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-sm font-bold text-olive-700 ring-1 ring-olive-200 sm:h-14 sm:w-14">
+                            <span className="flex h-16 w-full items-center justify-center bg-white text-sm font-semibold text-olive-700 sm:h-20">
                                 {(sponsor.name || '?').slice(0, 1)}
                             </span>
                         )}

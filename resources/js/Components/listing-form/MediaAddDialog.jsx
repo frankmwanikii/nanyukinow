@@ -28,6 +28,15 @@ const TARGET_COPY = {
         libraryHint: 'Pick an existing image as the cover',
         urlHint: 'Use a direct link for the cover',
     },
+    sponsor: {
+        menu: 'Replace sponsor logo',
+        library: 'Choose sponsor logo from gallery',
+        url: 'Sponsor logo URL',
+        back: 'Back to sponsors',
+        uploadHint: 'Upload a new sponsor logo from this device',
+        libraryHint: 'Pick an existing image as the sponsor logo',
+        urlHint: 'Use a direct link for the sponsor logo',
+    },
     logo: {
         menu: 'Replace logo',
         library: 'Choose logo from gallery',

@@ -1,4 +1,3 @@
-import { CalendarDays } from '@/Components/site/LucideCompat';
 import { useEffect, useState } from 'react';
 import DetailSection from './DetailSection';
 import { formatEventDate, formatEventTime } from './eventDates';
@@ -9,87 +8,184 @@ function parseEventDate(value) {
     return Number.isNaN(date.getTime()) ? null : date;
 }
 
-function formatCountdown(ms) {
-    if (ms <= 0) return null;
-    const totalSeconds = Math.floor(ms / 1000);
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-    const parts = [];
-    if (hours > 0) {
-        parts.push(`${hours} ${hours === 1 ? 'hr' : 'hrs'}`);
-    }
-    parts.push(`${minutes} ${minutes === 1 ? 'min' : 'mins'}`);
-    parts.push(`${seconds} ${seconds === 1 ? 'sec' : 'secs'}`);
-    return parts.join(' ');
+function sameCalendarDay(a, b) {
+    if (!a || !b) return false;
+    return (
+        a.getFullYear() === b.getFullYear() &&
+        a.getMonth() === b.getMonth() &&
+        a.getDate() === b.getDate()
+    );
 }
 
-function datetimeLabel(dateValue) {
-    const date = formatEventDate(dateValue);
-    const time = formatEventTime(dateValue);
-    if (!date && !time) return null;
-    return [date, time].filter(Boolean).join(', ');
+function formatCountdown(ms) {
+    if (ms <= 0) return null;
+
+    const totalMinutes = Math.floor(ms / 60000);
+    const days = Math.floor(totalMinutes / (60 * 24));
+    const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+    const minutes = totalMinutes % 60;
+
+    if (days >= 14) {
+        const weeks = Math.round(days / 7);
+        return `Starts in ${weeks} ${weeks === 1 ? 'week' : 'weeks'}`;
+    }
+    if (days >= 2) {
+        return `Starts in ${days} days`;
+    }
+    if (days === 1) {
+        return 'Starts tomorrow';
+    }
+    if (hours >= 1) {
+        return `Starts in ${hours} ${hours === 1 ? 'hr' : 'hrs'}${
+            minutes > 0 ? ` ${minutes} min` : ''
+        }`;
+    }
+    if (minutes <= 1) {
+        return 'Starting soon';
+    }
+    return `Starts in ${minutes} min`;
+}
+
+function formatDoorsOpen(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return null;
+
+    const match = raw.match(/^(\d{1,2}):(\d{2})\s*(am|pm)?$/i);
+    if (!match) return raw;
+
+    let hour = Number(match[1]);
+    const minute = match[2];
+    const meridiem = match[3]?.toLowerCase();
+
+    if (meridiem) {
+        return `${((hour + 11) % 12) + 1}:${minute} ${meridiem}`;
+    }
+
+    if (hour > 23) return raw;
+    const suffix = hour >= 12 ? 'pm' : 'am';
+    hour = hour % 12 || 12;
+    return `${hour}:${minute} ${suffix}`;
+}
+
+function calendarParts(date) {
+    if (!date) return null;
+    return {
+        weekday: date.toLocaleDateString('en-GB', { weekday: 'short' }),
+        day: String(date.getDate()),
+        month: date.toLocaleDateString('en-GB', { month: 'short' }),
+        year: String(date.getFullYear()),
+    };
 }
 
 export default function EventWhen({ listing }) {
     if (listing?.categoryKey !== 'events') return null;
-    if (!listing.startDate && !listing.endDate) return null;
+
+    const doorsOpen = formatDoorsOpen(
+        listing.doorsOpen || listing.details?.doors_open || '',
+    );
+    if (!listing.startDate && !listing.endDate && !doorsOpen) return null;
 
     const startAt = parseEventDate(listing.startDate);
     const endAt = parseEventDate(listing.endDate);
-    const startLabel = datetimeLabel(listing.startDate);
-    const endLabel = datetimeLabel(listing.endDate);
+    const startDateLabel = formatEventDate(listing.startDate);
+    const startTimeLabel = formatEventTime(listing.startDate);
+    const endDateLabel = formatEventDate(listing.endDate);
+    const endTimeLabel = formatEventTime(listing.endDate);
+    const singleDay = sameCalendarDay(startAt, endAt);
+    const badge = calendarParts(startAt);
 
     const [now, setNow] = useState(() => Date.now());
 
     useEffect(() => {
-        if (!startAt || startAt.getTime() <= Date.now()) return undefined;
-        const id = window.setInterval(() => setNow(Date.now()), 1000);
+        if (!startAt) return undefined;
+        const remaining = startAt.getTime() - Date.now();
+        if (remaining <= 0) return undefined;
+
+        const intervalMs = remaining < 24 * 60 * 60 * 1000 ? 30_000 : 60_000;
+        const id = window.setInterval(() => setNow(Date.now()), intervalMs);
         return () => window.clearInterval(id);
     }, [startAt]);
-
-    const rows = [];
-    if (startLabel) {
-        rows.push({ label: 'Start date', value: startLabel });
-    }
-    if (endLabel) {
-        rows.push({ label: 'End date', value: endLabel });
-    }
 
     const countdown =
         startAt && startAt.getTime() > now
             ? formatCountdown(startAt.getTime() - now)
             : null;
-    if (countdown) {
-        rows.push({ label: 'Starts in', value: countdown });
+
+    const timeLine = (() => {
+        if (!startTimeLabel && !endTimeLabel) return null;
+        if (singleDay && startTimeLabel && endTimeLabel) {
+            return `${startTimeLabel} to ${endTimeLabel}`;
+        }
+        if (startTimeLabel) return startTimeLabel;
+        return endTimeLabel;
+    })();
+
+    const showEndBlock = endAt && endDateLabel && (!startAt || !singleDay);
+
+    if (!startDateLabel && !showEndBlock && !doorsOpen && !countdown) {
+        return null;
     }
 
-    if (!rows.length) return null;
-
     return (
-        <DetailSection
-            title="Date & time"
-            action={
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-mustard/25 text-olive-900">
-                    <CalendarDays className="h-4 w-4" strokeWidth={2} />
-                </span>
-            }
-        >
-            <dl className="divide-y divide-olive-100">
-                {rows.map((row) => (
-                    <div
-                        key={row.label}
-                        className="flex items-baseline justify-between gap-4 py-3 first:pt-0 last:pb-0"
-                    >
-                        <dt className="text-[11px] font-semibold uppercase tracking-wide text-olive-500">
-                            {row.label}
-                        </dt>
-                        <dd className="text-right font-display text-[15px] font-semibold text-earth-dusk">
-                            {row.value}
-                        </dd>
+        <DetailSection title="Date & time">
+            <div className="space-y-5">
+                {badge || startDateLabel ? (
+                    <div className="flex items-start gap-4 sm:gap-5">
+                        {badge ? (
+                            <div className="flex h-[4.75rem] w-[4.25rem] shrink-0 flex-col items-center justify-center bg-olive-900 text-center text-white sm:h-20 sm:w-[4.5rem]">
+                                <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-mustard">
+                                    {badge.month}
+                                </span>
+                                <span className="font-display text-[1.85rem] font-semibold leading-none tracking-tight sm:text-[2rem]">
+                                    {badge.day}
+                                </span>
+                                <span className="mt-0.5 text-[10px] font-medium uppercase tracking-wide text-white/65">
+                                    {badge.weekday}
+                                </span>
+                            </div>
+                        ) : null}
+
+                        <div className="min-w-0 pt-0.5">
+                            <p className="font-display text-xl font-semibold leading-snug tracking-tight text-earth-dusk sm:text-2xl">
+                                {startDateLabel}
+                            </p>
+                            {timeLine ? (
+                                <p className="mt-1 text-base text-olive-800">
+                                    {timeLine}
+                                </p>
+                            ) : null}
+                            {countdown ? (
+                                <p className="mt-2 inline-flex rounded-sm bg-mustard/20 px-2.5 py-1 text-sm font-semibold text-earth-dusk">
+                                    {countdown}
+                                </p>
+                            ) : null}
+                        </div>
                     </div>
-                ))}
-            </dl>
+                ) : null}
+
+                {showEndBlock ? (
+                    <div className="border-t border-olive-100 pt-4">
+                        <p className="text-sm text-olive-600">Runs until</p>
+                        <p className="mt-0.5 font-display text-lg font-semibold text-earth-dusk">
+                            {endDateLabel}
+                            {endTimeLabel ? (
+                                <span className="font-sans text-base font-medium text-olive-800">
+                                    {`, ${endTimeLabel}`}
+                                </span>
+                            ) : null}
+                        </p>
+                    </div>
+                ) : null}
+
+                {doorsOpen ? (
+                    <p className="text-sm text-olive-700">
+                        Doors open at{' '}
+                        <span className="font-semibold text-earth-dusk">
+                            {doorsOpen}
+                        </span>
+                    </p>
+                ) : null}
+            </div>
         </DetailSection>
     );
 }

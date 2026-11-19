@@ -75,7 +75,7 @@ function placeToCoords(place) {
 }
 
 /**
- * Location picker — Google Maps + Places, or OpenStreetMap (Leaflet) + Photon/Nominatim.
+ * Location picker — Google Maps + Places, or OpenStreetMap (Leaflet) + Foursquare/Photon/Nominatim.
  */
 export default function PlacesLocationInput({
     apiKey,
@@ -705,10 +705,16 @@ export default function PlacesLocationInput({
                         aria-expanded={areasOpen}
                         onClick={() => setAreasOpen((value) => !value)}
                         className={`${field} flex items-center justify-between gap-3 text-left ${
+                            errors.location
+                                ? 'border-rose-500 focus:border-rose-600 dark:border-rose-500'
+                                : ''
+                        } ${
                             selectedAreas.length
                                 ? ''
                                 : 'text-olive-400 dark:text-olive-500'
                         }`}
+                        aria-invalid={errors.location ? true : undefined}
+                        data-error-field="location"
                     >
                         <span className="min-w-0 flex-1 truncate">
                             {areasSummary}
@@ -755,7 +761,7 @@ export default function PlacesLocationInput({
                     Select one or more: Nanyuki, Naromoru, or Timau.
                 </p>
                 {errors.location ? (
-                    <p className="mt-1.5 text-sm text-rose-600">
+                    <p className="mt-1.5 text-sm text-rose-600" role="alert">
                         {errors.location}
                     </p>
                 ) : null}
@@ -767,13 +773,19 @@ export default function PlacesLocationInput({
                 </label>
                 <input
                     id="physical_address"
-                    className={field}
+                    className={`${field} ${
+                        errors.address
+                            ? 'border-rose-500 focus:border-rose-600 dark:border-rose-500'
+                            : ''
+                    }`}
                     value={address || ''}
                     onChange={(e) => onChange({ address: e.target.value })}
                     placeholder="e.g. Cedars Mall, Kenyatta Highway"
+                    aria-invalid={errors.address ? true : undefined}
+                    data-error-field="address"
                 />
                 {errors.address ? (
-                    <p className="mt-1.5 text-sm text-rose-600">
+                    <p className="mt-1.5 text-sm text-rose-600" role="alert">
                         {errors.address}
                     </p>
                 ) : null}

@@ -117,6 +117,7 @@ class EventsTierFeatures
             $payload['ticket_price'] = null;
             $payload['early_bird_price'] = null;
             $payload['gate_price'] = null;
+            $payload['ticket_options'] = null;
         }
 
         if (! ListingTierSupport::tierMeets($tier, Membership::PREMIUM)) {

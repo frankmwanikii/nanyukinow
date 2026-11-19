@@ -201,4 +201,22 @@ class ListingMedia
             static::delete($url);
         }
     }
+
+    /**
+     * For events, one flyer is both poster and cover. Prefer poster when set.
+     *
+     * @return array{0: ?string, 1: ?string} [imageUrl, posterUrl]
+     */
+    public static function syncEventCoverAndPoster(?string $imageUrl, ?string $posterUrl): array
+    {
+        if ($posterUrl) {
+            return [$posterUrl, $posterUrl];
+        }
+
+        if ($imageUrl) {
+            return [$imageUrl, $imageUrl];
+        }
+
+        return [null, null];
+    }
 }

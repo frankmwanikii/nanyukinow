@@ -42,6 +42,15 @@ return [
         'maps_key' => env('VITE_GOOGLE_MAPS_API_KEY', env('GOOGLE_MAPS_API_KEY')),
     ],
 
+    /*
+    | Foursquare Places API (server-side only). Prefer Admin → Settings → Maps.
+    | Docs: https://docs.foursquare.com/fsq-developers-places/reference/place-search
+    */
+    'foursquare' => [
+        'api_key' => env('FOURSQUARE_API_KEY'),
+        'api_version' => env('FOURSQUARE_API_VERSION', '2025-06-17'),
+    ],
+
     'recaptcha' => [
         'secret' => env('RECAPTCHA_SECRET_KEY'),
     ],

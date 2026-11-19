@@ -94,7 +94,7 @@ export default function GalleryLightbox({
             {padBlur ? (
                 <div
                     aria-hidden="true"
-                    className="pointer-events-none absolute inset-0 hidden overflow-hidden md:block"
+                    className="pointer-events-none absolute inset-0 overflow-hidden"
                 >
                     <img
                         key={`blur-${item.src}`}

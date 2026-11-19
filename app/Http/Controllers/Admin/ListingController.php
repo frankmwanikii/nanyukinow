@@ -24,6 +24,7 @@ use App\Support\ServicesTierFeatures;
 use App\Support\ShoppingTierFeatures;
 use App\Support\StayTierFeatures;
 use App\Support\ThingsToDoTierFeatures;
+use App\Support\TicketOptions;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -239,6 +240,12 @@ class ListingController extends Controller
                 'details' => $listing->details ?? [],
                 'start_at' => $listing->start_at?->format('Y-m-d\TH:i'),
                 'end_at' => $listing->end_at?->format('Y-m-d\TH:i'),
+                'ticket_options' => TicketOptions::forForm(
+                    $listing->ticket_options,
+                    $listing->ticket_price,
+                    $listing->early_bird_price,
+                    $listing->gate_price,
+                ),
                 'ticket_price' => $listing->ticket_price,
                 'early_bird_price' => $listing->early_bird_price,
                 'gate_price' => $listing->gate_price,
@@ -468,14 +475,22 @@ class ListingController extends Controller
             $data['details'] = json_last_error() === JSON_ERROR_NONE ? $decoded : [];
         }
 
-        $data['image_url'] = $imageUrl;
         $data['logo_url'] = $logoUrl;
-        $data['event_poster_url'] = $posterUrl;
 
         $categorySlug = isset($data['category_id'])
             ? Category::query()->whereKey($data['category_id'])->value('slug')
             : $listing?->category?->slug;
         $categoryKey = CategoryKey::fromSlug($categorySlug);
+
+        if ($categoryKey === 'events') {
+            [$imageUrl, $posterUrl] = ListingMedia::syncEventCoverAndPoster(
+                $imageUrl,
+                $posterUrl,
+            );
+        }
+
+        $data['image_url'] = $imageUrl;
+        $data['event_poster_url'] = $posterUrl;
 
         // Admins may attach Eat & Drink menus even when the listing is still Free;
         // normalize with at least Standard caps so the pages are not stripped.
@@ -487,6 +502,8 @@ class ListingController extends Controller
         ) {
             $adminMenus = $data['details']['menus'];
         }
+
+        $data = TicketOptions::applyToListingPayload($data);
 
         $data = EatDrinkTierFeatures::applyToPayload($data, $tier, $categoryKey);
         $data = StayTierFeatures::applyToPayload($data, $tier, $categoryKey);
@@ -579,11 +596,12 @@ class ListingController extends Controller
             ->where('is_active', true)
             ->orderByDesc('usage_count')
             ->orderBy('name')
-            ->get(['id', 'name', 'slug', 'category_key'])
+            ->get(['id', 'name', 'slug', 'icon_key', 'category_key'])
             ->map(fn (Amenity $a) => [
                 'id' => $a->id,
                 'name' => $a->name,
                 'slug' => $a->slug,
+                'icon_key' => $a->icon_key,
                 'category_key' => $a->category_key,
             ])
             ->all();
@@ -657,6 +675,12 @@ class ListingController extends Controller
             'details' => $listing->details ?? [],
             'start_at' => $listing->start_at?->format('Y-m-d\TH:i'),
             'end_at' => $listing->end_at?->format('Y-m-d\TH:i'),
+            'ticket_options' => TicketOptions::forForm(
+                $listing->ticket_options,
+                $listing->ticket_price,
+                $listing->early_bird_price,
+                $listing->gate_price,
+            ),
             'ticket_price' => $listing->ticket_price,
             'early_bird_price' => $listing->early_bird_price,
             'gate_price' => $listing->gate_price,

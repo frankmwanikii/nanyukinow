@@ -2,8 +2,10 @@
 
 namespace App\Support;
 
+use App\Models\Amenity;
 use App\Models\Listing;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 class ListingPayload
 {
@@ -27,9 +29,13 @@ class ListingPayload
             'location' => $listing->location,
             'city' => $listing->city,
             'tagline' => filled($listing->tagline) ? (string) $listing->tagline : null,
-            'image' => self::publicMediaUrl($listing->image_url),
+            'image' => self::publicMediaUrl(
+                $listing->image_url ?: $listing->event_poster_url,
+            ),
             'logo' => self::publicMediaUrl($listing->logo_url),
-            'eventPoster' => self::publicMediaUrl($listing->event_poster_url),
+            'eventPoster' => self::publicMediaUrl(
+                $listing->event_poster_url ?: $listing->image_url,
+            ),
             'rating' => $listing->rating !== null ? (float) $listing->rating : 0,
             'likesCount' => (int) ($listing->likes_count ?? 0),
             'category' => $category?->name,
@@ -52,7 +58,13 @@ class ListingPayload
             'details' => $price !== null ? ['price' => $price] : [],
             'startDate' => $listing->start_at?->toIso8601String(),
             'endDate' => $listing->end_at?->toIso8601String(),
-            'ticketPrice' => $listing->ticket_price,
+            'ticketPrice' => $listing->ticket_price
+                ?: TicketOptions::summary(TicketOptions::forForm(
+                    $listing->ticket_options,
+                    $listing->ticket_price,
+                    $listing->early_bird_price,
+                    $listing->gate_price,
+                )),
             'priority' => $listing->priority,
         ];
     }
@@ -72,7 +84,7 @@ class ListingPayload
             ...self::card($listing),
             'description' => $listing->description,
             'gallery' => $listing->gallery ?? [],
-            'amenities' => $listing->amenities ?? [],
+            'amenities' => self::presentAmenities($listing->amenities ?? []),
             'hours' => $listing->hours ?? [],
             'socials' => $listing->social_links ?? [],
             'websiteLinks' => collect($listing->social_links['links'] ?? [])
@@ -90,6 +102,12 @@ class ListingPayload
             'website' => $listing->website,
             'address' => $listing->address,
             'venue' => $listing->venue,
+            'tickets' => TicketOptions::forPublic(
+                $listing->ticket_options,
+                $listing->ticket_price,
+                $listing->early_bird_price,
+                $listing->gate_price,
+            ),
             'earlyBirdPrice' => $listing->early_bird_price,
             'gatePrice' => $listing->gate_price,
             'ticketUrl' => $listing->ticket_url,
@@ -124,6 +142,47 @@ class ListingPayload
     private static function publicMediaUrl(?string $url): ?string
     {
         return ListingMedia::normalizePublicUrl($url);
+    }
+
+    /**
+     * @param  list<mixed>  $raw
+     * @return list<array{slug: string, name: string, icon: string}>
+     */
+    private static function presentAmenities(array $raw): array
+    {
+        $slugs = [];
+        foreach ($raw as $entry) {
+            if (is_string($entry) && trim($entry) !== '') {
+                $slugs[] = trim($entry);
+            } elseif (is_array($entry) && filled($entry['slug'] ?? null)) {
+                $slugs[] = (string) $entry['slug'];
+            }
+        }
+        $slugs = array_values(array_unique($slugs));
+        if ($slugs === []) {
+            return [];
+        }
+
+        $rows = Amenity::query()
+            ->whereIn('slug', $slugs)
+            ->get(['slug', 'name', 'icon_key'])
+            ->keyBy('slug');
+
+        return array_map(function (string $slug) use ($rows) {
+            $row = $rows->get($slug);
+            $name = filled($row?->name)
+                ? (string) $row->name
+                : (string) Str::of($slug)->replace('-', ' ')->title();
+            $icon = filled($row?->icon_key)
+                ? (string) $row->icon_key
+                : AmenityIcon::guess($slug, $name);
+
+            return [
+                'slug' => $slug,
+                'name' => $name,
+                'icon' => $icon,
+            ];
+        }, $slugs);
     }
 
     /**

@@ -24,6 +24,7 @@ use App\Support\ServicesTierFeatures;
 use App\Support\ShoppingTierFeatures;
 use App\Support\StayTierFeatures;
 use App\Support\ThingsToDoTierFeatures;
+use App\Support\TicketOptions;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -343,6 +344,13 @@ class ListingController extends Controller
         $categoryKey = CategoryKey::fromSlug($categorySlug);
         $tier = Membership::normalize($data['tier'] ?? $existing?->tier);
 
+        if ($categoryKey === 'events') {
+            [$imageUrl, $posterUrl] = ListingMedia::syncEventCoverAndPoster(
+                $imageUrl,
+                $posterUrl,
+            );
+        }
+
         $payload = [
             'title' => $data['title'] ?? $existing?->title ?? 'Untitled draft',
             'category_id' => $categoryId,
@@ -377,11 +385,14 @@ class ListingController extends Controller
             'details' => $data['details'] ?? null,
             'start_at' => $data['start_at'] ?? null,
             'end_at' => $data['end_at'] ?? null,
+            'ticket_options' => $data['ticket_options'] ?? null,
             'ticket_price' => $data['ticket_price'] ?? null,
             'early_bird_price' => $data['early_bird_price'] ?? null,
             'gate_price' => $data['gate_price'] ?? null,
             'ticket_url' => $data['ticket_url'] ?? null,
         ];
+
+        $payload = TicketOptions::applyToListingPayload($payload);
 
         $payload = EatDrinkTierFeatures::applyToPayload($payload, $tier, $categoryKey);
         $payload = StayTierFeatures::applyToPayload($payload, $tier, $categoryKey);
@@ -482,6 +493,12 @@ class ListingController extends Controller
             'details' => $listing->details ?? [],
             'start_at' => $listing->start_at?->format('Y-m-d\TH:i'),
             'end_at' => $listing->end_at?->format('Y-m-d\TH:i'),
+            'ticket_options' => TicketOptions::forForm(
+                $listing->ticket_options,
+                $listing->ticket_price,
+                $listing->early_bird_price,
+                $listing->gate_price,
+            ),
             'ticket_price' => $listing->ticket_price,
             'early_bird_price' => $listing->early_bird_price,
             'gate_price' => $listing->gate_price,
@@ -540,11 +557,12 @@ class ListingController extends Controller
             ->where('is_active', true)
             ->orderByDesc('usage_count')
             ->orderBy('name')
-            ->get(['id', 'name', 'slug', 'category_key'])
+            ->get(['id', 'name', 'slug', 'icon_key', 'category_key'])
             ->map(fn (Amenity $a) => [
                 'id' => $a->id,
                 'name' => $a->name,
                 'slug' => $a->slug,
+                'icon_key' => $a->icon_key,
                 'category_key' => $a->category_key,
             ])
             ->all();

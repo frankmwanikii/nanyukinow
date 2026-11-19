@@ -1,46 +1,25 @@
-import {
-    Accessibility,
-    Baby,
-    Car,
-    ConciergeBell,
-    CreditCard,
-    Flame,
-    Leaf,
-    ParkingCircle,
-    Shield,
-    Shirt,
-    Snowflake,
-    Trees,
-    Utensils,
-    Waves,
-    Wifi,
-    Wine,
-    Briefcase,
-} from '@/Components/site/LucideCompat';
 import { useState } from 'react';
+import { UNICONS } from '@/Components/site/uniconsPaths';
+import { resolveAmenityItem } from '@/utils/amenityIcons';
 import DetailSection from './DetailSection';
 
-const AMENITY_META = {
-    wifi: { label: 'Free Wi‑Fi', icon: Wifi },
-    parking: { label: 'Parking', icon: ParkingCircle },
-    pool: { label: 'Swimming pool', icon: Waves },
-    restaurant: { label: 'Restaurant', icon: Utensils },
-    workspace: { label: 'Workspace', icon: Briefcase },
-    family: { label: 'Family friendly', icon: Baby },
-    fireplace: { label: 'Fireplace', icon: Flame },
-    laundry: { label: 'Laundry', icon: Shirt },
-    outdoor: { label: 'Outdoor seating', icon: Trees },
-    alcohol: { label: 'Bar / alcohol', icon: Wine },
-    ac: { label: 'Air conditioning', icon: Snowflake },
-    cards: { label: 'Accepts cards', icon: CreditCard },
-    wheelchair: { label: 'Wheelchair access', icon: Accessibility },
-    security: { label: 'Security', icon: Shield },
-    garden: { label: 'Garden', icon: Leaf },
-    concierge: { label: 'Concierge', icon: ConciergeBell },
-    car: { label: 'Car access', icon: Car },
-};
-
 const PREVIEW_COUNT = 8;
+
+function AmenityIcon({ name, className = 'h-5 w-5' }) {
+    const html = UNICONS[name] || UNICONS['check-circle'];
+    if (!html) return null;
+
+    return (
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            className={`shrink-0 ${className}`}
+            aria-hidden="true"
+            fill="currentColor"
+            dangerouslySetInnerHTML={{ __html: html }}
+        />
+    );
+}
 
 export default function AmenitiesGrid({
     amenities = [],
@@ -49,12 +28,7 @@ export default function AmenitiesGrid({
     const [expanded, setExpanded] = useState(false);
 
     const items = (amenities || [])
-        .map((key) => {
-            if (typeof key === 'string') {
-                return AMENITY_META[key] || { label: key, icon: Leaf };
-            }
-            return key;
-        })
+        .map((entry) => resolveAmenityItem(entry))
         .filter(Boolean);
 
     if (!items.length) return null;
@@ -64,23 +38,19 @@ export default function AmenitiesGrid({
 
     return (
         <DetailSection title={title}>
-            <ul className="grid grid-cols-1 gap-x-8 gap-y-3 sm:grid-cols-2">
-                {visible.map((item) => {
-                    const Icon = item.icon || Leaf;
-                    return (
-                        <li
-                            key={item.label}
-                            className="flex items-center gap-3 text-sm font-medium text-olive-800"
-                        >
-                            <Icon
-                                className="h-[1.15rem] w-[1.15rem] shrink-0 text-olive-700"
-                                strokeWidth={1.75}
-                                aria-hidden
-                            />
-                            <span>{item.label}</span>
-                        </li>
-                    );
-                })}
+            <ul className="grid grid-cols-1 gap-x-8 gap-y-3.5 sm:grid-cols-2">
+                {visible.map((item) => (
+                    <li
+                        key={item.slug || item.name}
+                        className="flex items-center gap-3 text-sm font-medium text-olive-800"
+                    >
+                        <AmenityIcon
+                            name={item.icon}
+                            className="h-[1.15rem] w-[1.15rem] text-olive-700"
+                        />
+                        <span className="min-w-0 leading-snug">{item.name}</span>
+                    </li>
+                ))}
             </ul>
             {hasMore ? (
                 <button

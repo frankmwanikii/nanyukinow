@@ -336,6 +336,48 @@ function WildlifeSafarisSection({ items = [] }) {
     );
 }
 
+function EventsSection({ items = [] }) {
+    const pageSize = useTwoRowPageSize();
+    const shown = useMemo(
+        () => items.slice(0, pageSize),
+        [items, pageSize],
+    );
+
+    return (
+        <section
+            id="events"
+            className="relative z-10 bg-olive-700 py-14 sm:py-20"
+        >
+            <div className="mx-auto max-w-site px-4 sm:px-6">
+                <Reveal>
+                    <SectionHeading
+                        light
+                        title="Events"
+                        subtitle="Concerts, dinners, and days out around Nanyuki."
+                    />
+                </Reveal>
+                {items.length === 0 ? (
+                    <ListingsSoonPlaceholder light />
+                ) : (
+                    <>
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
+                            {shown.map((listing) => (
+                                <div key={listing.id} className="min-w-0">
+                                    <ListingCard listing={listing} />
+                                </div>
+                            ))}
+                        </div>
+                        <ListingSeeAll
+                            light
+                            href={explorePath({ category: 'events' })}
+                        />
+                    </>
+                )}
+            </div>
+        </section>
+    );
+}
+
 function HomeContent({
     featured = [],
     trending,
@@ -343,6 +385,7 @@ function HomeContent({
     placesToEat,
     airbnbs,
     wildlifeSafaris,
+    events,
     pageContent = {},
 }) {
     const hasPromoted = featured.length > 0;
@@ -505,6 +548,21 @@ function HomeContent({
                 <WildlifeSafarisSection items={wildlifeSafaris} />
             )}
 
+            {events === undefined ? (
+                <section className="relative z-10 bg-olive-700 py-14 sm:py-20">
+                    <div className="mx-auto max-w-site px-4 sm:px-6">
+                        <SectionHeading
+                            light
+                            title="Events"
+                            subtitle="Concerts, dinners, and days out around Nanyuki."
+                        />
+                        <ListingGridSkeleton light />
+                    </div>
+                </section>
+            ) : (
+                <EventsSection items={events} />
+            )}
+
             <StoriesSection />
 
             <Newsletter />
@@ -519,6 +577,7 @@ export default function Home({
     placesToEat,
     airbnbs,
     wildlifeSafaris,
+    events,
     page = null,
 }) {
     return (
@@ -530,6 +589,7 @@ export default function Home({
                 placesToEat={placesToEat}
                 airbnbs={airbnbs}
                 wildlifeSafaris={wildlifeSafaris}
+                events={events}
                 pageContent={page?.content || {}}
             />
         </SiteLayout>

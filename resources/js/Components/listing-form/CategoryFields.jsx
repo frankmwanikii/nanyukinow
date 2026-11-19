@@ -14,9 +14,11 @@ import {
 import CapacityAreasInput from './CapacityAreasInput';
 import CuisinePicker from './CuisinePicker';
 import PricingOptionsInput from './PricingOptionsInput';
+import TicketOptionsInput from './TicketOptionsInput';
 import SuggestTagsPicker from './SuggestTagsPicker';
 import FieldLabel from './FieldLabel';
-import { field, help, label } from './fieldStyles';
+import FieldError from './FieldError';
+import { field, fieldClass, help, label } from './fieldStyles';
 import RichTextEditor from './RichTextEditor';
 import {
     canUseEatDrinkFeature,
@@ -245,6 +247,7 @@ export default function CategoryFields({
     eventFields = null,
     onEventChange,
     tier = 'free',
+    errors = {},
 }) {
     const fields = CATEGORY_DETAIL_FIELDS[categoryKey] || [];
     const isEatDrink = categoryKey === 'eatDrink';
@@ -325,124 +328,174 @@ export default function CategoryFields({
             </div>
 
             {categoryKey === 'events' && eventFields ? (
-                <div className="grid gap-4 sm:grid-cols-2">
-                    <div>
-                        <FieldLabel htmlFor="start_at" required>
-                            Starts
-                        </FieldLabel>
-                        <input
-                            id="start_at"
-                            type="datetime-local"
-                            className={field}
-                            value={eventFields.start_at || ''}
-                            onChange={(e) =>
-                                onEventChange?.({ start_at: e.target.value })
-                            }
-                            required
-                        />
-                    </div>
-                    <div>
-                        <FieldLabel htmlFor="end_at">Ends</FieldLabel>
-                        <input
-                            id="end_at"
-                            type="datetime-local"
-                            className={field}
-                            value={eventFields.end_at || ''}
-                            onChange={(e) =>
-                                onEventChange?.({ end_at: e.target.value })
-                            }
-                        />
-                    </div>
-                    <div className="sm:col-span-2">
-                        <FieldLabel htmlFor="venue" required>
-                            Venue name
-                        </FieldLabel>
-                        <input
-                            id="venue"
-                            className={field}
-                            value={eventFields.venue || ''}
-                            onChange={(e) =>
-                                onEventChange?.({ venue: e.target.value })
-                            }
-                            placeholder="e.g. Town Terrace"
-                            required
-                        />
-                    </div>
-                    {showEventTickets ? (
-                        <>
-                            <div>
-                                <label className={label} htmlFor="ticket_price">
-                                    Ticket price
-                                </label>
+                <div className="space-y-6">
+                    <div className="space-y-4">
+                        <h4 className="font-display text-base font-semibold text-olive-950 dark:text-white">
+                            When & where
+                        </h4>
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <div className="min-w-0" data-error-field="start_at">
+                                <FieldLabel htmlFor="start_at" required>
+                                    Starts
+                                </FieldLabel>
                                 <input
-                                    id="ticket_price"
-                                    className={field}
-                                    value={eventFields.ticket_price || ''}
+                                    id="start_at"
+                                    type="datetime-local"
+                                    className={fieldClass(Boolean(errors.start_at))}
+                                    value={eventFields.start_at || ''}
                                     onChange={(e) =>
                                         onEventChange?.({
-                                            ticket_price: e.target.value,
+                                            start_at: e.target.value,
                                         })
                                     }
-                                    placeholder="From KES 1,200"
+                                    aria-invalid={
+                                        errors.start_at ? true : undefined
+                                    }
+                                    aria-describedby={
+                                        errors.start_at
+                                            ? 'start_at-error'
+                                            : undefined
+                                    }
+                                    required
+                                />
+                                <FieldError
+                                    id="start_at-error"
+                                    message={errors.start_at}
                                 />
                             </div>
-                            <div>
-                                <label
-                                    className={label}
-                                    htmlFor="early_bird_price"
+                            <div className="min-w-0" data-error-field="end_at">
+                                <FieldLabel htmlFor="end_at">Ends</FieldLabel>
+                                <input
+                                    id="end_at"
+                                    type="datetime-local"
+                                    className={fieldClass(Boolean(errors.end_at))}
+                                    value={eventFields.end_at || ''}
+                                    onChange={(e) =>
+                                        onEventChange?.({
+                                            end_at: e.target.value,
+                                        })
+                                    }
+                                    aria-invalid={
+                                        errors.end_at ? true : undefined
+                                    }
+                                    aria-describedby={
+                                        errors.end_at
+                                            ? 'end_at-error'
+                                            : undefined
+                                    }
+                                />
+                                <FieldError
+                                    id="end_at-error"
+                                    message={errors.end_at}
+                                />
+                            </div>
+                            <div
+                                className="min-w-0 sm:col-span-2"
+                                data-error-field="venue"
+                            >
+                                <FieldLabel htmlFor="venue" required>
+                                    Venue name
+                                </FieldLabel>
+                                <input
+                                    id="venue"
+                                    className={fieldClass(Boolean(errors.venue))}
+                                    value={eventFields.venue || ''}
+                                    onChange={(e) =>
+                                        onEventChange?.({
+                                            venue: e.target.value,
+                                        })
+                                    }
+                                    placeholder="e.g. Town Terrace"
+                                    aria-invalid={
+                                        errors.venue ? true : undefined
+                                    }
+                                    aria-describedby={
+                                        errors.venue ? 'venue-error' : undefined
+                                    }
+                                    required
+                                />
+                                <FieldError
+                                    id="venue-error"
+                                    message={errors.venue}
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {showEventTickets || showEventTicketUrl ? (
+                        <div className="space-y-4 border-t border-olive-900/10 pt-6 dark:border-olive-800">
+                            <h4 className="font-display text-base font-semibold text-olive-950 dark:text-white">
+                                Tickets
+                            </h4>
+                            {showEventTickets ? (
+                                <TicketOptionsInput
+                                    value={eventFields.ticket_options || []}
+                                    onChange={(ticket_options) =>
+                                        onEventChange?.({ ticket_options })
+                                    }
+                                    showHeading={false}
+                                    fieldHelp="Add each ticket type and its price in Kenyan shillings."
+                                />
+                            ) : null}
+                            {showEventTicketUrl ? (
+                                <div
+                                    className="min-w-0"
+                                    data-error-field="ticket_url"
                                 >
-                                    Early bird
-                                </label>
-                                <input
-                                    id="early_bird_price"
-                                    className={field}
-                                    value={eventFields.early_bird_price || ''}
-                                    onChange={(e) =>
-                                        onEventChange?.({
-                                            early_bird_price: e.target.value,
-                                        })
-                                    }
-                                />
-                            </div>
-                            <div>
-                                <label className={label} htmlFor="gate_price">
-                                    Gate price
-                                </label>
-                                <input
-                                    id="gate_price"
-                                    className={field}
-                                    value={eventFields.gate_price || ''}
-                                    onChange={(e) =>
-                                        onEventChange?.({
-                                            gate_price: e.target.value,
-                                        })
-                                    }
-                                />
-                            </div>
-                        </>
-                    ) : null}
-                    {showEventTicketUrl ? (
-                        <div>
-                            <label className={label} htmlFor="ticket_url">
-                                Ticket link
-                            </label>
-                            <input
-                                id="ticket_url"
-                                className={field}
-                                value={eventFields.ticket_url || ''}
-                                onChange={(e) =>
-                                    onEventChange?.({
-                                        ticket_url: e.target.value,
-                                    })
-                                }
-                                placeholder="https://"
-                            />
+                                    <label
+                                        className={label}
+                                        htmlFor="ticket_url"
+                                    >
+                                        Ticket link
+                                    </label>
+                                    <input
+                                        id="ticket_url"
+                                        className={fieldClass(
+                                            Boolean(errors.ticket_url),
+                                        )}
+                                        value={eventFields.ticket_url || ''}
+                                        onChange={(e) =>
+                                            onEventChange?.({
+                                                ticket_url: e.target.value,
+                                            })
+                                        }
+                                        placeholder="https://"
+                                        aria-invalid={
+                                            errors.ticket_url
+                                                ? true
+                                                : undefined
+                                        }
+                                        aria-describedby={
+                                            errors.ticket_url
+                                                ? 'ticket_url-error'
+                                                : undefined
+                                        }
+                                    />
+                                    <FieldError
+                                        id="ticket_url-error"
+                                        message={errors.ticket_url}
+                                    />
+                                </div>
+                            ) : null}
                         </div>
                     ) : null}
                 </div>
             ) : null}
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            {visibleFields.length > 0 ? (
+            <div
+                className={
+                    categoryKey === 'events'
+                        ? 'space-y-4 border-t border-olive-900/10 pt-6 dark:border-olive-800'
+                        : undefined
+                }
+            >
+                {categoryKey === 'events' ? (
+                    <h4 className="font-display text-base font-semibold text-olive-950 dark:text-white">
+                        Guest info
+                    </h4>
+                ) : null}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {visibleFields.map((f) => {
                     const cuisineMax =
                         f.key === 'cuisine' && isEatDrink
@@ -475,7 +528,7 @@ export default function CategoryFields({
                     return (
                         <div
                             key={f.key}
-                            className={spanWide ? 'sm:col-span-2' : ''}
+                            className={`min-w-0 ${spanWide ? 'sm:col-span-2' : ''}`}
                         >
                             {f.type === 'richtext' ? (
                                 <RichTextEditor
@@ -658,12 +711,14 @@ export default function CategoryFields({
                     );
                 })}
             </div>
+            </div>
+            ) : null}
 
             {(categoryKey === 'eatDrink' ||
                 categoryKey === 'stay' ||
                 categoryKey === 'shopping' ||
                 categoryKey === 'thingsToDo') && (
-                <div>
+                <div className="min-w-0">
                     <label className={label} htmlFor="price_range">
                         Price level
                     </label>
@@ -684,27 +739,40 @@ export default function CategoryFields({
             )}
 
             {showPayments ? (
-                <div>
-                    <label className={label} htmlFor="payments">
-                        Payment methods
-                    </label>
-                    <DropdownMultiSelect
-                        id="payments"
-                        options={
-                            isEatDrink || isStay
-                                ? [
-                                      'M-Pesa',
-                                      'Card',
-                                      'Cash',
-                                      'Paybill',
-                                      'Bank transfer',
-                                  ]
-                                : PAYMENT_OPTIONS
-                        }
-                        value={payments}
-                        onChange={(next) => setDetail('payments', next)}
-                        placeholder="Select a payment method…"
-                    />
+                <div
+                    className={
+                        categoryKey === 'events'
+                            ? 'min-w-0 space-y-4 border-t border-olive-900/10 pt-6 dark:border-olive-800'
+                            : 'min-w-0'
+                    }
+                >
+                    {categoryKey === 'events' ? (
+                        <h4 className="font-display text-base font-semibold text-olive-950 dark:text-white">
+                            Payments
+                        </h4>
+                    ) : null}
+                    <div className="min-w-0">
+                        <label className={label} htmlFor="payments">
+                            Payment methods
+                        </label>
+                        <DropdownMultiSelect
+                            id="payments"
+                            options={
+                                isEatDrink || isStay
+                                    ? [
+                                          'M-Pesa',
+                                          'Card',
+                                          'Cash',
+                                          'Paybill',
+                                          'Bank transfer',
+                                      ]
+                                    : PAYMENT_OPTIONS
+                            }
+                            value={payments}
+                            onChange={(next) => setDetail('payments', next)}
+                            placeholder="Select a payment method…"
+                        />
+                    </div>
                 </div>
             ) : null}
         </div>

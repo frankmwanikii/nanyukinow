@@ -16,7 +16,7 @@ import {
 import ListingTierBadge from '@/Components/site/ListingTierBadge';
 import { explorePath } from '@/data/categories';
 import { listingHref } from '@/data/listings';
-import { eventDateRangeLabel } from '@/Components/listing/eventDates';
+import { eventCardDateLabel } from '@/Components/listing/eventDates';
 import { toggleListingBookmark } from '@/utils/listingBookmark';
 import {
     listingSubcategories,
@@ -71,19 +71,18 @@ export default function ListingCard({
         ? listing.eventPoster || listing.image
         : listing.image;
     const dateLabel = isEvent
-        ? eventDateRangeLabel(listing.startDate, listing.endDate)
+        ? eventCardDateLabel(listing.startDate)
         : null;
     const categoryLabel =
         listing.categoryKey === 'properties' && listing.propertyType
             ? listing.propertyType
             : subcategoryCardLabel(listing) || listing.category || 'Listing';
     const regionLabel = listing.location || listing.city || null;
+    // Events keep the poster clear: date on top, no price ribbon on the cover.
     const priceLabel =
         listing.categoryKey === 'properties'
             ? listing.details?.price || listing.price || null
-            : listing.categoryKey === 'events'
-              ? listing.ticketPrice || null
-              : null;
+            : null;
     const categoryHref = listing.categoryKey
         ? explorePath(
               listing.categoryKey === 'properties' && listing.propertyType
@@ -200,12 +199,12 @@ export default function ListingCard({
                     }
                 }}
             >
-                <div className="relative aspect-[4/3] overflow-hidden bg-olive-200">
+                <div className="relative isolate aspect-[4/3] shrink-0 overflow-hidden bg-olive-200">
                     {cover ? (
                         <img
                             src={cover}
                             alt=""
-                            className="h-full w-full object-cover"
+                            className="absolute inset-0 h-full w-full object-cover"
                             loading="lazy"
                             decoding="async"
                             width={640}
@@ -218,7 +217,7 @@ export default function ListingCard({
                     )}
 
                     {(showTierBadge || dateLabel || priceLabel) && (
-                        <div className="absolute left-0 top-0 flex max-w-[85%] flex-wrap gap-px">
+                        <div className="absolute left-0 top-0 z-10 flex max-w-[85%] flex-wrap gap-px">
                             {showTierBadge ? (
                                 <ListingTierBadge tier={tier} />
                             ) : null}
@@ -237,12 +236,12 @@ export default function ListingCard({
                 </div>
 
                 <div
-                    className={`flex min-w-0 flex-1 flex-col gap-2.5 px-3 py-3 sm:gap-3 sm:px-4 sm:py-4 ${
+                    className={`relative z-10 flex min-w-0 flex-1 flex-col gap-2.5 px-3 py-3 sm:gap-3 sm:px-4 sm:py-4 ${
                         oliveFooter ? 'bg-olive-700 text-white' : 'bg-white text-earth-dusk'
                     }`}
                 >
                     <div className="flex min-w-0 items-start gap-2.5 sm:gap-3">
-                        {listing.logo ? (
+                        {listing.logo && !isEvent ? (
                             <img
                                 src={listing.logo}
                                 alt=""

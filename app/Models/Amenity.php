@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\AmenityIcon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
@@ -10,6 +11,7 @@ class Amenity extends Model
     protected $fillable = [
         'name',
         'slug',
+        'icon_key',
         'category_key',
         'is_active',
         'usage_count',
@@ -45,12 +47,24 @@ class Amenity extends Model
             ->first();
 
         if ($existing) {
+            if (! filled($existing->icon_key)) {
+                $existing->forceFill([
+                    'icon_key' => AmenityIcon::guess(
+                        (string) $existing->slug,
+                        (string) $existing->name,
+                    ),
+                ])->saveQuietly();
+            }
+
             return $existing;
         }
 
+        $slug = static::makeSlug($name);
+
         return static::query()->create([
             'name' => $name,
-            'slug' => static::makeSlug($name),
+            'slug' => $slug,
+            'icon_key' => AmenityIcon::guess($slug, $name),
             'category_key' => $categoryKey,
             'is_active' => true,
             'usage_count' => 0,

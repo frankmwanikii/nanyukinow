@@ -91,7 +91,7 @@ export const POPULAR_WHOLESALE_RETAIL_OPTIONS = [
     'Minimum order for wholesale',
 ];
 
-/** Popular dress codes for Eat & Drink. */
+/** Popular dress codes for Eat & Drink and Events. */
 export const POPULAR_DRESS_CODES = [
     'Casual',
     'Smart casual',
@@ -665,15 +665,16 @@ export const CATEGORY_DETAIL_FIELDS = {
         {
             key: 'doors_open',
             label: 'Doors open',
-            type: 'text',
-            placeholder: 'e.g. 18:30',
+            type: 'time',
             minTier: 'featured',
         },
         {
             key: 'dress_code',
             label: 'Dress code',
-            type: 'text',
-            placeholder: 'Casual, smart…',
+            type: 'suggest',
+            optionsKey: 'dress_code',
+            placeholder: 'Search dress codes or type your own…',
+            help: 'Pick one or more, or add a custom code.',
             minTier: 'featured',
         },
     ],

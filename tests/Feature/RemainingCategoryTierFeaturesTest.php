@@ -109,6 +109,9 @@ class RemainingCategoryTierFeaturesTest extends TestCase
     {
         $free = EventsTierFeatures::applyToPayload([
             'ticket_price' => 'KES 1,000',
+            'ticket_options' => [
+                ['name' => 'General', 'amount' => 1000],
+            ],
             'ticket_url' => 'https://tickets.example.com',
             'gallery' => array_fill(0, 5, '/storage/a.jpg'),
             'details' => [
@@ -120,6 +123,7 @@ class RemainingCategoryTierFeaturesTest extends TestCase
         ], Membership::FREE, 'events');
 
         $this->assertNull($free['ticket_price']);
+        $this->assertNull($free['ticket_options']);
         $this->assertNull($free['ticket_url']);
         $this->assertSame([], $free['gallery']);
         $this->assertSame('Town Crew', $free['details']['organiser']);
