@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Notifications\ResetPasswordNotification;
+use App\Notifications\VerifyEmailCodeNotification;
+use App\Support\EmailVerificationCode;
 use App\Support\Membership;
 use Database\Factories\UserFactory;
+use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -33,10 +36,10 @@ use Laravel\Passkeys\PasskeyAuthenticatable;
     'plan_renewal_reminder_3d_sent_at',
 ])]
 #[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable implements PasskeyUser
+class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, PasskeyAuthenticatable;
+    use HasFactory, MustVerifyEmailTrait, Notifiable, PasskeyAuthenticatable;
 
     /**
      * @return array<string, string>
@@ -154,5 +157,12 @@ class User extends Authenticatable implements PasskeyUser
     public function sendPasswordResetNotification(mixed $token): void
     {
         $this->notify(new ResetPasswordNotification((string) $token));
+    }
+
+    public function sendEmailVerificationNotification(): void
+    {
+        $code = EmailVerificationCode::issue($this);
+
+        $this->notify(new VerifyEmailCodeNotification($code));
     }
 }

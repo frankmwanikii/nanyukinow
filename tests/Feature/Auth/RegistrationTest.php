@@ -3,8 +3,10 @@
 namespace Tests\Feature\Auth;
 
 use App\Models\User;
+use App\Notifications\VerifyEmailCodeNotification;
 use App\Support\Recaptcha;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class RegistrationTest extends TestCase
@@ -20,6 +22,8 @@ class RegistrationTest extends TestCase
 
     public function test_new_users_can_register(): void
     {
+        Notification::fake();
+
         $response = $this->post('/register', [
             'first_name' => 'Test',
             'last_name' => 'User',
@@ -31,12 +35,17 @@ class RegistrationTest extends TestCase
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('account.index', absolute: false));
+        $response->assertRedirect(route('verification.notice', absolute: false));
         $this->assertDatabaseHas('users', [
             'email' => 'test@example.com',
             'name' => 'Test User',
             'plan' => 'free',
         ]);
+        $this->assertNull(User::query()->where('email', 'test@example.com')->value('email_verified_at'));
+        Notification::assertSentTo(
+            User::query()->where('email', 'test@example.com')->first(),
+            VerifyEmailCodeNotification::class,
+        );
     }
 
     public function test_registration_rejects_weak_passwords(): void

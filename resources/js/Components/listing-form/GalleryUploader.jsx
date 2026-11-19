@@ -67,15 +67,19 @@ function DropZone({
     );
 }
 
-function MediaToolbar({ onView, onReplace, onRemove }) {
+function MediaToolbar({ onView, onReplace, onRemove, tone = 'overlay' }) {
+    const onSurface = tone === 'surface';
     const chip =
-        'inline-flex items-center gap-1.5 rounded-sm px-3 py-2 text-[11px] font-semibold tracking-wide shadow-[0_8px_24px_rgba(0,0,0,0.28)] backdrop-blur-xl transition focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard focus-visible:ring-offset-2 focus-visible:ring-offset-transparent';
+        'inline-flex shrink-0 items-center gap-1.5 rounded-sm px-2.5 py-2 text-[11px] font-semibold tracking-wide transition focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard focus-visible:ring-offset-2 sm:px-3';
+    const chipTone = onSurface
+        ? 'shadow-sm focus-visible:ring-offset-white dark:focus-visible:ring-offset-olive-950'
+        : 'shadow-[0_8px_24px_rgba(0,0,0,0.28)] backdrop-blur-xl focus-visible:ring-offset-transparent';
 
     return (
         <div
             role="group"
             aria-label="Image actions"
-            className="flex max-w-[calc(100%-0.75rem)] flex-wrap items-center justify-center gap-2"
+            className="flex max-w-full flex-nowrap items-center gap-1.5 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] sm:gap-2 [&::-webkit-scrollbar]:hidden"
         >
             {onView ? (
                 <button
@@ -84,7 +88,11 @@ function MediaToolbar({ onView, onReplace, onRemove }) {
                         e.stopPropagation();
                         onView?.(e);
                     }}
-                    className={`${chip} bg-white/15 text-white ring-1 ring-white/25 hover:bg-white/25`}
+                    className={`${chip} ${chipTone} ${
+                        onSurface
+                            ? 'bg-olive-100 text-olive-900 ring-1 ring-olive-200 hover:bg-olive-200 dark:bg-olive-800 dark:text-olive-50 dark:ring-olive-700 dark:hover:bg-olive-700'
+                            : 'bg-white/15 text-white ring-1 ring-white/25 hover:bg-white/25'
+                    }`}
                 >
                     <Expand className="h-3.5 w-3.5" strokeWidth={2.25} />
                     View
@@ -96,7 +104,11 @@ function MediaToolbar({ onView, onReplace, onRemove }) {
                     e.stopPropagation();
                     onReplace?.(e);
                 }}
-                className={`${chip} bg-mustard text-olive-950 ring-1 ring-mustard/40 hover:bg-white`}
+                className={`${chip} ${chipTone} ${
+                    onSurface
+                        ? 'bg-mustard text-olive-950 ring-1 ring-mustard/50 hover:brightness-95'
+                        : 'bg-mustard text-olive-950 ring-1 ring-mustard/40 hover:bg-white'
+                }`}
             >
                 <RefreshCw className="h-3.5 w-3.5" strokeWidth={2.25} />
                 Replace
@@ -108,7 +120,11 @@ function MediaToolbar({ onView, onReplace, onRemove }) {
                         e.stopPropagation();
                         onRemove?.(e);
                     }}
-                    className={`${chip} bg-rose-500/20 text-rose-100 ring-1 ring-rose-300/35 hover:bg-rose-500/35`}
+                    className={`${chip} ${chipTone} ${
+                        onSurface
+                            ? 'bg-rose-50 text-rose-700 ring-1 ring-rose-200 hover:bg-rose-100 dark:bg-rose-950/50 dark:text-rose-200 dark:ring-rose-800 dark:hover:bg-rose-900/60'
+                            : 'bg-rose-500/20 text-rose-100 ring-1 ring-rose-300/35 hover:bg-rose-500/35'
+                    }`}
                 >
                     <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
                     Remove
@@ -286,9 +302,9 @@ function CoverLogoStage({
                 </p>
                 <div className="flex flex-wrap items-start gap-4">
                     <DropZone onFiles={onFileLogo} className="shrink-0">
-                        <div className="group relative">
-                            {logoPreview ? (
-                                <div className="relative h-24 w-24 overflow-hidden rounded-full bg-white shadow-soft ring-2 ring-olive-200 dark:bg-olive-900 dark:ring-olive-700 sm:h-28 sm:w-28">
+                        {logoPreview ? (
+                            <div className="flex flex-wrap items-end gap-3">
+                                <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full bg-white shadow-soft ring-2 ring-olive-200 dark:bg-olive-900 dark:ring-olive-700 sm:h-28 sm:w-28">
                                     <button
                                         type="button"
                                         onClick={onViewLogo}
@@ -298,30 +314,29 @@ function CoverLogoStage({
                                         <img
                                             src={logoPreview}
                                             alt="Logo preview"
-                                            className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+                                            className="h-full w-full object-cover transition duration-300 hover:scale-[1.03]"
                                         />
                                     </button>
-                                    <HoverActions>
-                                        <MediaToolbar
-                                            onView={onViewLogo}
-                                            onReplace={onBrowseLogo}
-                                            onRemove={onClearLogo}
-                                        />
-                                    </HoverActions>
                                 </div>
-                            ) : (
-                                <button
-                                    type="button"
-                                    onClick={onBrowseLogo}
-                                    className="flex h-24 w-24 flex-col items-center justify-center gap-1 rounded-full border-2 border-dashed border-olive-300 bg-white text-olive-600 transition hover:border-mustard hover:bg-mustard/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard dark:border-olive-700 dark:bg-olive-950 dark:text-olive-400 dark:hover:border-mustard dark:hover:bg-mustard/10 sm:h-28 sm:w-28"
-                                >
-                                    <ImagePlus className="h-5 w-5" />
-                                    <span className="text-[11px] font-semibold text-olive-900 dark:text-olive-100">
-                                        Add logo
-                                    </span>
-                                </button>
-                            )}
-                        </div>
+                                <MediaToolbar
+                                    tone="surface"
+                                    onView={onViewLogo}
+                                    onReplace={onBrowseLogo}
+                                    onRemove={onClearLogo}
+                                />
+                            </div>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={onBrowseLogo}
+                                className="flex h-24 w-24 flex-col items-center justify-center gap-1 rounded-full border-2 border-dashed border-olive-300 bg-white text-olive-600 transition hover:border-mustard hover:bg-mustard/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-mustard dark:border-olive-700 dark:bg-olive-950 dark:text-olive-400 dark:hover:border-mustard dark:hover:bg-mustard/10 sm:h-28 sm:w-28"
+                            >
+                                <ImagePlus className="h-5 w-5" />
+                                <span className="text-[11px] font-semibold text-olive-900 dark:text-olive-100">
+                                    Add logo
+                                </span>
+                            </button>
+                        )}
                     </DropZone>
                     <div className="min-w-0 flex-1 basis-[14rem]">
                         <label className={label} htmlFor="logo_image_url">

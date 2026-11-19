@@ -98,10 +98,11 @@ class RegisteredUserController extends Controller
 
         event(new Registered($user));
 
+        $user->sendEmailVerificationNotification();
         $user->notify(new WelcomeMemberNotification);
 
         Auth::login($user);
 
-        return redirect(route('account.index', absolute: false));
+        return redirect()->route('verification.notice');
     }
 }

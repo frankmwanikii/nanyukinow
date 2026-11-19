@@ -100,6 +100,7 @@ class HandleInertiaRequests extends Middleware
                         'name' => $user->name,
                         'username' => $user->username,
                         'email' => $user->email,
+                        'email_verified' => $user->hasVerifiedEmail(),
                         'phone' => $user->phone,
                         'avatar_url' => UserAvatar::publicUrl($user->avatar_url),
                         'is_admin' => (bool) $user->is_admin,

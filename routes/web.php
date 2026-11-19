@@ -84,7 +84,7 @@ Route::post('/listings/{listing:slug}/report', [ListingReportController::class, 
     ->middleware('throttle:8,1')
     ->name('listings.report');
 Route::post('/listings/{listing:slug}/reviews', [ListingReviewController::class, 'store'])
-    ->middleware(['auth', 'throttle:10,1'])
+    ->middleware(['auth', 'verified', 'throttle:10,1'])
     ->name('listings.reviews.store');
 
 Route::get('/terms', function () {
@@ -110,40 +110,42 @@ Route::middleware('auth')->group(function () {
         ->name('account.bookmarks.destroy-all');
 
     Route::get('/account/listings', [AccountListingController::class, 'index'])->name('account.listings.index');
-    Route::get('/account/listings/create', [AccountListingController::class, 'create'])->name('account.listings.create');
-    Route::post('/account/listings', [AccountListingController::class, 'store'])->name('account.listings.store');
-    Route::post('/account/listings/draft', [AccountListingController::class, 'saveDraft'])
-        ->middleware('throttle:60,1')
-        ->name('account.listings.draft');
-    Route::post('/account/listings/{listing:slug}/draft', [AccountListingController::class, 'saveDraft'])
-        ->middleware('throttle:60,1')
-        ->name('account.listings.draft.update');
-    Route::get('/account/listings/{listing:slug}/edit', [AccountListingController::class, 'edit'])->name('account.listings.edit');
-    Route::put('/account/listings/{listing:slug}', [AccountListingController::class, 'update'])->name('account.listings.update');
-    Route::delete('/account/listings/{listing:slug}', [AccountListingController::class, 'destroy'])->name('account.listings.destroy');
-    Route::post('/account/amenities', [AmenityController::class, 'store'])
-        ->middleware('throttle:30,1')
-        ->name('account.amenities.store');
-    Route::post('/account/listings/editor-media', [EditorMediaController::class, 'store'])
-        ->middleware('throttle:40,1')
-        ->name('account.listings.editor-media');
-    Route::get('/account/media/browse', [EditorMediaController::class, 'browse'])
-        ->middleware('throttle:60,1')
-        ->name('account.media.browse');
-    Route::get('/account/places/search', [PlaceSearchController::class, 'search'])
-        ->middleware('throttle:60,1')
-        ->name('account.places.search');
-    Route::get('/account/places/reverse', [PlaceSearchController::class, 'reverse'])
-        ->middleware('throttle:60,1')
-        ->name('account.places.reverse');
+    Route::middleware('verified')->group(function () {
+        Route::get('/account/listings/create', [AccountListingController::class, 'create'])->name('account.listings.create');
+        Route::post('/account/listings', [AccountListingController::class, 'store'])->name('account.listings.store');
+        Route::post('/account/listings/draft', [AccountListingController::class, 'saveDraft'])
+            ->middleware('throttle:60,1')
+            ->name('account.listings.draft');
+        Route::post('/account/listings/{listing:slug}/draft', [AccountListingController::class, 'saveDraft'])
+            ->middleware('throttle:60,1')
+            ->name('account.listings.draft.update');
+        Route::get('/account/listings/{listing:slug}/edit', [AccountListingController::class, 'edit'])->name('account.listings.edit');
+        Route::put('/account/listings/{listing:slug}', [AccountListingController::class, 'update'])->name('account.listings.update');
+        Route::delete('/account/listings/{listing:slug}', [AccountListingController::class, 'destroy'])->name('account.listings.destroy');
+        Route::post('/account/amenities', [AmenityController::class, 'store'])
+            ->middleware('throttle:30,1')
+            ->name('account.amenities.store');
+        Route::post('/account/listings/editor-media', [EditorMediaController::class, 'store'])
+            ->middleware('throttle:40,1')
+            ->name('account.listings.editor-media');
+        Route::get('/account/media/browse', [EditorMediaController::class, 'browse'])
+            ->middleware('throttle:60,1')
+            ->name('account.media.browse');
+        Route::get('/account/places/search', [PlaceSearchController::class, 'search'])
+            ->middleware('throttle:60,1')
+            ->name('account.places.search');
+        Route::get('/account/places/reverse', [PlaceSearchController::class, 'reverse'])
+            ->middleware('throttle:60,1')
+            ->name('account.places.reverse');
 
-    Route::get('/account/billing', AccountBillingController::class)->name('account.billing');
+        Route::get('/account/billing', AccountBillingController::class)->name('account.billing');
 
-    Route::get('/account/upgrade', [AccountUpgradeController::class, 'create'])->name('account.upgrade');
-    Route::get('/account/upgrade/status', [AccountUpgradeController::class, 'status'])->name('account.upgrade.status');
-    Route::post('/account/upgrade/pay', [AccountUpgradeController::class, 'initiate'])->name('account.upgrade.pay');
-    Route::post('/account/upgrade', [AccountUpgradeController::class, 'store'])->name('account.upgrade.store');
-    Route::post('/account/upgrade/{upgrade}/cancel', [AccountUpgradeController::class, 'cancel'])->name('account.upgrade.cancel');
+        Route::get('/account/upgrade', [AccountUpgradeController::class, 'create'])->name('account.upgrade');
+        Route::get('/account/upgrade/status', [AccountUpgradeController::class, 'status'])->name('account.upgrade.status');
+        Route::post('/account/upgrade/pay', [AccountUpgradeController::class, 'initiate'])->name('account.upgrade.pay');
+        Route::post('/account/upgrade', [AccountUpgradeController::class, 'store'])->name('account.upgrade.store');
+        Route::post('/account/upgrade/{upgrade}/cancel', [AccountUpgradeController::class, 'cancel'])->name('account.upgrade.cancel');
+    });
 
     Route::get('/account/notifications', [NotificationController::class, 'index'])->name('account.notifications');
     Route::post('/account/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('account.notifications.read-all');
@@ -153,7 +155,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/account/messages/read-all', [MessageController::class, 'markAllRead'])->name('account.messages.read-all');
     Route::delete('/account/messages/alerts/{id}', [MessageController::class, 'destroyAlert'])->name('account.messages.alerts.destroy');
     Route::get('/account/messages/{conversation}', [MessageController::class, 'show'])->name('account.messages.show');
-    Route::post('/account/messages/{conversation}', [MessageController::class, 'reply'])->name('account.messages.reply');
+    Route::post('/account/messages/{conversation}', [MessageController::class, 'reply'])
+        ->middleware('verified')
+        ->name('account.messages.reply');
     Route::get('/account/messages/{conversation}/{message}/attachments/{index}', [MessageController::class, 'downloadAttachment'])
         ->whereNumber('index')
         ->name('account.messages.attachment');

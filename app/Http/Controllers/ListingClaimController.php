@@ -15,6 +15,12 @@ class ListingClaimController extends Controller
 {
     public function store(Request $request, Listing $listing): RedirectResponse
     {
+        if ($request->user() && ! $request->user()->hasVerifiedEmail()) {
+            return redirect()
+                ->route('verification.notice')
+                ->with('error', 'Verify your email before claiming a listing.');
+        }
+
         if ($listing->claim_status === 'claimed') {
             throw ValidationException::withMessages([
                 'listing' => 'This listing has already been claimed.',

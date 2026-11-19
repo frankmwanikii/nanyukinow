@@ -375,16 +375,23 @@ export default function UpdateProfileInformation({
                     <div className="border border-olive-900/15 bg-olive-50/60 px-4 py-3 text-sm text-olive-800 dark:border-olive-800 dark:bg-olive-950/60 dark:text-olive-200">
                         Your email address is unverified.{' '}
                         <Link
+                            href={route('verification.notice')}
+                            className="font-semibold text-olive-950 underline underline-offset-2 dark:text-olive-50"
+                        >
+                            Enter your verification code
+                        </Link>
+                        {' · '}
+                        <Link
                             href={route('verification.send')}
                             method="post"
                             as="button"
                             className="font-semibold text-olive-950 underline underline-offset-2 dark:text-olive-50"
                         >
-                            Resend verification email
+                            Resend code
                         </Link>
-                        {status === 'verification-link-sent' && (
+                        {status === 'verification-code-sent' && (
                             <p className="mt-2 font-medium text-emerald-700 dark:text-emerald-400">
-                                A new verification link has been sent.
+                                A new verification code has been sent.
                             </p>
                         )}
                     </div>
