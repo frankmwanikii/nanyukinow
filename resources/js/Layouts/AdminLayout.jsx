@@ -18,7 +18,7 @@ import {
     Search,
     LogOut,
     MessagesSquare,
-} from 'lucide-react';
+} from '@/Components/site/LucideCompat';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AdminThemeProvider, useAdminTheme } from '@/hooks/useAdminTheme';
 import AdminNotificationsBell from '@/Components/Admin/AdminNotificationsBell';

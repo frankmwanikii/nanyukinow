@@ -143,6 +143,14 @@ class HandleInertiaRequests extends Middleware
 
                 return $value === 'leaflet' ? 'leaflet' : 'google';
             },
+            'mapsApiKey' => function () {
+                $fromSettings = trim((string) SiteSetting::getValue('google_maps_api_key', ''));
+                if ($fromSettings !== '') {
+                    return $fromSettings;
+                }
+
+                return (string) (config('services.google.maps_key') ?: '');
+            },
             'directoryCategories' => function () use ($isAdminArea) {
                 if ($isAdminArea) {
                     return [];

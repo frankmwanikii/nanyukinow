@@ -17,7 +17,7 @@ import {
 } from '@/Components/Admin/ui';
 import { useConfirm } from '@/Components/ConfirmDialog';
 import { Head, router } from '@inertiajs/react';
-import { Plus } from 'lucide-react';
+import { Plus } from '@/Components/site/LucideCompat';
 import { useEffect, useRef, useState } from 'react';
 
 export default function Index({ stories, filters }) {

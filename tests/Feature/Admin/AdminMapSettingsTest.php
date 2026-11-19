@@ -25,6 +25,36 @@ class AdminMapSettingsTest extends TestCase
                 ->where('groupedSettings.maps.0.value', 'google')
                 ->where('groupedSettings.maps.0.options.0.value', 'google')
                 ->where('groupedSettings.maps.0.options.1.value', 'leaflet')
+                ->where('groupedSettings.maps.1.key', 'google_maps_api_key')
+                ->where('groupedSettings.maps.1.type', 'password')
+                ->etc());
+    }
+
+    public function test_admin_can_save_google_maps_api_key(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+
+        $this->actingAs($admin)->get(route('admin.settings.index'))->assertOk();
+
+        $this->actingAs($admin)
+            ->put(route('admin.settings.update'), [
+                'settings' => [
+                    ['key' => 'map_provider', 'value' => 'google'],
+                    ['key' => 'google_maps_api_key', 'value' => 'AIzaSyTestMapsKeyFromAdmin'],
+                ],
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('site_settings', [
+            'key' => 'google_maps_api_key',
+            'value' => 'AIzaSyTestMapsKeyFromAdmin',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('home'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('mapsApiKey', 'AIzaSyTestMapsKeyFromAdmin')
                 ->etc());
     }
 

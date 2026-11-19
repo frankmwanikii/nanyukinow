@@ -2,7 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import { ForwardMark, PinMark } from '@/Components/site/Mark';
 import { getMapsApiKey, loadGoogleMaps } from '@/utils/googleMaps';
 import { L, createOsmMap, leafletPinIcon } from '@/utils/leafletMaps';
-import { directionsUrlFor, useMapProvider } from '@/utils/mapProvider';
+import {
+    directionsUrlFor,
+    useMapProvider,
+    useMapsApiKey,
+} from '@/utils/mapProvider';
 
 function parseCoord(value) {
     const n = typeof value === 'number' ? value : Number.parseFloat(value);
@@ -34,9 +38,10 @@ function googlePinSvg() {
 
 export default function DirectionsMap({ listing }) {
     const provider = useMapProvider();
+    const sharedMapsKey = useMapsApiKey();
     const containerRef = useRef(null);
     const mapRef = useRef(null);
-    const googleKey = getMapsApiKey();
+    const googleKey = getMapsApiKey(sharedMapsKey);
     const [status, setStatus] = useState('loading');
 
     const { lat, lng } = resolveLatLng(listing);

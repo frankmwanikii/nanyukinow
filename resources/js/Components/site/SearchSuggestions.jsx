@@ -8,7 +8,7 @@ import {
     Search,
     ShoppingCart,
     UtensilsCrossed,
-} from 'lucide-react';
+} from '@/Components/site/LucideCompat';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { explorePath } from '@/data/categories';

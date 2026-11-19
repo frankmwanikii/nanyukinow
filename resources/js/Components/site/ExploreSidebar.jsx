@@ -5,7 +5,7 @@ import {
     RotateCcw,
     Search,
     Star,
-} from 'lucide-react';
+} from '@/Components/site/LucideCompat';
 import { usePage } from '@inertiajs/react';
 import { useEffect, useMemo, useState } from 'react';
 import { CloseMark } from '@/Components/site/Mark';

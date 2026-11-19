@@ -332,7 +332,7 @@ export const CATEGORY_DETAIL_FIELDS = {
         },
         {
             key: 'included',
-            label: 'Included activities / experiences',
+            label: 'Activities / experiences',
             type: 'suggest',
             optionsKey: 'activities',
             placeholder: 'Search activities or type your own…',

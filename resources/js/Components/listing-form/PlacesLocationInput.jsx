@@ -7,9 +7,9 @@ import {
     createOsmMap,
     leafletPinIcon,
 } from '@/utils/leafletMaps';
-import { useMapProvider } from '@/utils/mapProvider';
+import { useMapProvider, useMapsApiKey } from '@/utils/mapProvider';
 import { LOOK_LOCATIONS } from '@/data/listings';
-import { ChevronDown, Loader2, MapPin, Search, X } from 'lucide-react';
+import { ChevronDown, Loader2, MapPin, Search, X } from '@/Components/site/LucideCompat';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 const DEFAULT_ZOOM = 14;
@@ -112,7 +112,8 @@ export default function PlacesLocationInput({
         locationRef.current = location;
     }, [location]);
 
-    const key = getMapsApiKey(apiKey);
+    const sharedMapsKey = useMapsApiKey();
+    const key = getMapsApiKey(apiKey || sharedMapsKey);
     const selectedAreas = useMemo(() => parseAreas(location), [location]);
     const areaChoices = areas?.length ? areas : AREA_OPTIONS;
 
@@ -578,7 +579,7 @@ export default function PlacesLocationInput({
         if (!key) {
             setStatus('missing');
             setMapNote(
-                'Add VITE_GOOGLE_MAPS_API_KEY to enable Google Maps & Places.',
+                'Add a Google Maps API key in Admin → Settings → Maps.',
             );
             return undefined;
         }

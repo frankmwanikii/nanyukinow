@@ -83,13 +83,19 @@ export function renderListingSection(key, listing) {
                 <div key={key} className="space-y-4">
                     <FactStrip
                         facts={glanceFacts}
+                        layout={
+                            listing.categoryKey === 'stay' ||
+                            listing.categoryKey === 'properties'
+                                ? 'lodging'
+                                : 'glance'
+                        }
                         title={
                             listing.categoryKey === 'events'
                                 ? 'Event details'
                                 : listing.categoryKey === 'properties'
-                                  ? 'Property facts'
+                                  ? 'Property overview'
                                   : listing.categoryKey === 'stay'
-                                    ? 'Stay facts'
+                                    ? 'Good to know'
                                     : 'At a glance'
                         }
                     />
@@ -123,7 +129,7 @@ export function renderListingSection(key, listing) {
                     key={key}
                     title={
                         listing.categoryKey === 'stay'
-                            ? 'Included activities'
+                            ? 'Activities'
                             : "What's included"
                     }
                     items={listing.included}

@@ -19,7 +19,7 @@ import {
 } from '@/Components/Admin/ui';
 import { useConfirm } from '@/Components/ConfirmDialog';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { LayoutList, Loader2, Plus, Save, X } from 'lucide-react';
+import { LayoutList, Loader2, Plus, Save, X } from '@/Components/site/LucideCompat';
 import { useEffect, useId, useState } from 'react';
 import { createPortal } from 'react-dom';
 

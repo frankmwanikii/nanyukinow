@@ -15,7 +15,7 @@ import {
     Pencil,
     Phone,
     Sparkles,
-} from 'lucide-react';
+} from '@/Components/site/LucideCompat';
 
 function hasValue(value) {
     if (value == null || value === '') return false;

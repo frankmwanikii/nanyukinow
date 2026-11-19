@@ -6,7 +6,7 @@ import {
     Loader2,
     Search,
     Upload,
-} from 'lucide-react';
+} from '@/Components/site/LucideCompat';
 import { useEffect, useId, useState } from 'react';
 
 const TARGET_COPY = {

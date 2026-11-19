@@ -16,7 +16,7 @@ import {
     Wifi,
     Wine,
     Briefcase,
-} from 'lucide-react';
+} from '@/Components/site/LucideCompat';
 import { useState } from 'react';
 import DetailSection from './DetailSection';
 

@@ -3,7 +3,7 @@ import {
     isLikelyVideoUrl,
     resolvePlayback,
 } from '@/utils/videoUrl';
-import { Film, Link2 } from 'lucide-react';
+import { Film, Link2 } from '@/Components/site/LucideCompat';
 import { useMemo } from 'react';
 
 /**

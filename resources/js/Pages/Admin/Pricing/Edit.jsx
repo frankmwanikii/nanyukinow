@@ -31,7 +31,7 @@ import {
     Trash2,
     Wallet,
     Zap,
-} from 'lucide-react';
+} from '@/Components/site/LucideCompat';
 import { useEffect, useMemo, useState } from 'react';
 
 function formatMoney(amount, currency) {

@@ -1,10 +1,13 @@
 /**
- * Nanyuki Now icon system — solid hospitality glyphs (filled silhouette).
- * Custom set for eat / stay / explore; not a stock Lucide kit.
+ * Nanyuki Now icon system — IconScout Unicons (fill currentColor).
+ * Stable Mark* export names for site chrome; LucideCompat covers admin/forms.
  */
+import { UNICONS } from './uniconsPaths';
+
 export function Mark({ className = 'h-4 w-4', children, ...props }) {
     return (
         <svg
+            xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
             className={className}
             aria-hidden="true"
@@ -16,118 +19,96 @@ export function Mark({ className = 'h-4 w-4', children, ...props }) {
     );
 }
 
-function OutlineMark({ className = 'h-4 w-4', children, ...props }) {
+function Unicon({ name, className = 'h-4 w-4', ...props }) {
+    const html = UNICONS[name];
+    if (!html) {
+        return null;
+    }
+
     return (
         <svg
+            xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
             className={className}
             aria-hidden="true"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+            fill="currentColor"
             {...props}
-        >
-            {children}
-        </svg>
+            dangerouslySetInnerHTML={{ __html: html }}
+        />
     );
 }
 
-/** Calendar with refresh — upgrade / plans. */
-export function UpgradePlansMark({ className = 'h-4 w-4' }) {
-    return (
-        <OutlineMark className={className}>
-            <path d="M8 5v2.5M16 5v2.5" />
-            <rect x="4.5" y="7" width="15" height="12.5" rx="2" />
-            <path d="M14.75 11.25a2.5 2.5 0 0 0-4.25-.75M9.25 14.25a2.5 2.5 0 0 0 4.25.75" />
-            <path d="M14.75 9.5v1.9h-1.9M9.25 16v-1.9h1.9" />
-        </OutlineMark>
-    );
+function mark(name) {
+    return function IconMark({ className = 'h-4 w-4', ...props }) {
+        return <Unicon name={name} className={className} {...props} />;
+    };
+}
+export const UpgradePlansMark = mark('calendar-alt');
+export const ForwardMark = mark('arrow-right');
+export const LeaveMark = mark('external-link-alt');
+export const BackMark = mark('arrow-left');
+export const SendMark = mark('telegram-alt');
+/** Horizontal paper plane (points right). Prefer over telegram-alt for CTAs. */
+export const SendArrowMark = mark('message');
+export const AttachMark = mark('paperclip');
+export const CloseMark = mark('multiply');
+export const TicketMark = mark('ticket');
+export const CheckMark = mark('check');
+export const DisclosureMark = mark('angle-down');
+export const UploadMark = mark('upload');
+export const CropMark = mark('crop-alt');
+export const TrashMark = mark('trash-alt');
+export const EyeMark = mark('eye');
+export const PasskeyMark = mark('key-skeleton');
+export const EyeOffMark = mark('eye-slash');
+export const SignOutMark = mark('sign-out-alt');
+export const BellMark = mark('bell');
+export const SearchMark = mark('search');
+export const PinMark = mark('map-marker');
+export const CalendarMark = mark('calendar-alt');
+export const MenuMark = mark('bars');
+export const PlusMark = mark('plus');
+export const MoreMark = mark('ellipsis-h');
+export const UserMark = mark('user');
+export const CompassMark = mark('compass');
+export const FiltersMark = mark('filter');
+export const ListMark = mark('list-ul');
+export const MapMark = mark('map');
+export const MailMark = mark('envelope');
+export const PhoneMark = mark('phone');
+export const EmptyListingsMark = mark('smile');
+export const EatMark = mark('utensils');
+export const StayMark = mark('bed');
+export const ExploreMark = mark('camera');
+export const ShopMark = mark('bag');
+export const ServicesMark = mark('wrench');
+export const PropertyMark = mark('estate');
+export const EventMark = mark('calendar-alt');
+export const DashboardMark = mark('apps');
+export const MessageMark = mark('comment');
+export const CardMark = mark('credit-card');
+export const GearMark = mark('setting');
+export const SunMark = mark('sun');
+export const MoonMark = mark('moon');
+export const StandardTierMark = mark('star');
+export const PremiumTierMark = mark('bolt');
+
+export function HeartMark({ className = 'h-4 w-4', filled = false, ...props }) {
+    return <Unicon name="heart" className={className} {...props} />;
 }
 
-export function ForwardMark({ className = 'h-4 w-4' }) {
-    return (
-        <OutlineMark className={className}>
-            <path d="M5 12h14M13 6l6 6-6 6" />
-        </OutlineMark>
-    );
+export function BookmarkMark({ className = 'h-4 w-4', filled = false, ...props }) {
+    return <Unicon name={filled ? 'bookmark-full' : 'bookmark'} className={className} {...props} />;
 }
 
-/** Diagonal leave arrow — links that open another view. */
-export function LeaveMark({ className = 'h-4 w-4' }) {
-    return (
-        <OutlineMark className={className}>
-            <path d="M7 17 17 7M9 7h8v8" />
-        </OutlineMark>
-    );
-}
-
-export function BackMark({ className = 'h-4 w-4' }) {
-    return (
-        <OutlineMark className={className}>
-            <path d="M19 12H5M11 18l-6-6 6-6" />
-        </OutlineMark>
-    );
-}
-
-/** Paper plane — send (filled, nose top-right, fold notch). */
-export function SendMark({ className = 'h-4 w-4' }) {
-    return (
-        <Mark className={className}>
-            <path d="M2.01 21 23 12 2.01 3 2 10l15 2-15 2z" />
-        </Mark>
-    );
-}
-
-/** Alias for chat send buttons. */
-export function SendArrowMark({ className = 'h-4 w-4' }) {
-    return <SendMark className={className} />;
-}
-
-/** Paperclip — WhatsApp-style attach. */
-export function AttachMark({ className = 'h-4 w-4' }) {
-    return (
-        <OutlineMark className={className}>
-            <path d="M15.75 7.25v7.5a3.75 3.75 0 1 1-7.5 0V8a2.25 2.25 0 1 1 4.5 0v6.25a.75.75 0 1 1-1.5 0V8.35" />
-        </OutlineMark>
-    );
-}
-
-export function CloseMark({ className = 'h-4 w-4' }) {
-    return (
-        <OutlineMark className={className}>
-            <path d="M7 7l10 10M17 7 7 17" />
-        </OutlineMark>
-    );
-}
-
-/** Support ticket stub. */
-export function TicketMark({ className = 'h-4 w-4' }) {
-    return (
-        <OutlineMark className={className}>
-            <path d="M7 5.5h10a1.5 1.5 0 0 1 1.5 1.5v2a1.75 1.75 0 0 0 0 3.5v2A1.5 1.5 0 0 1 17 16.5H7A1.5 1.5 0 0 1 5.5 15v-2a1.75 1.75 0 0 0 0-3.5v-2A1.5 1.5 0 0 1 7 5.5Z" />
-            <path d="M9.5 9.25h5M9.5 12.25h3.5" />
-        </OutlineMark>
-    );
-}
-
-export function CheckMark({ className = 'h-4 w-4' }) {
-    return (
-        <Mark className={className}>
-            <path d="M9.2 16.3a1 1 0 0 1-1.4 0l-3.5-3.5a1 1 0 1 1 1.4-1.4l2.8 2.8 6.4-6.4a1 1 0 1 1 1.4 1.4l-7.1 7.1z" />
-        </Mark>
-    );
+export function StarMark({ className = 'h-4 w-4', filled = false, ...props }) {
+    return <Unicon name="star" className={className} {...props} />;
 }
 
 /** Instagram-style verified badge — scalloped seal with white check. */
 export function VerifiedMark({ className = 'h-4 w-4' }) {
     return (
-        <svg
-            viewBox="0 0 24 24"
-            className={className}
-            aria-hidden="true"
-        >
+        <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
             <path
                 fill="currentColor"
                 d="M12 1.15 13.95 3.4l2.95-.55.95 2.85 2.85.95-.55 2.95L22.85 12l-2.25 1.95.55 2.95-2.85.95-.95 2.85-2.95-.55L12 22.85l-1.95-2.25-2.95.55-.95-2.85-2.85-.95.55-2.95L1.15 12l2.25-1.95-.55-2.95 2.85-.95.95-2.85 2.95.55L12 1.15Z"
@@ -140,423 +121,21 @@ export function VerifiedMark({ className = 'h-4 w-4' }) {
     );
 }
 
-export function DisclosureMark({ className = 'h-4 w-4' }) {
-    return (
-        <Mark className={className}>
-            <path d="M7.3 9.3a1 1 0 0 1 1.4 0L12 12.6l3.3-3.3a1 1 0 1 1 1.4 1.4l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 0 1 0-1.4z" />
-        </Mark>
-    );
-}
-
-export function UploadMark({ className = 'h-4 w-4' }) {
-    return (
-        <Mark className={className}>
-            <path d="M12 3.25a1 1 0 0 1 1 1V12l2.3-2.3a1 1 0 1 1 1.4 1.4l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 1 1 1.4-1.4L11 12V4.25a1 1 0 0 1 1-1zM4.75 15.5a1 1 0 0 1 1 1v1.75c0 .41.34.75.75.75h11c.41 0 .75-.34.75-.75V16.5a1 1 0 1 1 2 0v1.75A2.75 2.75 0 0 1 17.5 21H6.5A2.75 2.75 0 0 1 3.75 18.25V16.5a1 1 0 0 1 1-1z" />
-        </Mark>
-    );
-}
-
-export function CropMark({ className = 'h-4 w-4' }) {
-    return (
-        <OutlineMark className={className}>
-            <path d="M6 3v13a2 2 0 0 0 2 2h13" />
-            <path d="M18 21V8a2 2 0 0 0-2-2H3" />
-        </OutlineMark>
-    );
-}
-
-export function TrashMark({ className = 'h-4 w-4' }) {
-    return (
-        <Mark className={className}>
-            <path d="M9.25 3.5A1.75 1.75 0 0 1 11 1.75h2A1.75 1.75 0 0 1 14.75 3.5V4.5H19a1 1 0 1 1 0 2h-.75l-.7 12.1A2.75 2.75 0 0 1 14.81 21H9.19a2.75 2.75 0 0 1-2.74-2.4L5.75 6.5H5a1 1 0 1 1 0-2h4.25V3.5zm1.5 1h2.5V3.5h-2.5v1zm-2.98 2 .68 11.75c.04.4.37.7.77.7h5.62c.4 0 .73-.3.77-.7L15.23 6.5H7.77zM10 9.25a1 1 0 0 1 1 1v6a1 1 0 1 1-2 0v-6a1 1 0 0 1 1-1zm4 0a1 1 0 0 1 1 1v6a1 1 0 1 1-2 0v-6a1 1 0 0 1 1-1z" />
-        </Mark>
-    );
-}
-
-export function EyeMark({ className = 'h-4 w-4' }) {
-    return (
-        <Mark className={className}>
-            <path d="M12 5.25c4.1 0 7.55 2.55 9.15 6.2a1 1 0 0 1 0 .9C19.55 16.2 16.1 18.75 12 18.75S4.45 16.2 2.85 12.35a1 1 0 0 1 0-.9C4.45 7.8 7.9 5.25 12 5.25zm0 2C8.95 7.25 6.25 9.1 4.85 12 6.25 14.9 8.95 16.75 12 16.75S17.75 14.9 19.15 12C17.75 9.1 15.05 7.25 12 7.25zM12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6z" />
-        </Mark>
-    );
-}
-
-/** Fingerprint arcs — passkeys / device unlock. */
-export function PasskeyMark({ className = 'h-4 w-4' }) {
-    return (
-        <OutlineMark className={className}>
-            <path d="M12 20.25c-1.1-1.35-1.75-2.95-1.75-4.75V11.5a1.75 1.75 0 1 1 3.5 0v1" />
-            <path d="M8.4 18.6c-1.05-1.55-1.65-3.3-1.65-5.1V10.2a5.25 5.25 0 0 1 10.5 0v.55" />
-            <path d="M5.6 16.85C4.55 15.1 4 13.15 4 11.1V10a8 8 0 0 1 16 0v.35" />
-        </OutlineMark>
-    );
-}
-
-export function EyeOffMark({ className = 'h-4 w-4' }) {
-    return (
-        <Mark className={className}>
-            <path d="M3.3 3.3a1 1 0 0 1 1.4 0l16 16a1 1 0 1 1-1.4 1.4l-2.55-2.55C15.05 18.85 13.6 19.25 12 19.25c-4.1 0-7.55-2.55-9.15-6.2a1 1 0 0 1 0-.9c.75-1.7 1.9-3.15 3.35-4.2L3.3 4.7a1 1 0 0 1 0-1.4zm5.05 5.05L6.9 6.9C5.7 7.8 4.75 9 4.1 10.4c1.25 2.7 3.75 4.6 6.75 4.95l-1.35-1.35a3.5 3.5 0 0 1-1.15-5.65zm3.1-2.6c.5-.08 1-.12 1.55-.12 4.1 0 7.55 2.55 9.15 6.2a1 1 0 0 1 0 .9c-.5 1.15-1.2 2.15-2.05 3l-1.45-1.45c.6-.6 1.05-1.3 1.4-2.1-1.4-2.9-4.1-4.75-7.15-4.75-.2 0-.4 0-.6.05l-1.45-1.45c.5-.15 1-.23 1.55-.28zM12 8.75c.2 0 .4.02.6.06l-3.6 3.6A3.5 3.5 0 0 1 12 8.75z" />
-        </Mark>
-    );
-}
-
-export function SignOutMark({ className = 'h-4 w-4' }) {
-    return (
-        <Mark className={className}>
-            <path d="M10.5 4.25H6.75A2.75 2.75 0 0 0 4 7v10a2.75 2.75 0 0 0 2.75 2.75h3.75a1 1 0 1 0 0-2H6.75c-.41 0-.75-.34-.75-.75V7c0-.41.34-.75.75-.75h3.75a1 1 0 1 0 0-2zM13.3 8.3a1 1 0 0 1 1.4 0l3 3a1 1 0 0 1 0 1.4l-3 3a1 1 0 1 1-1.4-1.4L14.6 13H9a1 1 0 1 1 0-2h5.6l-1.3-1.3a1 1 0 0 1 0-1.4z" />
-        </Mark>
-    );
-}
-
-export function BellMark({ className = 'h-4 w-4' }) {
-    return (
-        <Mark className={className}>
-            <path d="M12 3.25a5.25 5.25 0 0 1 5.25 5.25v2.1l1.35 2.7a1.25 1.25 0 0 1-1.12 1.8H6.52a1.25 1.25 0 0 1-1.12-1.8L6.75 10.6V8.5A5.25 5.25 0 0 1 12 3.25zm-2.1 14.5a2.1 2.1 0 0 0 4.2 0h-4.2z" />
-        </Mark>
-    );
-}
-
-export function SearchMark({ className = 'h-4 w-4' }) {
-    return (
-        <Mark className={className}>
-            <path d="M10.5 3.25a7.25 7.25 0 1 1 0 14.5 7.25 7.25 0 0 1 0-14.5zm0 2a5.25 5.25 0 1 0 0 10.5 5.25 5.25 0 0 0 0-10.5z" />
-            <path d="M15.2 14.5a1 1 0 0 1 1.4 0l4.1 4.1a1 1 0 1 1-1.4 1.4l-4.1-4.1a1 1 0 0 1 0-1.4z" />
-        </Mark>
-    );
-}
-
-/** Map pin — solid teardrop with punched hole (matches category marks). */
-export function PinMark({ className = 'h-4 w-4' }) {
-    return (
-        <Mark className={className}>
-            <path
-                fillRule="evenodd"
-                d="M12 2.25c3.85 0 7 3.05 7 6.85 0 4.55-5.2 10.35-6.45 11.7a.85.85 0 0 1-1.1 0C10.2 19.45 5 13.65 5 9.1c0-3.8 3.15-6.85 7-6.85zm0 4.35a2.65 2.65 0 1 0 0 5.3 2.65 2.65 0 0 0 0-5.3z"
-            />
-        </Mark>
-    );
-}
-
-export function HeartMark({
-    className = 'h-4 w-4',
-    filled = false,
-}) {
-    if (filled) {
-        return (
-            <Mark className={className}>
-                <path d="M12 20.35c-.35 0-.7-.12-1-.35C7.9 17.55 3.5 13.55 3.5 9.4A4.65 4.65 0 0 1 8.2 4.7c1.35 0 2.6.55 3.5 1.5A4.65 4.65 0 0 1 15.2 4.7a4.65 4.65 0 0 1 4.7 4.7c0 4.15-4.4 8.15-7.5 10.6-.3.23-.65.35-1 .35z" />
-            </Mark>
-        );
-    }
-
-    return (
-        <Mark className={className}>
-            <path
-                fillRule="evenodd"
-                d="M12 20.35c-.35 0-.7-.12-1-.35C7.9 17.55 3.5 13.55 3.5 9.4A4.65 4.65 0 0 1 8.2 4.7c1.35 0 2.6.55 3.5 1.5A4.65 4.65 0 0 1 15.2 4.7a4.65 4.65 0 0 1 4.7 4.7c0 4.15-4.4 8.15-7.5 10.6-.3.23-.65.35-1 .35zM8.35 6.55A2.85 2.85 0 0 0 5.5 9.4c0 3.2 3.55 6.55 6.5 8.85 2.95-2.3 6.5-5.65 6.5-8.85a2.85 2.85 0 0 0-2.85-2.85c-.9 0-1.75.4-2.3 1.1L12 8.85l-.85-1.2a2.85 2.85 0 0 0-2.8-1.1z"
-            />
-        </Mark>
-    );
-}
-
-export function BookmarkMark({
-    className = 'h-4 w-4',
-    filled = false,
-}) {
-    if (filled) {
-        return (
-            <Mark className={className}>
-                <path d="M7 3.25h10A1.75 1.75 0 0 1 18.75 5v15.1a.9.9 0 0 1-1.4.75L12 17.4l-5.35 3.45a.9.9 0 0 1-1.4-.75V5A1.75 1.75 0 0 1 7 3.25z" />
-            </Mark>
-        );
-    }
-
-    return (
-        <Mark className={className}>
-            <path
-                fillRule="evenodd"
-                d="M7 3.25h10A1.75 1.75 0 0 1 18.75 5v15.1a.9.9 0 0 1-1.4.75L12 17.4l-5.35 3.45a.9.9 0 0 1-1.4-.75V5A1.75 1.75 0 0 1 7 3.25zm1.75 1.75v12.35L12 15.55l3.25 1.8V5H8.75z"
-            />
-        </Mark>
-    );
-}
-
-export function StarMark({
-    className = 'h-4 w-4',
-    filled = false,
-}) {
-    if (filled) {
-        return (
-            <Mark className={className}>
-                <path d="m12 2.6 2.55 5.17 5.7.83-4.12 4.02.97 5.67L12 15.7l-5.1 2.59.97-5.67L3.75 8.6l5.7-.83L12 2.6z" />
-            </Mark>
-        );
-    }
-
-    return (
-        <Mark className={className}>
-            <path
-                fillRule="evenodd"
-                d="m12 2.6 2.55 5.17 5.7.83-4.12 4.02.97 5.67L12 15.7l-5.1 2.59.97-5.67L3.75 8.6l5.7-.83L12 2.6zm0 3.35L10.35 9.3l-3.7.54 2.68 2.61-.63 3.68L12 14.4l3.3 1.68-.63-3.68 2.68-2.61-3.7-.54L12 5.95z"
-            />
-        </Mark>
-    );
-}
-
-export function CalendarMark({ className = 'h-4 w-4' }) {
-    return (
-        <Mark className={className}>
-            <path d="M8 2.9a1 1 0 0 1 1 1V5h6V3.9a1 1 0 1 1 2 0V5h1.15A2.6 2.6 0 0 1 20.75 7.6v11.65A2.6 2.6 0 0 1 18.15 21.85H5.85A2.6 2.6 0 0 1 3.25 19.25V7.6A2.6 2.6 0 0 1 5.85 5H7V3.9a1 1 0 0 1 1-1zM5.35 10.35v8.9c0 .28.22.5.5.5h12.3c.28 0 .5-.22.5-.5v-8.9H5.35z" />
-        </Mark>
-    );
-}
-
-export function MenuMark({ className = 'h-4 w-4' }) {
-    return (
-        <Mark className={className}>
-            <path d="M4 6.25A1.25 1.25 0 0 1 5.25 5h13.5a1.25 1.25 0 1 1 0 2.5H5.25A1.25 1.25 0 0 1 4 6.25zm0 5.75A1.25 1.25 0 0 1 5.25 10.75h13.5a1.25 1.25 0 1 1 0 2.5H5.25A1.25 1.25 0 0 1 4 12zm0 5.75A1.25 1.25 0 0 1 5.25 16.5h13.5a1.25 1.25 0 1 1 0 2.5H5.25A1.25 1.25 0 0 1 4 17.75z" />
-        </Mark>
-    );
-}
-
-export function PlusMark({ className = 'h-4 w-4' }) {
-    return (
-        <Mark className={className}>
-            <path d="M12 4.25a1 1 0 0 1 1 1V11h5.75a1 1 0 1 1 0 2H13v5.75a1 1 0 1 1-2 0V13H5.25a1 1 0 1 1 0-2H11V5.25a1 1 0 0 1 1-1z" />
-        </Mark>
-    );
-}
-
-/** Three dots — More / overflow */
-export function MoreMark({ className = 'h-4 w-4' }) {
-    return (
-        <Mark className={className}>
-            <circle cx="5" cy="12" r="2" />
-            <circle cx="12" cy="12" r="2" />
-            <circle cx="19" cy="12" r="2" />
-        </Mark>
-    );
-}
-
-export function UserMark({ className = 'h-4 w-4' }) {
-    return (
-        <Mark className={className}>
-            <path d="M12 2.75a4.25 4.25 0 1 1 0 8.5 4.25 4.25 0 0 1 0-8.5zM12 13c3.95 0 7.5 2.05 8.85 5.1A1.75 1.75 0 0 1 19.25 20.5H4.75a1.75 1.75 0 0 1-1.6-2.4C4.5 15.05 8.05 13 12 13z" />
-        </Mark>
-    );
-}
-
-/** Compass rose — circle with N/S needle (reads clearly at 20px). */
-export function CompassMark({ className = 'h-4 w-4' }) {
-    return (
-        <Mark className={className}>
-            <path
-                fillRule="evenodd"
-                d="M12 2.25a9.75 9.75 0 1 1 0 19.5 9.75 9.75 0 0 1 0-19.5zm0 1.75a8 8 0 1 0 0 16 8 8 0 0 0 0-16z"
-            />
-            <path d="M12 5.4 14.85 12 12 18.6 9.15 12 12 5.4zm0 4.35L10.9 12 12 14.25 13.1 12 12 9.75z" />
-        </Mark>
-    );
-}
-
 /**
- * Nyuki AI — stylised bee (Kiswahili: nyuki).
- * Head, antennae, striped abdomen; solid silhouette that reads at 40px.
+ * Nyuki AI — stylised bee (Kiswahili: nyuki). Brand mark; not a Unicons glyph.
  */
 export function NyukiMark({ className = 'h-4 w-4' }) {
     return (
         <Mark className={className}>
-            {/* Abdomen with stripe cutouts */}
             <path
                 fillRule="evenodd"
                 d="M12 6.2c2.4 0 4.35 2.75 4.35 6.5S14.4 19.2 12 19.2s-4.35-2.75-4.35-6.5S9.6 6.2 12 6.2zM9.15 9.45h5.7v1.35H9.15V9.45zm0 2.6h5.7v1.35H9.15v-1.35zm0 2.6h5.7v1.35H9.15v-1.35z"
             />
-            {/* Head */}
             <circle cx="12" cy="4.4" r="2.6" />
-            {/* Antennae */}
             <path d="M10.95 3.5 8.2 1.25l-1 1.2 2.85 2.1z" />
             <path d="M13.05 3.5 15.8 1.25l1 1.2-2.85 2.1z" />
             <circle cx="7.45" cy="1.5" r="1.2" />
             <circle cx="16.55" cy="1.5" r="1.2" />
-        </Mark>
-    );
-}
-
-/** Funnel — filters. */
-export function FiltersMark({ className = 'h-4 w-4' }) {
-    return (
-        <Mark className={className}>
-            <path d="M3.5 4.75h17L14.25 12.5v4.75L9.75 20V12.5L3.5 4.75z" />
-        </Mark>
-    );
-}
-
-export function ListMark({ className = 'h-4 w-4' }) {
-    return (
-        <Mark className={className}>
-            <path d="M8.5 6.25A1.25 1.25 0 0 1 9.75 5H19a1.25 1.25 0 1 1 0 2.5H9.75A1.25 1.25 0 0 1 8.5 6.25zm0 5.75A1.25 1.25 0 0 1 9.75 10.75H19a1.25 1.25 0 1 1 0 2.5H9.75A1.25 1.25 0 0 1 8.5 12zm0 5.75A1.25 1.25 0 0 1 9.75 16.5H19a1.25 1.25 0 1 1 0 2.5H9.75A1.25 1.25 0 0 1 8.5 17.75zM5 6.25a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0zm0 5.75a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0zm0 5.75a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0z" />
-        </Mark>
-    );
-}
-
-export function MapMark({ className = 'h-4 w-4' }) {
-    return (
-        <Mark className={className}>
-            <path d="M14.85 3.2a1 1 0 0 1 .9.1l5 3.1A1 1 0 0 1 21.25 7.25v11.5a1 1 0 0 1-1.5.85l-4.6-2.7-5.15 2.85a1 1 0 0 1-.9-.05l-5.05-3A1 1 0 0 1 2.75 15.7V4.25A1 1 0 0 1 4.2 3.4l4.65 2.55 5.1-2.65a1 1 0 0 1 .9-.1zM9.5 7.55v10.05l4 2.2V9.75l-4-2.2zm-2 9.85V7.35L4.75 5.9v9.85l2.75 1.65zm8.5-7.65v10.05l2.75 1.6V9.5L16 9.75z" />
-        </Mark>
-    );
-}
-
-export function MailMark({ className = 'h-4 w-4' }) {
-    return (
-        <Mark className={className}>
-            <path d="M4.75 5h14.5A2.75 2.75 0 0 1 22 7.75v8.5A2.75 2.75 0 0 1 19.25 19H4.75A2.75 2.75 0 0 1 2 16.25v-8.5A2.75 2.75 0 0 1 4.75 5zm.4 2.5 6.2 4.3a1.1 1.1 0 0 0 1.3 0l6.2-4.3H5.15zM4 9.85v6.4c0 .41.34.75.75.75h14.5c.41 0 .75-.34.75-.75v-6.4l-5.85 4.05a3.1 3.1 0 0 1-3.7 0L4 9.85z" />
-        </Mark>
-    );
-}
-
-export function PhoneMark({ className = 'h-4 w-4' }) {
-    return (
-        <Mark className={className}>
-            <path d="M8.35 3.5c.55-.55 1.45-.55 2 0l1.55 1.55c.5.5.55 1.3.15 1.9l-.95 1.4a1.5 1.5 0 0 0 .2 1.9l3.4 3.4c.5.5 1.3.55 1.9.2l1.4-.95c.6-.4 1.4-.35 1.9.15l1.55 1.55c.55.55.55 1.45 0 2l-1.15 1.15c-.7.7-1.7 1.05-2.7.95-2.45-.25-5.15-1.85-7.85-4.55S4.4 9.15 4.15 6.7c-.1-1 .25-2 .95-2.7L6.25 2.85z" />
-        </Mark>
-    );
-}
-
-export function EmptyListingsMark({ className = 'h-4 w-4' }) {
-    return (
-        <Mark className={className}>
-            <path d="M12 2.5a9.5 9.5 0 1 1 0 19 9.5 9.5 0 0 1 0-19zm-3.1 6.15a1.15 1.15 0 1 0 0 2.3 1.15 1.15 0 0 0 0-2.3zm6.2 0a1.15 1.15 0 1 0 0 2.3 1.15 1.15 0 0 0 0-2.3zM8.2 14.6a1 1 0 0 0-.2 1.4 5 5 0 0 0 8 0 1 1 0 1 0-1.6-1.2 3 3 0 0 1-4.8 0 1 1 0 0 0-1.4-.2z" />
-        </Mark>
-    );
-}
-
-/** Fork & knife — Eat & Drink (solid silhouette) */
-export function EatMark({ className = 'h-4 w-4' }) {
-    return (
-        <Mark className={className}>
-            <path d="M6.1 3.25h1.8v5.4c0 .55-.45 1-1 1h-.3a.75.75 0 0 1-.75-.75V4a.75.75 0 0 1 .25-1.75zm-2.35 0h1.55v5.65c0 1.3.9 2.4 2.15 2.7V20.5a1.1 1.1 0 1 1-2.2 0v-7.4A3.85 3.85 0 0 1 2.2 9.1V4a.75.75 0 0 1 .75-.75h.8zm10.55 0c2.05 0 3.55 1.75 3.25 3.75l-.7 4.55c-.2 1.25-1.25 2.15-2.5 2.15h-.55V20.5a1.1 1.1 0 1 1-2.2 0V4a.75.75 0 0 1 .75-.75h1.95z" />
-        </Mark>
-    );
-}
-
-/** Bed — Stay (solid silhouette) */
-export function StayMark({ className = 'h-4 w-4' }) {
-    return (
-        <Mark className={className}>
-            <path d="M4.5 10.75V7A2.5 2.5 0 0 1 7 4.5h5A2.5 2.5 0 0 1 14.5 7v3.75H19a2.25 2.25 0 0 1 2.25 2.25V19a1.1 1.1 0 1 1-2.2 0v-1.5H4.95V19a1.1 1.1 0 1 1-2.2 0v-6A2.25 2.25 0 0 1 5 10.75h-.5zm2.5-4.75c-.41 0-.75.34-.75.75V10.75h6.25V6.75c0-.41-.34-.75-.75-.75H7zm-3.25 9.5h16.5v-2.5H3.75v2.5z" />
-        </Mark>
-    );
-}
-
-/** Camera — Things to do (solid silhouette) */
-export function ExploreMark({ className = 'h-4 w-4' }) {
-    return (
-        <Mark className={className}>
-            <path d="M9.1 4.75h5.8l1.15 1.75H19A2.75 2.75 0 0 1 21.75 9.25v8A2.75 2.75 0 0 1 19 20H5a2.75 2.75 0 0 1-2.75-2.75v-8A2.75 2.75 0 0 1 5 6.5h3.05L9.1 4.75zM12 9.35a4.15 4.15 0 1 0 0 8.3 4.15 4.15 0 0 0 0-8.3zm0 2.1a2.05 2.05 0 1 1 0 4.1 2.05 2.05 0 0 1 0-4.1z" />
-        </Mark>
-    );
-}
-
-/** Shopping bag (solid silhouette) */
-export function ShopMark({ className = 'h-4 w-4' }) {
-    return (
-        <Mark className={className}>
-            <path d="M9.25 3.75a2.75 2.75 0 0 1 5.5 0v1.5h2.1c1.4 0 2.55 1.1 2.65 2.5l.7 9.85A2.6 2.6 0 0 1 17.65 20.5H6.35a2.6 2.6 0 0 1-2.55-2.9l.7-9.85a2.65 2.65 0 0 1 2.65-2.5h2.1v-1.5zm2.2 1.5h1.1V3.75a1.1 1.1 0 1 0-2.2 0v1.5h1.1z" />
-        </Mark>
-    );
-}
-
-/** Wrench — Services (solid silhouette) */
-export function ServicesMark({ className = 'h-4 w-4' }) {
-    return (
-        <Mark className={className}>
-            <path d="M14.55 3.5a5.25 5.25 0 0 0-6.85 6.25L3.55 14a2.15 2.15 0 0 0 3.05 3.05l4.15-4.15a5.25 5.25 0 0 0 6.25-6.85l-2.4 2.4a1.65 1.65 0 1 1-2.35-2.35l2.4-2.4c-.03-.05-.07-.1-.1-.15z" />
-        </Mark>
-    );
-}
-
-/** House — Properties (solid silhouette) */
-export function PropertyMark({ className = 'h-4 w-4' }) {
-    return (
-        <Mark className={className}>
-            <path d="M11.4 3.5a1 1 0 0 1 1.2 0l7.85 6c.4.3.18.95-.35.95H19v8.1A1.65 1.65 0 0 1 17.35 20h-3.25a.75.75 0 0 1-.75-.75V15.25H10.65v4a.75.75 0 0 1-.75.75H6.65A1.65 1.65 0 0 1 5 18.55V10.45H3.9c-.53 0-.75-.65-.35-.95l7.85-6z" />
-        </Mark>
-    );
-}
-
-/** Calendar — Events */
-export function EventMark({ className = 'h-4 w-4' }) {
-    return <CalendarMark className={className} />;
-}
-
-/** Four tiles — account home */
-export function DashboardMark({ className = 'h-4 w-4' }) {
-    return (
-        <Mark className={className}>
-            <path d="M4.25 4.25h6.5v6.5h-6.5v-6.5zm9 0h6.5v6.5h-6.5v-6.5zm-9 9h6.5v6.5h-6.5v-6.5zm9 0h6.5v6.5h-6.5v-6.5z" />
-        </Mark>
-    );
-}
-
-/** Speech bubble — messages */
-export function MessageMark({ className = 'h-4 w-4' }) {
-    return (
-        <Mark className={className}>
-            <path d="M4.5 4.5h15A2.5 2.5 0 0 1 22 7v8a2.5 2.5 0 0 1-2.5 2.5H12l-4.6 3.45a.75.75 0 0 1-1.2-.6V17.5H4.5A2.5 2.5 0 0 1 2 15V7A2.5 2.5 0 0 1 4.5 4.5z" />
-        </Mark>
-    );
-}
-
-/** Credit card — billing */
-export function CardMark({ className = 'h-4 w-4' }) {
-    return (
-        <Mark className={className}>
-            <path d="M3.5 6.75A2.75 2.75 0 0 1 6.25 4h11.5A2.75 2.75 0 0 1 20.5 6.75v10.5A2.75 2.75 0 0 1 17.75 20H6.25A2.75 2.75 0 0 1 3.5 17.25V6.75zM5.25 8.5h13.5V6.75c0-.41-.34-.75-.75-.75H6.25c-.41 0-.75.34-.75.75V8.5zm0 3v5.75c0 .41.34.75.75.75h11.5c.41 0 .75-.34.75-.75V11.5H5.25z" />
-        </Mark>
-    );
-}
-
-/** Gear — settings */
-export function GearMark({ className = 'h-4 w-4' }) {
-    return (
-        <Mark className={className}>
-            <path
-                fillRule="evenodd"
-                d="M10.1 2.75h3.8l.45 2.05a6.9 6.9 0 0 1 1.85.95l2-.85 1.9 3.3-1.55 1.5c.1.4.15.8.15 1.25s-.05.85-.15 1.25l1.55 1.5-1.9 3.3-2-.85a6.9 6.9 0 0 1-1.85.95l-.45 2.05h-3.8l-.45-2.05a6.9 6.9 0 0 1-1.85-.95l-2 .85-1.9-3.3 1.55-1.5A6.7 6.7 0 0 1 4.75 12c0-.45.05-.85.15-1.25L3.35 9.25l1.9-3.3 2 .85a6.9 6.9 0 0 1 1.85-.95l.45-2.05zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"
-            />
-        </Mark>
-    );
-}
-
-/** Sun — light theme */
-export function SunMark({ className = 'h-4 w-4' }) {
-    return (
-        <Mark className={className}>
-            <path d="M12 7.25a4.75 4.75 0 1 1 0 9.5 4.75 4.75 0 0 1 0-9.5zM12 2.5a1 1 0 0 1 1 1V5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1zm0 14a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V17.5a1 1 0 0 1 1-1zM3.5 12a1 1 0 0 1 1-1H6a1 1 0 1 1 0 2H4.5a1 1 0 0 1-1-1zm14 0a1 1 0 0 1 1-1H19.5a1 1 0 1 1 0 2H18.5a1 1 0 0 1-1-1zM5.4 5.4a1 1 0 0 1 1.4 0l1.05 1.05a1 1 0 1 1-1.4 1.4L5.4 6.8a1 1 0 0 1 0-1.4zm10.75 10.75a1 1 0 0 1 1.4 0l1.05 1.05a1 1 0 1 1-1.4 1.4l-1.05-1.05a1 1 0 0 1 0-1.4zM18.6 5.4a1 1 0 0 1 0 1.4l-1.05 1.05a1 1 0 1 1-1.4-1.4L17.2 5.4a1 1 0 0 1 1.4 0zM7.85 16.15a1 1 0 0 1 0 1.4L6.8 18.6a1 1 0 1 1-1.4-1.4l1.05-1.05a1 1 0 0 1 1.4 0z" />
-        </Mark>
-    );
-}
-
-/** Moon — dark theme */
-export function MoonMark({ className = 'h-4 w-4' }) {
-    return (
-        <Mark className={className}>
-            <path d="M14.35 3.4a.9.9 0 0 1 1.05 1.2 7.5 7.5 0 1 0 4 7.95.9.9 0 0 1 1.65.7A9.25 9.25 0 1 1 13.2 3.15a.9.9 0 0 1 1.15.25z" />
-        </Mark>
-    );
-}
-
-/** Star — Standard / featured listing tier */
-export function StandardTierMark({ className = 'h-4 w-4' }) {
-    return <StarMark className={className} filled />;
-}
-
-/** Bolt — Premium listing tier */
-export function PremiumTierMark({ className = 'h-4 w-4' }) {
-    return (
-        <Mark className={className}>
-            <path d="M13.4 2.6a.9.9 0 0 1 .55 1.55L10.9 8.4h4.85a.9.9 0 0 1 .7 1.48l-6.6 8.7a.9.9 0 0 1-1.6-.85L10.1 12H5.35a.9.9 0 0 1-.72-1.45l6.75-7.55a.9.9 0 0 1 1.02-.4z" />
         </Mark>
     );
 }

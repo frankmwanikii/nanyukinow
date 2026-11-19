@@ -1,4 +1,4 @@
-import { Expand } from 'lucide-react';
+import { Expand } from '@/Components/site/LucideCompat';
 import { useMemo, useState } from 'react';
 import GalleryLightbox from './GalleryLightbox';
 import DetailSection from './DetailSection';
@@ -163,6 +163,7 @@ export default function MenuGallery({
                     index={lightbox}
                     onClose={() => setLightbox(null)}
                     onIndexChange={setLightbox}
+                    padBlur
                 />
             ) : null}
         </>

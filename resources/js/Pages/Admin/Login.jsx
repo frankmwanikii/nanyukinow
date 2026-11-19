@@ -1,5 +1,5 @@
 import { Head, Link, useForm } from '@inertiajs/react';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff } from '@/Components/site/LucideCompat';
 import { useState } from 'react';
 
 export default function Login({ status }) {

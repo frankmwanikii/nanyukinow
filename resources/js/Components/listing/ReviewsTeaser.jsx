@@ -1,4 +1,4 @@
-import { Star } from 'lucide-react';
+import { Star } from '@/Components/site/LucideCompat';
 import DetailSection from './DetailSection';
 
 export default function ReviewsTeaser({ rating, reviewSummary }) {

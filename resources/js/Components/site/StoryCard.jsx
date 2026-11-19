@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight } from '@/Components/site/LucideCompat';
 import { formatArticleDate } from '@/data/articles';
 
 export default function StoryCard({ article, featured = false }) {

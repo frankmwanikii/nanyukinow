@@ -20,7 +20,7 @@ import {
     Settings2,
     Trash2,
     XCircle,
-} from 'lucide-react';
+} from '@/Components/site/LucideCompat';
 import { useState } from 'react';
 
 function formatDate(iso) {

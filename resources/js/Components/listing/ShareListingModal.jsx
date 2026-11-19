@@ -2,7 +2,7 @@ import {
     Copy,
     Mail,
     Share,
-} from 'lucide-react';
+} from '@/Components/site/LucideCompat';
 import { useEffect, useState } from 'react';
 import ListingModal from './ListingModal';
 

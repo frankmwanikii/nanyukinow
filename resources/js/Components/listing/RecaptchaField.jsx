@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
-import { Check, ShieldCheck } from 'lucide-react';
+import { Check, ShieldCheck } from '@/Components/site/LucideCompat';
 
 const SCRIPT_SRC = 'https://www.google.com/recaptcha/api.js?render=explicit';
 const RECAPTCHA_WIDTH = 304;

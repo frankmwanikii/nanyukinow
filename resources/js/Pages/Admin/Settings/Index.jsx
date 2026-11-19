@@ -9,7 +9,7 @@ import {
     PageHeader,
 } from '@/Components/Admin/ui';
 import { Head, useForm } from '@inertiajs/react';
-import { Image as ImageIcon, Save } from 'lucide-react';
+import { Image as ImageIcon, Save } from '@/Components/site/LucideCompat';
 import { useMemo, useState } from 'react';
 
 const groupMeta = {
@@ -48,6 +48,18 @@ const groupOrder = ['branding', 'pages', 'billing', 'payments', 'maps', 'social'
 const byKey = (items = []) =>
     Object.fromEntries(items.map((item) => [item.key, item]));
 
+function FieldHelp({ help }) {
+    if (!help) {
+        return null;
+    }
+
+    return (
+        <p className="mt-1.5 text-xs leading-relaxed text-olive-500 dark:text-olive-400">
+            {help}
+        </p>
+    );
+}
+
 function Field({ item, value, onChange, label, className = '' }) {
     const fieldLabel = label || item.label;
 
@@ -65,6 +77,7 @@ function Field({ item, value, onChange, label, className = '' }) {
                         </option>
                     ))}
                 </AdminSelect>
+                <FieldHelp help={item.help} />
             </div>
         );
     }
@@ -78,6 +91,7 @@ function Field({ item, value, onChange, label, className = '' }) {
                     onChange={(e) => onChange(item.key, e.target.value)}
                     autoComplete="off"
                 />
+                <FieldHelp help={item.help} />
             </div>
         );
     }
@@ -91,6 +105,7 @@ function Field({ item, value, onChange, label, className = '' }) {
                     onChange={(e) => onChange(item.key, e.target.value)}
                     rows={4}
                 />
+                <FieldHelp help={item.help} />
             </div>
         );
     }
@@ -102,6 +117,7 @@ function Field({ item, value, onChange, label, className = '' }) {
                 value={value}
                 onChange={(e) => onChange(item.key, e.target.value)}
             />
+            <FieldHelp help={item.help} />
         </div>
     );
 }
@@ -195,6 +211,49 @@ function BrandingFields({ items, valueFor, updateValue }) {
                     <MediaPreview url={valueFor('favicon_url')} label="Favicon preview" />
                 </div>
             </FieldGrid>
+        </div>
+    );
+}
+
+function MapsFields({ items, valueFor, updateValue }) {
+    const map = useMemo(() => byKey(items), [items]);
+    const provider = valueFor('map_provider') || 'google';
+
+    const field = (key, label, className) => {
+        const item = map[key];
+        if (!item) {
+            return null;
+        }
+
+        return (
+            <Field
+                key={key}
+                item={item}
+                value={valueFor(key)}
+                onChange={updateValue}
+                label={label}
+                className={className}
+            />
+        );
+    };
+
+    return (
+        <div className="space-y-4">
+            <FieldGrid>
+                {field('map_provider', 'Map provider', 'sm:col-span-2')}
+                {provider === 'google'
+                    ? field(
+                          'google_maps_api_key',
+                          'Google Maps API key',
+                          'sm:col-span-2',
+                      )
+                    : null}
+            </FieldGrid>
+            {provider === 'leaflet' ? (
+                <p className="text-sm text-olive-500 dark:text-olive-400">
+                    OpenStreetMap (Leaflet) needs no API key.
+                </p>
+            ) : null}
         </div>
     );
 }
@@ -398,6 +457,12 @@ export default function Index({ groupedSettings }) {
                 <Panel title={activeMeta.title} blurb={activeMeta.blurb}>
                     {activeGroup === 'payments' ? (
                         <PaymentsFields
+                            items={activeItems}
+                            valueFor={valueFor}
+                            updateValue={updateValue}
+                        />
+                    ) : activeGroup === 'maps' ? (
+                        <MapsFields
                             items={activeItems}
                             valueFor={valueFor}
                             updateValue={updateValue}

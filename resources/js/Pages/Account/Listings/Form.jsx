@@ -63,7 +63,7 @@ import {
     Settings,
     Trash2,
     X,
-} from 'lucide-react';
+} from '@/Components/site/LucideCompat';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 const tierLabels = {

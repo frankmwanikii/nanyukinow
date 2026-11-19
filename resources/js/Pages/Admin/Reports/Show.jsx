@@ -6,7 +6,7 @@ import {
 } from '@/Components/Admin/ui';
 import { useConfirm } from '@/Components/ConfirmDialog';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from '@/Components/site/LucideCompat';
 
 export default function Show({ report }) {
     const { confirm, dialog } = useConfirm();

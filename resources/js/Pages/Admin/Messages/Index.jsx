@@ -24,7 +24,7 @@ import {
     Trash2,
     Users,
     X,
-} from 'lucide-react';
+} from '@/Components/site/LucideCompat';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 function visitMail(params = {}) {

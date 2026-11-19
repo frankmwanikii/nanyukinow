@@ -32,7 +32,7 @@ import {
 } from '@/utils/eatDrinkDetails';
 import { uploadEditorMedia } from '@/utils/uploadEditorMedia';
 import { Link } from '@inertiajs/react';
-import { ImagePlus, Images, Plus, Trash2, X } from 'lucide-react';
+import { ImagePlus, Images, Plus, Trash2, X } from '@/Components/site/LucideCompat';
 import { Component, useRef, useState } from 'react';
 
 class SectionErrorBoundary extends Component {

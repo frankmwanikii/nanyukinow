@@ -8,7 +8,7 @@ import {
 import { Head, useForm } from '@inertiajs/react';
 import axios from 'axios';
 import CloseButton from '@/Components/site/CloseButton';
-import { Check, ChevronDown, RefreshCw, Send } from 'lucide-react';
+import { Check, ChevronDown, RefreshCw, Send } from '@/Components/site/LucideCompat';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
     isAwaitingMpesaPrompt,

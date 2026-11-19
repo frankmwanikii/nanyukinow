@@ -1,6 +1,6 @@
 import { createPortal } from 'react-dom';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
-import { AlertTriangle, Info, Link2, Trash2 } from 'lucide-react';
+import { AlertTriangle, Info, Link2, Trash2 } from '@/Components/site/LucideCompat';
 import CloseButton from '@/Components/site/CloseButton';
 
 const SHELL =

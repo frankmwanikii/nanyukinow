@@ -8,7 +8,7 @@ import {
     PageHeader,
 } from '@/Components/Admin/ui';
 import { Head, useForm } from '@inertiajs/react';
-import { ArrowLeft, ExternalLink, Save } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Save } from '@/Components/site/LucideCompat';
 
 export default function Edit({ page }) {
     const form = useForm({

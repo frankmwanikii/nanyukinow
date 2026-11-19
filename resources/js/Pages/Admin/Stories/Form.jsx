@@ -10,7 +10,7 @@ import {
 } from '@/Components/Admin/ui';
 import { useConfirm } from '@/Components/ConfirmDialog';
 import { Head, router, useForm } from '@inertiajs/react';
-import { ArrowLeft, Save, Trash2 } from 'lucide-react';
+import { ArrowLeft, Save, Trash2 } from '@/Components/site/LucideCompat';
 
 export default function Form({ story }) {
     const { confirm, dialog } = useConfirm();

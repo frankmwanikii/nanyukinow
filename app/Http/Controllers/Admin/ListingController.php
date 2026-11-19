@@ -129,7 +129,6 @@ class ListingController extends Controller
             'listing' => null,
             'categories' => $this->categories(),
             'amenities' => $this->amenitiesPayload(),
-            'mapsApiKey' => config('services.google.maps_key') ?: env('VITE_GOOGLE_MAPS_API_KEY'),
             'plan' => null,
             'allowedTiers' => ['free', 'featured', 'premium'],
             'isDraft' => false,
@@ -257,7 +256,6 @@ class ListingController extends Controller
             ],
             'categories' => $this->categories(),
             'amenities' => $this->amenitiesPayload(),
-            'mapsApiKey' => config('services.google.maps_key') ?: env('VITE_GOOGLE_MAPS_API_KEY'),
             'plan' => null,
             'allowedTiers' => ['free', 'featured', 'premium'],
             'isDraft' => false,
@@ -367,7 +365,7 @@ class ListingController extends Controller
             : [];
         $galleryUrls = ListingGallery::fromRequest($galleryEntries, $galleryFiles, $galleryFileMeta);
 
-        $imageUrl = ListingMedia::normalizePublicUrl($data['image_url'] ?? null)
+        $imageUrl = ListingMedia::persistPublicUrl($data['image_url'] ?? null, 'listings/covers')
             ?? ListingMedia::normalizePublicUrl($listing?->image_url);
         if ($request->hasFile('cover')) {
             if ($listing?->image_url) {
@@ -376,7 +374,7 @@ class ListingController extends Controller
             $imageUrl = ListingMedia::storeOrFail($request->file('cover'), 'listings/covers', 'cover');
         }
 
-        $logoUrl = ListingMedia::normalizePublicUrl($data['logo_url'] ?? null)
+        $logoUrl = ListingMedia::persistPublicUrl($data['logo_url'] ?? null, 'listings/logos')
             ?? ListingMedia::normalizePublicUrl($listing?->logo_url);
         if ($request->hasFile('logo')) {
             if ($listing?->logo_url) {
@@ -385,7 +383,7 @@ class ListingController extends Controller
             $logoUrl = ListingMedia::storeOrFail($request->file('logo'), 'listings/logos', 'logo');
         }
 
-        $posterUrl = ListingMedia::normalizePublicUrl($data['event_poster_url'] ?? null)
+        $posterUrl = ListingMedia::persistPublicUrl($data['event_poster_url'] ?? null, 'listings/posters')
             ?? ListingMedia::normalizePublicUrl($listing?->event_poster_url);
         if ($request->hasFile('event_poster')) {
             if ($listing?->event_poster_url) {

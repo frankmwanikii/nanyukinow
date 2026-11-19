@@ -1,4 +1,4 @@
-import { CalendarDays } from 'lucide-react';
+import { CalendarDays } from '@/Components/site/LucideCompat';
 import { useEffect, useState } from 'react';
 import DetailSection from './DetailSection';
 import { formatEventDate, formatEventTime } from './eventDates';

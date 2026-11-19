@@ -33,7 +33,7 @@ import {
     Sparkles,
     Trash2,
     UserRound,
-} from 'lucide-react';
+} from '@/Components/site/LucideCompat';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 const ACCEPT = 'image/jpeg,image/png,image/webp,image/gif';

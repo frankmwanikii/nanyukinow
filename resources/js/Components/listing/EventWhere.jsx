@@ -1,4 +1,4 @@
-import { MapPin } from 'lucide-react';
+import { MapPin } from '@/Components/site/LucideCompat';
 import DetailSection from './DetailSection';
 
 const EVENT_REGIONS = ['Nanyuki', 'Timau', 'Naromoru'];

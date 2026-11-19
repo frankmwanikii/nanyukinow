@@ -1,4 +1,4 @@
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle } from '@/Components/site/LucideCompat';
 import { useEffect, useState } from 'react';
 
 function loadComments(slug) {

@@ -9,7 +9,7 @@ import {
 } from '@/Components/Admin/ui';
 import { srcToDataUrl } from '@/utils/cropImage';
 import { Head, useForm, usePage } from '@inertiajs/react';
-import { CloudUpload, Crop, KeyRound, Save, Trash2 } from 'lucide-react';
+import { CloudUpload, Crop, KeyRound, Save, Trash2 } from '@/Components/site/LucideCompat';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 const ACCEPT = 'image/jpeg,image/png,image/webp,image/gif';

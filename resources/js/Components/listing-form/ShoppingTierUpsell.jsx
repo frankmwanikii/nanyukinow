@@ -1,6 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { normalizeTier, tierDisplayLabel } from '@/data/shoppingTierFeatures';
-import { Sparkles } from 'lucide-react';
+import { Sparkles } from '@/Components/site/LucideCompat';
 
 const COPY = {
     free: {

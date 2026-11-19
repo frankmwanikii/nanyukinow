@@ -6,7 +6,7 @@ import {
     createOsmMap,
     leafletPinIcon,
 } from '@/utils/leafletMaps';
-import { useMapProvider } from '@/utils/mapProvider';
+import { useMapProvider, useMapsApiKey } from '@/utils/mapProvider';
 
 /**
  * Explore map — Google Maps or OpenStreetMap (Leaflet).
@@ -52,7 +52,8 @@ function GoogleExploreMap({
     onClose,
     className,
 }) {
-    const googleKey = getMapsApiKey();
+    const sharedMapsKey = useMapsApiKey();
+    const googleKey = getMapsApiKey(sharedMapsKey);
     const containerRef = useRef(null);
     const mapRef = useRef(null);
     const markersRef = useRef(new Map());

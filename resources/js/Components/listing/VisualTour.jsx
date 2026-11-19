@@ -1,4 +1,4 @@
-import { Expand } from 'lucide-react';
+import { Expand } from '@/Components/site/LucideCompat';
 import { useEffect, useMemo, useState } from 'react';
 import GalleryLightbox from './GalleryLightbox';
 import DetailSection from './DetailSection';

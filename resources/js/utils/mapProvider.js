@@ -9,6 +9,13 @@ export function useMapProvider() {
     return provider === 'leaflet' ? 'leaflet' : 'google';
 }
 
+/**
+ * Google Maps browser key from admin Settings (falls back to env via Inertia).
+ */
+export function useMapsApiKey() {
+    return String(usePage().props.mapsApiKey || '');
+}
+
 export function directionsUrlFor(provider, { lat, lng, query }) {
     if (
         provider === 'leaflet' &&

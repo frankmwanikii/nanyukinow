@@ -56,7 +56,7 @@ import {
     tierMeets as eventsTierMeets,
 } from '@/data/eventsTierFeatures';
 import { isTieredCategory } from '@/data/listingTier';
-import { Plus, X } from 'lucide-react';
+import { Plus, X } from '@/Components/site/LucideCompat';
 import { useState } from 'react';
 
 const SUGGEST_OPTIONS = {

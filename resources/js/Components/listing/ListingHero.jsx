@@ -1,4 +1,4 @@
-import { ExternalLink, MessageCircle, Phone, Ticket } from 'lucide-react';
+import { ExternalLink, MessageCircle, Phone, Ticket } from '@/Components/site/LucideCompat';
 import { motion } from 'framer-motion';
 import { VerifiedMark } from '@/Components/site/Mark';
 import { listingSubcategories } from '@/utils/listingSubcategories';

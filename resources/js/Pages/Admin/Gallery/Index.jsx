@@ -23,7 +23,7 @@ import {
     Trash2,
     Upload,
     X,
-} from 'lucide-react';
+} from '@/Components/site/LucideCompat';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 

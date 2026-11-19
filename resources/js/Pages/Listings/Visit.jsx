@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { ArrowLeft, Globe } from 'lucide-react';
+import { ArrowLeft, Globe } from '@/Components/site/LucideCompat';
 import SiteLayout from '@/Layouts/SiteLayout';
 import { listingVisitUrl } from '@/utils/listingVisit';
 

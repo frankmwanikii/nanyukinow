@@ -23,7 +23,7 @@ import {
     Redo2,
     Underline as UnderlineIcon,
     Undo2,
-} from 'lucide-react';
+} from '@/Components/site/LucideCompat';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 
 const FONT_SIZES = [

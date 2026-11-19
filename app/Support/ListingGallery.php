@@ -21,7 +21,7 @@ class ListingGallery
 
         foreach ($entries as $entry) {
             if (is_string($entry) && trim($entry) !== '') {
-                $url = ListingMedia::normalizePublicUrl($entry);
+                $url = ListingMedia::persistPublicUrl($entry, 'listings/gallery');
                 if ($url) {
                     $gallery[] = $url;
                 }
@@ -37,7 +37,7 @@ class ListingGallery
                 ? trim($entry['src'])
                 : (isset($entry['url']) && is_string($entry['url']) ? trim($entry['url']) : '');
 
-            $src = ListingMedia::normalizePublicUrl($src) ?? '';
+            $src = ListingMedia::persistPublicUrl($src, 'listings/gallery') ?? '';
 
             if ($src === '') {
                 continue;

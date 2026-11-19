@@ -151,7 +151,7 @@ function ListingSeeAll({ href, light = false }) {
                 }
             >
                 See all
-                <SendArrowMark className="h-4 w-4 -rotate-45" />
+                <SendArrowMark className="h-4 w-4" />
             </Link>
         </div>
     );

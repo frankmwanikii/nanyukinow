@@ -27,7 +27,7 @@ import {
     Hourglass,
     Plus,
     Trash2,
-} from 'lucide-react';
+} from '@/Components/site/LucideCompat';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 export default function Index({

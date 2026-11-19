@@ -13,7 +13,7 @@ import {
 } from '@/Components/Admin/ui';
 import { useConfirm } from '@/Components/ConfirmDialog';
 import { Head, router, useForm } from '@inertiajs/react';
-import { Loader2, Pencil, Plus, Save, Trash2, X } from 'lucide-react';
+import { Loader2, Pencil, Plus, Save, Trash2, X } from '@/Components/site/LucideCompat';
 import { useEffect, useId, useState } from 'react';
 import { createPortal } from 'react-dom';
 

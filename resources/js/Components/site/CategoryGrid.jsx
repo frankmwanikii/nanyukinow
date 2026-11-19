@@ -1,26 +1,26 @@
 import { Link } from '@inertiajs/react';
 import { explorePath, mainCategories } from '@/data/categories';
 import {
-    EatMark,
-    EventMark,
-    ExploreMark,
-    MoreMark,
-    PropertyMark,
-    ServicesMark,
-    ShopMark,
-    StayMark,
-} from '@/Components/site/Mark';
+    EatCategoryIcon,
+    EventCategoryIcon,
+    ExploreCategoryIcon,
+    MoreCategoryIcon,
+    PropertyCategoryIcon,
+    ServicesCategoryIcon,
+    ShopCategoryIcon,
+    StayCategoryIcon,
+} from '@/Components/site/CategoryIcons';
 import Reveal from './Reveal';
 import SectionHeading from './SectionHeading';
 
 const icons = {
-    eatDrink: EatMark,
-    stay: StayMark,
-    shopping: ShopMark,
-    thingsToDo: ExploreMark,
-    events: EventMark,
-    properties: PropertyMark,
-    services: ServicesMark,
+    eatDrink: EatCategoryIcon,
+    stay: StayCategoryIcon,
+    shopping: ShopCategoryIcon,
+    thingsToDo: ExploreCategoryIcon,
+    events: EventCategoryIcon,
+    properties: PropertyCategoryIcon,
+    services: ServicesCategoryIcon,
 };
 
 const cards = [
@@ -34,7 +34,7 @@ const cards = [
         key: 'more',
         label: 'More',
         href: explorePath(),
-        Icon: MoreMark,
+        Icon: MoreCategoryIcon,
     },
 ];
 

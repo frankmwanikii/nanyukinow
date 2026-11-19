@@ -1,4 +1,4 @@
-import { Ticket } from 'lucide-react';
+import { Ticket } from '@/Components/site/LucideCompat';
 import DetailSection from './DetailSection';
 
 export default function EventTickets({ listing }) {

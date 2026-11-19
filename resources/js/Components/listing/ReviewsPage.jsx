@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Star } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Star } from '@/Components/site/LucideCompat';
 import { Link, useForm, usePage } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 import DetailSection from './DetailSection';

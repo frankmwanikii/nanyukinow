@@ -1,4 +1,4 @@
-import { Globe, Share2, ShieldCheck, Bookmark, Heart, Flag } from 'lucide-react';
+import { Globe, Share2, ShieldCheck, Bookmark, Heart, Flag } from '@/Components/site/LucideCompat';
 import { router, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import ShareListingModal from './ShareListingModal';

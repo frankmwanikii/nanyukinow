@@ -1,4 +1,4 @@
-import { Mail, Phone, UserRound } from 'lucide-react';
+import { Mail, Phone, UserRound } from '@/Components/site/LucideCompat';
 import DetailSection from './DetailSection';
 
 export default function AgentCard({ agent, title = 'Contact agent' }) {

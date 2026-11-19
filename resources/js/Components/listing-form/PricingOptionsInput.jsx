@@ -1,4 +1,4 @@
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2 } from '@/Components/site/LucideCompat';
 import { field, help, label } from './fieldStyles';
 
 /**

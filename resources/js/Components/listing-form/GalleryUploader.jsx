@@ -13,7 +13,7 @@ import {
     Star,
     Trash2,
     Upload,
-} from 'lucide-react';
+} from '@/Components/site/LucideCompat';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 const MAX_BYTES = 15 * 1024 * 1024;

@@ -6,7 +6,7 @@ import {
     Copy,
     Lightbulb,
     Share2,
-} from 'lucide-react';
+} from '@/Components/site/LucideCompat';
 import { useEffect, useMemo, useState } from 'react';
 import SiteLayout from '@/Layouts/SiteLayout';
 import StoryCard from '@/Components/site/StoryCard';

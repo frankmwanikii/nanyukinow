@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { ArrowUpRight, FileText, Mail } from 'lucide-react';
+import { ArrowUpRight, FileText, Mail } from '@/Components/site/LucideCompat';
 import { useEffect, useState } from 'react';
 import SiteLayout from '@/Layouts/SiteLayout';
 

@@ -29,7 +29,7 @@ import {
     Users,
     Wallet,
     X,
-} from 'lucide-react';
+} from '@/Components/site/LucideCompat';
 import { useEffect, useId, useState } from 'react';
 import { createPortal } from 'react-dom';
 

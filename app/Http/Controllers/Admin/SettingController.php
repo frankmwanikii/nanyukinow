@@ -425,6 +425,19 @@ class SettingController extends Controller
                 'sort_order' => 1,
             ],
         );
+
+        SiteSetting::query()->firstOrCreate(
+            ['key' => 'google_maps_api_key'],
+            [
+                'group' => 'maps',
+                'key' => 'google_maps_api_key',
+                'label' => 'Google Maps API key',
+                'type' => 'password',
+                'value' => (string) (config('services.google.maps_key') ?: ''),
+                'help' => 'Browser key from Google Cloud. Enable Maps JavaScript API and Places API, then restrict by HTTP referrer.',
+                'sort_order' => 2,
+            ],
+        );
     }
 
     /**

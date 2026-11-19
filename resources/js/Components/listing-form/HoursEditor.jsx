@@ -1,5 +1,5 @@
 import { DAYS, defaultHours, label } from './fieldStyles';
-import { Check, Copy, Moon } from 'lucide-react';
+import { Check, Copy, Moon } from '@/Components/site/LucideCompat';
 
 function formatDay(day) {
     return {

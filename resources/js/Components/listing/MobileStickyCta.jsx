@@ -1,4 +1,4 @@
-import { MessageCircle, Phone, Ticket } from 'lucide-react';
+import { MessageCircle, Phone, Ticket } from '@/Components/site/LucideCompat';
 import { Link } from '@inertiajs/react';
 
 export default function MobileStickyCta({ listing }) {

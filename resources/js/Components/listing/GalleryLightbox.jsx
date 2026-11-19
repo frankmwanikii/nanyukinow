@@ -37,6 +37,8 @@ export default function GalleryLightbox({
     title,
     meta,
     footer = null,
+    /** Desktop only: blurred cover of the current image behind portrait frames. */
+    padBlur = false,
 }) {
     const titleId = useId();
     const safeIndex =
@@ -89,6 +91,22 @@ export default function GalleryLightbox({
             aria-labelledby={titleId}
             onClick={onClose}
         >
+            {padBlur ? (
+                <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 hidden overflow-hidden md:block"
+                >
+                    <img
+                        key={`blur-${item.src}`}
+                        src={item.src}
+                        alt=""
+                        className="h-full w-full scale-125 object-cover blur-3xl brightness-75 saturate-125"
+                        draggable={false}
+                    />
+                    <div className="absolute inset-0 bg-black/35" />
+                </div>
+            ) : null}
+
             <div
                 className="absolute inset-0 flex items-center justify-center"
                 onClick={(e) => e.stopPropagation()}
@@ -97,7 +115,7 @@ export default function GalleryLightbox({
                     key={item.src}
                     src={item.src}
                     alt={item.alt || item.label || heading}
-                    className="max-h-[100dvh] max-w-[100vw] object-contain"
+                    className="relative z-10 max-h-[100dvh] max-w-[100vw] object-contain"
                     draggable={false}
                 />
             </div>

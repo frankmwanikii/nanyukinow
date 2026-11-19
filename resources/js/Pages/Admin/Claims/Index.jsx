@@ -22,7 +22,7 @@ import {
     ClipboardList,
     Hourglass,
     XCircle,
-} from 'lucide-react';
+} from '@/Components/site/LucideCompat';
 import { useEffect, useRef, useState } from 'react';
 
 function formatDate(iso) {

@@ -68,7 +68,6 @@ class ListingController extends Controller
             'listing' => $draft ? $this->listingFormPayload($draft) : null,
             'categories' => $this->categories(),
             'amenities' => $this->amenitiesPayload(),
-            'mapsApiKey' => config('services.google.maps_key') ?: env('VITE_GOOGLE_MAPS_API_KEY'),
             'plan' => Membership::planSummary($user),
             'allowedTiers' => Membership::allowedTiers($user->effectivePlan()),
             'isDraft' => (bool) $draft,
@@ -189,7 +188,6 @@ class ListingController extends Controller
             'listing' => $this->listingFormPayload($listing),
             'categories' => $this->categories(),
             'amenities' => $this->amenitiesPayload(),
-            'mapsApiKey' => config('services.google.maps_key') ?: env('VITE_GOOGLE_MAPS_API_KEY'),
             'plan' => Membership::planSummary($request->user()),
             'allowedTiers' => Membership::allowedTiers($request->user()->effectivePlan()),
             'isDraft' => $listing->status === 'draft',
@@ -303,7 +301,7 @@ class ListingController extends Controller
             : [];
         $galleryUrls = ListingGallery::fromRequest($galleryEntries, $galleryFiles, $galleryFileMeta);
 
-        $imageUrl = ListingMedia::normalizePublicUrl($data['image_url'] ?? null)
+        $imageUrl = ListingMedia::persistPublicUrl($data['image_url'] ?? null, 'listings/covers')
             ?? ListingMedia::normalizePublicUrl($existing?->image_url);
         if ($request->hasFile('cover')) {
             if ($existing?->image_url) {
@@ -312,7 +310,7 @@ class ListingController extends Controller
             $imageUrl = ListingMedia::storeOrFail($request->file('cover'), 'listings/covers', 'cover');
         }
 
-        $logoUrl = ListingMedia::normalizePublicUrl($data['logo_url'] ?? null)
+        $logoUrl = ListingMedia::persistPublicUrl($data['logo_url'] ?? null, 'listings/logos')
             ?? ListingMedia::normalizePublicUrl($existing?->logo_url);
         if ($request->hasFile('logo')) {
             if ($existing?->logo_url) {
@@ -321,7 +319,7 @@ class ListingController extends Controller
             $logoUrl = ListingMedia::storeOrFail($request->file('logo'), 'listings/logos', 'logo');
         }
 
-        $posterUrl = ListingMedia::normalizePublicUrl($data['event_poster_url'] ?? null)
+        $posterUrl = ListingMedia::persistPublicUrl($data['event_poster_url'] ?? null, 'listings/posters')
             ?? ListingMedia::normalizePublicUrl($existing?->event_poster_url);
         if ($request->hasFile('event_poster')) {
             if ($existing?->event_poster_url) {

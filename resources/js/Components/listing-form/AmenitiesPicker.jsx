@@ -1,5 +1,5 @@
 import { field, help, label } from './fieldStyles';
-import { Plus, Search, X } from 'lucide-react';
+import { Plus, Search, X } from '@/Components/site/LucideCompat';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 /**

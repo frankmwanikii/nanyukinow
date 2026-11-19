@@ -1,4 +1,4 @@
-import { Expand, Package, Tag } from 'lucide-react';
+import { Expand, Package, Tag } from '@/Components/site/LucideCompat';
 import { useEffect, useMemo, useState } from 'react';
 import GalleryLightbox from './GalleryLightbox';
 

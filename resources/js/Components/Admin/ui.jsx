@@ -12,7 +12,7 @@ import {
     EyeOff,
     MoreVertical,
     X,
-} from 'lucide-react';
+} from '@/Components/site/LucideCompat';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, router } from '@inertiajs/react';

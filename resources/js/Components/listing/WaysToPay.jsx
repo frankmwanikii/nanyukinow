@@ -1,4 +1,4 @@
-import { Banknote, CreditCard, Smartphone, Wallet } from 'lucide-react';
+import { Banknote, CreditCard, Smartphone, Wallet } from '@/Components/site/LucideCompat';
 import DetailSection from './DetailSection';
 
 function iconFor(method) {

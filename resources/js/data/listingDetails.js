@@ -1975,7 +1975,12 @@ function buildFactsFromDetails(listing) {
         if (d.baths) pairs.push({ label: 'Baths', value: String(d.baths) });
         if (d.check_in) pairs.push({ label: 'Check-in', value: String(d.check_in) });
         if (d.check_out) pairs.push({ label: 'Check-out', value: String(d.check_out) });
-        if (d.nightly_rate) pairs.push({ label: 'From', value: String(d.nightly_rate) });
+        if (d.nightly_rate) {
+            pairs.push({
+                label: 'Per night',
+                value: String(d.nightly_rate).replace(/^from\s+/i, ''),
+            });
+        }
         if (d.meal_plan) pairs.push({ label: 'Board', value: String(d.meal_plan) });
         if (d.cancellation_policy) {
             pairs.push({ label: 'Cancellation', value: String(d.cancellation_policy) });
