@@ -12,7 +12,6 @@ import TrendingCarousel from '@/Components/site/TrendingCarousel';
 import StoriesSection from '@/Components/site/StoriesSection';
 import { EmptyListingsMark, SendArrowMark } from '@/Components/site/Mark';
 import { explorePath } from '@/data/categories';
-import { testimonials } from '@/data/listings';
 
 const CTA_IMAGE = '/images/designed-for-you.webp';
 /** Mobile / laptop (1–3 cols): 6 cards. XL desktop (4 cols): 2 full rows = 8. */
@@ -507,48 +506,6 @@ function HomeContent({
             )}
 
             <StoriesSection />
-
-            <section className="relative z-10 bg-earth-clay py-14 sm:py-20">
-                <div className="mx-auto max-w-site px-4 sm:px-6">
-                    <Reveal>
-                        <SectionHeading
-                            light
-                            title="Loved by the community"
-                        />
-                    </Reveal>
-                    <div className="grid gap-5 md:grid-cols-3">
-                        {testimonials.map((item) => (
-                            <blockquote
-                                key={item.id}
-                                className="flex h-full flex-col border border-white/15 bg-white/95 p-6"
-                            >
-                                <p className="flex-1 text-sm leading-relaxed text-olive-800 sm:text-base">
-                                    “{item.quote}”
-                                </p>
-                                <footer className="mt-6 flex items-center gap-3">
-                                    <img
-                                        src={item.avatar}
-                                        alt=""
-                                        className="h-11 w-11 rounded-full object-cover"
-                                        loading="lazy"
-                                        decoding="async"
-                                        width={44}
-                                        height={44}
-                                    />
-                                    <div>
-                                        <cite className="not-italic font-display text-sm font-semibold text-earth-dusk">
-                                            {item.name}
-                                        </cite>
-                                        <p className="text-xs text-olive-600">
-                                            {item.role}
-                                        </p>
-                                    </div>
-                                </footer>
-                            </blockquote>
-                        ))}
-                    </div>
-                </div>
-            </section>
 
             <Newsletter />
         </>

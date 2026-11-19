@@ -1,7 +1,15 @@
 import { Link } from '@inertiajs/react';
 
-export default function Logo({ variant = 'nav', className = '' }) {
+export default function Logo({
+    variant = 'nav',
+    tone = 'onDark',
+    className = '',
+}) {
     const isHero = variant === 'hero';
+    const src =
+        tone === 'onLight'
+            ? '/images/logo-on-light.png'
+            : '/images/logo.png';
 
     return (
         <Link
@@ -10,7 +18,7 @@ export default function Logo({ variant = 'nav', className = '' }) {
             aria-label="Nanyuki Now home"
         >
             <img
-                src="/images/logo.png"
+                src={src}
                 alt="Nanyuki Now — Your city, right now"
                 className={`w-auto object-contain ${
                     isHero

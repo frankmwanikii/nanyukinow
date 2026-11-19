@@ -1191,30 +1191,6 @@ const extras = [
     },
 ];
 
-export const testimonials = [
-    {
-        id: 'v1',
-        quote: 'Finally a guide that feels like Nanyuki — not a generic travel brochure. Found our favourite lodge in minutes.',
-        name: 'Amina K.',
-        role: 'Nairobi visitor',
-        avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=160&q=80',
-    },
-    {
-        id: 'v2',
-        quote: 'Listing our café brought in weekend crowds we never reached on social alone. Clean, local, and easy.',
-        name: 'James M.',
-        role: 'Café owner',
-        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=160&q=80',
-    },
-    {
-        id: 'v3',
-        quote: 'Found our favourite lodge in minutes and planned the whole weekend without the usual back-and-forth.',
-        name: 'Grace W.',
-        role: 'Lodge host',
-        avatar: 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=160&q=80',
-    },
-];
-
 /** @deprecated use categoryKeys from @/data/categories */
 export { categoryKeys } from './categories';
 
