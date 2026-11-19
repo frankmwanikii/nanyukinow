@@ -241,7 +241,7 @@ export default function ListingCard({
                     }`}
                 >
                     <div className="flex min-w-0 items-start gap-2.5 sm:gap-3">
-                        {listing.logo && !isEvent ? (
+                        {listing.logo ? (
                             <img
                                 src={listing.logo}
                                 alt=""

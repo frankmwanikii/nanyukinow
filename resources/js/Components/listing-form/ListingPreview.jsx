@@ -533,33 +533,31 @@ export default function ListingPreview({
                                         }
                                     />
                                 ) : (
-                                    <>
-                                        <Row
-                                            label="Cover"
-                                            value={
-                                                cover ? (
-                                                    <img
-                                                        src={cover}
-                                                        alt=""
-                                                        className="h-24 w-36 rounded-lg object-cover ring-1 ring-olive-200"
-                                                    />
-                                                ) : null
-                                            }
-                                        />
-                                        <Row
-                                            label="Logo"
-                                            value={
-                                                logo ? (
-                                                    <img
-                                                        src={logo}
-                                                        alt=""
-                                                        className="h-14 w-14 rounded-lg object-cover ring-1 ring-olive-200"
-                                                    />
-                                                ) : null
-                                            }
-                                        />
-                                    </>
+                                    <Row
+                                        label="Cover"
+                                        value={
+                                            cover ? (
+                                                <img
+                                                    src={cover}
+                                                    alt=""
+                                                    className="h-24 w-36 rounded-lg object-cover ring-1 ring-olive-200"
+                                                />
+                                            ) : null
+                                        }
+                                    />
                                 )}
+                                <Row
+                                    label="Logo"
+                                    value={
+                                        logo ? (
+                                            <img
+                                                src={logo}
+                                                alt=""
+                                                className="h-14 w-14 rounded-lg object-cover ring-1 ring-olive-200"
+                                            />
+                                        ) : null
+                                    }
+                                />
                                 <Row
                                     label="Gallery"
                                     value={

@@ -1561,7 +1561,7 @@ export default function Form({
                                         }
                                         spaceOptions={STAY_GALLERY_SPACES}
                                         hideGallery={galleryLocked}
-                                        hideLogo={logoLocked || isEvents}
+                                        hideLogo={logoLocked}
                                         libraryRoute={
                                             isAdmin
                                                 ? route('admin.gallery.browse')

@@ -153,7 +153,7 @@ export default function ListingHero({
                 <div className="flex flex-col gap-4 sm:gap-5 lg:flex-row lg:items-end lg:justify-between lg:gap-8">
                     {/* Identity */}
                     <div className="flex min-w-0 items-center gap-3.5 sm:gap-5">
-                        {listing.logo && !isEvent ? (
+                        {listing.logo ? (
                             <img
                                 src={listing.logo}
                                 alt=""
@@ -174,18 +174,6 @@ export default function ListingHero({
                                         <span
                                             key={sub}
                                             className="inline-flex rounded-full bg-white/15 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white ring-1 ring-white/30 backdrop-blur sm:px-3 sm:py-1 sm:text-[11px]"
-                                        >
-                                            {sub}
-                                        </span>
-                                    ))}
-                                </p>
-                            ) : null}
-                            {isEvent && listingSubcategories(listing).length ? (
-                                <p className="mb-1.5 flex flex-wrap gap-1.5 sm:mb-2 sm:gap-2">
-                                    {listingSubcategories(listing).map((sub) => (
-                                        <span
-                                            key={sub}
-                                            className="inline-flex rounded-full bg-mustard px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-olive-950 sm:px-3 sm:py-1 sm:text-[11px]"
                                         >
                                             {sub}
                                         </span>
