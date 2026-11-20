@@ -10,6 +10,7 @@ use App\Http\Controllers\Account\MessageController;
 use App\Http\Controllers\Account\NotificationController;
 use App\Http\Controllers\Account\PaypalReturnController;
 use App\Http\Controllers\Account\PlaceSearchController;
+use App\Http\Controllers\Account\StayGallerySpaceController;
 use App\Http\Controllers\Account\SupportTicketController as AccountSupportTicketController;
 use App\Http\Controllers\Account\UpgradeController as AccountUpgradeController;
 use App\Http\Controllers\ListingClaimController;
@@ -125,6 +126,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/account/amenities', [AmenityController::class, 'store'])
             ->middleware('throttle:30,1')
             ->name('account.amenities.store');
+        Route::post('/account/stay-gallery-spaces', [StayGallerySpaceController::class, 'store'])
+            ->middleware('throttle:30,1')
+            ->name('account.stay-gallery-spaces.store');
         Route::post('/account/listings/editor-media', [EditorMediaController::class, 'store'])
             ->middleware('throttle:40,1')
             ->name('account.listings.editor-media');

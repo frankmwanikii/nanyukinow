@@ -4,15 +4,19 @@ import MediaLightbox from './MediaLightbox';
 import FieldLabel from './FieldLabel';
 import { field, help, label } from './fieldStyles';
 import { srcToDataUrl } from '@/utils/cropImage';
+import { staySpaceLabel } from '@/data/stayTierFeatures';
 import {
     Expand,
     ImagePlus,
     Images,
     Loader2,
+    Plus,
     RefreshCw,
+    Search,
     Star,
     Trash2,
     Upload,
+    X,
 } from '@/Components/site/LucideCompat';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -500,6 +504,9 @@ export default function GalleryUploader({
     maxPerSpace = null,
     categorized = false,
     spaceOptions = [],
+    spaceLibrary = [],
+    allowCustomSpaces = false,
+    onSpaceAdded,
     hideGallery = false,
     hideLogo = false,
 }) {
@@ -534,30 +541,134 @@ export default function GalleryUploader({
         () => spaceOptions[0]?.value || 'bedroom',
     );
     const pendingSpaceRef = useRef(spaceOptions[0]?.value || 'bedroom');
+    const addRoomWrapRef = useRef(null);
+    const [localSpaces, setLocalSpaces] = useState([]);
+    const [addRoomOpen, setAddRoomOpen] = useState(false);
+    const [roomQuery, setRoomQuery] = useState('');
+    const [creatingRoom, setCreatingRoom] = useState(false);
+    const [roomError, setRoomError] = useState(null);
+
+    const allSpaceOptions = useMemo(() => {
+        const seen = new Set();
+        const merged = [];
+        for (const opt of [...spaceOptions, ...localSpaces]) {
+            if (!opt?.value || seen.has(opt.value)) continue;
+            seen.add(opt.value);
+            merged.push(opt);
+        }
+        return merged;
+    }, [spaceOptions, localSpaces]);
 
     useEffect(() => {
-        if (!categorized || !spaceOptions.length) return;
-        const stillValid = spaceOptions.some((s) => s.value === activeSpace);
+        if (!categorized || !allSpaceOptions.length) return;
+        const stillValid = allSpaceOptions.some((s) => s.value === activeSpace);
         if (!stillValid) {
-            setActiveSpace(spaceOptions[0].value);
-            pendingSpaceRef.current = spaceOptions[0].value;
+            setActiveSpace(allSpaceOptions[0].value);
+            pendingSpaceRef.current = allSpaceOptions[0].value;
         }
-    }, [categorized, spaceOptions, activeSpace]);
+    }, [categorized, allSpaceOptions, activeSpace]);
+
+    useEffect(() => {
+        if (!addRoomOpen) return undefined;
+        const onPointerDown = (e) => {
+            if (!addRoomWrapRef.current?.contains(e.target)) {
+                setAddRoomOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', onPointerDown);
+        return () => document.removeEventListener('mousedown', onPointerDown);
+    }, [addRoomOpen]);
 
     const resolveSpaceMeta = (kind) => {
-        const allowed = spaceOptions.some((s) => s.value === kind)
-            ? kind
-            : spaceOptions[0]?.value || 'bedroom';
-        const match = spaceOptions.find((s) => s.value === allowed);
+        const match = allSpaceOptions.find((s) => s.value === kind);
+        if (match) {
+            return { kind: match.value, label: match.label };
+        }
+        const libraryHit = spaceLibrary.find((s) => s.slug === kind);
+        if (libraryHit) {
+            return { kind: libraryHit.slug, label: libraryHit.name };
+        }
+        const raw = String(kind || '').trim();
+        if (raw && /^[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(raw)) {
+            return {
+                kind: raw.toLowerCase(),
+                label: staySpaceLabel(raw.toLowerCase()),
+            };
+        }
+        const fallback = allSpaceOptions[0]?.value || 'bedroom';
+        const fallbackMatch = allSpaceOptions.find((s) => s.value === fallback);
         return {
-            kind: allowed,
-            label: match?.label || 'Bedroom',
+            kind: fallback,
+            label: fallbackMatch?.label || 'Bedroom',
         };
     };
 
     const selectSpace = (kind) => {
         setActiveSpace(kind);
         pendingSpaceRef.current = kind;
+    };
+
+    const roomMatches = useMemo(() => {
+        const activeValues = new Set(allSpaceOptions.map((s) => s.value));
+        const pool = spaceLibrary.filter((s) => !activeValues.has(s.slug));
+        const q = roomQuery.trim().toLowerCase();
+        if (!q) return pool.slice(0, 10);
+        return pool
+            .filter(
+                (s) =>
+                    s.name.toLowerCase().includes(q) ||
+                    s.slug.toLowerCase().includes(q),
+            )
+            .slice(0, 10);
+    }, [spaceLibrary, allSpaceOptions, roomQuery]);
+
+    const roomExactMatch = useMemo(() => {
+        const q = roomQuery.trim().toLowerCase();
+        if (!q) return false;
+        return (
+            allSpaceOptions.some((s) => s.label.toLowerCase() === q) ||
+            spaceLibrary.some((s) => s.name.toLowerCase() === q)
+        );
+    }, [roomQuery, allSpaceOptions, spaceLibrary]);
+
+    const activateSpace = (space) => {
+        const next = {
+            value: space.slug || space.value,
+            label: space.name || space.label,
+        };
+        if (!next.value || !next.label) return;
+        setLocalSpaces((prev) =>
+            prev.some((s) => s.value === next.value) ? prev : [...prev, next],
+        );
+        onSpaceAdded?.(next);
+        selectSpace(next.value);
+        setRoomQuery('');
+        setAddRoomOpen(false);
+        setRoomError(null);
+    };
+
+    const createCustomRoom = async () => {
+        const name = roomQuery.trim();
+        if (!name || creatingRoom) return;
+        setCreatingRoom(true);
+        setRoomError(null);
+        try {
+            const res = await window.axios.post(
+                route('account.stay-gallery-spaces.store'),
+                { name },
+            );
+            const space = res.data?.space;
+            if (space) {
+                activateSpace(space);
+            }
+        } catch (err) {
+            setRoomError(
+                err?.response?.data?.message ||
+                    'Could not save that room. Try again.',
+            );
+        } finally {
+            setCreatingRoom(false);
+        }
     };
 
     const lightboxItems = useMemo(() => {
@@ -633,7 +744,7 @@ export default function GalleryUploader({
         if (!list.length) return;
 
         const spaceKind = categorized
-            ? activeSpace || spaceOptions[0]?.value || 'bedroom'
+            ? activeSpace || allSpaceOptions[0]?.value || 'bedroom'
             : 'bedroom';
         const spaceCount = categorized
             ? galleryItems.filter(
@@ -682,7 +793,7 @@ export default function GalleryUploader({
             spaceKind ||
             (categorized ? activeSpace : null) ||
             pendingSpaceRef.current ||
-            spaceOptions[0]?.value ||
+            allSpaceOptions[0]?.value ||
             'bedroom';
         const spaceCount = categorized
             ? galleryItems.filter(
@@ -770,7 +881,7 @@ export default function GalleryUploader({
 
     const openGalleryPicker = () => {
         const spaceKind = categorized
-            ? activeSpace || spaceOptions[0]?.value || 'bedroom'
+            ? activeSpace || allSpaceOptions[0]?.value || 'bedroom'
             : 'bedroom';
         const spaceCount = categorized
             ? galleryItems.filter(
@@ -852,7 +963,7 @@ export default function GalleryUploader({
         else if (addTarget === 'poster') posterInput.current?.click();
         else {
             pendingSpaceRef.current = categorized
-                ? activeSpace || spaceOptions[0]?.value || 'bedroom'
+                ? activeSpace || allSpaceOptions[0]?.value || 'bedroom'
                 : 'bedroom';
             galleryInput.current?.click();
         }
@@ -895,7 +1006,7 @@ export default function GalleryUploader({
             const space = resolveSpaceMeta(
                 categorized
                     ? pendingSpaceRef.current || activeSpace
-                    : spaceOptions[0]?.value || 'bedroom',
+                    : allSpaceOptions[0]?.value || 'bedroom',
             );
             const next = [
                 ...galleryItems,
@@ -932,7 +1043,6 @@ export default function GalleryUploader({
     };
 
     const updateGallerySpace = (id, kind) => {
-        const match = spaceOptions.find((s) => s.value === kind);
         onGalleryChange?.(
             galleryItems.map((g) =>
                 g.id === id
@@ -964,14 +1074,14 @@ export default function GalleryUploader({
     const activeSpaceMeta = resolveSpaceMeta(activeSpace);
     const itemsBySpace = useMemo(() => {
         const map = new Map();
-        spaceOptions.forEach((opt) => map.set(opt.value, []));
+        allSpaceOptions.forEach((opt) => map.set(opt.value, []));
         galleryItems.forEach((item) => {
             const key = resolveSpaceMeta(item.kind).kind;
             if (!map.has(key)) map.set(key, []);
             map.get(key).push(item);
         });
         return map;
-    }, [galleryItems, spaceOptions]);
+    }, [galleryItems, allSpaceOptions]);
     const activeSpaceItems = categorized
         ? itemsBySpace.get(activeSpace) || []
         : galleryItems;
@@ -1062,7 +1172,7 @@ export default function GalleryUploader({
                         <Trash2 className="h-3.5 w-3.5" />
                     </button>
                 </div>
-                {categorized && spaceOptions.length ? (
+                {categorized && allSpaceOptions.length ? (
                     <div className="border-t border-olive-100 p-2 dark:border-olive-800">
                         <label
                             className="sr-only"
@@ -1079,7 +1189,7 @@ export default function GalleryUploader({
                             }
                             onClick={(e) => e.stopPropagation()}
                         >
-                            {spaceOptions.map((opt) => (
+                            {allSpaceOptions.map((opt) => (
                                 <option key={opt.value} value={opt.value}>
                                     {opt.label}
                                 </option>
@@ -1283,10 +1393,10 @@ export default function GalleryUploader({
                     </div>
                 ) : null}
 
-                {categorized && spaceOptions.length ? (
+                {categorized && allSpaceOptions.length ? (
                     <div className="mt-4 space-y-4">
                         <div className="-mx-1 flex items-center gap-2 overflow-x-auto px-1 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                            {spaceOptions.map((opt) => {
+                            {allSpaceOptions.map((opt) => {
                                 const count = (itemsBySpace.get(opt.value) || [])
                                     .length;
                                 const selected = activeSpace === opt.value;
@@ -1316,6 +1426,179 @@ export default function GalleryUploader({
                                     </button>
                                 );
                             })}
+                            {allowCustomSpaces ? (
+                                <div
+                                    ref={addRoomWrapRef}
+                                    className="relative shrink-0"
+                                >
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setAddRoomOpen((open) => !open)
+                                        }
+                                        className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-sm bg-white px-3.5 text-xs font-semibold text-olive-800 ring-1 ring-dashed ring-olive-300 transition hover:ring-mustard dark:bg-olive-900 dark:text-olive-100 dark:ring-olive-600 sm:text-sm"
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                        Add room
+                                    </button>
+                                    {addRoomOpen ? (
+                                        <div className="absolute left-0 top-[calc(100%+0.35rem)] z-30 w-[min(18rem,calc(100vw-2rem))] rounded-2xl border border-olive-200/90 bg-white p-3 shadow-lift dark:border-olive-700 dark:bg-olive-900 sm:left-auto sm:right-0">
+                                            <div className="mb-2 flex items-center justify-between gap-2">
+                                                <p className="text-xs font-semibold text-olive-900 dark:text-olive-100">
+                                                    New room tab
+                                                </p>
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setAddRoomOpen(false)
+                                                    }
+                                                    className="rounded-sm p-1 text-olive-500 hover:bg-olive-50 dark:hover:bg-olive-800"
+                                                    aria-label="Close"
+                                                >
+                                                    <X className="h-3.5 w-3.5" />
+                                                </button>
+                                            </div>
+                                            <div className="relative">
+                                                <Search className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-olive-500" />
+                                                <input
+                                                    className={`${field} pl-10 ${roomQuery.trim() && !roomExactMatch ? 'pr-20' : 'pr-3'}`}
+                                                    value={roomQuery}
+                                                    onChange={(e) => {
+                                                        setRoomQuery(
+                                                            e.target.value,
+                                                        );
+                                                        setRoomError(null);
+                                                    }}
+                                                    placeholder="Search or type a room title…"
+                                                    autoComplete="off"
+                                                    autoFocus
+                                                    onKeyDown={(e) => {
+                                                        if (
+                                                            e.key === 'Escape'
+                                                        ) {
+                                                            setAddRoomOpen(
+                                                                false,
+                                                            );
+                                                            return;
+                                                        }
+                                                        if (e.key === 'Enter') {
+                                                            e.preventDefault();
+                                                            if (
+                                                                !roomQuery.trim()
+                                                            ) {
+                                                                return;
+                                                            }
+                                                            if (
+                                                                roomMatches.length ===
+                                                                1
+                                                            ) {
+                                                                activateSpace(
+                                                                    roomMatches[0],
+                                                                );
+                                                            } else if (
+                                                                roomExactMatch
+                                                            ) {
+                                                                const hit =
+                                                                    roomMatches.find(
+                                                                        (s) =>
+                                                                            s.name.toLowerCase() ===
+                                                                            roomQuery
+                                                                                .trim()
+                                                                                .toLowerCase(),
+                                                                    ) ||
+                                                                    spaceLibrary.find(
+                                                                        (s) =>
+                                                                            s.name.toLowerCase() ===
+                                                                            roomQuery
+                                                                                .trim()
+                                                                                .toLowerCase(),
+                                                                    ) ||
+                                                                    allSpaceOptions.find(
+                                                                        (s) =>
+                                                                            s.label.toLowerCase() ===
+                                                                            roomQuery
+                                                                                .trim()
+                                                                                .toLowerCase(),
+                                                                    );
+                                                                if (hit) {
+                                                                    activateSpace(
+                                                                        hit.value
+                                                                            ? {
+                                                                                  slug: hit.value,
+                                                                                  name: hit.label,
+                                                                              }
+                                                                            : hit,
+                                                                    );
+                                                                }
+                                                            } else {
+                                                                createCustomRoom();
+                                                            }
+                                                        }
+                                                    }}
+                                                />
+                                                {roomQuery.trim() &&
+                                                !roomExactMatch ? (
+                                                    <button
+                                                        type="button"
+                                                        onClick={
+                                                            createCustomRoom
+                                                        }
+                                                        disabled={creatingRoom}
+                                                        className="absolute right-2 top-1/2 z-10 inline-flex -translate-y-1/2 items-center gap-1 rounded-sm bg-mustard px-2.5 py-1.5 text-xs font-bold text-earth-dusk disabled:opacity-50"
+                                                    >
+                                                        <Plus className="h-3.5 w-3.5" />
+                                                        {creatingRoom
+                                                            ? 'Saving…'
+                                                            : 'Add'}
+                                                    </button>
+                                                ) : null}
+                                            </div>
+                                            <p className="mt-2 text-[11px] text-olive-500 dark:text-olive-400">
+                                                Pick an existing room or save a
+                                                new title to the library.
+                                            </p>
+                                            {roomMatches.length ? (
+                                                <ul className="mt-2 max-h-40 overflow-y-auto rounded-xl ring-1 ring-olive-100 dark:ring-olive-700">
+                                                    {roomMatches.map(
+                                                        (space) => (
+                                                            <li
+                                                                key={space.slug}
+                                                            >
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() =>
+                                                                        activateSpace(
+                                                                            space,
+                                                                        )
+                                                                    }
+                                                                    className="w-full px-3 py-2 text-left text-sm text-olive-800 transition hover:bg-olive-50 dark:text-olive-100 dark:hover:bg-olive-800"
+                                                                >
+                                                                    {space.name}
+                                                                </button>
+                                                            </li>
+                                                        ),
+                                                    )}
+                                                </ul>
+                                            ) : roomQuery.trim() ? (
+                                                <p className="mt-2 text-sm text-olive-600 dark:text-olive-400">
+                                                    No match. Press Add to
+                                                    create “{roomQuery.trim()}”.
+                                                </p>
+                                            ) : (
+                                                <p className="mt-2 text-sm text-olive-600 dark:text-olive-400">
+                                                    Type a title like Conference
+                                                    room or Spa.
+                                                </p>
+                                            )}
+                                            {roomError ? (
+                                                <p className="mt-2 text-sm text-rose-600">
+                                                    {roomError}
+                                                </p>
+                                            ) : null}
+                                        </div>
+                                    ) : null}
+                                </div>
+                            ) : null}
                         </div>
 
                         <div className="rounded-2xl bg-white/80 p-3 ring-1 ring-olive-100 dark:bg-olive-950/70 dark:ring-olive-800 sm:p-4">

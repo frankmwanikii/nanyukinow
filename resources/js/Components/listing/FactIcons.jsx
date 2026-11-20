@@ -82,6 +82,7 @@ const BY_LABEL = {
     bedrooms: BedsIcon,
     rooms: RoomsIcon,
     units: RoomsIcon,
+    'room types': RoomsIcon,
     baths: BathsIcon,
     'check-in': CheckInIcon,
     'check-out': CheckOutIcon,

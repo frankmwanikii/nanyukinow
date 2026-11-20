@@ -50,6 +50,8 @@ import { resolveListingTier } from '@/data/listingTier';
 import { slugifyTitle } from '@/data/listings';
 import {
     STAY_GALLERY_SPACES,
+    customSpacesFromGallery,
+    isDefaultStayGallerySpace,
     staySpaceLabel,
 } from '@/data/stayTierFeatures';
 import { listingSubcategories, subcategoryLabel } from '@/utils/listingSubcategories';
@@ -344,10 +346,15 @@ function focusErrorField(key) {
 }
 
 function normalizeStayGalleryKind(kind) {
-    const value = kind || 'bedroom';
-    return STAY_GALLERY_SPACES.some((s) => s.value === value)
-        ? value
-        : 'exterior';
+    const value = String(kind || 'bedroom').trim() || 'bedroom';
+    if (isDefaultStayGallerySpace(value)) {
+        return value;
+    }
+    // Custom rooms saved from the gallery keep their own slug.
+    if (/^[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(value)) {
+        return value.toLowerCase();
+    }
+    return 'exterior';
 }
 
 function galleryFromListing(listing) {
@@ -427,6 +434,7 @@ export default function Form({
     listing = null,
     categories = [],
     amenities: initialAmenities = [],
+    stayGallerySpaces: initialStayGallerySpaces = [],
     mapsApiKey = '',
     plan,
     allowedTiers = ['free'],
@@ -444,6 +452,16 @@ export default function Form({
     );
     const { errors: pageErrors } = usePage().props;
     const [amenityOptions, setAmenityOptions] = useState(initialAmenities);
+    const [stayGallerySpaceLibrary, setStayGallerySpaceLibrary] = useState(
+        initialStayGallerySpaces,
+    );
+    const [customGallerySpaces, setCustomGallerySpaces] = useState(() =>
+        customSpacesFromGallery(galleryFromListing(listing)),
+    );
+    const stayGallerySpaceOptions = useMemo(
+        () => [...STAY_GALLERY_SPACES, ...customGallerySpaces],
+        [customGallerySpaces],
+    );
     const [saveState, setSaveState] = useState('idle');
     const [lastSavedAt, setLastSavedAt] = useState(null);
     const autosaveTimer = useRef(null);
@@ -1559,7 +1577,50 @@ export default function Form({
                                         categorized={
                                             categorizedGallery && !galleryLocked
                                         }
-                                        spaceOptions={STAY_GALLERY_SPACES}
+                                        spaceOptions={stayGallerySpaceOptions}
+                                        spaceLibrary={stayGallerySpaceLibrary}
+                                        allowCustomSpaces
+                                        onSpaceAdded={(space) => {
+                                            const next = {
+                                                value: space.slug || space.value,
+                                                label:
+                                                    space.name || space.label,
+                                            };
+                                            if (!next.value || !next.label) {
+                                                return;
+                                            }
+                                            setCustomGallerySpaces((prev) =>
+                                                prev.some(
+                                                    (s) =>
+                                                        s.value === next.value,
+                                                )
+                                                    ? prev
+                                                    : [...prev, next],
+                                            );
+                                            setStayGallerySpaceLibrary(
+                                                (prev) => {
+                                                    if (
+                                                        prev.some(
+                                                            (s) =>
+                                                                s.slug ===
+                                                                next.value,
+                                                        )
+                                                    ) {
+                                                        return prev;
+                                                    }
+                                                    return [
+                                                        {
+                                                            id:
+                                                                space.id ||
+                                                                next.value,
+                                                            name: next.label,
+                                                            slug: next.value,
+                                                        },
+                                                        ...prev,
+                                                    ];
+                                                },
+                                            );
+                                        }}
                                         hideGallery={galleryLocked}
                                         hideLogo={logoLocked}
                                         libraryRoute={

@@ -32,6 +32,7 @@ class StayTierFeatures
         'rooms' => Membership::FREE,
         'beds' => Membership::FREE,
         'baths' => Membership::FREE,
+        'room_types' => Membership::FREE,
         'check_in' => Membership::STANDARD,
         'check_out' => Membership::STANDARD,
         'nightly_rate' => Membership::STANDARD,
@@ -231,8 +232,24 @@ class StayTierFeatures
             'restaurant' => 'Restaurant',
             'outdoor' => 'Outdoor',
             'exterior' => 'Exterior',
-            default => 'Exterior',
+            default => self::humanizeSpaceKind($kind),
         };
+    }
+
+    public static function humanizeSpaceKind(string $kind): string
+    {
+        $kind = trim($kind);
+
+        if ($kind === '') {
+            return 'Room';
+        }
+
+        $label = str_replace(['-', '_'], ' ', $kind);
+        $label = preg_replace('/\s+/u', ' ', $label) ?? $label;
+
+        return $label !== ''
+            ? mb_convert_case($label, MB_CASE_TITLE, 'UTF-8')
+            : 'Room';
     }
 
     /**

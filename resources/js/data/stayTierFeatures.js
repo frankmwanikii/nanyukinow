@@ -88,6 +88,7 @@ export const STAY_DETAIL_MIN_TIER = {
     rooms: 'free',
     beds: 'free',
     baths: 'free',
+    room_types: 'free',
     check_in: 'featured',
     check_out: 'featured',
     nightly_rate: 'featured',
@@ -151,7 +152,32 @@ export function requiredTierLabel(feature) {
 
 export function staySpaceLabel(kind) {
     const match = STAY_GALLERY_SPACES.find((s) => s.value === kind);
-    return match?.label || 'Exterior';
+    if (match) return match.label;
+    const raw = String(kind || '')
+        .trim()
+        .replace(/[-_]+/g, ' ')
+        .replace(/\s+/g, ' ');
+    if (!raw) return 'Room';
+    return raw.replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+export function isDefaultStayGallerySpace(kind) {
+    return STAY_GALLERY_SPACES.some((s) => s.value === kind);
+}
+
+/** Collect custom room tabs from saved gallery items. */
+export function customSpacesFromGallery(items = []) {
+    const extras = [];
+    for (const item of items) {
+        const kind = typeof item?.kind === 'string' ? item.kind.trim() : '';
+        if (!kind || isDefaultStayGallerySpace(kind)) continue;
+        if (extras.some((s) => s.value === kind)) continue;
+        extras.push({
+            value: kind,
+            label: item.label || staySpaceLabel(kind),
+        });
+    }
+    return extras;
 }
 
 /** Plain-text word count from HTML or string. */

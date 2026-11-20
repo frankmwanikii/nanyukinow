@@ -122,6 +122,24 @@ export const CANCELLATION_OPTIONS = [
     'Contact host for cancellation terms',
 ];
 
+/** Popular Stay room / unit types. */
+export const POPULAR_ROOM_TYPES = [
+    'Standard room',
+    'Deluxe room',
+    'Twin room',
+    'Double room',
+    'Family room',
+    'Suite',
+    'Studio',
+    'Cottage',
+    'Bungalow',
+    'Villa',
+    'Tent',
+    'Chalet',
+    'Entire home',
+    'Shared dorm',
+];
+
 /** Popular Stay activities / experiences. */
 export const POPULAR_STAY_ACTIVITIES = [
     'Game drives',
@@ -236,7 +254,6 @@ export const CATEGORY_DETAIL_FIELDS = {
             label: 'Max guests',
             type: 'text',
             placeholder: 'e.g. 4',
-            required: true,
             minTier: 'free',
         },
         {
@@ -258,6 +275,15 @@ export const CATEGORY_DETAIL_FIELDS = {
             label: 'Bathrooms',
             type: 'text',
             placeholder: 'e.g. 2',
+            minTier: 'free',
+        },
+        {
+            key: 'room_types',
+            label: 'Room types',
+            type: 'suggest',
+            optionsKey: 'room_types',
+            placeholder: 'Search room types or type your own…',
+            help: 'Pick popular types or add your own.',
             minTier: 'free',
         },
         // Standard

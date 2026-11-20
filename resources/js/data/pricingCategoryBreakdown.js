@@ -139,7 +139,7 @@ export const PRICING_CATEGORY_BREAKDOWNS = {
             },
             {
                 id: 'stay_basics',
-                label: 'Guests, rooms, beds & baths',
+                label: 'Guests, rooms, room types, beds & baths',
                 values: { free: yes, featured: yes, premium: yes },
             },
             {

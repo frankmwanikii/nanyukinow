@@ -165,6 +165,7 @@ class StayTierFeaturesTest extends TestCase
                 'rooms' => '2',
                 'beds' => '3',
                 'baths' => '1',
+                'room_types' => ['Cottage', 'Deluxe room'],
                 'check_in' => '14:00',
                 'nightly_rate' => 'KES 7,000',
                 'video_url' => 'https://youtube.com/watch?v=abc',
@@ -181,7 +182,7 @@ class StayTierFeaturesTest extends TestCase
                 'facebook' => '',
                 'links' => [],
             ]),
-        ])->assertRedirect(route('account.index'));
+        ])->assertRedirect(route('account.listings.index'));
 
         $listing = Listing::query()->where('title', 'Highland Cottage')->first();
         $this->assertNotNull($listing);
@@ -191,6 +192,7 @@ class StayTierFeaturesTest extends TestCase
         $this->assertSame([], $listing->gallery ?? []);
         $this->assertSame([], $listing->amenities ?? []);
         $this->assertSame('4', $listing->details['guests'] ?? null);
+        $this->assertSame(['Cottage', 'Deluxe room'], $listing->details['room_types'] ?? null);
         $this->assertArrayNotHasKey('check_in', $listing->details ?? []);
         $this->assertArrayNotHasKey('video_url', $listing->details ?? []);
         $this->assertArrayNotHasKey('booking_url', $listing->details ?? []);
@@ -240,21 +242,28 @@ class StayTierFeaturesTest extends TestCase
             'gallery_urls' => json_encode([
                 ['src' => '/storage/bed.jpg', 'kind' => 'bedroom', 'label' => 'Bedroom'],
                 ['src' => '/storage/kit.jpg', 'kind' => 'kitchen', 'label' => 'Kitchen'],
+                [
+                    'src' => '/storage/conf.jpg',
+                    'kind' => 'conference-room',
+                    'label' => 'Conference room',
+                ],
             ]),
             'social_links' => json_encode([
                 'instagram' => 'https://instagram.com/lodge',
                 'facebook' => 'https://facebook.com/lodge',
                 'links' => [],
             ]),
-        ])->assertRedirect(route('account.index'));
+        ])->assertRedirect(route('account.listings.index'));
 
         $listing = Listing::query()->where('title', 'Safari Lodge Premium')->first();
         $this->assertNotNull($listing);
         $this->assertSame(3, $listing->priority);
         $this->assertSame('hello@lodge.test', $listing->email);
         $this->assertNotNull($listing->latitude);
-        $this->assertCount(2, $listing->gallery ?? []);
+        $this->assertCount(3, $listing->gallery ?? []);
         $this->assertSame('bedroom', $listing->gallery[0]['kind'] ?? null);
+        $this->assertSame('conference-room', $listing->gallery[2]['kind'] ?? null);
+        $this->assertSame('Conference room', $listing->gallery[2]['label'] ?? null);
         $this->assertSame('https://www.youtube.com/watch?v=dQw4w9WgXcQ', $listing->details['video_url'] ?? null);
         $this->assertSame('https://book.lodge.test', $listing->details['booking_url'] ?? null);
         $this->assertSame(['Game drives', 'Spa access'], $listing->details['included'] ?? null);

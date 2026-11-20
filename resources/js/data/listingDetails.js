@@ -1973,6 +1973,12 @@ function buildFactsFromDetails(listing) {
         if (d.rooms) pairs.push({ label: 'Rooms', value: String(d.rooms) });
         if (d.beds) pairs.push({ label: 'Beds', value: String(d.beds) });
         if (d.baths) pairs.push({ label: 'Baths', value: String(d.baths) });
+        const roomTypes = Array.isArray(d.room_types)
+            ? d.room_types.filter(Boolean).join(', ')
+            : d.room_types;
+        if (roomTypes) {
+            pairs.push({ label: 'Room types', value: String(roomTypes) });
+        }
         if (d.check_in) pairs.push({ label: 'Check-in', value: String(d.check_in) });
         if (d.check_out) pairs.push({ label: 'Check-out', value: String(d.check_out) });
         if (d.nightly_rate) {
@@ -2463,7 +2469,7 @@ export function getListingDetail(listing) {
     // admin edits and the public site show the same content.
     const hasLiveGallery = liveGalleryImages.length > 0;
     const posterSrc =
-        listing.eventPoster || explicit?.eventPoster || null;
+        listing.eventPoster || listing.image || explicit?.eventPoster || null;
     let gallery = live
         ? base.gallery
         : ensureGalleryDepth(
@@ -2471,34 +2477,25 @@ export function getListingDetail(listing) {
                   ? base.gallery
                   : (explicit?.gallery ?? base.gallery),
           );
-    // Events: fold the poster into the gallery as the first image (no Poster tab).
-    if (listing.categoryKey === 'events' && posterSrc) {
-        const spaces = normalizeGallerySpaces(gallery).filter(
-            (space) => space.kind !== 'poster' && space.label !== 'Poster',
-        );
-        const seen = new Set();
-        const images = [];
-        const push = (src) => {
-            if (!src || seen.has(src)) return;
-            seen.add(src);
-            images.push(src);
-        };
-        push(posterSrc);
-        for (const space of spaces) {
-            for (const src of space.images || []) {
-                push(src);
-            }
-        }
-        gallery = images.length
-            ? [
-                  {
-                      label: 'Gallery',
-                      kind: 'main',
-                      images,
-                      cover: posterSrc,
-                  },
-              ]
-            : [];
+    // Events: cover/poster stays on the hero only, never in the gallery.
+    if (listing.categoryKey === 'events') {
+        const spaces = normalizeGallerySpaces(gallery)
+            .filter(
+                (space) => space.kind !== 'poster' && space.label !== 'Poster',
+            )
+            .map((space) => {
+                const images = (space.images || []).filter(
+                    (src) => src && src !== posterSrc,
+                );
+                if (!images.length) return null;
+                return {
+                    ...space,
+                    images,
+                    cover: images[0],
+                };
+            })
+            .filter(Boolean);
+        gallery = spaces;
     }
 
     return {

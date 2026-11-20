@@ -8,6 +8,11 @@
 
 let googleLoader = null;
 let loadedWithKey = null;
+let authHookInstalled = false;
+const authFailureListeners = new Set();
+
+export const GOOGLE_MAPS_AUTH_HELP =
+    'Google rejected this API key. In Google Cloud Console: enable billing, enable Maps JavaScript API and Places API, set Application restrictions to HTTP referrers (include https://nanyukinow.co.ke/* and https://www.nanyukinow.co.ke/*), and allow those APIs on the key.';
 
 export function getMapsApiKey(explicitKey) {
     return (
@@ -17,6 +22,52 @@ export function getMapsApiKey(explicitKey) {
             : null) ||
         ''
     );
+}
+
+function notifyAuthFailure() {
+    authFailureListeners.forEach((listener) => {
+        try {
+            listener();
+        } catch {
+            // Ignore listener errors so one bad handler cannot block others.
+        }
+    });
+}
+
+function ensureAuthFailureHook() {
+    if (typeof window === 'undefined' || authHookInstalled) {
+        return;
+    }
+
+    authHookInstalled = true;
+    const previous = window.gm_authFailure;
+    window.gm_authFailure = () => {
+        if (typeof previous === 'function') {
+            try {
+                previous();
+            } catch {
+                // Preserve prior handlers without breaking ours.
+            }
+        }
+        notifyAuthFailure();
+    };
+}
+
+/**
+ * Subscribe to Google's global gm_authFailure (fires after Map construct when
+ * the key/referrer/billing/API enablement is wrong). Returns an unsubscribe fn.
+ */
+export function onGoogleMapsAuthFailure(listener) {
+    if (typeof window === 'undefined' || typeof listener !== 'function') {
+        return () => {};
+    }
+
+    ensureAuthFailureHook();
+    authFailureListeners.add(listener);
+
+    return () => {
+        authFailureListeners.delete(listener);
+    };
 }
 
 async function ensureGoogleLibraries(libraries = ['places']) {

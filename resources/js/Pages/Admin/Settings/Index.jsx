@@ -270,8 +270,12 @@ function MapsFields({ items, valueFor, updateValue }) {
             ) : (
                 <p className="text-sm text-olive-500 dark:text-olive-400">
                     Google Maps uses Google Places for the location search box.
-                    Switch Map provider to OpenStreetMap to use Foursquare
-                    search instead.
+                    If the map shows “Something went wrong”, the key is saved
+                    but Google Cloud is rejecting it: turn on billing, enable
+                    Maps JavaScript API, allow HTTP referrers for this site, and
+                    include Maps JavaScript API on the key. Or switch Map
+                    provider to OpenStreetMap to keep editing locations without
+                    Google.
                 </p>
             )}
         </div>

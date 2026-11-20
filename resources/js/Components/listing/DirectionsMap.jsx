@@ -1,7 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { ForwardMark, PinMark } from '@/Components/site/Mark';
-import { getMapsApiKey, loadGoogleMaps } from '@/utils/googleMaps';
+import {
+    GOOGLE_MAPS_AUTH_HELP,
+    getMapsApiKey,
+    loadGoogleMaps,
+    onGoogleMapsAuthFailure,
+} from '@/utils/googleMaps';
 import { L, createOsmMap, leafletPinIcon } from '@/utils/leafletMaps';
+import { googleMapPinIcon } from '@/utils/mapPin';
 import {
     directionsUrlFor,
     useMapProvider,
@@ -24,16 +30,6 @@ function resolveLatLng(listing) {
     }
 
     return { lat, lng };
-}
-
-function googlePinSvg() {
-    return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="40" viewBox="0 0 32 40">
-        <path d="M16 0C8.268 0 2 6.268 2 14c0 9.5 12.2 24.4 13.1 25.5a1.2 1.2 0 0 0 1.8 0C17.8 38.4 30 23.5 30 14 30 6.268 23.732 0 16 0z" fill="#f2b82e" stroke="#1c1712" stroke-width="1.6"/>
-        <circle cx="16" cy="14" r="5.5" fill="#1c1712"/>
-        <circle cx="16" cy="14" r="2.4" fill="#ffffff"/>
-      </svg>
-    `)}`;
 }
 
 export default function DirectionsMap({ listing }) {
@@ -73,6 +69,9 @@ export default function DirectionsMap({ listing }) {
             if (mapRef.current) {
                 if (provider === 'leaflet' && mapRef.current.invalidateSize) {
                     mapRef.current.invalidateSize();
+                } else if (provider === 'google' && window.google?.maps?.event) {
+                    window.google.maps.event.trigger(mapRef.current, 'resize');
+                    mapRef.current.setCenter({ lat, lng });
                 }
                 return;
             }
@@ -80,10 +79,14 @@ export default function DirectionsMap({ listing }) {
             setStatus('loading');
             el.innerHTML = '';
 
+            // Remote lodges (forest / conservancy) look empty at high zoom.
+            // 12 keeps roads and nearby places in frame.
+            const mapZoom = 12;
+
             if (provider === 'leaflet') {
                 const map = createOsmMap(el, {
                     center: { lat, lng },
-                    zoom: 14,
+                    zoom: mapZoom,
                 });
 
                 L.marker([lat, lng], {
@@ -124,7 +127,8 @@ export default function DirectionsMap({ listing }) {
                     containerRef.current.innerHTML = '';
                     const map = new maps.Map(containerRef.current, {
                         center: { lat, lng },
-                        zoom: 14,
+                        zoom: mapZoom,
+                        mapTypeId: 'roadmap',
                         mapTypeControl: false,
                         streetViewControl: false,
                         fullscreenControl: true,
@@ -136,14 +140,21 @@ export default function DirectionsMap({ listing }) {
                         map,
                         position: { lat, lng },
                         title: listing?.title || listing?.address || '',
-                        icon: {
-                            url: googlePinSvg(),
-                            scaledSize: new maps.Size(32, 40),
-                            anchor: new maps.Point(16, 38),
-                        },
+                        icon: googleMapPinIcon(maps, { listing: true }),
+                        optimized: false,
                     });
 
                     mapRef.current = map;
+                    // Ensure tiles paint after the frame has a real size.
+                    timers.push(
+                        window.setTimeout(() => {
+                            if (cancelled || !mapRef.current) {
+                                return;
+                            }
+                            maps.event.trigger(mapRef.current, 'resize');
+                            mapRef.current.setCenter({ lat, lng });
+                        }, 50),
+                    );
                     setStatus('ready');
                 })
                 .catch(() => {
@@ -152,6 +163,12 @@ export default function DirectionsMap({ listing }) {
                     }
                 });
         };
+
+        const stopAuthWatch = onGoogleMapsAuthFailure(() => {
+            if (!cancelled) {
+                setStatus('error');
+            }
+        });
 
         paint();
 
@@ -164,6 +181,7 @@ export default function DirectionsMap({ listing }) {
 
         return () => {
             cancelled = true;
+            stopAuthWatch();
             timers.forEach((id) => window.clearTimeout(id));
             resizeObserver?.disconnect();
             if (mapRef.current?.remove) {
@@ -220,10 +238,9 @@ export default function DirectionsMap({ listing }) {
                 )}
                 {status === 'error' ? (
                     <p className="absolute inset-x-0 bottom-2 px-3 text-center text-xs text-rose-700">
-                        Map failed to load
                         {provider === 'google'
-                            ? ' — check API key & billing.'
-                            : '.'}
+                            ? GOOGLE_MAPS_AUTH_HELP
+                            : 'Map failed to load.'}
                     </p>
                 ) : null}
             </div>

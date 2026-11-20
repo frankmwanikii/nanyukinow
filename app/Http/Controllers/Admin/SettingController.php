@@ -429,7 +429,7 @@ class SettingController extends Controller
                 'label' => 'Google Maps API key',
                 'type' => 'password',
                 'value' => (string) (config('services.google.maps_key') ?: ''),
-                'help' => 'Browser key from Google Cloud. Enable Maps JavaScript API and Places API, then restrict by HTTP referrer.',
+                'help' => 'Browser key from Google Cloud. Enable billing, Maps JavaScript API, and Places API. Application restriction: HTTP referrers only (https://nanyukinow.co.ke/* and https://www.nanyukinow.co.ke/*). API restriction must include Maps JavaScript API and Places API. Do not use IP restrictions for this key.',
                 'sort_order' => 2,
             ],
             [

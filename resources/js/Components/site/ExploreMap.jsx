@@ -1,26 +1,22 @@
-import { useEffect, useMemo, useRef } from 'react';
-import { getMapsApiKey, loadGoogleMaps } from '@/utils/googleMaps';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+    GOOGLE_MAPS_AUTH_HELP,
+    getMapsApiKey,
+    loadGoogleMaps,
+    onGoogleMapsAuthFailure,
+} from '@/utils/googleMaps';
 import {
     L,
     NANYUKI,
     createOsmMap,
     leafletPinIcon,
 } from '@/utils/leafletMaps';
+import { googleMapPinIcon } from '@/utils/mapPin';
 import { useMapProvider, useMapsApiKey } from '@/utils/mapProvider';
 
 /**
  * Explore map — Google Maps or OpenStreetMap (Leaflet).
  */
-function googlePinSvg(active) {
-    const bg = active ? '#f2b82e' : '#4b533a';
-    const ring = active ? '#1c1712' : '#ffffff';
-    return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-      <svg xmlns="http://www.w3.org/2000/svg" width="30" height="34" viewBox="0 0 30 34">
-        <circle cx="15" cy="15" r="13" fill="${bg}" stroke="${ring}" stroke-width="2.5"/>
-        <circle cx="15" cy="15" r="4" fill="#ffffff"/>
-      </svg>
-    `)}`;
-}
 
 function MapChrome({ pointsCount, onClose }) {
     return (
@@ -59,12 +55,20 @@ function GoogleExploreMap({
     const markersRef = useRef(new Map());
     const infoWindowRef = useRef(null);
     const onSelectRef = useRef(onSelect);
+    const [authError, setAuthError] = useState(null);
     onSelectRef.current = onSelect;
 
     useEffect(() => {
         if (!visible || !googleKey) return undefined;
 
         let cancelled = false;
+        setAuthError(null);
+
+        const stopAuthWatch = onGoogleMapsAuthFailure(() => {
+            if (!cancelled) {
+                setAuthError(GOOGLE_MAPS_AUTH_HELP);
+            }
+        });
 
         loadGoogleMaps(googleKey, { libraries: [] })
             .then((maps) => {
@@ -81,10 +85,15 @@ function GoogleExploreMap({
                 });
                 infoWindowRef.current = new maps.InfoWindow();
             })
-            .catch(() => {});
+            .catch(() => {
+                if (!cancelled) {
+                    setAuthError(GOOGLE_MAPS_AUTH_HELP);
+                }
+            });
 
         return () => {
             cancelled = true;
+            stopAuthWatch();
         };
     }, [visible, googleKey]);
 
@@ -119,11 +128,8 @@ function GoogleExploreMap({
                 map,
                 position,
                 title: item.title,
-                icon: {
-                    url: googlePinSvg(active),
-                    scaledSize: new maps.Size(30, 34),
-                    anchor: new maps.Point(15, 30),
-                },
+                icon: googleMapPinIcon(maps, { active }),
+                optimized: false,
                 zIndex: active ? 1000 : 1,
             });
 
@@ -171,6 +177,11 @@ function GoogleExploreMap({
                     Google Maps API key required
                 </div>
             )}
+            {authError ? (
+                <div className="absolute inset-x-3 bottom-3 z-[500] rounded-md bg-white/95 px-3 py-2 text-xs text-rose-700 shadow-soft sm:text-sm">
+                    {authError}
+                </div>
+            ) : null}
             <MapChrome pointsCount={points.length} onClose={onClose} />
         </div>
     );

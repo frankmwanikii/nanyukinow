@@ -1,12 +1,17 @@
 import FieldLabel from './FieldLabel';
 import { field, help, label } from './fieldStyles';
-import { getMapsApiKey, loadGoogleMaps } from '@/utils/googleMaps';
+import {
+    getMapsApiKey,
+    loadGoogleMaps,
+    onGoogleMapsAuthFailure,
+} from '@/utils/googleMaps';
 import {
     L,
     NANYUKI,
     createOsmMap,
     leafletPinIcon,
 } from '@/utils/leafletMaps';
+import { googleMapPinIcon } from '@/utils/mapPin';
 import { useMapProvider, useMapsApiKey } from '@/utils/mapProvider';
 import { LOOK_LOCATIONS } from '@/data/listings';
 import { ChevronDown, Loader2, MapPin, Search, X } from '@/Components/site/LucideCompat';
@@ -50,19 +55,6 @@ function inferAreasFromText(...parts) {
     return found.filter((a) => AREA_OPTIONS.includes(a));
 }
 
-function googlePinIcon(maps) {
-    return {
-        url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-          <svg xmlns="http://www.w3.org/2000/svg" width="36" height="44" viewBox="0 0 32 40">
-            <path d="M16 0C8.268 0 2 6.268 2 14c0 9.5 12.2 24.4 13.1 25.5a1.2 1.2 0 0 0 1.8 0C17.8 38.4 30 23.5 30 14 30 6.268 23.732 0 16 0z" fill="#f2b82e" stroke="#1c1712" stroke-width="1.6"/>
-            <circle cx="16" cy="14" r="5.5" fill="#1c1712"/>
-            <circle cx="16" cy="14" r="2.4" fill="#ffffff"/>
-          </svg>
-        `)}`,
-        scaledSize: new maps.Size(36, 44),
-        anchor: new maps.Point(18, 44),
-    };
-}
 
 function placeToCoords(place) {
     const pLat = place.geometry?.location?.lat?.();
@@ -303,7 +295,8 @@ export default function PlacesLocationInput({
                     position,
                     draggable: true,
                     animation: maps.Animation.DROP,
-                    icon: googlePinIcon(maps),
+                    icon: googleMapPinIcon(maps, { listing: true }),
+                    optimized: false,
                     title: 'Drag to fine-tune',
                 });
                 markerRef.current.addListener('dragend', () => {
@@ -454,7 +447,11 @@ export default function PlacesLocationInput({
     const searchGoogle = useCallback(
         async (q) => {
             const service = autocompleteServiceRef.current;
-            if (!service) return;
+            // Maps JavaScript / Places library unavailable: fall back to server search.
+            if (!service) {
+                await searchOsm(q);
+                return;
+            }
 
             setSearching(true);
             const localHits = (await searchPlacesApi(q)).filter(
@@ -482,6 +479,11 @@ export default function PlacesLocationInput({
                     s === 'OK' && results?.length
                         ? results.map((r) => ({ ...r, provider: 'google' }))
                         : [];
+
+                if (!googleHits.length) {
+                    searchOsm(q);
+                    return;
+                }
 
                 const list = [...localHits, ...googleHits].slice(0, 10);
                 setPredictions(list);
@@ -514,7 +516,7 @@ export default function PlacesLocationInput({
                 }
             });
         },
-        [moveMap, searchPlacesApi],
+        [moveMap, searchOsm, searchPlacesApi],
     );
 
     const runSearch = useCallback(
@@ -576,15 +578,39 @@ export default function PlacesLocationInput({
             };
         }
 
-        if (!key) {
-            setStatus('missing');
+        const enterDegraded = (note) => {
+            if (signal.cancelled) return;
+            autocompleteServiceRef.current = null;
+            placesServiceRef.current = null;
+            sessionTokenRef.current = null;
+            if (markerRef.current?.setMap) {
+                markerRef.current.setMap(null);
+            }
+            markerRef.current = null;
+            mapRef.current = null;
+            mapsRef.current = null;
+            if (mapElRef.current) {
+                mapElRef.current.innerHTML = '';
+            }
+            setStatus('degraded');
             setMapNote(
-                'Add a Google Maps API key in Admin → Settings → Maps.',
+                note ||
+                    'Map preview unavailable until Maps JavaScript API is allowed on this key. Place search still works.',
+            );
+        };
+
+        if (!key) {
+            enterDegraded(
+                'Add a Google Maps API key for map preview. Place search still works.',
             );
             return undefined;
         }
 
         setStatus('loading');
+
+        const stopAuthWatch = onGoogleMapsAuthFailure(() => {
+            enterDegraded();
+        });
 
         (async () => {
             try {
@@ -632,18 +658,16 @@ export default function PlacesLocationInput({
                     setMapNote(null);
                 }
             } catch (err) {
-                if (!signal.cancelled) {
-                    setStatus('error');
-                    setMapNote(
-                        err?.message ||
-                            'Google Maps could not load. Check API key, Maps JavaScript API, Places API, and billing.',
-                    );
-                }
+                enterDegraded(
+                    err?.message ||
+                        'Google map preview could not load. Place search still works.',
+                );
             }
         })();
 
         return () => {
             signal.cancelled = true;
+            stopAuthWatch();
             if (markerRef.current?.setMap) markerRef.current.setMap(null);
             markerRef.current = null;
             mapRef.current = null;
@@ -685,9 +709,10 @@ export default function PlacesLocationInput({
     };
 
     const providerLabel = isLeaflet ? 'OpenStreetMap' : 'Google Maps';
+    // Keep search usable when Google map tiles/auth fail (server-side fallback).
     const searchDisabled = isLeaflet
         ? status !== 'ready'
-        : status !== 'ready';
+        : status === 'loading';
 
     return (
         <div className="space-y-4">
@@ -904,9 +929,11 @@ export default function PlacesLocationInput({
                 <p className={help}>
                     {status === 'ready'
                         ? `Pick a suggestion or tap the map to set the pin.`
-                        : status === 'loading'
-                          ? `Loading ${providerLabel}…`
-                          : mapNote || `${providerLabel} unavailable.`}
+                        : status === 'degraded'
+                          ? 'Pick a suggestion to set the pin. Map preview can wait until Maps JavaScript API is allowed on the key.'
+                          : status === 'loading'
+                            ? `Loading ${providerLabel}…`
+                            : mapNote || `${providerLabel} unavailable.`}
                 </p>
             </div>
 
@@ -917,6 +944,12 @@ export default function PlacesLocationInput({
                     role="img"
                     aria-label="Location map"
                 />
+                {status === 'degraded' ? (
+                    <div className="pointer-events-none absolute inset-x-0 top-0 flex h-56 items-center justify-center px-4 text-center text-sm text-olive-600 sm:h-72 dark:text-olive-300">
+                        Map preview unavailable. Search above still sets the
+                        location.
+                    </div>
+                ) : null}
                 <div className="flex flex-wrap items-center justify-between gap-2 border-t border-olive-200 bg-white px-3 py-2 text-xs text-olive-600 dark:border-olive-800 dark:bg-olive-950 dark:text-olive-400">
                     {status === 'loading' ? (
                         <span className="inline-flex items-center gap-2">
@@ -929,6 +962,21 @@ export default function PlacesLocationInput({
                                 {lat != null && lng != null
                                     ? `Pin set — drag to fine-tune · ${isLeaflet ? 'OSM' : 'Google'}`
                                     : `Search or click the map to drop a pin · ${isLeaflet ? 'OSM' : 'Google'}`}
+                            </span>
+                            {lat != null && lng != null ? (
+                                <span className="font-semibold tabular-nums text-olive-800 dark:text-olive-200">
+                                    {Number(lat).toFixed(5)},{' '}
+                                    {Number(lng).toFixed(5)}
+                                </span>
+                            ) : null}
+                        </>
+                    ) : status === 'degraded' ? (
+                        <>
+                            <span>
+                                Search to set coordinates
+                                {lat != null && lng != null
+                                    ? ' · pin saved'
+                                    : ''}
                             </span>
                             {lat != null && lng != null ? (
                                 <span className="font-semibold tabular-nums text-olive-800 dark:text-olive-200">
