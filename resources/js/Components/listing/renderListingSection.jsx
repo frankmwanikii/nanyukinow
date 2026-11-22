@@ -227,7 +227,13 @@ export function renderListingSection(key, listing) {
                 />
             );
         case 'chips':
-            return <ChipRow key={key} chips={listing.chips} />;
+            return (
+                <ChipRow
+                    key={key}
+                    chips={listing.chips}
+                    categoryKey={listing.categoryKey}
+                />
+            );
         case 'priceRange':
             // Shown inside At a glance (facts) to keep pricing summary with duration / difficulty.
             return null;

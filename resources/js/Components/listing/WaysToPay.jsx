@@ -1,13 +1,4 @@
-import { Banknote, CreditCard, Smartphone, Wallet } from '@/Components/site/LucideCompat';
 import DetailSection from './DetailSection';
-
-function iconFor(method) {
-    const m = String(method).toLowerCase();
-    if (m.includes('mpesa') || m.includes('paybill')) return Smartphone;
-    if (m.includes('card')) return CreditCard;
-    if (m.includes('bank')) return Wallet;
-    return Banknote;
-}
 
 export default function WaysToPay({ payments = [] }) {
     const items = Array.isArray(payments) ? payments.filter(Boolean) : [];
@@ -15,19 +6,25 @@ export default function WaysToPay({ payments = [] }) {
 
     return (
         <DetailSection title="Ways to pay">
-            <ul className="flex flex-wrap gap-2">
-                {items.map((method) => {
-                    const Icon = iconFor(method);
-                    return (
-                        <li
-                            key={method}
-                            className="inline-flex items-center gap-2 rounded-full bg-olive-50 px-3 py-2 text-sm font-semibold text-olive-800"
-                        >
-                            <Icon className="h-4 w-4 text-mustard" />
+            <ul className="flex flex-wrap items-baseline gap-x-1 gap-y-2">
+                {items.map((method, index) => (
+                    <li
+                        key={`${method}-${index}`}
+                        className="inline-flex min-w-0 items-baseline"
+                    >
+                        {index > 0 ? (
+                            <span
+                                className="mx-1.5 select-none text-olive-300 dark:text-olive-600"
+                                aria-hidden="true"
+                            >
+                                /
+                            </span>
+                        ) : null}
+                        <span className="text-sm font-semibold text-olive-900 dark:text-olive-100">
                             {method}
-                        </li>
-                    );
-                })}
+                        </span>
+                    </li>
+                ))}
             </ul>
         </DetailSection>
     );

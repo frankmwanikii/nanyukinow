@@ -179,46 +179,16 @@ export default function GalleryLightbox({
                 </>
             ) : null}
 
-            {(hasNav || footer) && (
+            {footer ? (
                 <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-20 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
                     <div
-                        className="pointer-events-auto space-y-3 px-4 sm:px-6"
+                        className="pointer-events-auto px-4 sm:px-6"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {footer}
-                        {hasNav ? (
-                            <div className="mx-auto flex max-w-5xl items-center gap-2 overflow-x-auto">
-                                {items.map((thumb, i) => {
-                                    const active = i === safeIndex;
-                                    return (
-                                        <button
-                                            key={`${thumb.src}-${i}`}
-                                            type="button"
-                                            onClick={() => onIndexChange?.(i)}
-                                            aria-label={`View ${thumb.label || `photo ${i + 1}`}`}
-                                            aria-current={
-                                                active ? 'true' : undefined
-                                            }
-                                            className={`relative h-14 w-[4.5rem] shrink-0 overflow-hidden rounded-[2px] transition sm:h-16 sm:w-24 ${
-                                                active
-                                                    ? 'opacity-100 ring-2 ring-mustard'
-                                                    : 'opacity-45 ring-1 ring-white/20 hover:opacity-90'
-                                            }`}
-                                        >
-                                            <img
-                                                src={thumb.src}
-                                                alt=""
-                                                className="h-full w-full object-cover"
-                                                loading="lazy"
-                                            />
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        ) : null}
                     </div>
                 </div>
-            )}
+            ) : null}
         </div>,
         document.body,
     );

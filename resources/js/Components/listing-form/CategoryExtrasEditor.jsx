@@ -286,7 +286,10 @@ function MenuImagesEditor({
     const [libraryOpen, setLibraryOpen] = useState(false);
     const [uploadError, setUploadError] = useState(null);
     const [uploading, setUploading] = useState(false);
+    const [imageUrl, setImageUrl] = useState('');
+    const [imageUrlError, setImageUrlError] = useState(null);
     const fileInputRef = useRef(null);
+    const urlInputId = `${inputId}-url`;
 
     const addFiles = async (fileList) => {
         const files = Array.from(fileList || []).filter((f) =>
@@ -331,7 +334,39 @@ function MenuImagesEditor({
     const addUrls = (urls) => {
         if (!urls?.length || atLimit) return;
         setUploadError(null);
+        setImageUrlError(null);
         onChange([...images, ...urls].slice(0, safeMax));
+    };
+
+    const parseImageUrl = (raw) => {
+        const value = (raw || '').trim();
+        if (!value) {
+            setImageUrlError('Paste an image URL.');
+            return null;
+        }
+        try {
+            const parsed = new URL(value);
+            if (!['http:', 'https:'].includes(parsed.protocol)) {
+                setImageUrlError('URL must start with http:// or https://');
+                return null;
+            }
+        } catch {
+            setImageUrlError('That does not look like a valid URL.');
+            return null;
+        }
+        setImageUrlError(null);
+        return value;
+    };
+
+    const submitImageUrl = () => {
+        if (atLimit) {
+            setImageUrlError(`This menu page already has ${safeMax} images.`);
+            return;
+        }
+        const raw = parseImageUrl(imageUrl);
+        if (!raw) return;
+        addUrls([raw]);
+        setImageUrl('');
     };
 
     const removeAt = (index) => {
@@ -468,6 +503,50 @@ function MenuImagesEditor({
                             ) : null}
                         </div>
                     )}
+
+                    {!atLimit ? (
+                        <div>
+                            <label className={label} htmlFor={urlInputId}>
+                                Image URL (optional)
+                            </label>
+                            <div className="flex flex-col gap-2 sm:flex-row">
+                                <input
+                                    id={urlInputId}
+                                    type="url"
+                                    className={field}
+                                    value={imageUrl}
+                                    onChange={(e) => {
+                                        setImageUrl(e.target.value);
+                                        setImageUrlError(null);
+                                    }}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            submitImageUrl();
+                                        }
+                                    }}
+                                    placeholder="https://…/menu.jpg"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={submitImageUrl}
+                                    className="inline-flex shrink-0 items-center justify-center rounded-sm bg-olive-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-olive-800"
+                                >
+                                    Add URL
+                                </button>
+                            </div>
+                            {imageUrlError ? (
+                                <p className="mt-1.5 text-sm text-rose-600">
+                                    {imageUrlError}
+                                </p>
+                            ) : (
+                                <p className={help}>
+                                    Paste a direct image link if you already
+                                    host the menu photo online.
+                                </p>
+                            )}
+                        </div>
+                    ) : null}
                 </>
             )}
 

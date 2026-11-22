@@ -37,7 +37,7 @@ export const categoryLayouts = {
             'chips',
         ],
         side: ['map', 'hours', 'payments'],
-        ctaSecondary: 'View menu',
+        ctaSecondary: null,
     },
     stay: {
         subnav: listingPageTabs,
