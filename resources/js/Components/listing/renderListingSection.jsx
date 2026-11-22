@@ -18,9 +18,24 @@ import FactStrip from './FactStrip';
 import HoursList from './HoursList';
 import MenuGallery from './MenuGallery';
 import ReviewsTeaser from './ReviewsTeaser';
+import RoomTypesGallery from './RoomTypesGallery';
 import VideoPreview from './VideoPreview';
 import VisualTour from './VisualTour';
 import WaysToPay from './WaysToPay';
+
+const FACTS_SECTION_TITLES = {
+    eatDrink: 'Dining details',
+    stay: 'Stay details',
+    thingsToDo: 'Activity details',
+    services: 'Service details',
+    shopping: 'Store details',
+    properties: 'Property overview',
+    events: 'Event details',
+};
+
+function factsSectionTitle(categoryKey) {
+    return FACTS_SECTION_TITLES[categoryKey] || 'The essentials';
+}
 
 /**
  * Map registry section keys → rendered components.
@@ -62,12 +77,18 @@ export function renderListingSection(key, listing) {
                     }
                 />
             );
+        case 'charges': {
+            const chargesFact = Array.isArray(listing.facts)
+                ? listing.facts.find((fact) => fact?.label === 'Charges') ||
+                  null
+                : null;
+
+            return <ChargesCard key={key} fact={chargesFact} />;
+        }
         case 'facts': {
             const rawFacts = Array.isArray(listing.facts)
                 ? listing.facts
                 : [];
-            const chargesFact =
-                rawFacts.find((fact) => fact?.label === 'Charges') || null;
             const glanceFacts = rawFacts.filter(
                 (fact) => fact?.label && fact.label !== 'Charges',
             );
@@ -82,28 +103,27 @@ export function renderListingSection(key, listing) {
                 });
             }
 
-            return (
-                <div key={key} className="space-y-4">
+            if (listing.categoryKey === 'stay') {
+                return (
                     <FactStrip
+                        key={key}
                         facts={glanceFacts}
-                        layout={
-                            listing.categoryKey === 'stay' ||
-                            listing.categoryKey === 'properties'
-                                ? 'lodging'
-                                : 'glance'
-                        }
-                        title={
-                            listing.categoryKey === 'events'
-                                ? 'Event details'
-                                : listing.categoryKey === 'properties'
-                                  ? 'Property overview'
-                                  : listing.categoryKey === 'stay'
-                                    ? 'Good to know'
-                                    : 'At a glance'
-                        }
+                        layout="stay"
                     />
-                    <ChargesCard fact={chargesFact} />
-                </div>
+                );
+            }
+
+            return (
+                <FactStrip
+                    key={key}
+                    facts={glanceFacts}
+                    layout={
+                        listing.categoryKey === 'properties'
+                            ? 'lodging'
+                            : 'glance'
+                    }
+                    title={factsSectionTitle(listing.categoryKey)}
+                />
             );
         }
         case 'houseRules': {
@@ -235,7 +255,7 @@ export function renderListingSection(key, listing) {
                 />
             );
         case 'priceRange':
-            // Shown inside At a glance (facts) to keep pricing summary with duration / difficulty.
+            // Shown inside category facts to keep pricing with duration / difficulty.
             return null;
         case 'deals': {
             const deals = Array.isArray(listing.deals) ? listing.deals : [];
@@ -254,11 +274,21 @@ export function renderListingSection(key, listing) {
                                 : 'Deals & happy hour'
                     }
                 >
-                    <ul className="space-y-3">
+                    <ul
+                        className={
+                            listing.categoryKey === 'stay'
+                                ? 'divide-y divide-olive-900/10'
+                                : 'space-y-3'
+                        }
+                    >
                         {deals.map((deal, index) => (
                             <li
                                 key={`deal-${index}`}
-                                className="rounded-2xl border border-mustard/40 bg-mustard/10 px-4 py-3"
+                                className={
+                                    listing.categoryKey === 'stay'
+                                        ? 'py-4 first:pt-0 last:pb-0'
+                                        : 'rounded-2xl border border-mustard/40 bg-mustard/10 px-4 py-3'
+                                }
                             >
                                 {deal.title ? (
                                     <p className="font-display text-base font-semibold text-olive-950 dark:text-olive-50">
@@ -287,6 +317,14 @@ export function renderListingSection(key, listing) {
                 </DetailSection>
             );
         }
+        case 'roomTypes':
+            return (
+                <RoomTypesGallery
+                    key={key}
+                    roomTypes={listing.roomTypes}
+                    title="Rooms"
+                />
+            );
         case 'menus':
             return (
                 <MenuGallery

@@ -90,6 +90,18 @@ export default function Index({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [local.q]);
 
+    useEffect(() => {
+        const timer = window.setInterval(() => {
+            router.reload({
+                only: ['listings'],
+                preserveScroll: true,
+                preserveState: true,
+            });
+        }, 45000);
+
+        return () => window.clearInterval(timer);
+    }, []);
+
     const setSelect = (key, value) => {
         const next = { ...local, [key]: value };
         setLocal(next);
@@ -379,14 +391,21 @@ export default function Index({
                                             />
                                         </Td>
                                         <Td>
-                                            <MediaCell
-                                                image={
-                                                    listing.categoryKey === 'events'
-                                                        ? listing.eventPoster || listing.image || listing.image_url
-                                                        : listing.image || listing.image_url
-                                                }
-                                                title={listing.title}
-                                            />
+                                            <div className="min-w-0">
+                                                <MediaCell
+                                                    image={
+                                                        listing.categoryKey === 'events'
+                                                            ? listing.eventPoster || listing.image || listing.image_url
+                                                            : listing.image || listing.image_url
+                                                    }
+                                                    title={listing.title}
+                                                />
+                                                {listing.editing_by?.name ? (
+                                                    <p className="mt-1.5 text-xs font-medium text-amber-800 dark:text-amber-200">
+                                                        Editing: {listing.editing_by.name}
+                                                    </p>
+                                                ) : null}
+                                            </div>
                                         </Td>
                                         <Td>
                                             <span className="text-sm text-olive-600 dark:text-olive-300">

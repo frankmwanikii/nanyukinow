@@ -1973,11 +1973,36 @@ function buildFactsFromDetails(listing) {
         if (d.rooms) pairs.push({ label: 'Rooms', value: String(d.rooms) });
         if (d.beds) pairs.push({ label: 'Beds', value: String(d.beds) });
         if (d.baths) pairs.push({ label: 'Baths', value: String(d.baths) });
-        const roomTypes = Array.isArray(d.room_types)
-            ? d.room_types.filter(Boolean).join(', ')
-            : d.room_types;
-        if (roomTypes) {
-            pairs.push({ label: 'Room types', value: String(roomTypes) });
+        // Room types with photos/prices render in RoomTypesGallery.
+        // Keep a compact facts list only for legacy title-only tags.
+        const roomTypeCards = Array.isArray(d.room_types) ? d.room_types : [];
+        const legacyRoomTitles = roomTypeCards
+            .map((item) => {
+                if (typeof item === 'string') return item.trim();
+                if (!item || typeof item !== 'object') return '';
+                const title = String(item.title || item.name || '').trim();
+                const price = String(item.price || '').trim();
+                const images = Array.isArray(item.images)
+                    ? item.images.filter(Boolean)
+                    : item.image
+                      ? [item.image]
+                      : [];
+                if (title && !price && images.length === 0) return title;
+                return '';
+            })
+            .filter(Boolean);
+        const hasRichRoomTypes = roomTypeCards.some((item) => {
+            if (!item || typeof item !== 'object') return false;
+            const price = String(item.price || '').trim();
+            const images = Array.isArray(item.images)
+                ? item.images.filter(Boolean)
+                : item.image
+                  ? [item.image]
+                  : [];
+            return Boolean(price || images.length);
+        });
+        if (!hasRichRoomTypes && legacyRoomTitles.length) {
+            pairs.push({ label: 'Room types', value: legacyRoomTitles });
         }
         if (d.check_in) pairs.push({ label: 'Check-in', value: String(d.check_in) });
         if (d.check_out) pairs.push({ label: 'Check-out', value: String(d.check_out) });
@@ -2241,11 +2266,22 @@ export function getListingDetail(listing) {
               ? (() => {
                     const name = textOrNull(listing.details?.host_name);
                     const bio = textOrNull(listing.details?.host_bio);
-                    if (!name && !bio) return null;
+                    const phone =
+                        textOrNull(listing.phone) ||
+                        textOrNull(listing.whatsapp);
+                    const email = textOrNull(listing.email);
+                    const image =
+                        textOrNull(listing.details?.host_photo) ||
+                        textOrNull(listing.logo) ||
+                        null;
+                    if (!name && !bio && !phone && !email && !image) {
+                        return null;
+                    }
                     return {
                         name: name || 'Host',
-                        phone: textOrNull(listing.phone),
-                        email: textOrNull(listing.email),
+                        phone: phone || null,
+                        email: email || null,
+                        image,
                         note: bio
                             ? bio.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
                             : 'Your host for this stay.',
@@ -2352,6 +2388,48 @@ export function getListingDetail(listing) {
                       (Array.isArray(m?.images) && m.images.length),
               )
             : null,
+        roomTypes: (() => {
+            if (listing.categoryKey !== 'stay') return null;
+            const raw = listing.details?.room_types;
+            if (!Array.isArray(raw) || !raw.length) return null;
+            const cards = raw
+                .map((item) => {
+                    if (typeof item === 'string') {
+                        const title = item.trim();
+                        return title
+                            ? {
+                                  title,
+                                  price: '',
+                                  description: '',
+                                  images: [],
+                              }
+                            : null;
+                    }
+                    if (!item || typeof item !== 'object') return null;
+                    const title = String(
+                        item.title || item.name || item.label || '',
+                    ).trim();
+                    const price = String(
+                        item.price || item.rate || item.amount || '',
+                    ).trim();
+                    const description = String(
+                        item.description || item.note || item.summary || '',
+                    ).trim();
+                    const images = Array.isArray(item.images)
+                        ? item.images.filter(
+                              (u) => typeof u === 'string' && u.trim(),
+                          )
+                        : item.image
+                          ? [item.image]
+                          : [];
+                    if (!title && !price && !description && !images.length) {
+                        return null;
+                    }
+                    return { title, price, description, images };
+                })
+                .filter(Boolean);
+            return cards.length ? cards : null;
+        })(),
         deals: Array.isArray(listing.details?.deals)
             ? listing.details.deals.filter((d) => d?.title || d?.description)
             : null,
@@ -2531,6 +2609,12 @@ export function getListingDetail(listing) {
                 : live
                   ? []
                   : (explicit?.menus ?? []),
+        roomTypes:
+            base.roomTypes !== null
+                ? base.roomTypes
+                : live
+                  ? []
+                  : (explicit?.roomTypes ?? []),
         deals:
             base.deals !== null && base.deals !== undefined
                 ? base.deals

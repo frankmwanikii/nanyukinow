@@ -10,7 +10,15 @@ import {
     normalizeTier,
     tierDisplayLabel,
 } from '@/data/eatDrinkTierFeatures';
-import { canUseStayFeature } from '@/data/stayTierFeatures';
+import {
+    canUseStayFeature,
+    coerceRoomTypes,
+    roomTypeItemImages,
+    stayRoomTypeHelp,
+    stayRoomTypeImagesPerItem,
+    stayRoomTypeLimit,
+} from '@/data/stayTierFeatures';
+import { POPULAR_ROOM_TYPES } from './categoryFieldConfig';
 import ShoppingTierUpsell from './ShoppingTierUpsell';
 import ServicesTierUpsell from './ServicesTierUpsell';
 import EventsTierUpsell from './EventsTierUpsell';
@@ -84,6 +92,96 @@ function RowActions({ onRemove }) {
             <Trash2 className="h-3.5 w-3.5" />
             Remove
         </button>
+    );
+}
+
+/**
+ * Single room-type title: pick a popular option or type a custom name.
+ */
+function RoomTitleField({ value, onChange, options = POPULAR_ROOM_TYPES, id }) {
+    const [open, setOpen] = useState(false);
+    const wrapRef = useRef(null);
+    const listId = `${id}-suggestions`;
+    const query = value || '';
+
+    const matches = (() => {
+        const q = query.trim().toLowerCase();
+        const pool = options.filter(Boolean);
+        if (!q) return pool.slice(0, 10);
+        return pool
+            .filter((name) => name.toLowerCase().includes(q))
+            .slice(0, 10);
+    })();
+
+    const exactMatch = options.some(
+        (name) => name.toLowerCase() === query.trim().toLowerCase(),
+    );
+
+    return (
+        <div ref={wrapRef} className="relative">
+            <label className={label} htmlFor={id}>
+                Room type title
+            </label>
+            <input
+                id={id}
+                className={field}
+                role="combobox"
+                aria-expanded={open}
+                aria-controls={listId}
+                aria-autocomplete="list"
+                value={query}
+                placeholder="Search popular types or type your own…"
+                onChange={(e) => {
+                    onChange(e.target.value);
+                    setOpen(true);
+                }}
+                onFocus={() => setOpen(true)}
+                onBlur={() => {
+                    window.setTimeout(() => setOpen(false), 160);
+                }}
+                autoComplete="off"
+            />
+            {open && (matches.length > 0 || (query.trim() && !exactMatch)) ? (
+                <ul
+                    id={listId}
+                    role="listbox"
+                    className="absolute left-0 right-0 top-full z-30 mt-1.5 max-h-56 overflow-auto border border-olive-900/20 bg-white py-1.5 dark:border-olive-700 dark:bg-olive-900"
+                >
+                    {matches.map((name) => (
+                        <li key={name} role="option">
+                            <button
+                                type="button"
+                                className="w-full px-3.5 py-2.5 text-left text-sm font-medium text-olive-900 transition hover:bg-mustard/20 dark:text-olive-50 dark:hover:bg-mustard/15"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => {
+                                    onChange(name);
+                                    setOpen(false);
+                                }}
+                            >
+                                {name}
+                            </button>
+                        </li>
+                    ))}
+                    {query.trim() && !exactMatch ? (
+                        <li role="option">
+                            <button
+                                type="button"
+                                className="flex w-full items-center gap-2 px-3.5 py-2.5 text-left text-sm font-semibold text-olive-900 transition hover:bg-olive-50 dark:text-mustard dark:hover:bg-olive-800"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => {
+                                    onChange(query.trim());
+                                    setOpen(false);
+                                }}
+                            >
+                                <Plus className="h-4 w-4 shrink-0" />
+                                Add “{query.trim()}”
+                            </button>
+                        </li>
+                    ) : null}
+                </ul>
+            ) : null}
+            <p className={help}>Pick from popular types or add your own.</p>
+        </div>
     );
 }
 
@@ -183,30 +281,37 @@ function ImageDropzonePick({
     image,
     onClear,
     onFiles,
+    onPickClick = null,
     remainingLabel = 'multi-select supported',
     inputId,
     multiple = true,
+    disabled = false,
+    busyLabel = 'Uploading…',
 }) {
     const onDropFiles = (e) => {
         e.preventDefault();
         e.stopPropagation();
+        if (disabled) return;
         const files = e.dataTransfer?.files;
         if (files?.length) {
             onFiles?.(files);
         }
     };
 
-    const fileInput = (
+    // When onPickClick is set, the parent owns the file input (avoids dual
+    // inputs + label/htmlFor double-open bugs while an upload is in flight).
+    const ownsInput = !onPickClick;
+    const fileInput = ownsInput ? (
         <input
             id={inputId}
             type="file"
             accept="image/*"
             multiple={multiple}
+            disabled={disabled}
             className="sr-only"
             onChange={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                // Copy before clearing — input.files is a live FileList.
                 const files = Array.from(e.target.files || []);
                 e.target.value = '';
                 if (files.length) {
@@ -214,7 +319,7 @@ function ImageDropzonePick({
                 }
             }}
         />
-    );
+    ) : null;
 
     if (image) {
         return (
@@ -227,16 +332,32 @@ function ImageDropzonePick({
                         className="h-full w-full object-cover"
                     />
                     <div className="absolute inset-x-0 bottom-0 flex flex-wrap gap-2 bg-gradient-to-t from-black/55 to-transparent p-3 pt-8">
-                        <label
-                            htmlFor={inputId}
-                            className="cursor-pointer rounded-xl border border-white/30 bg-white/95 px-3 py-1.5 text-xs font-semibold text-olive-900 shadow-sm hover:bg-white"
-                        >
-                            Replace image
-                        </label>
+                        {onPickClick ? (
+                            <button
+                                type="button"
+                                disabled={disabled}
+                                onClick={onPickClick}
+                                className="rounded-xl border border-white/30 bg-white/95 px-3 py-1.5 text-xs font-semibold text-olive-900 shadow-sm hover:bg-white disabled:opacity-60"
+                            >
+                                {disabled ? busyLabel : 'Replace image'}
+                            </button>
+                        ) : (
+                            <label
+                                htmlFor={inputId}
+                                className={`rounded-xl border border-white/30 bg-white/95 px-3 py-1.5 text-xs font-semibold text-olive-900 shadow-sm hover:bg-white ${
+                                    disabled
+                                        ? 'pointer-events-none opacity-60'
+                                        : 'cursor-pointer'
+                                }`}
+                            >
+                                {disabled ? busyLabel : 'Replace image'}
+                            </label>
+                        )}
                         <button
                             type="button"
+                            disabled={disabled}
                             onClick={onClear}
-                            className="rounded-sm bg-white/90 px-3 py-1.5 text-xs font-semibold text-rose-700 shadow-sm hover:bg-white"
+                            className="rounded-sm bg-white/90 px-3 py-1.5 text-xs font-semibold text-rose-700 shadow-sm hover:bg-white disabled:opacity-60"
                         >
                             Clear
                         </button>
@@ -246,28 +367,60 @@ function ImageDropzonePick({
         );
     }
 
-    return (
-        <label
-            htmlFor={inputId}
-            onDragOver={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-            }}
-            onDrop={onDropFiles}
-            className="flex w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-olive-300 bg-white/80 px-4 py-10 text-center transition hover:border-mustard hover:bg-mustard/5 dark:border-olive-700 dark:bg-olive-950/80 dark:hover:border-mustard dark:hover:bg-mustard/10"
-        >
+    const shellClassName = `flex w-full flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-olive-300 bg-white/80 px-4 py-10 text-center transition dark:border-olive-700 dark:bg-olive-950/80 ${
+        disabled
+            ? 'cursor-wait opacity-70'
+            : 'cursor-pointer hover:border-mustard hover:bg-mustard/5 dark:hover:border-mustard dark:hover:bg-mustard/10'
+    }`;
+
+    const body = (
+        <>
             {fileInput}
             <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-olive-50 ring-1 ring-olive-100 dark:bg-olive-900 dark:ring-olive-700">
                 <ImagePlus className="h-6 w-6 text-olive-700 dark:text-olive-300" />
             </span>
             <span>
                 <span className="block text-sm font-semibold text-olive-950 dark:text-olive-50">
-                    Drop menu images here
+                    {disabled ? busyLabel : 'Drop images here'}
                 </span>
                 <span className="mt-1 block text-xs text-olive-500">
-                    Or click to upload · {remainingLabel}
+                    {disabled
+                        ? 'Please wait'
+                        : `Or click to upload · ${remainingLabel}`}
                 </span>
             </span>
+        </>
+    );
+
+    if (onPickClick) {
+        return (
+            <button
+                type="button"
+                disabled={disabled}
+                onClick={onPickClick}
+                onDragOver={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }}
+                onDrop={onDropFiles}
+                className={shellClassName}
+            >
+                {body}
+            </button>
+        );
+    }
+
+    return (
+        <label
+            htmlFor={disabled ? undefined : inputId}
+            onDragOver={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            }}
+            onDrop={onDropFiles}
+            className={shellClassName}
+        >
+            {body}
         </label>
     );
 }
@@ -281,17 +434,26 @@ function MenuImagesEditor({
     uploadUrl = null,
 }) {
     const safeMax = Math.max(1, Number(maxImages) || 1);
-    const remaining = Math.max(0, safeMax - images.length);
-    const atLimit = remaining <= 0;
     const [libraryOpen, setLibraryOpen] = useState(false);
     const [uploadError, setUploadError] = useState(null);
     const [uploading, setUploading] = useState(false);
     const [imageUrl, setImageUrl] = useState('');
     const [imageUrlError, setImageUrlError] = useState(null);
     const fileInputRef = useRef(null);
+    const imagesRef = useRef(images);
+    const uploadingRef = useRef(false);
     const urlInputId = `${inputId}-url`;
 
+    imagesRef.current = Array.isArray(images) ? images : [];
+
+    const remaining = Math.max(0, safeMax - imagesRef.current.length);
+    const atLimit = remaining <= 0;
+
     const addFiles = async (fileList) => {
+        if (uploadingRef.current) {
+            return;
+        }
+
         const files = Array.from(fileList || []).filter((f) =>
             f.type?.startsWith('image/'),
         );
@@ -299,13 +461,18 @@ function MenuImagesEditor({
             setUploadError('Choose a JPG, PNG, or WebP image.');
             return;
         }
-        if (atLimit) {
-            setUploadError(`This menu page already has ${safeMax} images.`);
+
+        const current = imagesRef.current;
+        const slots = Math.max(0, safeMax - current.length);
+        if (slots <= 0) {
+            setUploadError(`This set already has ${safeMax} images.`);
             return;
         }
+
         setUploadError(null);
+        uploadingRef.current = true;
         setUploading(true);
-        const chosen = files.slice(0, remaining);
+        const chosen = files.slice(0, slots);
         const urls = [];
         try {
             for (const file of chosen) {
@@ -315,6 +482,7 @@ function MenuImagesEditor({
                 }
             }
         } finally {
+            uploadingRef.current = false;
             setUploading(false);
         }
         if (!urls.length) {
@@ -328,14 +496,18 @@ function MenuImagesEditor({
                 `Uploaded ${urls.length} of ${chosen.length} images. Retry the rest.`,
             );
         }
-        onChange([...images, ...urls].slice(0, safeMax));
+        const latest = imagesRef.current;
+        onChange([...latest, ...urls].slice(0, safeMax));
     };
 
     const addUrls = (urls) => {
-        if (!urls?.length || atLimit) return;
+        if (!urls?.length || uploadingRef.current) return;
+        const current = imagesRef.current;
+        const slots = Math.max(0, safeMax - current.length);
+        if (slots <= 0) return;
         setUploadError(null);
         setImageUrlError(null);
-        onChange([...images, ...urls].slice(0, safeMax));
+        onChange([...current, ...urls].slice(0, safeMax));
     };
 
     const parseImageUrl = (raw) => {
@@ -359,8 +531,10 @@ function MenuImagesEditor({
     };
 
     const submitImageUrl = () => {
-        if (atLimit) {
-            setImageUrlError(`This menu page already has ${safeMax} images.`);
+        if (uploadingRef.current) return;
+        const current = imagesRef.current;
+        if (current.length >= safeMax) {
+            setImageUrlError(`This set already has ${safeMax} images.`);
             return;
         }
         const raw = parseImageUrl(imageUrl);
@@ -370,15 +544,17 @@ function MenuImagesEditor({
     };
 
     const removeAt = (index) => {
-        onChange(images.filter((_, i) => i !== index));
+        if (uploadingRef.current) return;
+        onChange(imagesRef.current.filter((_, i) => i !== index));
     };
 
     const openFilePicker = () => {
+        if (uploadingRef.current || atLimit) return;
         fileInputRef.current?.click();
     };
 
     const openAdd = () => {
-        if (atLimit) return;
+        if (uploadingRef.current || atLimit) return;
         if (libraryRoute) {
             setLibraryOpen(true);
             return;
@@ -388,13 +564,14 @@ function MenuImagesEditor({
 
     return (
         <div className="space-y-3">
-            {/* Keep the file input mounted always so the OS picker still delivers
-                files after MediaAddDialog closes (same pattern as GalleryUploader). */}
+            {/* Single file input for dropzone, Add more, and MediaAddDialog. */}
             <input
                 ref={fileInputRef}
+                id={inputId}
                 type="file"
                 accept="image/*"
                 multiple
+                disabled={uploading}
                 className="hidden"
                 onChange={(e) => {
                     e.preventDefault();
@@ -427,8 +604,9 @@ function MenuImagesEditor({
                         <div className="flex flex-wrap justify-end gap-2">
                             <button
                                 type="button"
+                                disabled={uploading}
                                 onClick={() => setLibraryOpen(true)}
-                                className="inline-flex items-center gap-1.5 rounded-sm bg-olive-900 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-olive-800"
+                                className="inline-flex items-center gap-1.5 rounded-sm bg-olive-900 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-olive-800 disabled:opacity-60"
                             >
                                 <Images className="h-3.5 w-3.5" />
                                 Open gallery
@@ -450,8 +628,9 @@ function MenuImagesEditor({
                                     />
                                     <button
                                         type="button"
+                                        disabled={uploading}
                                         onClick={() => removeAt(index)}
-                                        className="absolute right-1.5 top-1.5 inline-flex h-7 w-7 items-center justify-center rounded-sm bg-white/95 text-rose-700 shadow-sm"
+                                        className="absolute right-1.5 top-1.5 inline-flex h-7 w-7 items-center justify-center rounded-sm bg-white/95 text-rose-700 shadow-sm disabled:opacity-60"
                                         aria-label={`Remove image ${index + 1}`}
                                     >
                                         <X
@@ -468,12 +647,15 @@ function MenuImagesEditor({
                                 <li>
                                     <button
                                         type="button"
+                                        disabled={uploading}
                                         onClick={openAdd}
-                                        className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-1.5 rounded-sm border border-dashed border-olive-300 bg-white/70 text-olive-600 transition hover:border-mustard hover:bg-mustard/5"
+                                        className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-1.5 rounded-sm border border-dashed border-olive-300 bg-white/70 text-olive-600 transition hover:border-mustard hover:bg-mustard/5 disabled:cursor-wait disabled:opacity-60"
                                     >
                                         <ImagePlus className="h-5 w-5" />
                                         <span className="text-[11px] font-semibold">
-                                            Add more
+                                            {uploading
+                                                ? 'Uploading…'
+                                                : 'Add more'}
                                         </span>
                                         <span className="text-[10px] text-olive-500">
                                             {images.length}/{safeMax}
@@ -488,14 +670,17 @@ function MenuImagesEditor({
                                 inputId={inputId}
                                 image=""
                                 remainingLabel={`up to ${safeMax} images`}
+                                disabled={uploading}
+                                onPickClick={openFilePicker}
                                 onFiles={(files) => void addFiles(files)}
                                 onClear={() => {}}
                             />
                             {libraryRoute ? (
                                 <button
                                     type="button"
+                                    disabled={uploading}
                                     onClick={() => setLibraryOpen(true)}
-                                    className="inline-flex w-full items-center justify-center gap-1.5 rounded-sm border border-olive-200 bg-white px-3 py-2 text-xs font-semibold text-olive-800 transition hover:border-mustard dark:border-olive-700 dark:bg-olive-900 dark:text-olive-100"
+                                    className="inline-flex w-full items-center justify-center gap-1.5 rounded-sm border border-olive-200 bg-white px-3 py-2 text-xs font-semibold text-olive-800 transition hover:border-mustard disabled:opacity-60 dark:border-olive-700 dark:bg-olive-900 dark:text-olive-100"
                                 >
                                     <Images className="h-3.5 w-3.5" />
                                     Or grab from gallery
@@ -515,6 +700,7 @@ function MenuImagesEditor({
                                     type="url"
                                     className={field}
                                     value={imageUrl}
+                                    disabled={uploading}
                                     onChange={(e) => {
                                         setImageUrl(e.target.value);
                                         setImageUrlError(null);
@@ -525,12 +711,13 @@ function MenuImagesEditor({
                                             submitImageUrl();
                                         }
                                     }}
-                                    placeholder="https://…/menu.jpg"
+                                    placeholder="https://…/photo.jpg"
                                 />
                                 <button
                                     type="button"
+                                    disabled={uploading}
                                     onClick={submitImageUrl}
-                                    className="inline-flex shrink-0 items-center justify-center rounded-sm bg-olive-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-olive-800"
+                                    className="inline-flex shrink-0 items-center justify-center rounded-sm bg-olive-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-olive-800 disabled:opacity-60"
                                 >
                                     Add URL
                                 </button>
@@ -542,7 +729,7 @@ function MenuImagesEditor({
                             ) : (
                                 <p className={help}>
                                     Paste a direct image link if you already
-                                    host the menu photo online.
+                                    host the photo online.
                                 </p>
                             )}
                         </div>
@@ -552,7 +739,7 @@ function MenuImagesEditor({
 
             {uploading ? (
                 <p className="text-sm font-medium text-olive-700 dark:text-olive-300">
-                    Uploading menu image…
+                    Uploading image…
                 </p>
             ) : null}
 
@@ -564,7 +751,7 @@ function MenuImagesEditor({
 
             {!libraryOpen && atLimit ? (
                 <p className={help}>
-                    This menu page is at the {safeMax}-image limit.
+                    This set is at the {safeMax}-image limit.
                 </p>
             ) : null}
         </div>
@@ -588,38 +775,90 @@ export default function CategoryExtrasEditor({
     const singleInputRef = useRef(null);
     const pendingSingleRef = useRef(null);
 
+    // Functional merges so concurrent image uploads (host + room types, or
+    // two room rows) do not overwrite each other via a stale details snapshot.
     const setList = (key, next) => {
-        onDetailsChange({ ...details, [key]: next });
+        onDetailsChange((prev) => ({ ...(prev || {}), [key]: next }));
     };
 
     const updateItem = (key, index, patch) => {
-        const list = Array.isArray(details[key]) ? [...details[key]] : [];
-        list[index] = { ...list[index], ...patch };
-        setList(key, list);
+        onDetailsChange((prev) => {
+            const base = prev || {};
+            const list = Array.isArray(base[key]) ? [...base[key]] : [];
+            list[index] = { ...list[index], ...patch };
+            return { ...base, [key]: list };
+        });
     };
 
     const updateGig = (index, patch) => {
-        const list = Array.isArray(details.event_schedule)
-            ? [...details.event_schedule]
-            : [];
-        const next = { ...list[index], ...patch };
-        next.label = formatGigWhenLabel(next);
-        list[index] = next;
-        setList('event_schedule', list);
+        onDetailsChange((prev) => {
+            const base = prev || {};
+            const list = Array.isArray(base.event_schedule)
+                ? [...base.event_schedule]
+                : [];
+            const next = { ...list[index], ...patch };
+            next.label = formatGigWhenLabel(next);
+            list[index] = next;
+            return { ...base, event_schedule: list };
+        });
     };
 
     const removeItem = (key, index) => {
-        const list = Array.isArray(details[key]) ? [...details[key]] : [];
-        list.splice(index, 1);
-        setList(key, list);
+        onDetailsChange((prev) => {
+            const base = prev || {};
+            const list = Array.isArray(base[key]) ? [...base[key]] : [];
+            list.splice(index, 1);
+            return { ...base, [key]: list };
+        });
     };
 
     const addItem = (key, blank) => {
-        const list = Array.isArray(details[key]) ? [...details[key]] : [];
-        setList(key, [...list, blank]);
+        onDetailsChange((prev) => {
+            const base = prev || {};
+            const list = Array.isArray(base[key]) ? [...base[key]] : [];
+            return { ...base, [key]: [...list, blank] };
+        });
+    };
+
+    const patchRoomType = (index, patch) => {
+        onDetailsChange((prev) => {
+            const base = prev || {};
+            const next = coerceRoomTypes(base.room_types);
+            next[index] = { ...next[index], ...patch };
+            return { ...base, room_types: next };
+        });
+    };
+
+    const removeRoomType = (index) => {
+        onDetailsChange((prev) => {
+            const base = prev || {};
+            const next = coerceRoomTypes(base.room_types);
+            next.splice(index, 1);
+            return { ...base, room_types: next };
+        });
+    };
+
+    const addRoomType = () => {
+        onDetailsChange((prev) => {
+            const base = prev || {};
+            return {
+                ...base,
+                room_types: [
+                    ...coerceRoomTypes(base.room_types),
+                    {
+                        title: '',
+                        price: '',
+                        description: '',
+                        images: [],
+                    },
+                ],
+            };
+        });
     };
 
     const menus = Array.isArray(details.menus) ? details.menus : [];
+    const roomTypes =
+        categoryKey === 'stay' ? coerceRoomTypes(details.room_types) : [];
     const deals = Array.isArray(details.deals) ? details.deals : [];
     const agenda = Array.isArray(details.agenda) ? details.agenda : [];
     const sponsors = Array.isArray(details.sponsors) ? details.sponsors : [];
@@ -637,8 +876,19 @@ export default function CategoryExtrasEditor({
     const showLiveMusic =
         categoryKey === 'eatDrink' &&
         (isAdmin || canUseEatDrinkFeature(tier, 'live_music'));
+    const showStayRoomTypes = categoryKey === 'stay';
     const showStayOffers =
         categoryKey === 'stay' && canUseStayFeature(tier, 'seasonal_offers');
+    const roomTypeLimit = showStayRoomTypes ? stayRoomTypeLimit(tier) : null;
+    const imagesPerRoomType = showStayRoomTypes
+        ? stayRoomTypeImagesPerItem(tier)
+        : 3;
+    const roomTypeRemaining =
+        roomTypeLimit == null
+            ? 0
+            : Math.max(0, roomTypeLimit - roomTypes.length);
+    const atRoomTypeLimit =
+        roomTypeLimit != null && roomTypeRemaining <= 0;
     const showShoppingProducts =
         categoryKey === 'shopping' && canUseShoppingFeature(tier, 'products');
     const showShoppingOffers =
@@ -1091,6 +1341,115 @@ export default function CategoryExtrasEditor({
                 </Section>
                 ) : null}
                 </>
+            ) : null}
+
+            {showStayRoomTypes ? (
+                <Section
+                    title="Room types"
+                    blurb={stayRoomTypeHelp(tier)}
+                >
+                    <ul className="space-y-4">
+                        {roomTypes.map((item, index) => (
+                            <li
+                                key={`room-type-${index}`}
+                                className="space-y-3 rounded-xl border border-olive-100 bg-olive-50/40 p-3"
+                            >
+                                <div className="flex items-center justify-between gap-2">
+                                    <span className="text-xs font-semibold uppercase tracking-wide text-olive-500">
+                                        Room {index + 1}
+                                    </span>
+                                    <RowActions
+                                        onRemove={() => removeRoomType(index)}
+                                    />
+                                </div>
+                                <RoomTitleField
+                                    id={`room-type-title-${index}`}
+                                    value={item.title || ''}
+                                    onChange={(title) =>
+                                        patchRoomType(index, { title })
+                                    }
+                                />
+                                <div>
+                                    <label
+                                        className={label}
+                                        htmlFor={`room-type-price-${index}`}
+                                    >
+                                        Price
+                                    </label>
+                                    <input
+                                        id={`room-type-price-${index}`}
+                                        className={field}
+                                        value={item.price || ''}
+                                        onChange={(e) =>
+                                            patchRoomType(index, {
+                                                price: e.target.value,
+                                            })
+                                        }
+                                        placeholder="e.g. KES 12,000 / night"
+                                    />
+                                </div>
+                                <div>
+                                    <label
+                                        className={label}
+                                        htmlFor={`room-type-description-${index}`}
+                                    >
+                                        Description
+                                    </label>
+                                    <textarea
+                                        id={`room-type-description-${index}`}
+                                        className={field}
+                                        rows={3}
+                                        value={item.description || ''}
+                                        onChange={(e) =>
+                                            patchRoomType(index, {
+                                                description: e.target.value,
+                                            })
+                                        }
+                                        placeholder="Beds, view, who it suits…"
+                                    />
+                                    <p className={help}>
+                                        A short note guests see under this room
+                                        type.
+                                    </p>
+                                </div>
+                                <div>
+                                    <p className={label}>Photos</p>
+                                    <MenuImagesEditor
+                                        inputId={`room-type-images-${index}`}
+                                        images={roomTypeItemImages(item)}
+                                        maxImages={imagesPerRoomType}
+                                        libraryRoute={libraryRoute}
+                                        uploadUrl={uploadUrl}
+                                        onChange={(nextImages) =>
+                                            patchRoomType(index, {
+                                                images: nextImages,
+                                                image: '',
+                                            })
+                                        }
+                                    />
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                    {atRoomTypeLimit ? (
+                        <p className={help}>
+                            You’ve reached the limit of {roomTypeLimit} room
+                            types for this plan.
+                        </p>
+                    ) : (
+                        <button
+                            type="button"
+                            onClick={addRoomType}
+                            className="inline-flex items-center gap-1.5 rounded-sm bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white"
+                        >
+                            <Plus className="h-4 w-4" />
+                            Add room type
+                            {roomTypeLimit != null
+                                ? ` (${roomTypes.length}/${roomTypeLimit})`
+                                : ''}
+                        </button>
+                    )}
+                </Section>
             ) : null}
 
             {showStayOffers ? (

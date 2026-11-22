@@ -38,6 +38,46 @@ class StayTierFeaturesTest extends TestCase
         $this->assertSame(3, Membership::listingPriority(Membership::PREMIUM));
     }
 
+    public function test_normalize_room_types_coerces_tags_and_caps_images(): void
+    {
+        $this->assertSame(4, StayTierFeatures::roomTypeLimit(Membership::FREE));
+        $this->assertSame(3, StayTierFeatures::roomTypeImagesPerItem(Membership::FREE));
+
+        $normalized = StayTierFeatures::normalizeRoomTypes([
+            'Cottage',
+            [
+                'title' => 'Deluxe room',
+                'price' => 'KES 12,000 / night',
+                'images' => [
+                    '/storage/a.jpg',
+                    '/storage/b.jpg',
+                    '/storage/c.jpg',
+                    '/storage/d.jpg',
+                ],
+            ],
+            ['title' => '', 'price' => '', 'images' => []],
+        ], Membership::FREE);
+
+        $this->assertSame([
+            [
+                'title' => 'Cottage',
+                'price' => '',
+                'description' => '',
+                'images' => [],
+            ],
+            [
+                'title' => 'Deluxe room',
+                'price' => 'KES 12,000 / night',
+                'description' => '',
+                'images' => [
+                    '/storage/a.jpg',
+                    '/storage/b.jpg',
+                    '/storage/c.jpg',
+                ],
+            ],
+        ], $normalized);
+    }
+
     public function test_normalize_gallery_enforces_per_room_limit(): void
     {
         $bedroom = [];
@@ -192,7 +232,20 @@ class StayTierFeaturesTest extends TestCase
         $this->assertSame([], $listing->gallery ?? []);
         $this->assertSame([], $listing->amenities ?? []);
         $this->assertSame('4', $listing->details['guests'] ?? null);
-        $this->assertSame(['Cottage', 'Deluxe room'], $listing->details['room_types'] ?? null);
+        $this->assertSame([
+            [
+                'title' => 'Cottage',
+                'price' => '',
+                'description' => '',
+                'images' => [],
+            ],
+            [
+                'title' => 'Deluxe room',
+                'price' => '',
+                'description' => '',
+                'images' => [],
+            ],
+        ], $listing->details['room_types'] ?? null);
         $this->assertArrayNotHasKey('check_in', $listing->details ?? []);
         $this->assertArrayNotHasKey('video_url', $listing->details ?? []);
         $this->assertArrayNotHasKey('booking_url', $listing->details ?? []);

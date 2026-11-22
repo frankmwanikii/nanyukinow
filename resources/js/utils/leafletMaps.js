@@ -1,6 +1,11 @@
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { mapPinDataUrl } from '@/utils/mapPin';
+import {
+    listingTitleMarkerDataUrl,
+    listingTitleMarkerMetrics,
+    mapPinDataUrl,
+    truncateMapLabel,
+} from '@/utils/mapPin';
 
 export const NANYUKI = { lat: -0.0167, lng: 37.0728 };
 
@@ -14,7 +19,23 @@ const ESRI_STREET =
 const ESRI_ATTR =
     'Tiles &copy; <a href="https://www.esri.com/">Esri</a> &mdash; Source: Esri, TomTom, FAO, NOAA, USGS';
 
-export function leafletPinIcon({ active = false, teardrop = false } = {}) {
+export function leafletPinIcon({
+    active = false,
+    teardrop = false,
+    title = '',
+} = {}) {
+    if (teardrop && title) {
+        const m = listingTitleMarkerMetrics(title);
+        return L.icon({
+            iconUrl: listingTitleMarkerDataUrl(title),
+            iconSize: [m.width, m.height],
+            iconAnchor: [Math.round(m.width / 2), m.height - 2],
+            popupAnchor: [0, -(m.height - 8)],
+            className: 'nn-leaflet-pin nn-leaflet-listing-marker',
+            alt: truncateMapLabel(title),
+        });
+    }
+
     const size = [40, 48];
     const anchor = [20, 44];
 

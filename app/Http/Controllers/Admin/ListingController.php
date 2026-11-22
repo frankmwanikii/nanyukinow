@@ -15,6 +15,7 @@ use App\Support\CategoryKey;
 use App\Support\CategoryTaxonomy;
 use App\Support\EatDrinkTierFeatures;
 use App\Support\EventsTierFeatures;
+use App\Support\ListingEditLock;
 use App\Support\ListingGallery;
 use App\Support\ListingMedia;
 use App\Support\ListingPayload;
@@ -52,7 +53,7 @@ class ListingController extends Controller
             $perPage = 15;
         }
 
-        $listings = Listing::query()
+        $paginator = Listing::query()
             ->with(['category:id,name,slug', 'user:id,name'])
             ->when($request->filled('q'), function ($query) use ($request) {
                 $q = '%'.$request->string('q').'%';
@@ -72,23 +73,29 @@ class ListingController extends Controller
             ->when($request->boolean('featured'), fn ($q) => $q->where('is_featured', true))
             ->orderBy($sort, $direction)
             ->paginate($perPage)
-            ->withQueryString()
-            ->through(function (Listing $listing) {
-                // Same public shape as Home/Explore/Show so cards match the website.
-                $public = ListingPayload::fromModel($listing);
+            ->withQueryString();
 
-                return array_merge($public, [
-                    'image_url' => $public['image'],
-                    'status' => $listing->status,
-                    'views_count' => $listing->views_count,
-                    'is_published' => $listing->is_published,
-                    'owner' => $listing->user?->name,
-                    'expires_at' => $listing->expires_at?->toIso8601String(),
-                    'expiry_label' => $listing->expiryLabel(),
-                    'is_expired' => $listing->isExpired(),
-                    'updated_at' => $listing->updated_at?->toIso8601String(),
-                ]);
-            });
+        $editors = ListingEditLock::editorsFor(
+            $paginator->getCollection()->pluck('id')->map(fn ($id) => (int) $id)->all(),
+        );
+
+        $listings = $paginator->through(function (Listing $listing) use ($editors) {
+            // Same public shape as Home/Explore/Show so cards match the website.
+            $public = ListingPayload::fromModel($listing);
+
+            return array_merge($public, [
+                'image_url' => $public['image'],
+                'status' => $listing->status,
+                'views_count' => $listing->views_count,
+                'is_published' => $listing->is_published,
+                'owner' => $listing->user?->name,
+                'expires_at' => $listing->expires_at?->toIso8601String(),
+                'expiry_label' => $listing->expiryLabel(),
+                'is_expired' => $listing->isExpired(),
+                'updated_at' => $listing->updated_at?->toIso8601String(),
+                'editing_by' => $editors[$listing->id] ?? null,
+            ]);
+        });
 
         $stats = [
             'published' => Listing::query()
@@ -129,6 +136,7 @@ class ListingController extends Controller
     {
         return Inertia::render('Admin/Listings/Form', [
             'listing' => null,
+            'editLock' => null,
             'categories' => $this->categories(),
             'amenities' => $this->amenitiesPayload(),
             'stayGallerySpaces' => $this->stayGallerySpacesPayload(),
@@ -155,6 +163,7 @@ class ListingController extends Controller
     {
         if ($listing) {
             abort_unless($listing->status === 'draft', 422, 'Only drafts can be auto-saved this way.');
+            ListingEditLock::assertWritable($listing, $request->user());
         }
 
         $data = $request->validated();
@@ -206,11 +215,14 @@ class ListingController extends Controller
         ]);
     }
 
-    public function edit(Listing $listing): Response
+    public function edit(Request $request, Listing $listing): Response
     {
         $listing->load(['category:id,name', 'user:id,name']);
 
+        $editLock = ListingEditLock::acquire($listing, $request->user());
+
         return Inertia::render('Admin/Listings/Form', [
+            'editLock' => $editLock,
             'listing' => [
                 'id' => $listing->id,
                 'user_id' => $listing->user_id,
@@ -277,6 +289,12 @@ class ListingController extends Controller
 
     public function update(ListingRequest $request, Listing $listing): RedirectResponse
     {
+        if ($conflict = ListingEditLock::conflictMessage($listing, $request->user())) {
+            return redirect()
+                ->route('admin.listings.edit', $listing->slug)
+                ->with('error', $conflict);
+        }
+
         $previousStatus = $listing->status;
         $previousPublished = (bool) $listing->is_published;
         $ownerId = $listing->user_id;
@@ -304,8 +322,15 @@ class ListingController extends Controller
             ->with('success', $this->flashMessageFor($listing));
     }
 
-    public function destroy(Listing $listing): RedirectResponse
+    public function destroy(Request $request, Listing $listing): RedirectResponse
     {
+        if ($conflict = ListingEditLock::conflictMessage($listing, $request->user())) {
+            return redirect()
+                ->route('admin.listings.index')
+                ->with('error', $conflict);
+        }
+
+        ListingEditLock::release($listing, $request->user());
         $listing->delete();
 
         return redirect()

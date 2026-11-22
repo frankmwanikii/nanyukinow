@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { UNICONS } from '@/Components/site/uniconsPaths';
 import { resolveAmenityItem } from '@/utils/amenityIcons';
-import DetailSection from './DetailSection';
+import DetailSection, { useDetailSectionTone } from './DetailSection';
+import MobileFadeExpand from './MobileFadeExpand';
 
 const PREVIEW_COUNT = 8;
 
@@ -25,6 +26,8 @@ export default function AmenitiesGrid({
     amenities = [],
     title = 'Amenities',
 }) {
+    const tone = useDetailSectionTone();
+    const openSurface = tone === 'open';
     const [expanded, setExpanded] = useState(false);
 
     const items = (amenities || [])
@@ -32,6 +35,31 @@ export default function AmenitiesGrid({
         .filter(Boolean);
 
     if (!items.length) return null;
+
+    if (openSurface) {
+        return (
+            <DetailSection title={title}>
+                <MobileFadeExpand maxHeight={220}>
+                    <ul className="grid grid-cols-1 gap-x-8 gap-y-3.5 sm:grid-cols-2">
+                        {items.map((item) => (
+                            <li
+                                key={item.slug || item.name}
+                                className="flex items-center gap-3 text-sm font-medium text-olive-800"
+                            >
+                                <AmenityIcon
+                                    name={item.icon}
+                                    className="h-[1.15rem] w-[1.15rem] text-olive-700"
+                                />
+                                <span className="min-w-0 leading-snug">
+                                    {item.name}
+                                </span>
+                            </li>
+                        ))}
+                    </ul>
+                </MobileFadeExpand>
+            </DetailSection>
+        );
+    }
 
     const visible = expanded ? items : items.slice(0, PREVIEW_COUNT);
     const hasMore = items.length > PREVIEW_COUNT;

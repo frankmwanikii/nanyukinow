@@ -5,6 +5,9 @@
  *
  * About is always first in `main` so it leads the Overview on every
  * category (mobile and desktop).
+ *
+ * Map sits in `main` as Getting here (Stay-style open layout). Side rail
+ * keeps hours, payments, host/agent, and event schedule.
  */
 
 /** Shared page tabs — Overview = full listing, Contact & Reviews are dedicated pages. */
@@ -34,9 +37,9 @@ export const categoryLayouts = {
             'facts',
             'amenities',
             'eventSchedule',
-            'chips',
+            'map',
         ],
-        side: ['map', 'hours', 'payments'],
+        side: ['hours', 'payments'],
         ctaSecondary: null,
     },
     stay: {
@@ -46,14 +49,15 @@ export const categoryLayouts = {
             'visualTour',
             'video',
             'deals',
+            'roomTypes',
             'facts',
             'amenities',
             'included',
             'highlights',
             'houseRules',
-            'chips',
+            'map',
         ],
-        side: ['map', 'hours', 'payments', 'host'],
+        side: ['hours', 'payments', 'host'],
         ctaSecondary: 'Check availability',
     },
     thingsToDo: {
@@ -64,12 +68,13 @@ export const categoryLayouts = {
             'video',
             'deals',
             'facts',
+            'charges',
             'included',
             'bring',
             'amenities',
-            'chips',
+            'map',
         ],
-        side: ['map', 'hours', 'payments'],
+        side: ['hours', 'payments'],
         ctaSecondary: 'Enquire',
     },
     services: {
@@ -83,9 +88,9 @@ export const categoryLayouts = {
             'visualTour',
             'video',
             'deals',
-            'chips',
+            'map',
         ],
-        side: ['map', 'hours', 'payments'],
+        side: ['hours', 'payments'],
         ctaSecondary: 'Request service',
     },
     shopping: {
@@ -96,11 +101,11 @@ export const categoryLayouts = {
             'video',
             'deals',
             'facts',
-            'chips',
             'amenities',
             'brands',
+            'map',
         ],
-        side: ['map', 'hours', 'payments'],
+        side: ['hours', 'payments'],
         ctaSecondary: 'Call store',
     },
     properties: {
@@ -112,9 +117,9 @@ export const categoryLayouts = {
             'facts',
             'amenities',
             'highlights',
-            'chips',
+            'map',
         ],
-        side: ['agent', 'map', 'payments'],
+        side: ['agent', 'payments'],
         ctaSecondary: 'Contact agent',
     },
     events: {
@@ -131,9 +136,9 @@ export const categoryLayouts = {
             'sponsors',
             'agenda',
             'video',
-            'chips',
+            'map',
         ],
-        side: ['map', 'eventSchedule', 'payments', 'eventOrganiser'],
+        side: ['eventSchedule', 'payments', 'eventOrganiser'],
         ctaSecondary: 'Get tickets',
     },
 };

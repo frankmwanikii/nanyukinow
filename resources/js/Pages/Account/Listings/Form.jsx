@@ -443,10 +443,19 @@ export default function Form({
     owners = [],
     statuses = [],
     claimStatuses = [],
+    editLock = null,
 }) {
     const isDraftListing = isDraft || listing?.status === 'draft';
     const isEdit = Boolean(listing?.id) && !isDraftListing;
     const isAdmin = context === 'admin';
+    const [lockState, setLockState] = useState(() => editLock);
+    const lockTokenRef = useRef(editLock?.token || null);
+    const editLockedByOther =
+        isAdmin &&
+        Boolean(listing?.id) &&
+        lockState &&
+        lockState.held === false &&
+        lockState.editor;
     const [draftKey, setDraftKey] = useState(
         listing?.slug || listing?.id || null,
     );
@@ -731,6 +740,7 @@ export default function Form({
 
     const persistDraft = async ({ silent = true, overrides = {} } = {}) => {
         if (isEdit) return;
+        if (editLockedByOther) return;
         const latest = { ...(formDataRef.current || form.data), ...overrides };
         const categoryId = latest.category_id;
         if (!categoryId && !draftKey) return;
@@ -952,6 +962,94 @@ export default function Form({
     }, [stepIndex, form.errors]);
 
     useEffect(() => {
+        setLockState(editLock);
+        lockTokenRef.current = editLock?.token || null;
+    }, [editLock]);
+
+    useEffect(() => {
+        if (!isAdmin || !listing?.id || !listing?.slug) {
+            return undefined;
+        }
+
+        const csrf = () =>
+            document
+                .querySelector('meta[name="csrf-token"]')
+                ?.getAttribute('content') || '';
+
+        const releaseLock = () => {
+            const token = lockTokenRef.current;
+            if (!token) {
+                return;
+            }
+
+            const body = new FormData();
+            body.append('token', token);
+            body.append('_token', csrf());
+
+            const url = route('admin.listings.edit-lock.release', listing.slug);
+            if (navigator.sendBeacon) {
+                navigator.sendBeacon(url, body);
+                return;
+            }
+
+            void fetch(url, {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN': csrf(),
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                credentials: 'same-origin',
+                body,
+                keepalive: true,
+            });
+        };
+
+        const syncLock = async () => {
+            const token = lockTokenRef.current;
+
+            try {
+                const res = await fetch(
+                    route('admin.listings.edit-lock', listing.slug),
+                    {
+                        method: 'POST',
+                        headers: {
+                            Accept: 'application/json',
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrf(),
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                        credentials: 'same-origin',
+                        body: JSON.stringify(token ? { token } : {}),
+                    },
+                );
+
+                const json = await res.json().catch(() => null);
+                if (!json) {
+                    return;
+                }
+
+                setLockState(json);
+                lockTokenRef.current = json.held ? json.token : null;
+            } catch {
+                // Keep the local lock state; the next tick retries.
+            }
+        };
+
+        const timer = window.setInterval(
+            syncLock,
+            lockTokenRef.current ? 30000 : 15000,
+        );
+        window.addEventListener('pagehide', releaseLock);
+
+        return () => {
+            window.clearInterval(timer);
+            window.removeEventListener('pagehide', releaseLock);
+            releaseLock();
+        };
+    }, [isAdmin, listing?.id, listing?.slug]);
+
+    useEffect(() => {
         // Skip the initial mount dump; save when the user starts editing.
         if (!autosaveReady.current) {
             autosaveReady.current = true;
@@ -1078,6 +1176,9 @@ export default function Form({
 
     const submit = (e, mode = 'save') => {
         e?.preventDefault?.();
+        if (editLockedByOther) {
+            return;
+        }
         if (!form.data.category_id) {
             setPhase('category');
             return;
@@ -1219,6 +1320,21 @@ export default function Form({
                             'New listing'
                         )}
                     </h1>
+                    {editLockedByOther ? (
+                        <div
+                            role="status"
+                            className="mt-3 border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950 dark:border-amber-700/60 dark:bg-amber-950/40 dark:text-amber-100"
+                        >
+                            <p className="font-semibold">
+                                {lockState.editor?.name || 'Another admin'} is
+                                editing this listing
+                            </p>
+                            <p className="mt-1 text-amber-900/80 dark:text-amber-100/80">
+                                You can view the page, but saving is locked until
+                                they leave or their session times out.
+                            </p>
+                        </div>
+                    ) : null}
                 </div>
             ) : null}
 
@@ -1261,7 +1377,7 @@ export default function Form({
                                 </Link>
                                 <button
                                     type="button"
-                                    disabled={form.processing}
+                                    disabled={form.processing || editLockedByOther}
                                     onClick={(e) => submit(e, 'draft')}
                                     className="inline-flex items-center gap-2 rounded-sm border border-olive-200 bg-white px-4 py-2.5 text-sm font-semibold text-olive-800 disabled:opacity-50 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-100 dark:hover:bg-olive-800"
                                 >
@@ -1270,7 +1386,7 @@ export default function Form({
                                 </button>
                                 <button
                                     type="button"
-                                    disabled={form.processing}
+                                    disabled={form.processing || editLockedByOther}
                                     onClick={(e) => submit(e, 'publish')}
                                     className="inline-flex items-center gap-2 rounded-sm bg-mustard px-4 py-2.5 text-sm font-bold text-earth-dusk disabled:opacity-50"
                                 >
@@ -1448,9 +1564,21 @@ export default function Form({
                                             categoryKey={categoryKey}
                                             details={form.data.details}
                                             priceRange={form.data.price_range}
-                                            onDetailsChange={(details) =>
-                                                patch({ details })
-                                            }
+                                            onDetailsChange={(detailsOrFn) => {
+                                                form.setData((data) => ({
+                                                    ...data,
+                                                    details:
+                                                        typeof detailsOrFn ===
+                                                        'function'
+                                                            ? detailsOrFn(
+                                                                  data.details ||
+                                                                      {},
+                                                              )
+                                                            : detailsOrFn,
+                                                }));
+                                                form.clearErrors('details');
+                                                scheduleAutosave();
+                                            }}
                                             onPriceRangeChange={(price_range) =>
                                                 patch({ price_range })
                                             }
@@ -1474,6 +1602,7 @@ export default function Form({
                                                 patch(partial)
                                             }
                                             tier={listingTier}
+                                            uploadUrl={editorMediaUploadUrl}
                                             errors={Object.fromEntries(
                                                 Object.entries(
                                                     form.errors,
@@ -1489,9 +1618,21 @@ export default function Form({
                                         <CategoryExtrasEditor
                                             categoryKey={categoryKey}
                                             details={form.data.details}
-                                            onDetailsChange={(details) =>
-                                                patch({ details })
-                                            }
+                                            onDetailsChange={(detailsOrFn) => {
+                                                form.setData((data) => ({
+                                                    ...data,
+                                                    details:
+                                                        typeof detailsOrFn ===
+                                                        'function'
+                                                            ? detailsOrFn(
+                                                                  data.details ||
+                                                                      {},
+                                                              )
+                                                            : detailsOrFn,
+                                                }));
+                                                form.clearErrors('details');
+                                                scheduleAutosave();
+                                            }}
                                             libraryRoute={
                                                 isAdmin
                                                     ? route('admin.gallery.browse')
@@ -1896,7 +2037,7 @@ export default function Form({
                                     <>
                                         <button
                                             type="button"
-                                            disabled={form.processing}
+                                            disabled={form.processing || editLockedByOther}
                                             onClick={(e) => submit(e, 'draft')}
                                             className="inline-flex shrink-0 items-center gap-2 rounded-sm border border-olive-900/20 bg-white px-3.5 py-2 text-sm font-semibold text-olive-800 transition hover:border-olive-900/40 disabled:opacity-50 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-100 dark:hover:bg-olive-800"
                                         >
@@ -1905,7 +2046,7 @@ export default function Form({
                                         </button>
                                         <button
                                             type="button"
-                                            disabled={form.processing}
+                                            disabled={form.processing || editLockedByOther}
                                             onClick={(e) => submit(e, 'publish')}
                                             className="inline-flex shrink-0 items-center gap-2 rounded-sm bg-mustard px-3.5 py-2 text-sm font-semibold text-earth-dusk transition hover:bg-olive-900 hover:text-white disabled:opacity-50 dark:hover:bg-olive-100 dark:hover:text-earth-dusk"
                                         >

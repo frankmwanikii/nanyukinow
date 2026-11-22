@@ -277,15 +277,7 @@ export const CATEGORY_DETAIL_FIELDS = {
             placeholder: 'e.g. 2',
             minTier: 'free',
         },
-        {
-            key: 'room_types',
-            label: 'Room types',
-            type: 'suggest',
-            optionsKey: 'room_types',
-            placeholder: 'Search room types or type your own…',
-            help: 'Pick popular types or add your own.',
-            minTier: 'free',
-        },
+        // Room types (title, photos, price) live in CategoryExtrasEditor.
         // Standard
         {
             key: 'check_in',
@@ -388,6 +380,13 @@ export const CATEGORY_DETAIL_FIELDS = {
             type: 'richtext',
             placeholder: 'A short intro about the host…',
             help: 'Help guests feel confident booking with you.',
+            minTier: 'premium',
+        },
+        {
+            key: 'host_photo',
+            label: 'Host photo',
+            type: 'image',
+            help: 'Shown on Meet your host. Square photos work best. If empty, your listing logo is used.',
             minTier: 'premium',
         },
     ],
@@ -722,6 +721,7 @@ export function emptyDetailsFor(categoryKey) {
         video_url: '',
         video_title: '',
         menus: [],
+        room_types: [],
         agenda: [],
         sponsors: [],
         event_schedule: [],

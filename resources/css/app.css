@@ -102,6 +102,47 @@ input[type='search']::-ms-clear {
     width: 100%;
 }
 
+/* Listing map: visitor location (My location control) */
+.nn-user-location-dot {
+    background: transparent !important;
+    border: 0 !important;
+}
+
+.nn-user-location-dot__core {
+    position: absolute;
+    inset: 4px;
+    border-radius: 9999px;
+    background: #3b82f6;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 4px rgba(28, 23, 18, 0.35);
+}
+
+.nn-user-location-dot__pulse {
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    background: rgba(59, 130, 246, 0.35);
+    animation: nn-user-location-pulse 1.8s ease-out infinite;
+}
+
+@keyframes nn-user-location-pulse {
+    0% {
+        transform: scale(0.55);
+        opacity: 0.85;
+    }
+    100% {
+        transform: scale(1.65);
+        opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nn-user-location-dot__pulse {
+        animation: none;
+        opacity: 0.45;
+    }
+}
+
 .leaflet-control-attribution {
     background: rgba(244, 245, 241, 0.88) !important;
     color: #5c6350 !important;

@@ -107,6 +107,20 @@ export const STAY_DETAIL_MIN_TIER = {
     host_photo: 'premium',
 };
 
+/** Max room-type cards by plan. */
+export const ROOM_TYPE_LIMITS = {
+    free: 4,
+    featured: 8,
+    premium: 12,
+};
+
+/** Max photos per room-type card by plan. */
+export const ROOM_TYPE_IMAGES_PER_ITEM = {
+    free: 3,
+    featured: 5,
+    premium: 8,
+};
+
 export function normalizeTier(tier) {
     if (tier === 'premium') return 'premium';
     if (tier === 'featured' || tier === 'standard') return 'featured';
@@ -137,6 +151,81 @@ export function stayGalleryPerRoomLimit(tier) {
 
 export function stayDescriptionWordLimit(tier) {
     return tierMeets(tier, 'featured') ? null : FREE_DESCRIPTION_WORD_LIMIT;
+}
+
+export function stayRoomTypeLimit(tier) {
+    return ROOM_TYPE_LIMITS[normalizeTier(tier)] ?? ROOM_TYPE_LIMITS.free;
+}
+
+export function stayRoomTypeImagesPerItem(tier) {
+    return (
+        ROOM_TYPE_IMAGES_PER_ITEM[normalizeTier(tier)] ??
+        ROOM_TYPE_IMAGES_PER_ITEM.free
+    );
+}
+
+export function stayRoomTypeHelp(tier) {
+    const types = stayRoomTypeLimit(tier);
+    const photos = stayRoomTypeImagesPerItem(tier);
+    const plan = tierDisplayLabel(tier);
+    return `${plan}: up to ${types} room types, ${photos} photos each. Pick a popular title or type your own, then add price and photos.`;
+}
+
+/** Normalize a room-type item's image list (supports legacy single `image`). */
+export function roomTypeItemImages(item) {
+    if (!item || typeof item !== 'object') return [];
+    if (Array.isArray(item.images)) {
+        return item.images
+            .map((u) => (typeof u === 'string' ? u.trim() : ''))
+            .filter(Boolean);
+    }
+    if (typeof item.image === 'string' && item.image.trim()) {
+        return [item.image.trim()];
+    }
+    return [];
+}
+
+/**
+ * Coerce legacy string tags and partial objects into room-type cards.
+ * @param {unknown} value
+ * @returns {Array<{ title: string, price: string, description: string, images: string[] }>}
+ */
+export function coerceRoomTypes(value) {
+    if (!Array.isArray(value)) {
+        if (typeof value === 'string' && value.trim()) {
+            return value
+                .split(/[,|]+/)
+                .map((part) => part.trim())
+                .filter(Boolean)
+                .map((title) => ({
+                    title,
+                    price: '',
+                    description: '',
+                    images: [],
+                }));
+        }
+        return [];
+    }
+
+    return value
+        .map((item) => {
+            if (typeof item === 'string') {
+                const title = item.trim();
+                return title
+                    ? { title, price: '', description: '', images: [] }
+                    : null;
+            }
+            if (!item || typeof item !== 'object') return null;
+            const title = String(item.title || item.name || item.label || '').trim();
+            const price = String(item.price || item.rate || item.amount || '').trim();
+            const description = String(
+                item.description || item.note || item.summary || '',
+            ).trim();
+            const images = roomTypeItemImages(item);
+            if (!title && !price && !description && !images.length) return null;
+            return { title, price, description, images };
+        })
+        .filter(Boolean);
 }
 
 export function tierDisplayLabel(tier) {

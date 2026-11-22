@@ -59,8 +59,9 @@ import {
     tierMeets as eventsTierMeets,
 } from '@/data/eventsTierFeatures';
 import { isTieredCategory } from '@/data/listingTier';
-import { Plus, X } from '@/Components/site/LucideCompat';
-import { useState } from 'react';
+import { ImagePlus, Plus, X } from '@/Components/site/LucideCompat';
+import { uploadEditorMedia } from '@/utils/uploadEditorMedia';
+import { useRef, useState } from 'react';
 
 const SUGGEST_OPTIONS = {
     dietary: POPULAR_DIETARY_OPTIONS,
@@ -240,6 +241,234 @@ function DropdownMultiSelect({
     );
 }
 
+function HostPhotoField({
+    id,
+    label: fieldLabel,
+    value,
+    help: fieldHelp,
+    uploadUrl = null,
+    onChange,
+}) {
+    const inputRef = useRef(null);
+    const uploadingRef = useRef(false);
+    const fileInputId = `${id}-file`;
+    const urlInputId = `${id}-url`;
+    const [uploading, setUploading] = useState(false);
+    const [error, setError] = useState(null);
+    const [imageUrl, setImageUrl] = useState('');
+    const [imageUrlError, setImageUrlError] = useState(null);
+
+    const openFilePicker = () => {
+        if (uploadingRef.current) return;
+        inputRef.current?.click();
+    };
+
+    const pickFile = async (file) => {
+        if (!file || uploadingRef.current) return;
+        if (!file.type?.startsWith('image/')) {
+            setError('Choose a JPG, PNG, or WebP image.');
+            return;
+        }
+        setError(null);
+        setImageUrlError(null);
+        uploadingRef.current = true;
+        setUploading(true);
+        try {
+            const url = await uploadEditorMedia(file, uploadUrl);
+            if (!url) {
+                setError(
+                    'Could not upload that image. Try a JPG, PNG, or WebP under 5MB.',
+                );
+                return;
+            }
+            onChange(url);
+        } finally {
+            uploadingRef.current = false;
+            setUploading(false);
+        }
+    };
+
+    const onDropFiles = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (uploadingRef.current) return;
+        const file = e.dataTransfer?.files?.[0];
+        if (file) {
+            void pickFile(file);
+        }
+    };
+
+    const parseImageUrl = (raw) => {
+        const next = (raw || '').trim();
+        if (!next) {
+            setImageUrlError('Paste an image URL.');
+            return null;
+        }
+        try {
+            const parsed = new URL(next);
+            if (!['http:', 'https:'].includes(parsed.protocol)) {
+                setImageUrlError('URL must start with http:// or https://');
+                return null;
+            }
+        } catch {
+            setImageUrlError('That does not look like a valid URL.');
+            return null;
+        }
+        setImageUrlError(null);
+        return next;
+    };
+
+    const submitImageUrl = () => {
+        if (uploadingRef.current) return;
+        const raw = parseImageUrl(imageUrl);
+        if (!raw) return;
+        setError(null);
+        onChange(raw);
+        setImageUrl('');
+    };
+
+    const dropzoneClassName = `flex w-full max-w-md flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-olive-300 bg-white/80 px-4 py-10 text-center transition dark:border-olive-700 dark:bg-olive-950/80 ${
+        uploading
+            ? 'cursor-wait opacity-70'
+            : 'cursor-pointer hover:border-mustard hover:bg-mustard/5 dark:hover:border-mustard dark:hover:bg-mustard/10'
+    }`;
+
+    return (
+        <div className="min-w-0 space-y-3">
+            <p className={label} id={`${id}-label`}>
+                {fieldLabel}
+            </p>
+
+            <input
+                ref={inputRef}
+                id={fileInputId}
+                type="file"
+                accept="image/*"
+                disabled={uploading}
+                className="sr-only"
+                aria-labelledby={`${id}-label`}
+                onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    e.target.value = '';
+                    void pickFile(file);
+                }}
+            />
+
+            {value ? (
+                <div className="overflow-hidden rounded-2xl border border-olive-200 bg-white dark:border-olive-700 dark:bg-olive-950/80">
+                    <div className="relative mx-auto aspect-square w-full max-w-[14rem] bg-olive-50 dark:bg-olive-900">
+                        <img
+                            src={value}
+                            alt=""
+                            className="h-full w-full object-cover"
+                        />
+                        <div className="absolute inset-x-0 bottom-0 flex flex-wrap gap-2 bg-gradient-to-t from-black/55 to-transparent p-3 pt-8">
+                            <button
+                                type="button"
+                                disabled={uploading}
+                                onClick={openFilePicker}
+                                className="rounded-xl border border-white/30 bg-white/95 px-3 py-1.5 text-xs font-semibold text-olive-900 shadow-sm hover:bg-white disabled:opacity-60"
+                            >
+                                {uploading ? 'Uploading…' : 'Replace photo'}
+                            </button>
+                            <button
+                                type="button"
+                                disabled={uploading}
+                                onClick={() => onChange('')}
+                                className="rounded-sm bg-white/90 px-3 py-1.5 text-xs font-semibold text-rose-700 shadow-sm hover:bg-white disabled:opacity-60"
+                            >
+                                Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            ) : (
+                <button
+                    type="button"
+                    disabled={uploading}
+                    onClick={openFilePicker}
+                    onDragOver={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }}
+                    onDrop={onDropFiles}
+                    className={dropzoneClassName}
+                >
+                    <span className="flex h-14 w-14 items-center justify-center rounded-full bg-olive-50 ring-1 ring-olive-100 dark:bg-olive-900 dark:ring-olive-700">
+                        <ImagePlus className="h-6 w-6 text-olive-700 dark:text-olive-300" />
+                    </span>
+                    <span>
+                        <span className="block text-sm font-semibold text-olive-950 dark:text-olive-50">
+                            {uploading
+                                ? 'Uploading…'
+                                : 'Drop host photo here'}
+                        </span>
+                        <span className="mt-1 block text-xs text-olive-500">
+                            {uploading
+                                ? 'Please wait'
+                                : 'Or click to upload · square photos work best'}
+                        </span>
+                    </span>
+                </button>
+            )}
+
+            <div>
+                <label className={label} htmlFor={urlInputId}>
+                    Image URL (optional)
+                </label>
+                <div className="flex flex-col gap-2 sm:flex-row">
+                    <input
+                        id={urlInputId}
+                        type="url"
+                        className={field}
+                        value={imageUrl}
+                        disabled={uploading}
+                        onChange={(e) => {
+                            setImageUrl(e.target.value);
+                            setImageUrlError(null);
+                        }}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                e.preventDefault();
+                                submitImageUrl();
+                            }
+                        }}
+                        placeholder="https://…/host.jpg"
+                    />
+                    <button
+                        type="button"
+                        disabled={uploading}
+                        onClick={submitImageUrl}
+                        className="inline-flex shrink-0 items-center justify-center rounded-sm bg-olive-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-olive-800 disabled:opacity-60"
+                    >
+                        Add URL
+                    </button>
+                </div>
+                {imageUrlError ? (
+                    <p className="mt-1.5 text-sm text-rose-600">{imageUrlError}</p>
+                ) : (
+                    <p className={help}>
+                        Paste a direct image link if you already host the photo
+                        online.
+                    </p>
+                )}
+            </div>
+
+            {uploading ? (
+                <p className="text-sm font-medium text-olive-700 dark:text-olive-300">
+                    Uploading host photo…
+                </p>
+            ) : null}
+
+            {error ? (
+                <p className="text-sm font-medium text-rose-700">{error}</p>
+            ) : fieldHelp ? (
+                <p className={help}>{fieldHelp}</p>
+            ) : null}
+        </div>
+    );
+}
+
 export default function CategoryFields({
     categoryKey,
     details = {},
@@ -250,6 +479,7 @@ export default function CategoryFields({
     onEventChange,
     tier = 'free',
     errors = {},
+    uploadUrl = null,
 }) {
     const fields = CATEGORY_DETAIL_FIELDS[categoryKey] || [];
     const isEatDrink = categoryKey === 'eatDrink';
@@ -290,7 +520,7 @@ export default function CategoryFields({
                   : eatDrinkTierMeets;
 
     const setDetail = (key, value) => {
-        onDetailsChange({ ...details, [key]: value });
+        onDetailsChange((prev) => ({ ...(prev || {}), [key]: value }));
     };
 
     const payments = details.payments || [];
@@ -516,6 +746,7 @@ export default function CategoryFields({
                         f.key === 'reservations' ||
                         f.key === 'avg_meal' ||
                         f.key === 'host_bio' ||
+                        f.key === 'host_photo' ||
                         f.key === 'meal_plan' ||
                         f.key === 'nightly_rate' ||
                         f.key === 'cancellation_policy' ||
@@ -541,6 +772,15 @@ export default function CategoryFields({
                                     placeholder={f.placeholder}
                                     help={f.help}
                                     allowImages={false}
+                                />
+                            ) : f.type === 'image' ? (
+                                <HostPhotoField
+                                    id={`detail_${f.key}`}
+                                    label={f.label}
+                                    value={details[f.key] || ''}
+                                    help={f.help}
+                                    uploadUrl={uploadUrl}
+                                    onChange={(url) => setDetail(f.key, url)}
                                 />
                             ) : f.type === 'cuisine' ? (
                                 <CuisinePicker

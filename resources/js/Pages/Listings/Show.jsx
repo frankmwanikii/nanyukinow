@@ -10,6 +10,7 @@ import MessageListingModal from '@/Components/listing/MessageListingModal';
 import ProductsPage from '@/Components/listing/ProductsPage';
 import ReviewsPage from '@/Components/listing/ReviewsPage';
 import { renderListingSection } from '@/Components/listing/renderListingSection';
+import { DetailSectionToneContext } from '@/Components/listing/DetailSection';
 import { getListingDetail } from '@/data/listingDetails';
 import { getLayoutForCategory } from '@/data/listingLayouts';
 
@@ -17,6 +18,32 @@ function readTabFromHash(allowed) {
     if (typeof window === 'undefined') return 'overview';
     const hash = window.location.hash.replace('#', '');
     return allowed.has(hash) ? hash : 'overview';
+}
+
+/**
+ * Listing overview: open main column (no boxed cards) + quiet side rail.
+ * Same Stay-style reading layout for every category.
+ */
+function ListingOverview({ listing, layout }) {
+    return (
+        <div className="mx-auto grid max-w-site gap-5 px-4 sm:gap-6 sm:px-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(280px,1fr)] lg:items-start lg:gap-8">
+            <DetailSectionToneContext.Provider value="open">
+                <div className="flex min-w-0 flex-col divide-y divide-olive-900/15">
+                    {layout.main.map((key) =>
+                        renderListingSection(key, listing),
+                    )}
+                </div>
+            </DetailSectionToneContext.Provider>
+
+            <DetailSectionToneContext.Provider value="rail">
+                <aside className="flex min-w-0 flex-col gap-4 lg:sticky lg:top-36">
+                    {layout.side.map((key) =>
+                        renderListingSection(key, listing),
+                    )}
+                </aside>
+            </DetailSectionToneContext.Provider>
+        </div>
+    );
 }
 
 export default function ListingShow({
@@ -119,20 +146,9 @@ export default function ListingShow({
                 listing={listing}
             />
 
-            <div className="bg-earth-sand pb-8 pt-4 sm:pt-6 lg:pb-14">
+            <div className="bg-white pb-8 pt-4 sm:pt-6 lg:pb-14">
                 {tab === 'overview' ? (
-                    <div className="mx-auto grid max-w-site gap-5 px-4 sm:px-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(280px,1fr)] lg:items-start">
-                        <div className="flex min-w-0 flex-col gap-5">
-                            {layout.main.map((key) =>
-                                renderListingSection(key, listing),
-                            )}
-                        </div>
-                        <aside className="flex min-w-0 flex-col gap-5 lg:sticky lg:top-36">
-                            {layout.side.map((key) =>
-                                renderListingSection(key, listing),
-                            )}
-                        </aside>
-                    </div>
+                    <ListingOverview listing={listing} layout={layout} />
                 ) : null}
 
                 {tab === 'contact' ? (

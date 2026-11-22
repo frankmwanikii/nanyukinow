@@ -9,6 +9,20 @@ class StayTierFeatures
     public const ROOM_SPACE_COUNT = 7;
 
     /** @var array<string, int> */
+    public const ROOM_TYPE_LIMITS = [
+        Membership::FREE => 4,
+        Membership::STANDARD => 8,
+        Membership::PREMIUM => 12,
+    ];
+
+    /** @var array<string, int> */
+    public const ROOM_TYPE_IMAGES_PER_ITEM = [
+        Membership::FREE => 3,
+        Membership::STANDARD => 5,
+        Membership::PREMIUM => 8,
+    ];
+
+    /** @var array<string, int> */
     public const GALLERY_PER_ROOM_LIMITS = [
         Membership::FREE => 0,
         Membership::STANDARD => 15,
@@ -139,6 +153,15 @@ class StayTierFeatures
             $payload['gallery'] = self::normalizeGallery($payload['gallery'], $tier);
         }
 
+        if (array_key_exists('room_types', $details)) {
+            $normalizedRoomTypes = self::normalizeRoomTypes($details['room_types'], $tier);
+            if ($normalizedRoomTypes === []) {
+                unset($details['room_types']);
+            } else {
+                $details['room_types'] = $normalizedRoomTypes;
+            }
+        }
+
         $wordLimit = self::descriptionWordLimit($tier);
         if ($wordLimit !== null && isset($payload['description'])) {
             $payload['description'] = self::truncateHtmlWords(
@@ -156,6 +179,118 @@ class StayTierFeatures
         $payload['details'] = $details === [] ? null : $details;
 
         return $payload;
+    }
+
+    public static function roomTypeLimit(?string $tier): int
+    {
+        $tier = Membership::normalize($tier);
+
+        return self::ROOM_TYPE_LIMITS[$tier] ?? self::ROOM_TYPE_LIMITS[Membership::FREE];
+    }
+
+    public static function roomTypeImagesPerItem(?string $tier): int
+    {
+        $tier = Membership::normalize($tier);
+
+        return self::ROOM_TYPE_IMAGES_PER_ITEM[$tier]
+            ?? self::ROOM_TYPE_IMAGES_PER_ITEM[Membership::FREE];
+    }
+
+    /**
+     * Coerce legacy string tags and rich cards into room-type rows.
+     *
+     * @return list<array{title: string, price: string, description: string, images: list<string>}>
+     */
+    public static function normalizeRoomTypes(mixed $roomTypes, ?string $tier): array
+    {
+        $typeLimit = self::roomTypeLimit($tier);
+        $imageLimit = self::roomTypeImagesPerItem($tier);
+
+        if ($typeLimit === 0) {
+            return [];
+        }
+
+        $raw = [];
+        if (is_array($roomTypes)) {
+            $raw = array_values($roomTypes);
+        } elseif (is_string($roomTypes) && trim($roomTypes) !== '') {
+            $raw = preg_split('/[,|]+/', $roomTypes) ?: [];
+        }
+
+        $normalized = [];
+
+        foreach (array_slice($raw, 0, $typeLimit) as $item) {
+            if (is_string($item)) {
+                $title = trim($item);
+                if ($title === '') {
+                    continue;
+                }
+                $normalized[] = [
+                    'title' => $title,
+                    'price' => '',
+                    'description' => '',
+                    'images' => [],
+                ];
+
+                continue;
+            }
+
+            if (! is_array($item)) {
+                continue;
+            }
+
+            $images = [];
+            if (isset($item['images']) && is_array($item['images'])) {
+                foreach ($item['images'] as $url) {
+                    if (is_string($url) && trim($url) !== '') {
+                        $images[] = trim($url);
+                    }
+                }
+            } elseif (isset($item['image']) && is_string($item['image']) && trim($item['image']) !== '') {
+                $images[] = trim($item['image']);
+            }
+
+            $images = array_values(array_unique(array_slice($images, 0, $imageLimit)));
+            $title = '';
+            foreach (['title', 'name', 'label'] as $key) {
+                if (isset($item[$key]) && is_string($item[$key]) && trim($item[$key]) !== '') {
+                    $title = trim($item[$key]);
+                    break;
+                }
+            }
+            $price = '';
+            foreach (['price', 'rate', 'amount'] as $key) {
+                if (isset($item[$key]) && (is_string($item[$key]) || is_numeric($item[$key]))) {
+                    $price = trim((string) $item[$key]);
+                    if ($price !== '') {
+                        break;
+                    }
+                }
+            }
+            $description = '';
+            foreach (['description', 'note', 'summary'] as $key) {
+                if (isset($item[$key]) && is_string($item[$key]) && trim($item[$key]) !== '') {
+                    $description = trim($item[$key]);
+                    break;
+                }
+            }
+            if (mb_strlen($description) > 500) {
+                $description = rtrim(mb_substr($description, 0, 500));
+            }
+
+            if ($title === '' && $price === '' && $description === '' && $images === []) {
+                continue;
+            }
+
+            $normalized[] = [
+                'title' => $title,
+                'price' => $price,
+                'description' => $description,
+                'images' => $images,
+            ];
+        }
+
+        return $normalized;
     }
 
     /**

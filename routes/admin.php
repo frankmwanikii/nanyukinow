@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\FinanceController;
 use App\Http\Controllers\Admin\GalleryController;
 use App\Http\Controllers\Admin\ListingController;
+use App\Http\Controllers\Admin\ListingEditLockController;
 use App\Http\Controllers\Admin\LocationController;
 use App\Http\Controllers\Admin\MessageController;
 use App\Http\Controllers\Admin\PageController;
@@ -46,6 +47,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('listings/{listing:slug}/edit', [ListingController::class, 'edit'])->name('listings.edit');
         Route::put('listings/{listing:slug}', [ListingController::class, 'update'])->name('listings.update');
         Route::delete('listings/{listing:slug}', [ListingController::class, 'destroy'])->name('listings.destroy');
+        Route::post('listings/{listing:slug}/edit-lock', [ListingEditLockController::class, 'store'])
+            ->middleware('throttle:60,1')
+            ->name('listings.edit-lock');
+        Route::post('listings/{listing:slug}/edit-lock/release', [ListingEditLockController::class, 'destroy'])
+            ->middleware('throttle:60,1')
+            ->name('listings.edit-lock.release');
         Route::post('listings/bulk', [ListingController::class, 'bulk'])->name('listings.bulk');
         Route::post('listings/editor-media', [EditorMediaController::class, 'store'])
             ->middleware('throttle:40,1')

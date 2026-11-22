@@ -475,6 +475,22 @@ export default function ListingPreview({
                                     }
                                 />
                             ) : null}
+                            {categoryKey === 'stay' ? (
+                                <Row
+                                    label="Room types"
+                                    value={
+                                        Array.isArray(details.room_types) &&
+                                        details.room_types.length
+                                            ? `${details.room_types.length} type${
+                                                  details.room_types.length ===
+                                                  1
+                                                      ? ''
+                                                      : 's'
+                                              }`
+                                            : null
+                                    }
+                                />
+                            ) : null}
                             {categoryKey === 'shopping' ? (
                                 <Row
                                     label="Products"

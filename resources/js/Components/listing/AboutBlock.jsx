@@ -1,4 +1,5 @@
 import DetailSection from './DetailSection';
+import MobileFadeExpand from './MobileFadeExpand';
 
 function looksLikeHtml(value) {
     return /<[a-z][\s\S]*>/i.test(String(value || ''));
@@ -26,28 +27,34 @@ export default function AboutBlock({
 
     const isHtml = aboutText && looksLikeHtml(aboutText);
 
+    const body = aboutText ? (
+        isHtml ? (
+            <div
+                className="nn-editor max-w-prose text-sm leading-relaxed text-olive-800 sm:text-[0.95rem] sm:leading-7"
+                dangerouslySetInnerHTML={{ __html: aboutText }}
+            />
+        ) : (
+            <div className="max-w-prose space-y-3 text-sm leading-relaxed text-olive-800 sm:text-[0.95rem] sm:leading-7">
+                {String(aboutText)
+                    .split(/\n\s*\n/)
+                    .map((para) => para.trim())
+                    .filter(Boolean)
+                    .map((para) => (
+                        <p key={para.slice(0, 48)}>{para}</p>
+                    ))}
+            </div>
+        )
+    ) : null;
+
     return (
         <DetailSection id={sectionId || undefined} title={title}>
-            {aboutText ? (
-                isHtml ? (
-                    <div
-                        className="nn-editor text-sm leading-relaxed text-olive-800 sm:text-[0.95rem] sm:leading-7"
-                        dangerouslySetInnerHTML={{ __html: aboutText }}
-                    />
-                ) : (
-                    <div className="space-y-3 text-sm leading-relaxed text-olive-800 sm:text-[0.95rem] sm:leading-7">
-                        {String(aboutText)
-                            .split(/\n\s*\n/)
-                            .map((para) => para.trim())
-                            .filter(Boolean)
-                            .map((para) => (
-                                <p key={para.slice(0, 48)}>{para}</p>
-                            ))}
-                    </div>
-                )
+            {body ? (
+                <MobileFadeExpand maxHeight={168}>{body}</MobileFadeExpand>
             ) : null}
             {docs?.length ? (
-                <div className={`${aboutText ? 'mt-4' : ''} grid grid-cols-2 gap-3`}>
+                <div
+                    className={`${aboutText ? 'mt-4' : ''} grid grid-cols-2 gap-3`}
+                >
                     {docs.map((doc) => (
                         <figure
                             key={doc.title}

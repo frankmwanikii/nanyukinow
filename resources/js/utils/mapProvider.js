@@ -16,17 +16,22 @@ export function useMapsApiKey() {
     return String(usePage().props.mapsApiKey || '');
 }
 
-export function directionsUrlFor(provider, { lat, lng, query }) {
-    if (
-        provider === 'leaflet' &&
-        typeof lat === 'number' &&
-        typeof lng === 'number'
-    ) {
-        return `https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=%3B${lat}%2C${lng}`;
+export function directionsUrlFor(provider, { lat, lng, query, origin = null }) {
+    const hasDest = typeof lat === 'number' && typeof lng === 'number';
+    const hasOrigin =
+        origin &&
+        typeof origin.lat === 'number' &&
+        typeof origin.lng === 'number';
+
+    if (provider === 'leaflet' && hasDest) {
+        const start = hasOrigin ? `${origin.lat}%2C${origin.lng}` : '';
+        return `https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=${start}%3B${lat}%2C${lng}`;
     }
 
-    if (typeof lat === 'number' && typeof lng === 'number') {
-        return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+    if (hasDest) {
+        const dest = `destination=${lat},${lng}`;
+        const from = hasOrigin ? `&origin=${origin.lat},${origin.lng}` : '';
+        return `https://www.google.com/maps/dir/?api=1&${dest}${from}`;
     }
 
     const q = encodeURIComponent(query || 'Nanyuki');
