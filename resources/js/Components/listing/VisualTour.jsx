@@ -67,6 +67,38 @@ function MosaicTile({
     );
 }
 
+/** Instagram-style pager dots; windows to 7 when a gallery is long. */
+function mobileGalleryDots(count, activeIndex, maxDots = 7) {
+    if (count <= 1) return [];
+
+    let start = 0;
+    let end = count;
+    if (count > maxDots) {
+        start = Math.max(
+            0,
+            Math.min(
+                activeIndex - Math.floor(maxDots / 2),
+                count - maxDots,
+            ),
+        );
+        end = start + maxDots;
+    }
+
+    const dots = [];
+    for (let index = start; index < end; index += 1) {
+        const offset = index - start;
+        dots.push({
+            index,
+            active: index === activeIndex,
+            edge:
+                count > maxDots &&
+                ((offset === 0 && start > 0) ||
+                    (offset === maxDots - 1 && end < count)),
+        });
+    }
+    return dots;
+}
+
 function TabScrollChevron({ direction }) {
     const isLeft = direction === 'left';
     return (
@@ -380,48 +412,85 @@ export default function VisualTour({
 
                 {/* Mobile: swipe hero */}
                 <div className="sm:hidden">
-                    <div
-                        ref={scrollerRef}
-                        onScroll={onMobileScroll}
-                        className={`flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
-                            openSurface ? 'rounded-sm' : 'rounded-xl'
-                        } ${containImages ? 'bg-olive-950' : 'bg-olive-100'}`}
-                        style={{ WebkitOverflowScrolling: 'touch' }}
-                    >
-                        {mosaicSources.map((src, index) => (
-                            <button
-                                key={`${src}-slide-${index}`}
-                                type="button"
-                                onClick={() => openMosaicAt(index)}
-                                className="relative aspect-[4/3] w-full min-w-full shrink-0 snap-center snap-always overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-mustard"
-                                aria-label={`Open photo ${index + 1} of ${mobileCount}`}
+                    <div className="relative">
+                        <div
+                            ref={scrollerRef}
+                            onScroll={onMobileScroll}
+                            className={`flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
+                                openSurface ? 'rounded-sm' : 'rounded-xl'
+                            } ${containImages ? 'bg-olive-950' : 'bg-olive-100'}`}
+                            style={{ WebkitOverflowScrolling: 'touch' }}
+                        >
+                            {mosaicSources.map((src, index) => (
+                                <button
+                                    key={`${src}-slide-${index}`}
+                                    type="button"
+                                    onClick={() => openMosaicAt(index)}
+                                    className="relative aspect-[4/3] w-full min-w-full shrink-0 snap-center snap-always overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-mustard"
+                                    aria-label={`Open photo ${index + 1} of ${mobileCount}`}
+                                >
+                                    {containImages ? (
+                                        <>
+                                            <img
+                                                src={src}
+                                                alt=""
+                                                aria-hidden="true"
+                                                className="absolute inset-0 h-full w-full scale-110 object-cover opacity-40 blur-2xl"
+                                                loading={
+                                                    index === 0
+                                                        ? 'eager'
+                                                        : 'lazy'
+                                                }
+                                            />
+                                            <img
+                                                src={src}
+                                                alt=""
+                                                className="relative z-[1] h-full w-full object-contain"
+                                                loading={
+                                                    index === 0
+                                                        ? 'eager'
+                                                        : 'lazy'
+                                                }
+                                            />
+                                        </>
+                                    ) : (
+                                        <img
+                                            src={src}
+                                            alt=""
+                                            className="h-full w-full object-cover"
+                                            loading={
+                                                index === 0 ? 'eager' : 'lazy'
+                                            }
+                                        />
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+
+                        {mobileCount > 1 ? (
+                            <div
+                                className="pointer-events-none absolute inset-x-0 bottom-3 z-[2] flex items-center justify-center gap-1.5"
+                                aria-hidden="true"
                             >
-                                {containImages ? (
-                                    <>
-                                        <img
-                                            src={src}
-                                            alt=""
-                                            aria-hidden="true"
-                                            className="absolute inset-0 h-full w-full scale-110 object-cover opacity-40 blur-2xl"
-                                            loading={index === 0 ? 'eager' : 'lazy'}
-                                        />
-                                        <img
-                                            src={src}
-                                            alt=""
-                                            className="relative z-[1] h-full w-full object-contain"
-                                            loading={index === 0 ? 'eager' : 'lazy'}
-                                        />
-                                    </>
-                                ) : (
-                                    <img
-                                        src={src}
-                                        alt=""
-                                        className="h-full w-full object-cover"
-                                        loading={index === 0 ? 'eager' : 'lazy'}
+                                {mobileGalleryDots(
+                                    mobileCount,
+                                    safeMobileIndex,
+                                ).map((dot) => (
+                                    <span
+                                        key={`gallery-dot-${dot.index}`}
+                                        className={`rounded-full shadow-sm transition ${
+                                            dot.edge
+                                                ? 'h-1 w-1'
+                                                : 'h-1.5 w-1.5'
+                                        } ${
+                                            dot.active
+                                                ? 'bg-white'
+                                                : 'bg-white/55'
+                                        }`}
                                     />
-                                )}
-                            </button>
-                        ))}
+                                ))}
+                            </div>
+                        ) : null}
                     </div>
 
                     {mobileCount > 1 ? (
