@@ -625,9 +625,9 @@ export const CATEGORY_DETAIL_FIELDS = {
         },
         {
             key: 'highlights',
-            label: 'Highlights',
+            label: "What's nearby",
             type: 'tags',
-            placeholder: 'Add highlight and press Enter',
+            placeholder: 'Add a nearby place and press Enter',
             minTier: 'featured',
         },
         {

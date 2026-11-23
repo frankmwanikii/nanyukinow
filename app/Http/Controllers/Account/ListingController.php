@@ -132,9 +132,11 @@ class ListingController extends Controller
             'category_id' => $data['category_id'] ?? $listing->category_id,
         ], $listing);
 
+        // Keep the draft slug stable while autosaving. Renaming the slug mid-edit
+        // 404s the next autosave that still posts to the previous slug.
         $listing->update([
             ...$payload,
-            'slug' => ListingSlug::resolve($title, $listing->id, $listing->slug, $listing->title),
+            'slug' => $listing->slug ?: ListingSlug::make($title, $listing->id),
             'tier' => $tier,
             'status' => 'draft',
             'is_published' => false,
@@ -386,8 +388,8 @@ class ListingController extends Controller
             'hours' => $data['hours'] ?? null,
             'social_links' => $this->normalizeSocialLinks($data['social_links'] ?? null),
             'details' => $data['details'] ?? null,
-            'start_at' => $data['start_at'] ?? null,
-            'end_at' => $data['end_at'] ?? null,
+            'start_at' => filled($data['start_at'] ?? null) ? $data['start_at'] : null,
+            'end_at' => filled($data['end_at'] ?? null) ? $data['end_at'] : null,
             'ticket_options' => $data['ticket_options'] ?? null,
             'ticket_price' => $data['ticket_price'] ?? null,
             'early_bird_price' => $data['early_bird_price'] ?? null,

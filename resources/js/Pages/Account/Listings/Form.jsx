@@ -459,6 +459,8 @@ export default function Form({
     const [draftKey, setDraftKey] = useState(
         listing?.slug || listing?.id || null,
     );
+    const draftKeyRef = useRef(draftKey);
+    draftKeyRef.current = draftKey;
     const { errors: pageErrors } = usePage().props;
     const [amenityOptions, setAmenityOptions] = useState(initialAmenities);
     const [stayGallerySpaceLibrary, setStayGallerySpaceLibrary] = useState(
@@ -678,8 +680,12 @@ export default function Form({
         append('website', data.website || '');
         append('address', data.address || '');
         append('venue', data.venue || '');
-        append('latitude', data.latitude === '' ? '' : data.latitude);
-        append('longitude', data.longitude === '' ? '' : data.longitude);
+        if (data.latitude !== '' && data.latitude != null) {
+            append('latitude', data.latitude);
+        }
+        if (data.longitude !== '' && data.longitude != null) {
+            append('longitude', data.longitude);
+        }
         append('price_range', data.price_range || '');
         append('image_url', data.image_url || '');
         append('logo_url', data.logo_url || '');
@@ -711,8 +717,8 @@ export default function Form({
                 }));
             append('gallery_file_meta', JSON.stringify(galleryFileMeta));
         }
-        append('start_at', data.start_at || '');
-        append('end_at', data.end_at || '');
+        if (data.start_at) append('start_at', data.start_at);
+        if (data.end_at) append('end_at', data.end_at);
         append(
             'ticket_options',
             JSON.stringify(serializeTicketOptions(data.ticket_options)),
@@ -738,15 +744,20 @@ export default function Form({
         return body;
     };
 
-    const persistDraft = async ({ silent = true, overrides = {} } = {}) => {
+    const persistDraft = async ({
+        silent = true,
+        overrides = {},
+        allowCreateFallback = true,
+    } = {}) => {
         if (isEdit) return;
         if (editLockedByOther) return;
         const latest = { ...(formDataRef.current || form.data), ...overrides };
         const categoryId = latest.category_id;
-        if (!categoryId && !draftKey) return;
+        const activeDraftKey = draftKeyRef.current;
+        if (!categoryId && !activeDraftKey) return;
 
         if (draftSaving.current) {
-            // Another save is in flight — queue one more pass with latest fields.
+            // Another save is in flight. Queue one more pass with latest fields.
             draftPending.current = true;
             return;
         }
@@ -760,12 +771,12 @@ export default function Form({
                 document
                     .querySelector('meta[name="csrf-token"]')
                     ?.getAttribute('content') || '';
-            const url = draftKey
+            const url = activeDraftKey
                 ? route(
                       isAdmin
                           ? 'admin.listings.draft.update'
                           : 'account.listings.draft.update',
-                      draftKey,
+                      activeDraftKey,
                   )
                 : route(
                       isAdmin
@@ -784,14 +795,62 @@ export default function Form({
                 body: buildDraftBody(latest),
             });
 
-            if (!res.ok) {
+            let response = res;
+            if (
+                !response.ok &&
+                allowCreateFallback &&
+                activeDraftKey &&
+                (response.status === 404 || response.status === 410)
+            ) {
+                draftKeyRef.current = null;
+                setDraftKey(null);
+                response = await fetch(
+                    route(
+                        isAdmin
+                            ? 'admin.listings.draft'
+                            : 'account.listings.draft',
+                    ),
+                    {
+                        method: 'POST',
+                        headers: {
+                            Accept: 'application/json',
+                            'X-CSRF-TOKEN': csrf,
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                        credentials: 'same-origin',
+                        body: buildDraftBody(latest),
+                    },
+                );
+            }
+
+            if (!response.ok) {
+                let payload = null;
+                try {
+                    payload = await response.json();
+                } catch {
+                    payload = null;
+                }
+
+                if (payload?.errors && typeof payload.errors === 'object') {
+                    Object.entries(payload.errors).forEach(([key, messages]) => {
+                        const message = Array.isArray(messages)
+                            ? messages[0]
+                            : messages;
+                        if (key && message) {
+                            form.setError(key, String(message));
+                        }
+                    });
+                }
+
                 setSaveState('error');
                 return;
             }
 
-            const json = await res.json();
+            const json = await response.json();
             if (json?.listing?.slug || json?.listing?.id) {
-                setDraftKey(json.listing.slug || json.listing.id);
+                const nextKey = json.listing.slug || json.listing.id;
+                draftKeyRef.current = nextKey;
+                setDraftKey(nextKey);
                 if (isAdmin && json.listing.slug) {
                     try {
                         const editPath = new URL(
@@ -1477,7 +1536,7 @@ export default function Form({
                                             persistDraft({ silent: false })
                                         }
                                     >
-                                        Draft save failed — retry
+                                        Draft save failed. Retry
                                     </button>
                                 </>
                             ) : draftKey ? (

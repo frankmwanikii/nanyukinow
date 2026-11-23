@@ -5,6 +5,7 @@ namespace App\Http\Requests\Admin;
 use App\Support\ListingSubcategories;
 use App\Support\Membership;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class SaveListingDraftRequest extends FormRequest
@@ -83,13 +84,56 @@ class SaveListingDraftRequest extends FormRequest
             'gallery_urls' => $this->decodeArrayField('gallery_urls'),
             'gallery_file_meta' => $this->decodeArrayField('gallery_file_meta'),
             'subcategory' => $this->decodeSubcategoryField(),
+            'location' => $this->normalizeLocationField(),
+            'address' => $this->normalizeAddressField(),
         ];
+
+        foreach (['start_at', 'end_at'] as $dateField) {
+            if ($this->input($dateField) === '') {
+                $merge[$dateField] = null;
+            }
+        }
 
         if ($this->has('user_id') && ($this->input('user_id') === '' || $this->input('user_id') === null)) {
             $merge['user_id'] = null;
         }
 
         $this->merge($merge);
+    }
+
+    private function normalizeLocationField(): ?string
+    {
+        $value = $this->input('location');
+
+        if (is_array($value)) {
+            $parts = array_values(array_filter(array_map(
+                fn ($part) => is_string($part) ? trim($part) : '',
+                $value,
+            )));
+
+            return $parts === [] ? null : implode(', ', $parts);
+        }
+
+        if (! is_string($value)) {
+            return null;
+        }
+
+        $trimmed = trim($value);
+
+        return $trimmed === '' ? null : Str::limit($trimmed, 180, '');
+    }
+
+    private function normalizeAddressField(): ?string
+    {
+        $value = $this->input('address');
+
+        if (! is_string($value)) {
+            return null;
+        }
+
+        $trimmed = trim($value);
+
+        return $trimmed === '' ? null : Str::limit($trimmed, 255, '');
     }
 
     /**

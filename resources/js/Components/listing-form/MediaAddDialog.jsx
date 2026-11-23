@@ -108,7 +108,7 @@ export default function MediaAddDialog({
             setLoadError(null);
             try {
                 const { data } = await window.axios.get(libraryRoute, {
-                    params: { q: q.trim() || undefined, limit: 48 },
+                    params: { q: q.trim() || undefined },
                 });
                 if (cancelled) return;
                 setItems(data.items || []);

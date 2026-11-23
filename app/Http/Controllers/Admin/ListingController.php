@@ -206,6 +206,9 @@ class ListingController extends Controller
 
         $prepared['status'] = 'draft';
         $prepared['is_published'] = false;
+        // Keep the draft slug stable while autosaving so in-flight posts to the
+        // previous slug do not 404 after a title change.
+        $prepared['slug'] = $listing->slug ?: ListingSlug::make($title, $listing->id);
 
         $listing->update($prepared);
 

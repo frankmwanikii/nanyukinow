@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Support\AdminPagination;
 use App\Support\ListingMedia;
 use App\Support\MediaLibrary;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -19,8 +19,6 @@ class GalleryController extends Controller
         $q = trim($request->string('q')->toString());
         $source = $request->string('source')->toString();
         $view = $request->string('view')->toString() === 'list' ? 'list' : 'grid';
-        $perPage = AdminPagination::perPage($request);
-        $page = max(1, $request->integer('page', 1));
 
         $allowedSources = ['listings', 'stories', 'avatars', 'branding', 'pages', 'site'];
         if (! in_array($source, $allowedSources, true)) {
@@ -54,13 +52,14 @@ class GalleryController extends Controller
         }
 
         $total = $all->count();
-        $items = $all->slice(($page - 1) * $perPage, $perPage)->values();
+        // Admin gallery shows the full library in one view (no page cap).
+        $perPage = max(1, $total);
 
         $paginator = new LengthAwarePaginator(
-            $items,
+            $all,
             $total,
             $perPage,
-            $page,
+            1,
             [
                 'path' => $request->url(),
                 'query' => $request->query(),
@@ -73,7 +72,6 @@ class GalleryController extends Controller
                 'q' => $q,
                 'source' => $source,
                 'view' => $view,
-                'per_page' => $perPage,
             ],
             'counts' => [
                 'all' => array_sum($counts),
@@ -94,10 +92,9 @@ class GalleryController extends Controller
     /**
      * Lightweight JSON browse for media pickers (listing form, etc.).
      */
-    public function browse(Request $request): \Illuminate\Http\JsonResponse
+    public function browse(Request $request): JsonResponse
     {
         $q = trim($request->string('q')->toString());
-        $limit = min(48, max(12, $request->integer('limit', 36)));
 
         $all = MediaLibrary::items();
 
@@ -116,7 +113,7 @@ class GalleryController extends Controller
             })->values();
         }
 
-        $items = $all->take($limit)->map(fn (array $item) => [
+        $items = $all->map(fn (array $item) => [
             'id' => $item['id'],
             'url' => $item['url'],
             'filename' => $item['filename'],
@@ -126,7 +123,7 @@ class GalleryController extends Controller
 
         return response()->json([
             'items' => $items,
-            'total' => $all->count(),
+            'total' => $items->count(),
         ]);
     }
 

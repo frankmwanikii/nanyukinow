@@ -8,7 +8,6 @@ import {
     EmptyState,
     FilterBar,
     PageHeader,
-    Pagination,
     Td,
     Th,
 } from '@/Components/Admin/ui';
@@ -57,7 +56,6 @@ export default function Index({ media, filters, counts, sources }) {
     const [q, setQ] = useState(filters.q || '');
     const [source, setSource] = useState(filters.source || '');
     const [view, setView] = useState(filters.view || 'grid');
-    const [perPage, setPerPage] = useState(filters.per_page || 15);
     const [selected, setSelected] = useState([]);
     const [preview, setPreview] = useState(null);
     const [copiedId, setCopiedId] = useState(null);
@@ -88,14 +86,14 @@ export default function Index({ media, filters, counts, sources }) {
             return undefined;
         }
         const timer = setTimeout(() => {
-            pushFilters({ q, source, view, per_page: perPage });
+            pushFilters({ q, source, view });
         }, 350);
         return () => clearTimeout(timer);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [q]);
 
     const setFilter = (key, value) => {
-        const next = { q, source, view, per_page: perPage, [key]: value };
+        const next = { q, source, view, [key]: value };
         if (key === 'source') setSource(value);
         if (key === 'view') setView(value);
         pushFilters(next);
@@ -333,20 +331,15 @@ export default function Index({ media, filters, counts, sources }) {
                                     onChange={toggleAll}
                                     className="h-3.5 w-3.5 rounded border-olive-300 text-olive-800"
                                 />
-                                Select page
+                                Select all
                             </label>
                         ) : null
                     }
                     footer={
-                        <Pagination
-                            links={media.links}
-                            meta={media.meta || media}
-                            perPage={perPage}
-                            onPerPageChange={(n) => {
-                                setPerPage(n);
-                                pushFilters({ q, source, view, per_page: n });
-                            }}
-                        />
+                        <p className="text-xs font-semibold text-olive-600 dark:text-olive-400">
+                            Showing all {items.length} image
+                            {items.length === 1 ? '' : 's'}
+                        </p>
                     }
                 >
                     <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
@@ -456,15 +449,10 @@ export default function Index({ media, filters, counts, sources }) {
                 <DataCard
                     title="Library"
                     footer={
-                        <Pagination
-                            links={media.links}
-                            meta={media.meta || media}
-                            perPage={perPage}
-                            onPerPageChange={(n) => {
-                                setPerPage(n);
-                                pushFilters({ q, source, view, per_page: n });
-                            }}
-                        />
+                        <p className="text-xs font-semibold text-olive-600 dark:text-olive-400">
+                            Showing all {items.length} image
+                            {items.length === 1 ? '' : 's'}
+                        </p>
                     }
                 >
                     <DataTable>

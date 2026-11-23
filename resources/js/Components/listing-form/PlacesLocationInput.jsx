@@ -20,6 +20,15 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 const DEFAULT_ZOOM = 14;
 const AREA_OPTIONS = LOOK_LOCATIONS;
+const ADDRESS_MAX_LENGTH = 255;
+
+function clipAddress(value) {
+    const text = typeof value === 'string' ? value.trim() : '';
+    if (!text) return '';
+    return text.length > ADDRESS_MAX_LENGTH
+        ? text.slice(0, ADDRESS_MAX_LENGTH)
+        : text;
+}
 
 function parseCoord(value) {
     const n = typeof value === 'number' ? value : Number.parseFloat(value);
@@ -181,7 +190,7 @@ export default function PlacesLocationInput({
             onChangeRef.current({
                 latitude: cLat,
                 longitude: cLng,
-                address: address || '',
+                address: clipAddress(address || ''),
                 city: city || '',
                 ...(merged.length ? { location: formatAreas(merged) } : {}),
             });
@@ -849,7 +858,10 @@ export default function PlacesLocationInput({
                             : ''
                     }`}
                     value={address || ''}
-                    onChange={(e) => onChange({ address: e.target.value })}
+                    onChange={(e) =>
+                        onChange({ address: clipAddress(e.target.value) })
+                    }
+                    maxLength={ADDRESS_MAX_LENGTH}
                     placeholder="e.g. Cedars Mall, Kenyatta Highway"
                     aria-invalid={errors.address ? true : undefined}
                     data-error-field="address"
