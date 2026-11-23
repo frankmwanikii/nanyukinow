@@ -1891,10 +1891,6 @@ export default function Form({
                                                 form.data.details?.video_url ||
                                                 ''
                                             }
-                                            videoTitle={
-                                                form.data.details
-                                                    ?.video_title || ''
-                                            }
                                             onChange={(partial) =>
                                                 patch({
                                                     details: {

@@ -1395,207 +1395,221 @@ export default function GalleryUploader({
 
                 {categorized && allSpaceOptions.length ? (
                     <div className="mt-4 space-y-4">
-                        <div className="-mx-1 flex items-center gap-2 overflow-x-auto px-1 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                            {allSpaceOptions.map((opt) => {
-                                const count = (itemsBySpace.get(opt.value) || [])
-                                    .length;
-                                const selected = activeSpace === opt.value;
-                                return (
-                                    <button
-                                        key={opt.value}
-                                        type="button"
-                                        onClick={() => selectSpace(opt.value)}
-                                        className={`inline-flex h-11 shrink-0 items-center gap-2 rounded-sm px-3.5 text-xs font-semibold transition sm:text-sm ${
-                                            selected
-                                                ? 'bg-olive-900 text-white dark:bg-mustard dark:text-earth-dusk'
-                                                : 'bg-white text-olive-800 ring-1 ring-olive-200 hover:border-mustard hover:ring-mustard dark:bg-olive-900 dark:text-olive-100 dark:ring-olive-700'
-                                        }`}
-                                    >
-                                        <span>{opt.label}</span>
-                                        <span
-                                            className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold tabular-nums ${
-                                                selected
-                                                    ? 'bg-white/20 text-white dark:bg-olive-950/20 dark:text-earth-dusk'
-                                                    : count
-                                                      ? 'bg-olive-100 text-olive-800 dark:bg-olive-800 dark:text-olive-100'
-                                                      : 'bg-olive-50 text-olive-400 dark:bg-olive-950 dark:text-olive-500'
-                                            }`}
-                                        >
-                                            {count}
-                                        </span>
-                                    </button>
-                                );
-                            })}
-                            {allowCustomSpaces ? (
-                                <div
-                                    ref={addRoomWrapRef}
-                                    className="relative shrink-0"
-                                >
+                        <div
+                            ref={allowCustomSpaces ? addRoomWrapRef : undefined}
+                            className="space-y-3"
+                        >
+                            <div className="flex min-w-0 items-start gap-2">
+                                <div className="-mx-1 min-w-0 flex-1 overflow-x-auto px-1 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                                    <div className="flex w-max items-center gap-2">
+                                        {allSpaceOptions.map((opt) => {
+                                            const count = (
+                                                itemsBySpace.get(opt.value) ||
+                                                []
+                                            ).length;
+                                            const selected =
+                                                activeSpace === opt.value;
+                                            return (
+                                                <button
+                                                    key={opt.value}
+                                                    type="button"
+                                                    onClick={() =>
+                                                        selectSpace(opt.value)
+                                                    }
+                                                    className={`inline-flex h-11 shrink-0 items-center gap-2 rounded-sm px-3.5 text-xs font-semibold transition sm:text-sm ${
+                                                        selected
+                                                            ? 'bg-olive-900 text-white dark:bg-mustard dark:text-earth-dusk'
+                                                            : 'bg-white text-olive-800 ring-1 ring-olive-200 hover:border-mustard hover:ring-mustard dark:bg-olive-900 dark:text-olive-100 dark:ring-olive-700'
+                                                    }`}
+                                                >
+                                                    <span>{opt.label}</span>
+                                                    <span
+                                                        className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold tabular-nums ${
+                                                            selected
+                                                                ? 'bg-white/20 text-white dark:bg-olive-950/20 dark:text-earth-dusk'
+                                                                : count
+                                                                  ? 'bg-olive-100 text-olive-800 dark:bg-olive-800 dark:text-olive-100'
+                                                                  : 'bg-olive-50 text-olive-400 dark:bg-olive-950 dark:text-olive-500'
+                                                        }`}
+                                                    >
+                                                        {count}
+                                                    </span>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                                {allowCustomSpaces ? (
                                     <button
                                         type="button"
                                         onClick={() =>
                                             setAddRoomOpen((open) => !open)
                                         }
-                                        className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-sm bg-white px-3.5 text-xs font-semibold text-olive-800 ring-1 ring-dashed ring-olive-300 transition hover:ring-mustard dark:bg-olive-900 dark:text-olive-100 dark:ring-olive-600 sm:text-sm"
+                                        aria-expanded={addRoomOpen}
+                                        className={`inline-flex h-11 shrink-0 items-center gap-1.5 rounded-sm px-3.5 text-xs font-semibold transition sm:text-sm ${
+                                            addRoomOpen
+                                                ? 'bg-olive-900 text-white dark:bg-mustard dark:text-earth-dusk'
+                                                : 'bg-white text-olive-800 ring-1 ring-dashed ring-olive-300 hover:ring-mustard dark:bg-olive-900 dark:text-olive-100 dark:ring-olive-600'
+                                        }`}
                                     >
                                         <Plus className="h-4 w-4" />
                                         Add room
                                     </button>
-                                    {addRoomOpen ? (
-                                        <div className="absolute left-0 top-[calc(100%+0.35rem)] z-30 w-[min(18rem,calc(100vw-2rem))] rounded-2xl border border-olive-200/90 bg-white p-3 shadow-lift dark:border-olive-700 dark:bg-olive-900 sm:left-auto sm:right-0">
-                                            <div className="mb-2 flex items-center justify-between gap-2">
-                                                <p className="text-xs font-semibold text-olive-900 dark:text-olive-100">
-                                                    New room tab
-                                                </p>
-                                                <button
-                                                    type="button"
-                                                    onClick={() =>
-                                                        setAddRoomOpen(false)
+                                ) : null}
+                            </div>
+
+                            {allowCustomSpaces && addRoomOpen ? (
+                                <div className="rounded-2xl border border-olive-200/90 bg-white p-3 shadow-lift dark:border-olive-700 dark:bg-olive-900 sm:p-4">
+                                    <div className="mb-3 flex items-center justify-between gap-2">
+                                        <p className="text-sm font-semibold text-olive-900 dark:text-olive-100">
+                                            New room tab
+                                        </p>
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setAddRoomOpen(false)
+                                            }
+                                            className="inline-flex h-11 w-11 items-center justify-center rounded-sm text-olive-500 hover:bg-olive-50 dark:hover:bg-olive-800"
+                                            aria-label="Close"
+                                        >
+                                            <X className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                    <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-stretch">
+                                        <div className="relative min-w-0 flex-1">
+                                            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-olive-500" />
+                                            <input
+                                                className={`${field} pl-10`}
+                                                value={roomQuery}
+                                                onChange={(e) => {
+                                                    setRoomQuery(
+                                                        e.target.value,
+                                                    );
+                                                    setRoomError(null);
+                                                }}
+                                                placeholder="Search or type a room title…"
+                                                autoComplete="off"
+                                                autoFocus
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Escape') {
+                                                        setAddRoomOpen(false);
+                                                        return;
                                                     }
-                                                    className="rounded-sm p-1 text-olive-500 hover:bg-olive-50 dark:hover:bg-olive-800"
-                                                    aria-label="Close"
-                                                >
-                                                    <X className="h-3.5 w-3.5" />
-                                                </button>
-                                            </div>
-                                            <div className="relative">
-                                                <Search className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-olive-500" />
-                                                <input
-                                                    className={`${field} pl-10 ${roomQuery.trim() && !roomExactMatch ? 'pr-20' : 'pr-3'}`}
-                                                    value={roomQuery}
-                                                    onChange={(e) => {
-                                                        setRoomQuery(
-                                                            e.target.value,
-                                                        );
-                                                        setRoomError(null);
-                                                    }}
-                                                    placeholder="Search or type a room title…"
-                                                    autoComplete="off"
-                                                    autoFocus
-                                                    onKeyDown={(e) => {
+                                                    if (e.key === 'Enter') {
+                                                        e.preventDefault();
                                                         if (
-                                                            e.key === 'Escape'
+                                                            !roomQuery.trim()
                                                         ) {
-                                                            setAddRoomOpen(
-                                                                false,
-                                                            );
                                                             return;
                                                         }
-                                                        if (e.key === 'Enter') {
-                                                            e.preventDefault();
-                                                            if (
-                                                                !roomQuery.trim()
-                                                            ) {
-                                                                return;
-                                                            }
-                                                            if (
-                                                                roomMatches.length ===
-                                                                1
-                                                            ) {
-                                                                activateSpace(
-                                                                    roomMatches[0],
+                                                        if (
+                                                            roomMatches.length ===
+                                                            1
+                                                        ) {
+                                                            activateSpace(
+                                                                roomMatches[0],
+                                                            );
+                                                        } else if (
+                                                            roomExactMatch
+                                                        ) {
+                                                            const hit =
+                                                                roomMatches.find(
+                                                                    (s) =>
+                                                                        s.name.toLowerCase() ===
+                                                                        roomQuery
+                                                                            .trim()
+                                                                            .toLowerCase(),
+                                                                ) ||
+                                                                spaceLibrary.find(
+                                                                    (s) =>
+                                                                        s.name.toLowerCase() ===
+                                                                        roomQuery
+                                                                            .trim()
+                                                                            .toLowerCase(),
+                                                                ) ||
+                                                                allSpaceOptions.find(
+                                                                    (s) =>
+                                                                        s.label.toLowerCase() ===
+                                                                        roomQuery
+                                                                            .trim()
+                                                                            .toLowerCase(),
                                                                 );
-                                                            } else if (
-                                                                roomExactMatch
-                                                            ) {
-                                                                const hit =
-                                                                    roomMatches.find(
-                                                                        (s) =>
-                                                                            s.name.toLowerCase() ===
-                                                                            roomQuery
-                                                                                .trim()
-                                                                                .toLowerCase(),
-                                                                    ) ||
-                                                                    spaceLibrary.find(
-                                                                        (s) =>
-                                                                            s.name.toLowerCase() ===
-                                                                            roomQuery
-                                                                                .trim()
-                                                                                .toLowerCase(),
-                                                                    ) ||
-                                                                    allSpaceOptions.find(
-                                                                        (s) =>
-                                                                            s.label.toLowerCase() ===
-                                                                            roomQuery
-                                                                                .trim()
-                                                                                .toLowerCase(),
-                                                                    );
-                                                                if (hit) {
-                                                                    activateSpace(
-                                                                        hit.value
-                                                                            ? {
-                                                                                  slug: hit.value,
-                                                                                  name: hit.label,
-                                                                              }
-                                                                            : hit,
-                                                                    );
-                                                                }
-                                                            } else {
-                                                                createCustomRoom();
+                                                            if (hit) {
+                                                                activateSpace(
+                                                                    hit.value
+                                                                        ? {
+                                                                              slug: hit.value,
+                                                                              name: hit.label,
+                                                                          }
+                                                                        : hit,
+                                                                );
                                                             }
+                                                        } else {
+                                                            createCustomRoom();
                                                         }
-                                                    }}
-                                                />
-                                                {roomQuery.trim() &&
-                                                !roomExactMatch ? (
+                                                    }
+                                                }}
+                                            />
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={createCustomRoom}
+                                            disabled={
+                                                creatingRoom ||
+                                                !roomQuery.trim() ||
+                                                roomExactMatch
+                                            }
+                                            className="inline-flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-sm bg-mustard px-4 text-sm font-bold text-earth-dusk transition enabled:hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-45"
+                                        >
+                                            <Plus className="h-4 w-4" />
+                                            {creatingRoom
+                                                ? 'Saving…'
+                                                : 'Add'}
+                                        </button>
+                                    </div>
+                                    <p className="mt-2 text-xs text-olive-500 dark:text-olive-400">
+                                        Pick an available room below, or type a
+                                        new title and press Add.
+                                    </p>
+                                    {roomMatches.length ? (
+                                        <ul className="mt-3 max-h-48 overflow-y-auto rounded-xl ring-1 ring-olive-100 dark:ring-olive-700">
+                                            {roomMatches.map((space) => (
+                                                <li key={space.slug}>
                                                     <button
                                                         type="button"
-                                                        onClick={
-                                                            createCustomRoom
+                                                        onClick={() =>
+                                                            activateSpace(
+                                                                space,
+                                                            )
                                                         }
-                                                        disabled={creatingRoom}
-                                                        className="absolute right-2 top-1/2 z-10 inline-flex -translate-y-1/2 items-center gap-1 rounded-sm bg-mustard px-2.5 py-1.5 text-xs font-bold text-earth-dusk disabled:opacity-50"
+                                                        className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left text-sm text-olive-800 transition hover:bg-olive-50 dark:text-olive-100 dark:hover:bg-olive-800"
                                                     >
-                                                        <Plus className="h-3.5 w-3.5" />
-                                                        {creatingRoom
-                                                            ? 'Saving…'
-                                                            : 'Add'}
+                                                        <span>
+                                                            {space.name}
+                                                        </span>
+                                                        <span className="shrink-0 text-xs font-semibold text-olive-500 dark:text-olive-400">
+                                                            Use
+                                                        </span>
                                                     </button>
-                                                ) : null}
-                                            </div>
-                                            <p className="mt-2 text-[11px] text-olive-500 dark:text-olive-400">
-                                                Pick an existing room or save a
-                                                new title to the library.
-                                            </p>
-                                            {roomMatches.length ? (
-                                                <ul className="mt-2 max-h-40 overflow-y-auto rounded-xl ring-1 ring-olive-100 dark:ring-olive-700">
-                                                    {roomMatches.map(
-                                                        (space) => (
-                                                            <li
-                                                                key={space.slug}
-                                                            >
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() =>
-                                                                        activateSpace(
-                                                                            space,
-                                                                        )
-                                                                    }
-                                                                    className="w-full px-3 py-2 text-left text-sm text-olive-800 transition hover:bg-olive-50 dark:text-olive-100 dark:hover:bg-olive-800"
-                                                                >
-                                                                    {space.name}
-                                                                </button>
-                                                            </li>
-                                                        ),
-                                                    )}
-                                                </ul>
-                                            ) : roomQuery.trim() ? (
-                                                <p className="mt-2 text-sm text-olive-600 dark:text-olive-400">
-                                                    No match. Press Add to
-                                                    create “{roomQuery.trim()}”.
-                                                </p>
-                                            ) : (
-                                                <p className="mt-2 text-sm text-olive-600 dark:text-olive-400">
-                                                    Type a title like Conference
-                                                    room or Spa.
-                                                </p>
-                                            )}
-                                            {roomError ? (
-                                                <p className="mt-2 text-sm text-rose-600">
-                                                    {roomError}
-                                                </p>
-                                            ) : null}
-                                        </div>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    ) : roomQuery.trim() ? (
+                                        <p className="mt-3 text-sm text-olive-600 dark:text-olive-400">
+                                            No match yet. Press Add to create
+                                            “{roomQuery.trim()}”.
+                                        </p>
+                                    ) : (
+                                        <p className="mt-3 text-sm text-olive-600 dark:text-olive-400">
+                                            No other rooms in the library yet.
+                                            Type a title like Conference room or
+                                            Spa.
+                                        </p>
+                                    )}
+                                    {roomError ? (
+                                        <p className="mt-2 text-sm text-rose-600">
+                                            {roomError}
+                                        </p>
                                     ) : null}
                                 </div>
                             ) : null}

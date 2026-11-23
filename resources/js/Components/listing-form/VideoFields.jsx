@@ -12,12 +12,10 @@ import { useMemo } from 'react';
  */
 export default function VideoFields({
     videoUrl = '',
-    videoTitle = '',
     onChange,
     disabled = false,
 }) {
     const url = videoUrl || '';
-    const title = videoTitle || '';
     const valid = !url.trim() || isLikelyVideoUrl(url);
 
     const playback = useMemo(
@@ -68,27 +66,6 @@ export default function VideoFields({
                 ) : null}
             </div>
 
-            <div>
-                <label className={label} htmlFor="video_title">
-                    Preview title
-                </label>
-                <input
-                    id="video_title"
-                    className={field}
-                    value={title}
-                    onChange={(e) =>
-                        onChange?.({ video_title: e.target.value })
-                    }
-                    placeholder="e.g. Preview · Frayo"
-                    disabled={disabled}
-                    disabled={!url.trim()}
-                />
-                <p className={help}>
-                    Optional label for the video section. Leave blank to use the
-                    default.
-                </p>
-            </div>
-
             {url.trim() && valid && playback.url ? (
                 <div>
                     <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-olive-500 dark:text-olive-400">
@@ -98,7 +75,7 @@ export default function VideoFields({
                         {playback.kind === 'iframe' ? (
                             <iframe
                                 src={playback.url}
-                                title={title.trim() || 'Listing video preview'}
+                                title="Listing video preview"
                                 className="aspect-video w-full bg-black"
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                 allowFullScreen
