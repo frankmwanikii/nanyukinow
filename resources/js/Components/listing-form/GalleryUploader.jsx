@@ -610,16 +610,28 @@ export default function GalleryUploader({
 
     const roomMatches = useMemo(() => {
         const activeValues = new Set(allSpaceOptions.map((s) => s.value));
-        const pool = spaceLibrary.filter((s) => !activeValues.has(s.slug));
         const q = roomQuery.trim().toLowerCase();
-        if (!q) return pool.slice(0, 10);
-        return pool
-            .filter(
-                (s) =>
-                    s.name.toLowerCase().includes(q) ||
-                    s.slug.toLowerCase().includes(q),
-            )
-            .slice(0, 10);
+        const pool = spaceLibrary
+            .map((space) => ({
+                ...space,
+                alreadyAdded: activeValues.has(space.slug),
+            }))
+            .filter((space) => {
+                if (!q) {
+                    return true;
+                }
+                return (
+                    space.name.toLowerCase().includes(q) ||
+                    space.slug.toLowerCase().includes(q)
+                );
+            })
+            .sort((a, b) => {
+                if (a.alreadyAdded !== b.alreadyAdded) {
+                    return a.alreadyAdded ? 1 : -1;
+                }
+                return a.name.localeCompare(b.name);
+            });
+        return pool;
     }, [spaceLibrary, allSpaceOptions, roomQuery]);
 
     const roomExactMatch = useMemo(() => {
@@ -630,6 +642,9 @@ export default function GalleryUploader({
             spaceLibrary.some((s) => s.name.toLowerCase() === q)
         );
     }, [roomQuery, allSpaceOptions, spaceLibrary]);
+
+    const canCreateRoom =
+        Boolean(roomQuery.trim()) && !roomExactMatch && !creatingRoom;
 
     const activateSpace = (space) => {
         const next = {
@@ -1399,63 +1414,60 @@ export default function GalleryUploader({
                             ref={allowCustomSpaces ? addRoomWrapRef : undefined}
                             className="space-y-3"
                         >
-                            <div className="flex min-w-0 items-start gap-2">
-                                <div className="-mx-1 min-w-0 flex-1 overflow-x-auto px-1 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                                    <div className="flex w-max items-center gap-2">
-                                        {allSpaceOptions.map((opt) => {
-                                            const count = (
-                                                itemsBySpace.get(opt.value) ||
-                                                []
-                                            ).length;
-                                            const selected =
-                                                activeSpace === opt.value;
-                                            return (
-                                                <button
-                                                    key={opt.value}
-                                                    type="button"
-                                                    onClick={() =>
-                                                        selectSpace(opt.value)
-                                                    }
-                                                    className={`inline-flex h-11 shrink-0 items-center gap-2 rounded-sm px-3.5 text-xs font-semibold transition sm:text-sm ${
+                            <div className="-mx-1 min-w-0 overflow-x-auto px-1 py-1.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                                <div className="flex w-max items-center gap-2">
+                                    {allSpaceOptions.map((opt) => {
+                                        const count = (
+                                            itemsBySpace.get(opt.value) || []
+                                        ).length;
+                                        const selected =
+                                            activeSpace === opt.value;
+                                        return (
+                                            <button
+                                                key={opt.value}
+                                                type="button"
+                                                onClick={() =>
+                                                    selectSpace(opt.value)
+                                                }
+                                                className={`inline-flex h-11 shrink-0 items-center gap-2 rounded-sm border px-3.5 text-xs font-semibold transition sm:text-sm ${
+                                                    selected
+                                                        ? 'border-olive-900 bg-olive-900 text-white dark:border-mustard dark:bg-mustard dark:text-earth-dusk'
+                                                        : 'border-olive-200 bg-white text-olive-800 hover:border-mustard dark:border-olive-700 dark:bg-olive-900 dark:text-olive-100'
+                                                }`}
+                                            >
+                                                <span>{opt.label}</span>
+                                                <span
+                                                    className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold tabular-nums ${
                                                         selected
-                                                            ? 'bg-olive-900 text-white dark:bg-mustard dark:text-earth-dusk'
-                                                            : 'bg-white text-olive-800 ring-1 ring-olive-200 hover:border-mustard hover:ring-mustard dark:bg-olive-900 dark:text-olive-100 dark:ring-olive-700'
+                                                            ? 'bg-white/20 text-white dark:bg-olive-950/20 dark:text-earth-dusk'
+                                                            : count
+                                                              ? 'bg-olive-100 text-olive-800 dark:bg-olive-800 dark:text-olive-100'
+                                                              : 'bg-olive-50 text-olive-400 dark:bg-olive-950 dark:text-olive-500'
                                                     }`}
                                                 >
-                                                    <span>{opt.label}</span>
-                                                    <span
-                                                        className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold tabular-nums ${
-                                                            selected
-                                                                ? 'bg-white/20 text-white dark:bg-olive-950/20 dark:text-earth-dusk'
-                                                                : count
-                                                                  ? 'bg-olive-100 text-olive-800 dark:bg-olive-800 dark:text-olive-100'
-                                                                  : 'bg-olive-50 text-olive-400 dark:bg-olive-950 dark:text-olive-500'
-                                                        }`}
-                                                    >
-                                                        {count}
-                                                    </span>
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
+                                                    {count}
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
+                                    {allowCustomSpaces ? (
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setAddRoomOpen((open) => !open)
+                                            }
+                                            aria-expanded={addRoomOpen}
+                                            className={`sticky right-0 z-10 inline-flex h-11 shrink-0 items-center gap-1.5 rounded-sm border border-dashed px-3.5 text-xs font-semibold transition sm:text-sm ${
+                                                addRoomOpen
+                                                    ? 'border-olive-900 bg-olive-900 text-white dark:border-mustard dark:bg-mustard dark:text-earth-dusk'
+                                                    : 'border-olive-300 bg-olive-50 text-olive-800 hover:border-mustard dark:border-olive-600 dark:bg-olive-950 dark:text-olive-100'
+                                            }`}
+                                        >
+                                            <Plus className="h-4 w-4" />
+                                            Add room
+                                        </button>
+                                    ) : null}
                                 </div>
-                                {allowCustomSpaces ? (
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            setAddRoomOpen((open) => !open)
-                                        }
-                                        aria-expanded={addRoomOpen}
-                                        className={`inline-flex h-11 shrink-0 items-center gap-1.5 rounded-sm px-3.5 text-xs font-semibold transition sm:text-sm ${
-                                            addRoomOpen
-                                                ? 'bg-olive-900 text-white dark:bg-mustard dark:text-earth-dusk'
-                                                : 'bg-white text-olive-800 ring-1 ring-dashed ring-olive-300 hover:ring-mustard dark:bg-olive-900 dark:text-olive-100 dark:ring-olive-600'
-                                        }`}
-                                    >
-                                        <Plus className="h-4 w-4" />
-                                        Add room
-                                    </button>
-                                ) : null}
                             </div>
 
                             {allowCustomSpaces && addRoomOpen ? (
@@ -1475,11 +1487,11 @@ export default function GalleryUploader({
                                             <X className="h-4 w-4" />
                                         </button>
                                     </div>
-                                    <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-stretch">
+                                    <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
                                         <div className="relative min-w-0 flex-1">
                                             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-olive-500" />
                                             <input
-                                                className={`${field} pl-10`}
+                                                className={`${field} h-11 py-0 pl-10`}
                                                 value={roomQuery}
                                                 onChange={(e) => {
                                                     setRoomQuery(
@@ -1502,12 +1514,17 @@ export default function GalleryUploader({
                                                         ) {
                                                             return;
                                                         }
+                                                        const unusedMatches =
+                                                            roomMatches.filter(
+                                                                (s) =>
+                                                                    !s.alreadyAdded,
+                                                            );
                                                         if (
-                                                            roomMatches.length ===
+                                                            unusedMatches.length ===
                                                             1
                                                         ) {
                                                             activateSpace(
-                                                                roomMatches[0],
+                                                                unusedMatches[0],
                                                             );
                                                         } else if (
                                                             roomExactMatch
@@ -1544,7 +1561,9 @@ export default function GalleryUploader({
                                                                         : hit,
                                                                 );
                                                             }
-                                                        } else {
+                                                        } else if (
+                                                            canCreateRoom
+                                                        ) {
                                                             createCustomRoom();
                                                         }
                                                     }
@@ -1554,12 +1573,8 @@ export default function GalleryUploader({
                                         <button
                                             type="button"
                                             onClick={createCustomRoom}
-                                            disabled={
-                                                creatingRoom ||
-                                                !roomQuery.trim() ||
-                                                roomExactMatch
-                                            }
-                                            className="inline-flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-sm bg-mustard px-4 text-sm font-bold text-earth-dusk transition enabled:hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-45"
+                                            disabled={!canCreateRoom}
+                                            className="inline-flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-sm border border-mustard bg-mustard px-4 text-sm font-bold text-earth-dusk transition enabled:hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-45"
                                         >
                                             <Plus className="h-4 w-4" />
                                             {creatingRoom
@@ -1568,13 +1583,17 @@ export default function GalleryUploader({
                                         </button>
                                     </div>
                                     <p className="mt-2 text-xs text-olive-500 dark:text-olive-400">
-                                        Pick an available room below, or type a
-                                        new title and press Add.
+                                        All rooms from the library are listed
+                                        below. Type to filter, or Add a new
+                                        title.
                                     </p>
                                     {roomMatches.length ? (
-                                        <ul className="mt-3 max-h-48 overflow-y-auto rounded-xl ring-1 ring-olive-100 dark:ring-olive-700">
+                                        <ul className="mt-3 max-h-56 overflow-y-auto rounded-xl border border-olive-100 dark:border-olive-700">
                                             {roomMatches.map((space) => (
-                                                <li key={space.slug}>
+                                                <li
+                                                    key={space.slug}
+                                                    className="border-b border-olive-100 last:border-b-0 dark:border-olive-800"
+                                                >
                                                     <button
                                                         type="button"
                                                         onClick={() =>
@@ -1587,8 +1606,16 @@ export default function GalleryUploader({
                                                         <span>
                                                             {space.name}
                                                         </span>
-                                                        <span className="shrink-0 text-xs font-semibold text-olive-500 dark:text-olive-400">
-                                                            Use
+                                                        <span
+                                                            className={`shrink-0 text-xs font-semibold ${
+                                                                space.alreadyAdded
+                                                                    ? 'text-olive-400 dark:text-olive-500'
+                                                                    : 'text-olive-700 dark:text-olive-300'
+                                                            }`}
+                                                        >
+                                                            {space.alreadyAdded
+                                                                ? 'Added'
+                                                                : 'Use'}
                                                         </span>
                                                     </button>
                                                 </li>
@@ -1596,14 +1623,13 @@ export default function GalleryUploader({
                                         </ul>
                                     ) : roomQuery.trim() ? (
                                         <p className="mt-3 text-sm text-olive-600 dark:text-olive-400">
-                                            No match yet. Press Add to create
-                                            “{roomQuery.trim()}”.
+                                            No match in the library. Press Add
+                                            to create “{roomQuery.trim()}”.
                                         </p>
                                     ) : (
                                         <p className="mt-3 text-sm text-olive-600 dark:text-olive-400">
-                                            No other rooms in the library yet.
-                                            Type a title like Conference room or
-                                            Spa.
+                                            No rooms in the library yet. Type a
+                                            title like Conference room or Spa.
                                         </p>
                                     )}
                                     {roomError ? (

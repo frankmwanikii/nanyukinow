@@ -122,7 +122,26 @@ class ListingEditLockTest extends TestCase
                 ->component('Admin/Listings/Index')
                 ->has('listings.data', 1)
                 ->where('listings.data.0.editing_by.name', 'Alice Admin')
+                ->where('listings.data.0.editing_by.id', $admin->id)
             );
+    }
+
+    public function test_bulk_skips_listings_locked_by_another_admin(): void
+    {
+        [$adminA, $listing] = $this->adminAndListing('Alice Admin');
+        $adminB = User::factory()->admin()->create(['name' => 'Bob Admin']);
+        ListingEditLock::acquire($listing, $adminA);
+
+        $this->actingAs($adminB)
+            ->post(route('admin.listings.bulk'), [
+                'ids' => [$listing->id],
+                'action' => 'archive',
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('error');
+
+        $this->assertSame('published', $listing->fresh()->status);
+        $this->assertTrue((bool) $listing->fresh()->is_published);
     }
 
     public function test_expired_lock_can_be_taken_by_another_admin(): void

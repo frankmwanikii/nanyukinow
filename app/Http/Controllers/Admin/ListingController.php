@@ -346,7 +346,23 @@ class ListingController extends Controller
             'action' => ['required', 'in:publish,unpublish,feature,unfeature,promote,unpromote,delete,archive'],
         ]);
 
-        $query = Listing::query()->whereIn('id', $data['ids']);
+        $ids = array_values(array_map('intval', $data['ids']));
+        $editors = ListingEditLock::editorsFor($ids);
+        $userId = (int) $request->user()->id;
+        $allowedIds = array_values(array_filter(
+            $ids,
+            fn (int $id): bool => ! isset($editors[$id]) || (int) $editors[$id]['id'] === $userId,
+        ));
+        $skipped = count($ids) - count($allowedIds);
+
+        if ($allowedIds === []) {
+            return back()->with(
+                'error',
+                'No listings were changed. Another admin is editing the selected listing'.($skipped === 1 ? '' : 's').'.',
+            );
+        }
+
+        $query = Listing::query()->whereIn('id', $allowedIds);
 
         if ($data['action'] === 'publish') {
             $listings = (clone $query)->with('user')->get();
@@ -379,6 +395,13 @@ class ListingController extends Controller
                 'delete' => $query->delete(),
                 default => null,
             };
+        }
+
+        if ($skipped > 0) {
+            return back()->with(
+                'success',
+                'Bulk action completed. '.$skipped.' listing'.($skipped === 1 ? ' was' : 's were').' skipped because another admin is editing.',
+            );
         }
 
         return back()->with('success', 'Bulk action completed.');

@@ -79,6 +79,7 @@ class ListingPayload
         $category = $listing->category;
         $tier = $listing->tier ?: ($listing->is_featured ? 'featured' : 'free');
         $details = is_array($listing->details) ? $listing->details : [];
+        $details = self::presentRoomTypeAmenities($details);
 
         return [
             ...self::card($listing),
@@ -142,6 +143,33 @@ class ListingPayload
     private static function publicMediaUrl(?string $url): ?string
     {
         return ListingMedia::normalizePublicUrl($url);
+    }
+
+    /**
+     * Resolve amenity labels for Stay room-type cards on the public listing page.
+     *
+     * @param  array<string, mixed>  $details
+     * @return array<string, mixed>
+     */
+    private static function presentRoomTypeAmenities(array $details): array
+    {
+        if (! isset($details['room_types']) || ! is_array($details['room_types'])) {
+            return $details;
+        }
+
+        $details['room_types'] = array_map(function (mixed $room): mixed {
+            if (! is_array($room)) {
+                return $room;
+            }
+
+            if (isset($room['amenities']) && is_array($room['amenities'])) {
+                $room['amenities'] = self::presentAmenities($room['amenities']);
+            }
+
+            return $room;
+        }, array_values($details['room_types']));
+
+        return $details;
     }
 
     /**

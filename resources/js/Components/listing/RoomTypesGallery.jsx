@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { resolveAmenityItem } from '@/utils/amenityIcons';
 import GalleryLightbox from './GalleryLightbox';
 import DetailSection from './DetailSection';
 
@@ -65,8 +66,21 @@ export function normalizeRoomTypes(roomTypes) {
                 : item.image || item.src || item.photo
                   ? [item.image || item.src || item.photo]
                   : [];
+            const amenities = Array.isArray(item.amenities)
+                ? item.amenities
+                      .map((entry) => resolveAmenityItem(entry))
+                      .filter(Boolean)
+                : [];
 
-            if (!title && !price && !description && !images.length) return null;
+            if (
+                !title &&
+                !price &&
+                !description &&
+                !images.length &&
+                !amenities.length
+            ) {
+                return null;
+            }
 
             return {
                 id: item.id || `room-${index}`,
@@ -74,6 +88,7 @@ export function normalizeRoomTypes(roomTypes) {
                 price,
                 description: description || null,
                 images,
+                amenities,
             };
         })
         .filter(Boolean);
@@ -102,6 +117,43 @@ function StripChevron({ direction }) {
 function RoomTypePanel({ room, onOpenImage, compact = false }) {
     const hasImages = room.images.length > 0;
     const hero = hasImages ? room.images[0] : null;
+    const amenities = room.amenities || [];
+    const description = (room.description || '').trim();
+    const aboutPreview = description.replace(/\s+/g, ' ').trim();
+    const descRef = useRef(null);
+    const [descExpanded, setDescExpanded] = useState(false);
+    const [descNeedsClamp, setDescNeedsClamp] = useState(false);
+    const [amenitiesOpen, setAmenitiesOpen] = useState(false);
+
+    useEffect(() => {
+        const el = descRef.current;
+        if (!el || !aboutPreview) {
+            setDescNeedsClamp(false);
+            return undefined;
+        }
+
+        const measure = () => {
+            if (descExpanded) {
+                return;
+            }
+            setDescNeedsClamp(el.scrollHeight > el.clientHeight + 1);
+        };
+
+        // Wait a frame so line-clamp height is applied before measuring.
+        const frame = window.requestAnimationFrame(measure);
+        const observer =
+            typeof ResizeObserver !== 'undefined'
+                ? new ResizeObserver(measure)
+                : null;
+        observer?.observe(el);
+        window.addEventListener('resize', measure);
+
+        return () => {
+            window.cancelAnimationFrame(frame);
+            observer?.disconnect();
+            window.removeEventListener('resize', measure);
+        };
+    }, [aboutPreview, description, descExpanded]);
 
     return (
         <article
@@ -135,7 +187,7 @@ function RoomTypePanel({ room, onOpenImage, compact = false }) {
                 </div>
             )}
 
-            <div className="flex flex-1 flex-col gap-2 px-4 py-4">
+            <div className="flex flex-1 flex-col gap-3 px-4 py-4">
                 <div className="flex items-start justify-between gap-3">
                     <h3 className="min-w-0 font-display text-lg font-semibold tracking-tight text-earth-dusk">
                         {room.title}
@@ -146,11 +198,93 @@ function RoomTypePanel({ room, onOpenImage, compact = false }) {
                         </p>
                     ) : null}
                 </div>
-                {room.description ? (
-                    <p className="whitespace-pre-wrap text-sm leading-relaxed text-olive-700">
-                        {room.description}
-                    </p>
-                ) : null}
+
+                <div>
+                    {aboutPreview ? (
+                        <p
+                            ref={descRef}
+                            className={`text-sm leading-relaxed text-olive-700 ${
+                                descExpanded
+                                    ? 'whitespace-pre-wrap'
+                                    : 'line-clamp-3 min-h-[4.5rem]'
+                            }`}
+                        >
+                            {descExpanded ? description : aboutPreview}
+                        </p>
+                    ) : (
+                        <p className="line-clamp-3 min-h-[4.5rem] text-sm leading-relaxed text-olive-400">
+                            No description yet.
+                        </p>
+                    )}
+                    {aboutPreview && (descNeedsClamp || descExpanded) ? (
+                        <button
+                            type="button"
+                            className="mt-1.5 inline-flex min-h-11 items-center text-sm font-semibold text-olive-900 underline decoration-olive-300 underline-offset-4 transition hover:decoration-mustard"
+                            aria-expanded={descExpanded}
+                            onClick={() => setDescExpanded((open) => !open)}
+                        >
+                            {descExpanded ? 'View less' : 'View more'}
+                        </button>
+                    ) : aboutPreview ? (
+                        <span
+                            className="mt-1.5 block min-h-11"
+                            aria-hidden="true"
+                        />
+                    ) : (
+                        <span
+                            className="mt-1.5 block min-h-11"
+                            aria-hidden="true"
+                        />
+                    )}
+                </div>
+
+                <div className="mt-auto border-t border-olive-900/10 pt-3">
+                    {amenities.length ? (
+                        <>
+                            <button
+                                type="button"
+                                className="inline-flex min-h-11 w-full items-center justify-between gap-3 rounded-sm border border-olive-900/15 bg-olive-50/70 px-3 text-left text-sm font-semibold text-olive-900 transition hover:border-olive-900/30 hover:bg-olive-50"
+                                aria-expanded={amenitiesOpen}
+                                onClick={() =>
+                                    setAmenitiesOpen((open) => !open)
+                                }
+                            >
+                                <span>
+                                    {amenitiesOpen
+                                        ? 'Hide amenities'
+                                        : 'View amenities'}
+                                </span>
+                                <span className="tabular-nums text-olive-500">
+                                    {amenities.length}
+                                </span>
+                            </button>
+                            {amenitiesOpen ? (
+                                <ul className="mt-3 grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
+                                    {amenities.map((amenity) => (
+                                        <li
+                                            key={
+                                                amenity.slug || amenity.name
+                                            }
+                                            className="flex min-w-0 items-start gap-2 text-sm font-medium leading-snug text-olive-800"
+                                        >
+                                            <span
+                                                className="mt-[0.55em] h-1.5 w-1.5 shrink-0 rounded-full bg-olive-700"
+                                                aria-hidden="true"
+                                            />
+                                            <span className="min-w-0">
+                                                {amenity.name}
+                                            </span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : null}
+                        </>
+                    ) : (
+                        <p className="text-sm text-olive-400">
+                            No room amenities listed.
+                        </p>
+                    )}
+                </div>
             </div>
         </article>
     );
@@ -158,7 +292,7 @@ function RoomTypePanel({ room, onOpenImage, compact = false }) {
 
 export default function RoomTypesGallery({
     roomTypes,
-    title = 'Rooms',
+    title = 'Room types',
 }) {
     const rooms = useMemo(
         () => normalizeRoomTypes(roomTypes),
@@ -246,12 +380,6 @@ export default function RoomTypesGallery({
     return (
         <>
             <DetailSection id="rooms" title={title}>
-                <p className="mb-4 max-w-prose text-sm leading-relaxed text-olive-600 sm:mb-5">
-                    {multi
-                        ? 'Swipe to compare room types. Tap a photo for a closer look.'
-                        : 'Tap a photo for a closer look.'}
-                </p>
-
                 {multi ? (
                     <div className="relative">
                         <ul
@@ -263,7 +391,7 @@ export default function RoomTypesGallery({
                                 <li
                                     key={room.id}
                                     data-room-panel
-                                    className="w-[min(85%,22rem)] shrink-0 snap-start sm:w-[min(48%,24rem)] lg:w-[min(40%,26rem)]"
+                                    className="w-[calc(100%-1.25rem)] shrink-0 snap-start sm:w-[calc(50%-0.375rem)]"
                                 >
                                     <RoomTypePanel
                                         room={room}

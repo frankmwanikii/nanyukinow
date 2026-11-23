@@ -66,7 +66,6 @@ class AdminListingMenuUploadTest extends TestCase
                         [
                             'title' => 'Lunch menu',
                             'images' => ['/storage/listings/editor/menu.webp'],
-                            'pdf' => '',
                         ],
                     ],
                 ], JSON_THROW_ON_ERROR),

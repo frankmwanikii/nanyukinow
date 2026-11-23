@@ -322,7 +322,7 @@ export function renderListingSection(key, listing) {
                 <RoomTypesGallery
                     key={key}
                     roomTypes={listing.roomTypes}
-                    title="Rooms"
+                    title="Room types"
                 />
             );
         case 'menus':

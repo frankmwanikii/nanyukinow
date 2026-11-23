@@ -2383,7 +2383,6 @@ export function getListingDetail(listing) {
             ? listing.details.menus.filter(
                   (m) =>
                       m?.title ||
-                      m?.pdf ||
                       m?.image ||
                       (Array.isArray(m?.images) && m.images.length),
               )
@@ -2402,6 +2401,7 @@ export function getListingDetail(listing) {
                                   price: '',
                                   description: '',
                                   images: [],
+                                  amenities: [],
                               }
                             : null;
                     }
@@ -2422,10 +2422,19 @@ export function getListingDetail(listing) {
                         : item.image
                           ? [item.image]
                           : [];
-                    if (!title && !price && !description && !images.length) {
+                    const amenities = Array.isArray(item.amenities)
+                        ? item.amenities
+                        : [];
+                    if (
+                        !title &&
+                        !price &&
+                        !description &&
+                        !images.length &&
+                        !amenities.length
+                    ) {
                         return null;
                     }
-                    return { title, price, description, images };
+                    return { title, price, description, images, amenities };
                 })
                 .filter(Boolean);
             return cards.length ? cards : null;

@@ -49,7 +49,9 @@ export default function AboutBlock({
     return (
         <DetailSection id={sectionId || undefined} title={title}>
             {body ? (
-                <MobileFadeExpand maxHeight={168}>{body}</MobileFadeExpand>
+                <MobileFadeExpand maxHeight={240} mobileOnly={false}>
+                    {body}
+                </MobileFadeExpand>
             ) : null}
             {docs?.length ? (
                 <div

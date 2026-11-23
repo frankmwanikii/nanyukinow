@@ -64,6 +64,7 @@ class StayTierFeaturesTest extends TestCase
                 'price' => '',
                 'description' => '',
                 'images' => [],
+                'amenities' => [],
             ],
             [
                 'title' => 'Deluxe room',
@@ -74,6 +75,28 @@ class StayTierFeaturesTest extends TestCase
                     '/storage/b.jpg',
                     '/storage/c.jpg',
                 ],
+                'amenities' => [],
+            ],
+        ], $normalized);
+    }
+
+    public function test_normalize_room_types_keeps_per_room_amenities(): void
+    {
+        $normalized = StayTierFeatures::normalizeRoomTypes([
+            [
+                'title' => 'Deluxe room',
+                'price' => 'KES 12,000 / night',
+                'amenities' => ['wifi', 'air-conditioning', 'wifi', '', ['slug' => 'minibar']],
+            ],
+        ], Membership::PREMIUM);
+
+        $this->assertSame([
+            [
+                'title' => 'Deluxe room',
+                'price' => 'KES 12,000 / night',
+                'description' => '',
+                'images' => [],
+                'amenities' => ['wifi', 'air-conditioning', 'minibar'],
             ],
         ], $normalized);
     }
@@ -238,12 +261,14 @@ class StayTierFeaturesTest extends TestCase
                 'price' => '',
                 'description' => '',
                 'images' => [],
+                'amenities' => [],
             ],
             [
                 'title' => 'Deluxe room',
                 'price' => '',
                 'description' => '',
                 'images' => [],
+                'amenities' => [],
             ],
         ], $listing->details['room_types'] ?? null);
         $this->assertArrayNotHasKey('check_in', $listing->details ?? []);

@@ -12,6 +12,9 @@ export default function AmenitiesPicker({
     categoryKey,
     onChange,
     onCreated,
+    inputId = 'amenity_search',
+    labelText = 'Amenities & features',
+    helpText = 'Click to browse popular amenities, or type to search / add your own.',
 }) {
     const [query, setQuery] = useState('');
     const [open, setOpen] = useState(false);
@@ -111,13 +114,13 @@ export default function AmenitiesPicker({
     return (
         <div className="space-y-4">
             <div ref={wrapRef}>
-                <label className={label} htmlFor="amenity_search">
-                    Amenities & features
+                <label className={label} htmlFor={inputId}>
+                    {labelText}
                 </label>
                 <div className="relative">
                     <Search className="pointer-events-none absolute left-3.5 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-olive-500" />
                     <input
-                        id="amenity_search"
+                        id={inputId}
                         className={`${field} pl-10 ${query.trim() && !exactMatch ? 'pr-24' : 'pr-3'}`}
                         value={query}
                         onChange={(e) => {
@@ -128,7 +131,7 @@ export default function AmenitiesPicker({
                         placeholder="Search or type a new amenity…"
                         autoComplete="off"
                         aria-expanded={showDropdown}
-                        aria-controls="amenity_suggestions"
+                        aria-controls={`${inputId}_suggestions`}
                         onKeyDown={(e) => {
                             if (e.key === 'Escape') {
                                 setOpen(false);
@@ -166,7 +169,7 @@ export default function AmenitiesPicker({
 
                     {showDropdown ? (
                         <div
-                            id="amenity_suggestions"
+                            id={`${inputId}_suggestions`}
                             role="listbox"
                             className="absolute left-0 right-0 top-[calc(100%+0.35rem)] z-30 max-h-64 overflow-y-auto rounded-2xl border border-olive-200/90 bg-white py-1.5 shadow-lift dark:border-olive-700 dark:bg-olive-900"
                         >
@@ -198,8 +201,7 @@ export default function AmenitiesPicker({
                                     No match in the library
                                     {query.trim() ? (
                                         <>
-                                            {' '}
-                                            — press{' '}
+                                            . Press{' '}
                                             <span className="font-semibold text-olive-800 dark:text-olive-200">
                                                 Add
                                             </span>{' '}
@@ -211,10 +213,7 @@ export default function AmenitiesPicker({
                         </div>
                     ) : null}
                 </div>
-                <p className={help}>
-                    Click to browse popular amenities, or type to search / add
-                    your own.
-                </p>
+                {helpText ? <p className={help}>{helpText}</p> : null}
             </div>
 
             {selected.length ? (

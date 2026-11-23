@@ -207,7 +207,7 @@ class EatDrinkTierFeatures
 
     /**
      * @param  list<mixed>  $menus
-     * @return list<array{title: string, images: list<string>, pdf: string}>
+     * @return list<array{title: string, images: list<string>}>
      */
     public static function normalizeMenus(array $menus, ?string $tier): array
     {
@@ -238,16 +238,14 @@ class EatDrinkTierFeatures
 
             $images = array_values(array_unique(array_slice($images, 0, $imageLimit)));
             $title = isset($item['title']) && is_string($item['title']) ? trim($item['title']) : '';
-            $pdf = isset($item['pdf']) && is_string($item['pdf']) ? trim($item['pdf']) : '';
 
-            if ($images === [] && $title === '' && $pdf === '') {
+            if ($images === [] && $title === '') {
                 continue;
             }
 
             $normalized[] = [
                 'title' => $title,
                 'images' => $images,
-                'pdf' => $pdf,
             ];
         }
 

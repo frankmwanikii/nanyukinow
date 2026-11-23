@@ -186,9 +186,38 @@ export function roomTypeItemImages(item) {
 }
 
 /**
+ * @param {unknown} value
+ * @returns {string[]}
+ */
+export function coerceRoomTypeAmenities(value) {
+    if (!Array.isArray(value)) {
+        return [];
+    }
+
+    const slugs = [];
+    for (const entry of value) {
+        let slug = '';
+        if (typeof entry === 'string') {
+            slug = entry.trim();
+        } else if (entry && typeof entry === 'object') {
+            slug = String(entry.slug || entry.key || '').trim();
+        }
+        if (!slug || slugs.includes(slug)) {
+            continue;
+        }
+        slugs.push(slug);
+        if (slugs.length >= 40) {
+            break;
+        }
+    }
+
+    return slugs;
+}
+
+/**
  * Coerce legacy string tags and partial objects into room-type cards.
  * @param {unknown} value
- * @returns {Array<{ title: string, price: string, description: string, images: string[] }>}
+ * @returns {Array<{ title: string, price: string, description: string, images: string[], amenities: string[] }>}
  */
 export function coerceRoomTypes(value) {
     if (!Array.isArray(value)) {
@@ -202,6 +231,7 @@ export function coerceRoomTypes(value) {
                     price: '',
                     description: '',
                     images: [],
+                    amenities: [],
                 }));
         }
         return [];
@@ -212,7 +242,13 @@ export function coerceRoomTypes(value) {
             if (typeof item === 'string') {
                 const title = item.trim();
                 return title
-                    ? { title, price: '', description: '', images: [] }
+                    ? {
+                          title,
+                          price: '',
+                          description: '',
+                          images: [],
+                          amenities: [],
+                      }
                     : null;
             }
             if (!item || typeof item !== 'object') return null;
@@ -222,8 +258,11 @@ export function coerceRoomTypes(value) {
                 item.description || item.note || item.summary || '',
             ).trim();
             const images = roomTypeItemImages(item);
-            if (!title && !price && !description && !images.length) return null;
-            return { title, price, description, images };
+            const amenities = coerceRoomTypeAmenities(item.amenities);
+
+            // Keep empty object drafts so "Add room type" rows stay editable
+            // in the form. Server-side normalize still drops blank rows on save.
+            return { title, price, description, images, amenities };
         })
         .filter(Boolean);
 }

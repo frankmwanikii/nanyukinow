@@ -1,3 +1,4 @@
+import AmenitiesPicker from './AmenitiesPicker';
 import MediaAddDialog from './MediaAddDialog';
 import RichTextEditor from './RichTextEditor';
 import { field, help, label } from './fieldStyles';
@@ -770,6 +771,8 @@ export default function CategoryExtrasEditor({
     uploadUrl = null,
     tier = 'free',
     isAdmin = false,
+    amenityOptions = [],
+    onAmenityCreated,
 }) {
     const [imageTarget, setImageTarget] = useState(null); // { list, index, key } — sponsors/products only
     const singleInputRef = useRef(null);
@@ -850,6 +853,7 @@ export default function CategoryExtrasEditor({
                         price: '',
                         description: '',
                         images: [],
+                        amenities: [],
                     },
                 ],
             };
@@ -988,22 +992,6 @@ export default function CategoryExtrasEditor({
                                         }
                                     />
                                 </div>
-                                <div>
-                                    <label className={label}>
-                                        PDF link (optional)
-                                    </label>
-                                    <input
-                                        className={field}
-                                        type="url"
-                                        value={item.pdf || ''}
-                                        onChange={(e) =>
-                                            updateItem('menus', index, {
-                                                pdf: e.target.value,
-                                            })
-                                        }
-                                        placeholder="https://…/menu.pdf"
-                                    />
-                                </div>
                             </li>
                         ))}
                     </ul>
@@ -1045,7 +1033,6 @@ export default function CategoryExtrasEditor({
                                 addItem('menus', {
                                     title: '',
                                     images: [],
-                                    pdf: '',
                                 })
                             }
                             className="inline-flex items-center gap-1.5 rounded-sm bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white"
@@ -1412,6 +1399,22 @@ export default function CategoryExtrasEditor({
                                         type.
                                     </p>
                                 </div>
+                                <AmenitiesPicker
+                                    amenities={amenityOptions}
+                                    selected={
+                                        Array.isArray(item.amenities)
+                                            ? item.amenities
+                                            : []
+                                    }
+                                    categoryKey={categoryKey}
+                                    inputId={`room-type-amenities-${index}`}
+                                    labelText="Room amenities"
+                                    helpText="Features for this room type only, separate from the property amenities."
+                                    onChange={(amenities) =>
+                                        patchRoomType(index, { amenities })
+                                    }
+                                    onCreated={onAmenityCreated}
+                                />
                                 <div>
                                     <p className={label}>Photos</p>
                                     <MenuImagesEditor

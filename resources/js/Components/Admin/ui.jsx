@@ -737,7 +737,7 @@ export function ActionIcon({ href, onClick, title, children, danger, external })
 }
 
 /** Icon overflow menu for table row actions. */
-export function ActionMenu({ label = 'Actions', items = [] }) {
+export function ActionMenu({ label = 'Actions', items = [], disabled = false }) {
     const [open, setOpen] = useState(false);
     const triggerRef = useRef(null);
     const menuRef = useRef(null);
@@ -815,16 +815,24 @@ export function ActionMenu({ label = 'Actions', items = [] }) {
                 aria-label={label}
                 aria-haspopup="menu"
                 aria-expanded={open}
-                title={label}
-                onClick={() => setOpen((v) => !v)}
-                className={`inline-flex h-9 w-9 items-center justify-center rounded-md border border-olive-200 bg-white text-olive-600 transition hover:bg-olive-50 hover:text-olive-950 dark:border-olive-700 dark:bg-olive-900 dark:text-olive-300 dark:hover:bg-olive-800 dark:hover:text-olive-50 ${
-                    open ? 'bg-olive-50 text-olive-950 dark:bg-olive-800 dark:text-olive-50' : ''
+                title={disabled ? 'Locked while another admin is editing' : label}
+                disabled={disabled}
+                onClick={() => {
+                    if (disabled) return;
+                    setOpen((v) => !v);
+                }}
+                className={`inline-flex h-9 w-9 items-center justify-center rounded-md border border-olive-200 bg-white text-olive-600 transition dark:border-olive-700 dark:bg-olive-900 dark:text-olive-300 ${
+                    disabled
+                        ? 'cursor-not-allowed opacity-40'
+                        : `hover:bg-olive-50 hover:text-olive-950 dark:hover:bg-olive-800 dark:hover:text-olive-50 ${
+                              open ? 'bg-olive-50 text-olive-950 dark:bg-olive-800 dark:text-olive-50' : ''
+                          }`
                 }`}
             >
                 <MoreVertical className="h-4 w-4" strokeWidth={1.5} />
             </button>
 
-            {open &&
+            {open && !disabled &&
                 createPortal(
                     <>
                         <button

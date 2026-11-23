@@ -149,9 +149,9 @@ export function eatDrinkMenuHelp(tier) {
     const perPage = eatDrinkMenuImagesPerPage(tier);
     const plan = tierDisplayLabel(tier);
     if (!pages) {
-        return 'Add menu pages with photos or a PDF link.';
+        return 'Add menu pages with photos.';
     }
-    return `${plan}: up to ${pages} menu pages, ${perPage} images each. Add a PDF link per page if you like.`;
+    return `${plan}: up to ${pages} menu pages, ${perPage} images each.`;
 }
 
 /** Normalize a menu item's image list (supports legacy single `image`). */

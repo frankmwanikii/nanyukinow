@@ -19,7 +19,7 @@ import {
     Th,
 } from '@/Components/Admin/ui';
 import { useConfirm } from '@/Components/ConfirmDialog';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import {
     CircleCheck,
     Clock,
@@ -30,6 +30,14 @@ import {
 } from '@/Components/site/LucideCompat';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+function isLockedByOther(listing, authUserId) {
+    const editorId = listing.editing_by?.id;
+    if (editorId == null || authUserId == null) {
+        return false;
+    }
+    return Number(editorId) !== Number(authUserId);
+}
+
 export default function Index({
     listings,
     filters,
@@ -39,6 +47,7 @@ export default function Index({
     stats = {},
 }) {
     const { confirm, dialog } = useConfirm();
+    const authUserId = usePage().props.auth?.user?.id;
     const [selected, setSelected] = useState([]);
     const [local, setLocal] = useState({
         q: filters.q || '',
@@ -52,8 +61,15 @@ export default function Index({
     });
     const skipDebounce = useRef(true);
 
-    const allIds = useMemo(() => listings.data.map((l) => l.id), [listings.data]);
-    const allSelected = allIds.length > 0 && selected.length === allIds.length;
+    const selectableIds = useMemo(
+        () =>
+            listings.data
+                .filter((listing) => !isLockedByOther(listing, authUserId))
+                .map((listing) => listing.id),
+        [listings.data, authUserId],
+    );
+    const allSelected =
+        selectableIds.length > 0 && selectableIds.every((id) => selected.includes(id));
 
     const applyCardFilter = (partial) => {
         const next = {
@@ -119,12 +135,28 @@ export default function Index({
     };
 
     const toggleOne = (id) => {
+        const listing = listings.data.find((row) => row.id === id);
+        if (listing && isLockedByOther(listing, authUserId)) {
+            return;
+        }
         setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
     };
 
     const toggleAll = () => {
-        setSelected(allSelected ? [] : allIds);
+        setSelected(allSelected ? [] : selectableIds);
     };
+
+    useEffect(() => {
+        setSelected((prev) =>
+            prev.filter((id) => {
+                const listing = listings.data.find((row) => row.id === id);
+                if (!listing) {
+                    return true;
+                }
+                return !isLockedByOther(listing, authUserId);
+            }),
+        );
+    }, [listings.data, authUserId]);
 
     const runBulk = async (action) => {
         if (!selected.length) return;
@@ -299,8 +331,9 @@ export default function Index({
                                     <input
                                         type="checkbox"
                                         checked={allSelected}
+                                        disabled={selectableIds.length === 0}
                                         onChange={toggleAll}
-                                        className="h-3.5 w-3.5 rounded border-olive-300 text-olive-800"
+                                        className="h-3.5 w-3.5 rounded border-olive-300 text-olive-800 disabled:cursor-not-allowed disabled:opacity-40"
                                     />
                                 </Th>
                                 <Th
@@ -359,20 +392,39 @@ export default function Index({
                         <tbody>
                             {listings.data.map((listing) => {
                                 const isSelected = selected.includes(listing.id);
+                                const lockedByOther = isLockedByOther(listing, authUserId);
                                 const editUrl = route('admin.listings.edit', listing.slug || listing.id);
+                                const openEdit = () => {
+                                    if (lockedByOther) {
+                                        return;
+                                    }
+                                    router.visit(editUrl);
+                                };
                                 return (
                                     <tr
                                         key={listing.id}
-                                        role="link"
-                                        tabIndex={0}
-                                        onClick={() => router.visit(editUrl)}
+                                        role={lockedByOther ? undefined : 'link'}
+                                        tabIndex={lockedByOther ? undefined : 0}
+                                        aria-disabled={lockedByOther ? true : undefined}
+                                        title={
+                                            listing.editing_by?.name
+                                                ? lockedByOther
+                                                    ? `Locked while ${listing.editing_by.name} is editing`
+                                                    : `Editing: ${listing.editing_by.name}`
+                                                : undefined
+                                        }
+                                        onClick={openEdit}
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter' || e.key === ' ') {
                                                 e.preventDefault();
-                                                router.visit(editUrl);
+                                                openEdit();
                                             }
                                         }}
-                                        className={`cursor-pointer transition hover:bg-olive-50/80 dark:hover:bg-olive-800/40 ${
+                                        className={`group transition ${
+                                            lockedByOther
+                                                ? 'cursor-not-allowed bg-olive-50/40 opacity-70 dark:bg-olive-900/20'
+                                                : 'cursor-pointer hover:bg-olive-50/80 dark:hover:bg-olive-800/40'
+                                        } ${
                                             isSelected
                                                 ? 'is-selected ring-1 ring-inset ring-olive-900/15 dark:ring-mustard/30'
                                                 : ''
@@ -385,8 +437,9 @@ export default function Index({
                                             <input
                                                 type="checkbox"
                                                 checked={isSelected}
+                                                disabled={lockedByOther}
                                                 onChange={() => toggleOne(listing.id)}
-                                                className="h-3.5 w-3.5 rounded border-olive-300 text-olive-800"
+                                                className="h-3.5 w-3.5 rounded border-olive-300 text-olive-800 disabled:cursor-not-allowed disabled:opacity-40"
                                                 aria-label={`Select ${listing.title}`}
                                             />
                                         </Td>
@@ -401,7 +454,7 @@ export default function Index({
                                                     title={listing.title}
                                                 />
                                                 {listing.editing_by?.name ? (
-                                                    <p className="mt-1.5 text-xs font-medium text-amber-800 dark:text-amber-200">
+                                                    <p className="mt-1.5 hidden text-xs font-medium text-amber-800 group-hover:block group-focus-within:block dark:text-amber-200">
                                                         Editing: {listing.editing_by.name}
                                                     </p>
                                                 ) : null}
@@ -439,6 +492,7 @@ export default function Index({
                                             onKeyDown={(e) => e.stopPropagation()}
                                         >
                                             <ActionMenu
+                                                disabled={lockedByOther}
                                                 items={[
                                                     {
                                                         label: 'Edit',

@@ -199,7 +199,7 @@ class StayTierFeatures
     /**
      * Coerce legacy string tags and rich cards into room-type rows.
      *
-     * @return list<array{title: string, price: string, description: string, images: list<string>}>
+     * @return list<array{title: string, price: string, description: string, images: list<string>, amenities: list<string>}>
      */
     public static function normalizeRoomTypes(mixed $roomTypes, ?string $tier): array
     {
@@ -230,6 +230,7 @@ class StayTierFeatures
                     'price' => '',
                     'description' => '',
                     'images' => [],
+                    'amenities' => [],
                 ];
 
                 continue;
@@ -278,7 +279,9 @@ class StayTierFeatures
                 $description = rtrim(mb_substr($description, 0, 500));
             }
 
-            if ($title === '' && $price === '' && $description === '' && $images === []) {
+            $amenities = self::normalizeRoomTypeAmenities($item['amenities'] ?? null);
+
+            if ($title === '' && $price === '' && $description === '' && $images === [] && $amenities === []) {
                 continue;
             }
 
@@ -287,10 +290,44 @@ class StayTierFeatures
                 'price' => $price,
                 'description' => $description,
                 'images' => $images,
+                'amenities' => $amenities,
             ];
         }
 
         return $normalized;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function normalizeRoomTypeAmenities(mixed $amenities): array
+    {
+        if (! is_array($amenities)) {
+            return [];
+        }
+
+        $slugs = [];
+
+        foreach ($amenities as $entry) {
+            $slug = '';
+            if (is_string($entry)) {
+                $slug = trim($entry);
+            } elseif (is_array($entry) && isset($entry['slug']) && is_string($entry['slug'])) {
+                $slug = trim($entry['slug']);
+            }
+
+            if ($slug === '' || in_array($slug, $slugs, true)) {
+                continue;
+            }
+
+            $slugs[] = $slug;
+
+            if (count($slugs) >= 40) {
+                break;
+            }
+        }
+
+        return $slugs;
     }
 
     /**

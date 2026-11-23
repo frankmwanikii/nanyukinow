@@ -1330,9 +1330,15 @@ export default function Form({
                                 editing this listing
                             </p>
                             <p className="mt-1 text-amber-900/80 dark:text-amber-100/80">
-                                You can view the page, but saving is locked until
-                                they leave or their session times out.
+                                Fields are blurred and locked for viewing only
+                                until they leave or their session times out.
                             </p>
+                            <Link
+                                href={route('admin.listings.index')}
+                                className="mt-3 inline-flex rounded-sm border border-amber-400/70 bg-white px-3.5 py-2 text-sm font-semibold text-amber-950 transition hover:bg-amber-100 dark:border-amber-600 dark:bg-amber-950 dark:text-amber-50 dark:hover:bg-amber-900"
+                            >
+                                Back to listings
+                            </Link>
                         </div>
                     ) : null}
                 </div>
@@ -1354,6 +1360,30 @@ export default function Form({
                         />
                     ) : null}
 
+                    <div
+                        className={
+                            editLockedByOther ? 'relative' : undefined
+                        }
+                    >
+                        {editLockedByOther ? (
+                            <div
+                                className="absolute inset-0 z-20 cursor-not-allowed rounded-sm bg-olive-50/25 dark:bg-olive-950/30"
+                                aria-hidden="true"
+                            />
+                        ) : null}
+                        <div
+                            className={
+                                editLockedByOther
+                                    ? 'pointer-events-none select-none blur-[2.5px] saturate-50'
+                                    : undefined
+                            }
+                            aria-disabled={
+                                editLockedByOther ? true : undefined
+                            }
+                            {...(editLockedByOther
+                                ? { inert: '' }
+                                : {})}
+                        >
                     {isAdmin && adminTab === 'advanced' ? (
                         <div className="space-y-4">
                             <AdminControls
@@ -1641,6 +1671,21 @@ export default function Form({
                                             uploadUrl={editorMediaUploadUrl}
                                             tier={listingTier}
                                             isAdmin={isAdmin}
+                                            amenityOptions={amenityOptions}
+                                            onAmenityCreated={(amenity) => {
+                                                setAmenityOptions((prev) => {
+                                                    if (
+                                                        prev.some(
+                                                            (a) =>
+                                                                a.slug ===
+                                                                amenity.slug,
+                                                        )
+                                                    ) {
+                                                        return prev;
+                                                    }
+                                                    return [amenity, ...prev];
+                                                });
+                                            }}
                                         />
                                         {categoryKey !== 'properties' &&
                                         categoryKey !== 'events' &&
@@ -2077,6 +2122,8 @@ export default function Form({
                     </form>
                         </>
                     )}
+                        </div>
+                    </div>
                 </div>
             )}
         </LayoutComponent>
