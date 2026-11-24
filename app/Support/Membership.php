@@ -114,8 +114,26 @@ class Membership
         };
     }
 
+    /**
+     * Admins may create listings on any plan tier.
+     *
+     * @return list<string>
+     */
+    public static function allowedTiersFor(User $user): array
+    {
+        if ($user->is_admin) {
+            return [self::FREE, self::STANDARD, self::PREMIUM];
+        }
+
+        return self::allowedTiers($user->effectivePlan());
+    }
+
     public static function canCreateListing(User $user): bool
     {
+        if ($user->is_admin) {
+            return true;
+        }
+
         $limit = self::listingLimit($user->effectivePlan());
 
         return self::activeListingCount($user) < $limit;
@@ -123,6 +141,10 @@ class Membership
 
     public static function remainingSlots(User $user): int
     {
+        if ($user->is_admin) {
+            return PHP_INT_MAX;
+        }
+
         $limit = self::listingLimit($user->effectivePlan());
 
         return max(0, $limit - self::activeListingCount($user));
@@ -141,7 +163,7 @@ class Membership
 
     public static function canUseTier(User $user, string $tier): bool
     {
-        return in_array(self::normalize($tier), self::allowedTiers($user->effectivePlan()), true);
+        return in_array(self::normalize($tier), self::allowedTiersFor($user), true);
     }
 
     /**
@@ -588,6 +610,7 @@ class Membership
     {
         $plan = $user->effectivePlan();
         $renewPlan = self::renewPlanFor($user);
+        $unlimitedListings = (bool) $user->is_admin;
         $limit = self::listingLimit($plan);
         $used = self::activeListingCount($user);
         $startedAt = $user->plan_started_at;
@@ -637,11 +660,12 @@ class Membership
             'key' => $plan,
             'label' => $label,
             'badge_label' => $isTrial ? 'Premium trial' : self::badgeLabel($displayPlan),
-            'listing_limit' => $limit,
+            'listing_limit' => $unlimitedListings ? null : $limit,
             'listings_used' => $used,
-            'listings_remaining' => max(0, $limit - $used),
-            'can_create' => $used < $limit,
-            'allowed_tiers' => self::allowedTiers($plan),
+            'listings_remaining' => $unlimitedListings ? null : max(0, $limit - $used),
+            'unlimited_listings' => $unlimitedListings,
+            'can_create' => $unlimitedListings || $used < $limit,
+            'allowed_tiers' => self::allowedTiersFor($user),
             'billing_period' => $isPaid && ! $isTrial ? self::billingPeriodFor($user, $plan) : $renewBillingPeriod,
             'started_at' => $startedAt?->toIso8601String(),
             'expires_at' => $expiresAt?->toIso8601String(),

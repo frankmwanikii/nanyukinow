@@ -91,7 +91,9 @@ export default function Index({ plan, listings = [] }) {
                                     Your listings
                                 </h2>
                                 <p className="mt-0.5 text-sm text-olive-600 dark:text-olive-400">
-                                    {plan.listings_used}/{plan.listing_limit} used
+                                    {plan.unlimited_listings
+                                        ? `${plan.listings_used} used · Unlimited`
+                                        : `${plan.listings_used}/${plan.listing_limit} used`}
                                 </p>
                             </div>
                         </div>
@@ -120,9 +122,9 @@ export default function Index({ plan, listings = [] }) {
                                 No listings yet
                             </p>
                             <p className="mx-auto mt-1 max-w-sm text-sm text-olive-600 dark:text-olive-400">
-                                Your plan includes {plan.listing_limit} listing
-                                {plan.listing_limit === 1 ? '' : 's'}. Submit one for review to go
-                                live.
+                                {plan.unlimited_listings
+                                    ? 'Admins can add as many listings as needed. Submit one for review to go live.'
+                                    : `Your plan includes ${plan.listing_limit} listing${plan.listing_limit === 1 ? '' : 's'}. Submit one for review to go live.`}
                             </p>
                             {plan.can_create ? (
                                 <Link

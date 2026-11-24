@@ -7,6 +7,7 @@ use App\Models\Listing;
 use App\Models\ListingClaim;
 use App\Models\ListingReport;
 use App\Models\PlanUpgrade;
+use App\Models\SupportTicket;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Throwable;
@@ -61,6 +62,14 @@ class AdminNotifications
                     ->count(),
             );
 
+            $openTickets = (int) Cache::remember(
+                'admin.badge.open_tickets',
+                30,
+                fn () => SupportTicket::query()
+                    ->where('status', SupportTicket::STATUS_OPEN)
+                    ->count(),
+            );
+
             $alerts = array_values(array_filter([
                 self::alert(
                     'pending-listings',
@@ -88,6 +97,15 @@ class AdminNotifications
                         : "{$pendingReports} listing reports open",
                     'Reports filed from the public site',
                     route('admin.reports.index'),
+                ),
+                self::alert(
+                    'open-tickets',
+                    $openTickets,
+                    $openTickets === 1
+                        ? '1 support ticket open'
+                        : "{$openTickets} support tickets open",
+                    'Member concerns waiting for a reply',
+                    route('admin.tickets.index', ['status' => 'open']),
                 ),
                 self::alert(
                     'pending-upgrades',

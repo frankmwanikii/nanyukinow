@@ -44,11 +44,14 @@ export default function Index({
     categories,
     statuses,
     tiers,
+    owners = [],
     stats = {},
 }) {
     const { confirm, dialog } = useConfirm();
     const authUserId = usePage().props.auth?.user?.id;
     const [selected, setSelected] = useState([]);
+    const [assignUserId, setAssignUserId] = useState('');
+    const [ownerQuery, setOwnerQuery] = useState('');
     const [local, setLocal] = useState({
         q: filters.q || '',
         status: filters.status || '',
@@ -60,6 +63,15 @@ export default function Index({
         per_page: filters.per_page || 15,
     });
     const skipDebounce = useRef(true);
+
+    const filteredOwners = useMemo(() => {
+        const needle = ownerQuery.trim().toLowerCase();
+        if (!needle) return owners;
+        return owners.filter((owner) => {
+            const haystack = `${owner.name || ''} ${owner.email || ''}`.toLowerCase();
+            return haystack.includes(needle);
+        });
+    }, [owners, ownerQuery]);
 
     const selectableIds = useMemo(
         () =>
@@ -158,7 +170,7 @@ export default function Index({
         );
     }, [listings.data, authUserId]);
 
-    const runBulk = async (action) => {
+    const runBulk = async (action, extra = {}) => {
         if (!selected.length) return;
         if (action === 'delete') {
             const ok = await confirm({
@@ -168,9 +180,35 @@ export default function Index({
             });
             if (!ok) return;
         }
-        router.post(route('admin.listings.bulk'), { ids: selected, action }, {
-            onSuccess: () => setSelected([]),
-        });
+        if (action === 'assign') {
+            if (!assignUserId) return;
+            const owner = owners.find(
+                (row) => String(row.id) === String(assignUserId),
+            );
+            const ok = await confirm({
+                title: 'Assign listings?',
+                message: `Assign ${selected.length} selected listing${selected.length === 1 ? '' : 's'} to ${owner?.name || 'this member'}?`,
+                confirmLabel: 'Assign',
+            });
+            if (!ok) return;
+        }
+        router.post(
+            route('admin.listings.bulk'),
+            { ids: selected, action, ...extra },
+            {
+                onSuccess: () => {
+                    setSelected([]);
+                    if (action === 'assign') {
+                        setAssignUserId('');
+                        setOwnerQuery('');
+                    }
+                },
+            },
+        );
+    };
+
+    const assignSelected = () => {
+        runBulk('assign', { user_id: Number(assignUserId) });
     };
 
     return (
@@ -283,17 +321,92 @@ export default function Index({
 
             {selected.length > 0 && (
                 <div className="sticky top-0 z-20 -mx-4 mb-3 border-b border-olive-200 bg-olive-50/95 px-4 py-2.5 backdrop-blur-sm sm:-mx-6 sm:px-6 dark:border-olive-800 dark:bg-olive-950/95">
-                    <div className="flex flex-wrap items-center gap-2 border border-olive-200 bg-white px-3 py-2 text-sm dark:border-olive-700 dark:bg-olive-900">
-                        <span className="text-xs font-semibold text-olive-800 dark:text-olive-100">{selected.length} selected</span>
-                        <AdminButton size="sm" variant="secondary" onClick={() => runBulk('publish')}>Publish</AdminButton>
-                        <AdminButton size="sm" variant="secondary" onClick={() => runBulk('unpublish')}>Unpublish</AdminButton>
-                        <AdminButton size="sm" variant="secondary" onClick={() => runBulk('feature')}>Feature</AdminButton>
-                        <AdminButton size="sm" variant="secondary" onClick={() => runBulk('promote')}>Promote</AdminButton>
-                        <AdminButton size="sm" variant="secondary" onClick={() => runBulk('unpromote')}>Unpromote</AdminButton>
-                        <AdminButton size="sm" variant="secondary" onClick={() => runBulk('archive')}>Archive</AdminButton>
-                        <AdminButton size="sm" variant="danger" onClick={() => runBulk('delete')}>
-                            <Trash2 className="h-3.5 w-3.5" /> Delete
-                        </AdminButton>
+                    <div className="space-y-2 border border-olive-200 bg-white px-3 py-2.5 text-sm dark:border-olive-700 dark:bg-olive-900">
+                        <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-xs font-semibold text-olive-800 dark:text-olive-100">
+                                {selected.length} selected
+                            </span>
+                            <AdminButton
+                                size="sm"
+                                variant="secondary"
+                                onClick={() => runBulk('publish')}
+                            >
+                                Publish
+                            </AdminButton>
+                            <AdminButton
+                                size="sm"
+                                variant="secondary"
+                                onClick={() => runBulk('unpublish')}
+                            >
+                                Unpublish
+                            </AdminButton>
+                            <AdminButton
+                                size="sm"
+                                variant="secondary"
+                                onClick={() => runBulk('feature')}
+                            >
+                                Feature
+                            </AdminButton>
+                            <AdminButton
+                                size="sm"
+                                variant="secondary"
+                                onClick={() => runBulk('promote')}
+                            >
+                                Promote
+                            </AdminButton>
+                            <AdminButton
+                                size="sm"
+                                variant="secondary"
+                                onClick={() => runBulk('unpromote')}
+                            >
+                                Unpromote
+                            </AdminButton>
+                            <AdminButton
+                                size="sm"
+                                variant="secondary"
+                                onClick={() => runBulk('archive')}
+                            >
+                                Archive
+                            </AdminButton>
+                            <AdminButton
+                                size="sm"
+                                variant="danger"
+                                onClick={() => runBulk('delete')}
+                            >
+                                <Trash2 className="h-3.5 w-3.5" /> Delete
+                            </AdminButton>
+                        </div>
+                        <div className="flex flex-col gap-2 border-t border-olive-100 pt-2 sm:flex-row sm:flex-wrap sm:items-end dark:border-olive-800">
+                            <AdminInput
+                                label="Find member"
+                                value={ownerQuery}
+                                onChange={(e) => setOwnerQuery(e.target.value)}
+                                placeholder="Name or email…"
+                                className="min-w-[160px] flex-1 sm:max-w-[220px]"
+                            />
+                            <AdminSelect
+                                label="Assign owner"
+                                value={assignUserId}
+                                onChange={(e) => setAssignUserId(e.target.value)}
+                                className="min-w-[200px] flex-1 sm:max-w-xs"
+                            >
+                                <option value="">Choose member…</option>
+                                {filteredOwners.map((owner) => (
+                                    <option key={owner.id} value={owner.id}>
+                                        {owner.name}
+                                        {owner.email ? ` (${owner.email})` : ''}
+                                    </option>
+                                ))}
+                            </AdminSelect>
+                            <AdminButton
+                                size="sm"
+                                onClick={assignSelected}
+                                disabled={!assignUserId}
+                                className="sm:mb-0.5"
+                            >
+                                Assign to member
+                            </AdminButton>
+                        </div>
                     </div>
                 </div>
             )}

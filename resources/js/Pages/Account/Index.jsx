@@ -149,7 +149,9 @@ export default function Index({
                             <ListMark className="h-5 w-5 text-olive-700 dark:text-olive-300" />
                             {plan.listings_used}
                             <span className="text-base font-normal text-olive-500 dark:text-olive-500">
-                                /{plan.listing_limit}
+                                {plan.unlimited_listings
+                                    ? ' · Unlimited'
+                                    : `/${plan.listing_limit}`}
                             </span>
                         </p>
                     </MetricCard>

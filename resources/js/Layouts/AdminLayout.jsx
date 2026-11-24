@@ -18,6 +18,7 @@ import {
     Search,
     LogOut,
     MessagesSquare,
+    Ticket,
 } from '@/Components/site/LucideCompat';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AdminThemeProvider, useAdminTheme } from '@/hooks/useAdminTheme';
@@ -48,6 +49,12 @@ const navSections = [
                 href: 'admin.messages.index',
                 icon: MessagesSquare,
                 badgeKey: 'inboxMessages',
+            },
+            {
+                label: 'Tickets',
+                href: 'admin.tickets.index',
+                icon: Ticket,
+                badgeKey: 'openTickets',
             },
         ],
     },
@@ -87,6 +94,7 @@ function isAdminNavActive(href) {
         'admin.locations.index': ['admin.locations.*'],
         'admin.users.index': ['admin.users.*'],
         'admin.messages.index': ['admin.messages.*'],
+        'admin.tickets.index': ['admin.tickets.*'],
         'admin.pricing.index': ['admin.pricing.*'],
         'admin.finance.index': ['admin.finance.*', 'admin.upgrades.*'],
         'admin.pages.index': ['admin.pages.*'],
@@ -106,6 +114,9 @@ function adminNavBadge(item, counts) {
     }
     if (item.badgeKey === 'inboxMessages') {
         return Number(counts.inboxMessages) || 0;
+    }
+    if (item.badgeKey === 'openTickets') {
+        return Number(counts.openTickets) || 0;
     }
     return 0;
 }
@@ -442,6 +453,7 @@ function AdminShell({ children }) {
         pendingClaims = 0,
         pendingReports = 0,
         inboxMessages = 0,
+        openTickets = 0,
     } = usePage().props;
     const [open, setOpen] = useState(false);
     const { isDark } = useAdminTheme();
@@ -527,6 +539,7 @@ function AdminShell({ children }) {
                                                 pendingClaims,
                                                 pendingReports,
                                                 inboxMessages,
+                                                openTickets,
                                             });
                                             const active = isAdminNavActive(item.href);
 

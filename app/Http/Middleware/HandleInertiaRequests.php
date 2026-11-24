@@ -6,6 +6,7 @@ use App\Models\Conversation;
 use App\Models\ListingClaim;
 use App\Models\ListingReport;
 use App\Models\SiteSetting;
+use App\Models\SupportTicket;
 use App\Support\AdminNotifications;
 use App\Support\CategoryTaxonomy;
 use App\Support\MemberMessages;
@@ -230,6 +231,19 @@ class HandleInertiaRequests extends Middleware
                 try {
                     return Cache::remember('admin.badge.inbox_messages', 30, fn () => Conversation::query()
                         ->where('admin_status', 'new')
+                        ->count());
+                } catch (Throwable) {
+                    return 0;
+                }
+            },
+            'openTickets' => function () use ($request) {
+                if (! $request->user()?->is_admin) {
+                    return 0;
+                }
+
+                try {
+                    return (int) Cache::remember('admin.badge.open_tickets', 30, fn () => SupportTicket::query()
+                        ->where('status', SupportTicket::STATUS_OPEN)
                         ->count());
                 } catch (Throwable) {
                     return 0;

@@ -155,6 +155,18 @@ export function StatusBadge({ status, className = '' }) {
             shell: 'bg-slate-100 text-slate-500 dark:bg-slate-800/60 dark:text-slate-400',
             label: 'Cancelled',
         },
+        open: {
+            shell: 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-200',
+            label: 'Open',
+        },
+        answered: {
+            shell: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200',
+            label: 'Answered',
+        },
+        closed: {
+            shell: 'bg-slate-100 text-slate-500 dark:bg-slate-800/60 dark:text-slate-400',
+            label: 'Closed',
+        },
     };
 
     const tone = map[status] || {

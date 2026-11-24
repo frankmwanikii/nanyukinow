@@ -72,7 +72,7 @@ class ListingController extends Controller
             'amenities' => $this->amenitiesPayload(),
             'stayGallerySpaces' => $this->stayGallerySpacesPayload(),
             'plan' => Membership::planSummary($user),
-            'allowedTiers' => Membership::allowedTiers($user->effectivePlan()),
+            'allowedTiers' => Membership::allowedTiersFor($user),
             'isDraft' => (bool) $draft,
         ]);
     }
@@ -195,7 +195,7 @@ class ListingController extends Controller
             'amenities' => $this->amenitiesPayload(),
             'stayGallerySpaces' => $this->stayGallerySpacesPayload(),
             'plan' => Membership::planSummary($request->user()),
-            'allowedTiers' => Membership::allowedTiers($request->user()->effectivePlan()),
+            'allowedTiers' => Membership::allowedTiersFor($request->user()),
             'isDraft' => $listing->status === 'draft',
         ]);
     }

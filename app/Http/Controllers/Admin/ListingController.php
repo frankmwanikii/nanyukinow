@@ -129,6 +129,16 @@ class ListingController extends Controller
             'categories' => Category::query()->orderBy('sort_order')->orderBy('name')->get(['id', 'name']),
             'statuses' => ['draft', 'pending', 'published', 'expired', 'archived'],
             'tiers' => ['free', 'featured', 'premium'],
+            'owners' => User::query()
+                ->orderBy('name')
+                ->get(['id', 'name', 'email'])
+                ->map(fn (User $user) => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                ])
+                ->values()
+                ->all(),
         ]);
     }
 
@@ -346,7 +356,8 @@ class ListingController extends Controller
         $data = $request->validate([
             'ids' => ['required', 'array'],
             'ids.*' => ['integer', 'exists:listings,id'],
-            'action' => ['required', 'in:publish,unpublish,feature,unfeature,promote,unpromote,delete,archive'],
+            'action' => ['required', 'in:publish,unpublish,feature,unfeature,promote,unpromote,delete,archive,assign'],
+            'user_id' => ['required_if:action,assign', 'nullable', 'integer', 'exists:users,id'],
         ]);
 
         $ids = array_values(array_map('intval', $data['ids']));
@@ -375,6 +386,10 @@ class ListingController extends Controller
                     $listing->user->notify(new ListingReviewedNotification($listing, 'published'));
                 }
             }
+        } elseif ($data['action'] === 'assign') {
+            $ownerId = (int) $data['user_id'];
+            $owner = User::query()->findOrFail($ownerId);
+            $query->update(['user_id' => $owner->id]);
         } else {
             match ($data['action']) {
                 'unpublish' => $query->update(['is_published' => false, 'status' => 'draft']),
@@ -398,6 +413,19 @@ class ListingController extends Controller
                 'delete' => $query->delete(),
                 default => null,
             };
+        }
+
+        if ($data['action'] === 'assign') {
+            $assigned = count($allowedIds);
+            $message = $assigned === 1
+                ? '1 listing assigned to '.$owner->name.'.'
+                : $assigned.' listings assigned to '.$owner->name.'.';
+
+            if ($skipped > 0) {
+                $message .= ' '.$skipped.' listing'.($skipped === 1 ? ' was' : 's were').' skipped because another admin is editing.';
+            }
+
+            return back()->with('success', $message);
         }
 
         if ($skipped > 0) {

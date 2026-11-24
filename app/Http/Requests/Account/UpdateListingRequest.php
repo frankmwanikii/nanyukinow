@@ -23,7 +23,7 @@ class UpdateListingRequest extends FormRequest
      */
     public function rules(): array
     {
-        $allowed = Membership::allowedTiers($this->user()->effectivePlan());
+        $allowed = Membership::allowedTiersFor($this->user());
 
         return [
             'title' => ['required', 'string', 'max:160'],

@@ -131,7 +131,9 @@ function MembershipPanel({ membership, stats }) {
                         <p className="mt-1 font-display text-2xl font-bold tabular-nums text-olive-950 dark:text-white">
                             {membership?.listings_used ?? 0}
                             <span className="text-base font-semibold text-olive-400">
-                                /{membership?.listing_limit ?? 0}
+                                {membership?.unlimited_listings
+                                    ? ' · Unlimited'
+                                    : `/${membership?.listing_limit ?? 0}`}
                             </span>
                         </p>
                     </div>

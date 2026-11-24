@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SearchController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\StoryController;
+use App\Http\Controllers\Admin\SupportTicketController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -105,6 +106,15 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('messages/star', [MessageController::class, 'star'])->name('messages.star');
         Route::post('messages/label', [MessageController::class, 'label'])->name('messages.label');
         Route::post('messages/delete', [MessageController::class, 'destroy'])->name('messages.destroy');
+
+        Route::get('tickets', [SupportTicketController::class, 'index'])->name('tickets.index');
+        Route::get('tickets/{ticket}', [SupportTicketController::class, 'show'])->name('tickets.show');
+        Route::post('tickets/{ticket}/reply', [SupportTicketController::class, 'reply'])->name('tickets.reply');
+        Route::post('tickets/{ticket}/close', [SupportTicketController::class, 'close'])->name('tickets.close');
+        Route::post('tickets/{ticket}/reopen', [SupportTicketController::class, 'reopen'])->name('tickets.reopen');
+        Route::delete('tickets/{ticket}', [SupportTicketController::class, 'destroy'])->name('tickets.destroy');
+        Route::get('tickets/{ticket}/attachment', [SupportTicketController::class, 'downloadAttachment'])
+            ->name('tickets.attachment');
 
         Route::get('stories', [StoryController::class, 'index'])->name('stories.index');
         Route::get('stories/create', [StoryController::class, 'create'])->name('stories.create');

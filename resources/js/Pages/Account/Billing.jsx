@@ -290,12 +290,15 @@ export default function Billing({ plan, pendingUpgrade = null, history = [] }) {
                             <p className="mt-3 font-display text-3xl font-semibold tabular-nums text-olive-950 dark:text-olive-50">
                                 {plan.listings_used}
                                 <span className="text-base font-normal text-olive-500 dark:text-olive-500">
-                                    /{plan.listing_limit}
+                                    {plan.unlimited_listings
+                                        ? ' · Unlimited'
+                                        : `/${plan.listing_limit}`}
                                 </span>
                             </p>
                             <p className="mt-1 text-xs text-olive-600 dark:text-olive-400">
-                                {plan.listings_remaining} slot
-                                {plan.listings_remaining === 1 ? '' : 's'} remaining
+                                {plan.unlimited_listings
+                                    ? 'Admin accounts have no listing slot limit.'
+                                    : `${plan.listings_remaining} slot${plan.listings_remaining === 1 ? '' : 's'} remaining`}
                             </p>
                         </div>
                     </div>

@@ -6,6 +6,7 @@ use Database\Factories\SupportTicketFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Cache;
 
 class SupportTicket extends Model
 {
@@ -64,6 +65,14 @@ class SupportTicket extends Model
             'answered_at' => 'datetime',
             'closed_at' => 'datetime',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        $forget = fn () => Cache::forget('admin.badge.open_tickets');
+
+        static::saved($forget);
+        static::deleted($forget);
     }
 
     public function hasAttachment(): bool
@@ -127,6 +136,49 @@ class SupportTicket extends Model
             'status' => $this->status,
             'status_label' => self::statusLabel($this->status),
             'admin_reply' => $this->admin_reply,
+            'answered_at' => $this->answered_at?->toIso8601String(),
+            'closed_at' => $this->closed_at?->toIso8601String(),
+            'created_at' => $this->created_at?->toIso8601String(),
+            'updated_at' => $this->updated_at?->toIso8601String(),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function toAdminArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'reference' => $this->reference(),
+            'subject' => $this->subject,
+            'body' => $this->body,
+            'has_attachment' => $this->hasAttachment(),
+            'attachment' => $this->hasAttachment() ? [
+                'name' => $this->attachment_name,
+                'mime' => $this->attachment_mime,
+                'size' => $this->attachment_size,
+                'url' => route('admin.tickets.attachment', $this),
+                'preview_url' => str_starts_with((string) $this->attachment_mime, 'image/')
+                    || preg_match('/\.(jpe?g|png|webp|gif)$/i', (string) $this->attachment_name) === 1
+                        ? route('admin.tickets.attachment', ['ticket' => $this, 'inline' => 1])
+                        : null,
+            ] : null,
+            'priority' => $this->priority,
+            'priority_label' => self::priorityLabel($this->priority),
+            'status' => $this->status,
+            'status_label' => self::statusLabel($this->status),
+            'admin_reply' => $this->admin_reply,
+            'user_id' => $this->user_id,
+            'user' => $this->user ? [
+                'id' => $this->user->id,
+                'name' => $this->user->name,
+                'email' => $this->user->email,
+            ] : null,
+            'reviewer' => $this->reviewer ? [
+                'id' => $this->reviewer->id,
+                'name' => $this->reviewer->name,
+            ] : null,
             'answered_at' => $this->answered_at?->toIso8601String(),
             'closed_at' => $this->closed_at?->toIso8601String(),
             'created_at' => $this->created_at?->toIso8601String(),
