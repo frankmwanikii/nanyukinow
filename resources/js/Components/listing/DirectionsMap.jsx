@@ -171,6 +171,36 @@ function MapCanvas({
     );
 }
 
+/** Google Maps route line blue (familiar directions look). */
+const ROUTE_STROKE = '#4285F4';
+
+async function ensureGoogleDirections(maps) {
+    if (
+        typeof maps?.DirectionsService === 'function' &&
+        typeof maps?.DirectionsRenderer === 'function'
+    ) {
+        return maps;
+    }
+
+    if (typeof maps?.importLibrary === 'function') {
+        const routes = await maps.importLibrary('routes');
+        if (routes && typeof routes === 'object') {
+            Object.assign(maps, routes);
+            if (routes.DirectionsService && !maps.DirectionsService) {
+                maps.DirectionsService = routes.DirectionsService;
+            }
+            if (routes.DirectionsRenderer && !maps.DirectionsRenderer) {
+                maps.DirectionsRenderer = routes.DirectionsRenderer;
+            }
+            if (routes.TravelMode && !maps.TravelMode) {
+                maps.TravelMode = routes.TravelMode;
+            }
+        }
+    }
+
+    return maps;
+}
+
 export default function DirectionsMap({ listing }) {
     const provider = useMapProvider();
     const sharedMapsKey = useMapsApiKey();
@@ -178,6 +208,8 @@ export default function DirectionsMap({ listing }) {
     const mapRef = useRef(null);
     const mapsLibRef = useRef(null);
     const userMarkerRef = useRef(null);
+    const directionsRendererRef = useRef(null);
+    const routeLayerRef = useRef(null);
     const googleKey = getMapsApiKey(sharedMapsKey);
     const [status, setStatus] = useState('loading');
     const [userLocation, setUserLocation] = useState(null);
@@ -186,6 +218,19 @@ export default function DirectionsMap({ listing }) {
 
     const { lat, lng } = resolveLatLng(listing);
     const hasCoords = lat !== null && lng !== null;
+
+    const clearRoute = useCallback(() => {
+        if (directionsRendererRef.current) {
+            directionsRendererRef.current.setMap(null);
+            directionsRendererRef.current = null;
+        }
+        if (routeLayerRef.current) {
+            if (routeLayerRef.current.remove) {
+                routeLayerRef.current.remove();
+            }
+            routeLayerRef.current = null;
+        }
+    }, []);
 
     const clearUserMarker = useCallback(() => {
         const marker = userMarkerRef.current;
@@ -251,7 +296,6 @@ export default function DirectionsMap({ listing }) {
                         interactive: false,
                     }).addTo(map);
                 }
-                fitUserAndDest(userLat, userLng);
                 return;
             }
 
@@ -275,9 +319,109 @@ export default function DirectionsMap({ listing }) {
                     zIndex: 1000,
                 });
             }
-            fitUserAndDest(userLat, userLng);
         },
-        [clearUserMarker, fitUserAndDest, provider],
+        [clearUserMarker, provider],
+    );
+
+    const drawRouteToListing = useCallback(
+        async (userLat, userLng) => {
+            const map = mapRef.current;
+            if (!map || userLat == null || userLng == null || lat == null || lng == null) {
+                return;
+            }
+
+            if (provider === 'leaflet') {
+                clearRoute();
+                try {
+                    const url =
+                        `https://router.project-osrm.org/route/v1/driving/` +
+                        `${userLng},${userLat};${lng},${lat}` +
+                        `?overview=full&geometries=geojson`;
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        throw new Error('Route request failed');
+                    }
+                    const data = await response.json();
+                    const geometry = data?.routes?.[0]?.geometry?.coordinates;
+                    if (data?.code !== 'Ok' || !Array.isArray(geometry) || geometry.length < 2) {
+                        throw new Error('No route');
+                    }
+                    const latLngs = geometry.map(([x, y]) => [y, x]);
+                    const line = L.polyline(latLngs, {
+                        color: ROUTE_STROKE,
+                        weight: 5,
+                        opacity: 0.9,
+                        lineJoin: 'round',
+                        lineCap: 'round',
+                    }).addTo(map);
+                    routeLayerRef.current = line;
+                    map.fitBounds(line.getBounds().pad(0.18), { maxZoom: 15 });
+                    setLocateMessage('Route drawn from where you are.');
+                } catch {
+                    fitUserAndDest(userLat, userLng);
+                    setLocateMessage(
+                        'Could not draw a route. You can still open directions.',
+                    );
+                }
+                return;
+            }
+
+            const maps = mapsLibRef.current;
+            if (!maps) {
+                return;
+            }
+
+            try {
+                await ensureGoogleDirections(maps);
+                if (
+                    typeof maps.DirectionsService !== 'function' ||
+                    typeof maps.DirectionsRenderer !== 'function'
+                ) {
+                    throw new Error('Directions unavailable');
+                }
+
+                const service = new maps.DirectionsService();
+                if (!directionsRendererRef.current) {
+                    directionsRendererRef.current = new maps.DirectionsRenderer({
+                        map,
+                        suppressMarkers: true,
+                        preserveViewport: false,
+                        polylineOptions: {
+                            strokeColor: ROUTE_STROKE,
+                            strokeOpacity: 0.9,
+                            strokeWeight: 5,
+                        },
+                    });
+                } else {
+                    directionsRendererRef.current.setMap(map);
+                }
+
+                service.route(
+                    {
+                        origin: { lat: userLat, lng: userLng },
+                        destination: { lat, lng },
+                        travelMode: maps.TravelMode?.DRIVING || 'DRIVING',
+                    },
+                    (result, routeStatus) => {
+                        if (routeStatus === 'OK' && result) {
+                            directionsRendererRef.current.setDirections(result);
+                            setLocateMessage('Route drawn from where you are.');
+                            return;
+                        }
+                        fitUserAndDest(userLat, userLng);
+                        setLocateMessage(
+                            'Could not draw a route. You can still open directions.',
+                        );
+                    },
+                );
+            } catch {
+                fitUserAndDest(userLat, userLng);
+                setLocateMessage(
+                    'Could not draw a route. You can still open directions.',
+                );
+            }
+        },
+        [clearRoute, fitUserAndDest, lat, lng, provider],
     );
 
     const handleLocate = useCallback(() => {
@@ -294,16 +438,15 @@ export default function DirectionsMap({ listing }) {
             (position) => {
                 const userLat = Number(position.coords.latitude.toFixed(7));
                 const userLng = Number(position.coords.longitude.toFixed(7));
-                setUserLocation({ lat: userLat, lng: userLng });
+                setLocateMessage('Drawing route…');
                 setLocateStatus('ready');
-                setLocateMessage('Directions will start from where you are.');
-                placeUserMarker(userLat, userLng);
+                setUserLocation({ lat: userLat, lng: userLng });
             },
             (error) => {
                 if (error?.code === error.PERMISSION_DENIED) {
                     setLocateStatus('denied');
                     setLocateMessage(
-                        'Allow location access to start directions from where you are.',
+                        'Allow location access to draw a route from where you are.',
                     );
                     return;
                 }
@@ -318,7 +461,7 @@ export default function DirectionsMap({ listing }) {
                 maximumAge: 60_000,
             },
         );
-    }, [placeUserMarker]);
+    }, []);
 
     useEffect(() => {
         if (!hasCoords) {
@@ -399,7 +542,7 @@ export default function DirectionsMap({ listing }) {
                 return;
             }
 
-            loadGoogleMaps(googleKey, { libraries: [] })
+            loadGoogleMaps(googleKey, { libraries: ['routes'] })
                 .then((maps) => {
                     if (cancelled || !containerRef.current || mapRef.current) {
                         return;
@@ -482,6 +625,7 @@ export default function DirectionsMap({ listing }) {
             stopAuthWatch();
             timers.forEach((id) => window.clearTimeout(id));
             resizeObserver?.disconnect();
+            clearRoute();
             clearUserMarker();
             if (mapRef.current?.remove) {
                 mapRef.current.remove();
@@ -500,6 +644,7 @@ export default function DirectionsMap({ listing }) {
         provider,
         listing?.title,
         listing?.address,
+        clearRoute,
         clearUserMarker,
     ]);
 
@@ -510,8 +655,9 @@ export default function DirectionsMap({ listing }) {
             userLocation?.lng != null
         ) {
             placeUserMarker(userLocation.lat, userLocation.lng);
+            drawRouteToListing(userLocation.lat, userLocation.lng);
         }
-    }, [status, userLocation, placeUserMarker]);
+    }, [status, userLocation, placeUserMarker, drawRouteToListing]);
 
     if (!listing) return null;
 

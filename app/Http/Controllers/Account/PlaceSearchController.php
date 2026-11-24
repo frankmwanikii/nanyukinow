@@ -130,7 +130,7 @@ class PlaceSearchController extends Controller
                     'main_text' => $listing->title,
                     'secondary_text' => $secondary ?: 'On Nanyuki Now',
                 ],
-                'badge' => 'Nanyuki Now',
+                'badge' => null,
                 'latitude' => $lat !== null ? (float) $lat : null,
                 'longitude' => $lng !== null ? (float) $lng : null,
                 'location_label' => $listing->location ?: ($listing->city ?: 'Nanyuki'),

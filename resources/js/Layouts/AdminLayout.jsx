@@ -25,22 +25,89 @@ import AdminNotificationsBell from '@/Components/Admin/AdminNotificationsBell';
 import { AdminFlashToast } from '@/Components/Admin/ui';
 import ThemeToggle from '@/Components/ThemeToggle';
 
-const nav = [
-    { label: 'Overview', href: 'admin.dashboard', icon: LayoutDashboard },
-    { label: 'Listings', href: 'admin.listings.index', icon: LayoutList },
-    { label: 'Pages', href: 'admin.pages.index', icon: FileText },
-    { label: 'Categories', href: 'admin.categories.index', icon: FolderTree },
-    { label: 'Locations', href: 'admin.locations.index', icon: MapPin },
-    { label: 'Stories', href: 'admin.stories.index', icon: Newspaper },
-    { label: 'Gallery', href: 'admin.gallery.index', icon: Images },
-    { label: 'Users', href: 'admin.users.index', icon: Users },
-    { label: 'Messages', href: 'admin.messages.index', icon: MessagesSquare, badgeKey: 'inboxMessages' },
-    { label: 'Pricing', href: 'admin.pricing.index', icon: CircleDollarSign },
-    { label: 'Finance', href: 'admin.finance.index', icon: Wallet },
-    { label: 'Claims', href: 'admin.claims.index', icon: BadgeCheck, badgeKey: 'pendingClaims' },
-    { label: 'Reports', href: 'admin.reports.index', icon: Flag, badgeKey: 'pendingReports' },
-    { label: 'Settings', href: 'admin.settings.index', icon: Settings2 },
+const navSections = [
+    {
+        label: 'Directory',
+        items: [
+            { label: 'Overview', href: 'admin.dashboard', icon: LayoutDashboard },
+            { label: 'Listings', href: 'admin.listings.index', icon: LayoutList },
+            { label: 'Pages', href: 'admin.pages.index', icon: FileText },
+            { label: 'Categories', href: 'admin.categories.index', icon: FolderTree },
+            { label: 'Locations', href: 'admin.locations.index', icon: MapPin },
+            { label: 'Stories', href: 'admin.stories.index', icon: Newspaper },
+            { label: 'Gallery', href: 'admin.gallery.index', icon: Images },
+        ],
+    },
+    {
+        label: 'People',
+        items: [
+            { label: 'Users', href: 'admin.users.index', icon: Users },
+            {
+                label: 'Messages',
+                href: 'admin.messages.index',
+                icon: MessagesSquare,
+                badgeKey: 'inboxMessages',
+            },
+        ],
+    },
+    {
+        label: 'Business',
+        items: [
+            { label: 'Pricing', href: 'admin.pricing.index', icon: CircleDollarSign },
+            { label: 'Finance', href: 'admin.finance.index', icon: Wallet },
+            {
+                label: 'Claims',
+                href: 'admin.claims.index',
+                icon: BadgeCheck,
+                badgeKey: 'pendingClaims',
+            },
+            {
+                label: 'Reports',
+                href: 'admin.reports.index',
+                icon: Flag,
+                badgeKey: 'pendingReports',
+            },
+            { label: 'Settings', href: 'admin.settings.index', icon: Settings2 },
+        ],
+    },
 ];
+
+function isAdminNavActive(href) {
+    if (route().current(href)) {
+        return true;
+    }
+
+    const nested = {
+        'admin.listings.index': ['admin.listings.*'],
+        'admin.claims.index': ['admin.claims.*'],
+        'admin.reports.index': ['admin.reports.*'],
+        'admin.stories.index': ['admin.stories.*'],
+        'admin.categories.index': ['admin.categories.*'],
+        'admin.locations.index': ['admin.locations.*'],
+        'admin.users.index': ['admin.users.*'],
+        'admin.messages.index': ['admin.messages.*'],
+        'admin.pricing.index': ['admin.pricing.*'],
+        'admin.finance.index': ['admin.finance.*', 'admin.upgrades.*'],
+        'admin.pages.index': ['admin.pages.*'],
+        'admin.settings.index': ['admin.settings.*'],
+        'admin.gallery.index': ['admin.gallery.*'],
+    };
+
+    return (nested[href] || []).some((pattern) => route().current(pattern));
+}
+
+function adminNavBadge(item, counts) {
+    if (item.badgeKey === 'pendingClaims') {
+        return Number(counts.pendingClaims) || 0;
+    }
+    if (item.badgeKey === 'pendingReports') {
+        return Number(counts.pendingReports) || 0;
+    }
+    if (item.badgeKey === 'inboxMessages') {
+        return Number(counts.inboxMessages) || 0;
+    }
+    return 0;
+}
 
 function userInitials(name = '') {
     const parts = String(name).trim().split(/\s+/).filter(Boolean);
@@ -438,92 +505,77 @@ function AdminShell({ children }) {
 
                 <div className="flex min-h-0 flex-1">
                     <aside
-                        className={`fixed inset-y-0 left-0 z-40 flex h-full w-60 flex-col border-r border-olive-200 bg-white text-olive-900 transition-transform dark:border-olive-800 dark:bg-olive-950 dark:text-olive-50 lg:static lg:h-full lg:translate-x-0 ${
+                        className={`fixed inset-y-0 left-0 z-40 flex h-full w-[min(17rem,88vw)] flex-col border-r border-olive-900/15 bg-white text-olive-900 transition-transform dark:border-olive-800 dark:bg-olive-950 dark:text-olive-50 lg:static lg:h-full lg:w-64 lg:translate-x-0 ${
                             open ? 'translate-x-0' : '-translate-x-full'
                         }`}
                     >
-                        <div className="flex h-14 shrink-0 items-center border-b border-olive-200 px-4 dark:border-olive-800 lg:hidden">
+                        <div className="flex h-14 shrink-0 items-center border-b border-olive-900/15 px-4 dark:border-olive-800 lg:hidden">
                             <BrandMark className="dark:[&_img]:!mix-blend-lighten" />
                         </div>
 
-                        <nav className="flex-1 space-y-0.5 overflow-y-auto px-2 py-3">
-                            {nav.map((item) => {
-                                const Icon = item.icon;
-                                const badge =
-                                    item.badgeKey === 'pendingClaims'
-                                        ? Number(pendingClaims) || 0
-                                        : item.badgeKey === 'pendingReports'
-                                          ? Number(pendingReports) || 0
-                                          : item.badgeKey === 'inboxMessages'
-                                            ? Number(inboxMessages) || 0
-                                          : 0;
-                                const active =
-                                    route().current(item.href) ||
-                                    (item.href === 'admin.listings.index' &&
-                                        route().current('admin.listings.*')) ||
-                                    (item.href === 'admin.claims.index' &&
-                                        route().current('admin.claims.*')) ||
-                                    (item.href === 'admin.reports.index' &&
-                                        route().current('admin.reports.*')) ||
-                                    (item.href === 'admin.stories.index' &&
-                                        route().current('admin.stories.*')) ||
-                                    (item.href === 'admin.categories.index' &&
-                                        route().current('admin.categories.*')) ||
-                                    (item.href === 'admin.locations.index' &&
-                                        route().current('admin.locations.*')) ||
-                                    (item.href === 'admin.users.index' &&
-                                        route().current('admin.users.*')) ||
-                                    (item.href === 'admin.messages.index' &&
-                                        route().current('admin.messages.*')) ||
-                                    (item.href === 'admin.pricing.index' &&
-                                        route().current('admin.pricing.*')) ||
-                                    (item.href === 'admin.finance.index' &&
-                                        (route().current('admin.finance.*') ||
-                                            route().current('admin.upgrades.*'))) ||
-                                    (item.href === 'admin.pages.index' &&
-                                        route().current('admin.pages.*')) ||
-                                    (item.href === 'admin.settings.index' &&
-                                        route().current('admin.settings.*'));
-                                return (
-                                    <Link
-                                        key={item.href}
-                                        href={route(item.href)}
-                                        onClick={() => setOpen(false)}
-                                        className={`relative flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium transition ${
-                                            active
-                                                ? 'bg-olive-100 font-semibold text-olive-950 dark:bg-olive-900 dark:text-white'
-                                                : 'text-olive-600 hover:bg-olive-50 hover:text-olive-950 dark:text-olive-300 dark:hover:bg-olive-900/60 dark:hover:text-white'
-                                        }`}
-                                    >
-                                        {active ? (
-                                            <span
-                                                className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-mustard"
-                                                aria-hidden
-                                            />
-                                        ) : null}
-                                        <Icon className="h-4 w-4 shrink-0 opacity-80" strokeWidth={1.5} />
-                                        <span className="min-w-0 flex-1">{item.label}</span>
-                                        {badge > 0 ? (
-                                            <span className="rounded-sm bg-mustard px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-earth-dusk">
-                                                {badge > 99 ? '99+' : badge}
-                                            </span>
-                                        ) : null}
-                                    </Link>
-                                );
-                            })}
+                        <nav className="flex-1 overflow-y-auto px-2 py-3" aria-label="Admin">
+                            {navSections.map((section) => (
+                                <div key={section.label} className="mb-4 last:mb-0">
+                                    <p className="px-3 pb-1.5 pt-1 text-xs font-medium text-olive-500 dark:text-olive-400">
+                                        {section.label}
+                                    </p>
+                                    <ul className="space-y-0.5">
+                                        {section.items.map((item) => {
+                                            const Icon = item.icon;
+                                            const badge = adminNavBadge(item, {
+                                                pendingClaims,
+                                                pendingReports,
+                                                inboxMessages,
+                                            });
+                                            const active = isAdminNavActive(item.href);
+
+                                            return (
+                                                <li key={item.href}>
+                                                    <Link
+                                                        href={route(item.href)}
+                                                        onClick={() => setOpen(false)}
+                                                        aria-current={active ? 'page' : undefined}
+                                                        className={`flex items-center gap-3 px-3 py-2.5 text-[15px] font-semibold transition ${
+                                                            active
+                                                                ? 'bg-olive-900 text-white dark:bg-mustard dark:text-earth-dusk'
+                                                                : 'text-olive-800 hover:bg-olive-100 hover:text-olive-950 dark:text-olive-200 dark:hover:bg-olive-900 dark:hover:text-white'
+                                                        }`}
+                                                    >
+                                                        <Icon
+                                                            className="h-5 w-5 shrink-0"
+                                                            strokeWidth={1.5}
+                                                        />
+                                                        <span className="min-w-0 flex-1 truncate">
+                                                            {item.label}
+                                                        </span>
+                                                        {badge > 0 ? (
+                                                            <span
+                                                                className={`min-w-[1.35rem] px-1.5 py-0.5 text-center text-[11px] font-bold leading-none tabular-nums ${
+                                                                    active
+                                                                        ? 'bg-mustard text-earth-dusk dark:bg-olive-950 dark:text-mustard'
+                                                                        : 'bg-mustard text-earth-dusk'
+                                                                }`}
+                                                            >
+                                                                {badge > 99 ? '99+' : badge}
+                                                            </span>
+                                                        ) : null}
+                                                    </Link>
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
+                                </div>
+                            ))}
                         </nav>
 
-                        <div className="shrink-0 border-t border-olive-200 p-2 dark:border-olive-800">
+                        <div className="shrink-0 border-t border-olive-900/15 px-2 py-3 dark:border-olive-800">
                             <Link
                                 href={route('admin.logout')}
                                 method="post"
                                 as="button"
-                                className="inline-flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-sm font-medium text-olive-600 transition hover:bg-olive-50 hover:text-olive-950 dark:text-olive-300 dark:hover:bg-olive-900 dark:hover:text-olive-50"
+                                className="flex w-full items-center gap-3 px-3 py-2.5 text-left text-[15px] font-semibold text-olive-700 transition hover:bg-olive-100 hover:text-olive-950 dark:text-olive-300 dark:hover:bg-olive-900 dark:hover:text-olive-50"
                             >
-                                <LogOut
-                                    className="h-4 w-4 shrink-0"
-                                    strokeWidth={1.5}
-                                />
+                                <LogOut className="h-5 w-5 shrink-0" strokeWidth={1.5} />
                                 <span>Sign out</span>
                             </Link>
                         </div>

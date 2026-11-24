@@ -40,9 +40,9 @@ export function leafletPinIcon({
     const anchor = [20, 44];
 
     return L.icon({
-        // teardrop = listing/directions (always mustard); else explore (olive / mustard).
+        // teardrop = listing/directions (logo olive); else explore (olive / mustard when active).
         iconUrl: teardrop
-            ? mapPinDataUrl({ fill: '#f2b82e' })
+            ? mapPinDataUrl({ fill: '#4b533a' })
             : mapPinDataUrl({ active }),
         iconSize: size,
         iconAnchor: anchor,

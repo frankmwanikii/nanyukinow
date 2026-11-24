@@ -11,16 +11,16 @@ import {
     createOsmMap,
     leafletPinIcon,
 } from '@/utils/leafletMaps';
-import { googleMapPinIcon } from '@/utils/mapPin';
+import { googleMapPinIcon, mapPinDataUrl } from '@/utils/mapPin';
 import { useMapProvider, useMapsApiKey } from '@/utils/mapProvider';
 import { LOOK_LOCATIONS } from '@/data/listings';
-import { CompassMark } from '@/Components/site/Mark';
-import { ChevronDown, Loader2, MapPin, Search, X } from '@/Components/site/LucideCompat';
+import { ChevronDown, Loader2, Search, X } from '@/Components/site/LucideCompat';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 const DEFAULT_ZOOM = 14;
 const AREA_OPTIONS = LOOK_LOCATIONS;
 const ADDRESS_MAX_LENGTH = 255;
+const SUGGESTION_PIN_SRC = mapPinDataUrl({ fill: '#4b533a' });
 
 function clipAddress(value) {
     const text = typeof value === 'string' ? value.trim() : '';
@@ -105,6 +105,7 @@ export default function PlacesLocationInput({
     const lastPreviewIdRef = useRef(null);
     const onChangeRef = useRef(onChange);
     const locationRef = useRef(location);
+    const addressRef = useRef(address);
 
     useEffect(() => {
         onChangeRef.current = onChange;
@@ -113,6 +114,10 @@ export default function PlacesLocationInput({
     useEffect(() => {
         locationRef.current = location;
     }, [location]);
+
+    useEffect(() => {
+        addressRef.current = address;
+    }, [address]);
 
     const sharedMapsKey = useMapsApiKey();
     const key = getMapsApiKey(apiKey || sharedMapsKey);
@@ -129,8 +134,6 @@ export default function PlacesLocationInput({
     const [searching, setSearching] = useState(false);
     const [activeIndex, setActiveIndex] = useState(-1);
     const [mapNote, setMapNote] = useState(null);
-    const [locating, setLocating] = useState(false);
-    const [locateNote, setLocateNote] = useState(null);
     const areasTriggerRef = useRef(null);
     const areasMenuRef = useRef(null);
 
@@ -177,8 +180,8 @@ export default function PlacesLocationInput({
               : selectedAreas.join(', ');
 
     const applyCoords = useCallback(
-        ({ latitude: cLat, longitude: cLng, address, city }) => {
-            const inferred = inferAreasFromText(address, city);
+        ({ latitude: cLat, longitude: cLng, address: geocodedAddress, city }) => {
+            const inferred = inferAreasFromText(geocodedAddress, city);
             const current = parseAreas(locationRef.current);
             const merged =
                 current.length > 0
@@ -187,13 +190,20 @@ export default function PlacesLocationInput({
                       ? inferred
                       : current;
 
-            onChangeRef.current({
+            // Physical address is its own field. Map / place picks must not
+            // overwrite a value the user already entered. Fill only when empty.
+            const existingAddress = String(addressRef.current || '').trim();
+            const next = {
                 latitude: cLat,
                 longitude: cLng,
-                address: clipAddress(address || ''),
                 city: city || '',
                 ...(merged.length ? { location: formatAreas(merged) } : {}),
-            });
+            };
+            if (!existingAddress && geocodedAddress) {
+                next.address = clipAddress(geocodedAddress);
+            }
+
+            onChangeRef.current(next);
         },
         [],
     );
@@ -331,48 +341,6 @@ export default function PlacesLocationInput({
         },
         [isLeaflet, moveMapLeaflet, moveMapGoogle],
     );
-
-    const useMyLocation = useCallback(() => {
-        if (!navigator?.geolocation) {
-            setLocateNote('Location is not available in this browser.');
-            return;
-        }
-
-        setLocating(true);
-        setLocateNote(null);
-
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                const nextLat = Number(position.coords.latitude.toFixed(7));
-                const nextLng = Number(position.coords.longitude.toFixed(7));
-                setLocating(false);
-                moveMap(nextLat, nextLng, { zoom: 16 });
-                onChangeRef.current({
-                    latitude: nextLat,
-                    longitude: nextLng,
-                });
-                reverseGeocode(nextLat, nextLng);
-                setLocateNote('Pin set to your current location.');
-            },
-            (error) => {
-                setLocating(false);
-                if (error?.code === error.PERMISSION_DENIED) {
-                    setLocateNote(
-                        'Allow location access to drop the pin where you are.',
-                    );
-                    return;
-                }
-                setLocateNote(
-                    'Could not find your location. Search or tap the map instead.',
-                );
-            },
-            {
-                enableHighAccuracy: true,
-                timeout: 12_000,
-                maximumAge: 30_000,
-            },
-        );
-    }, [moveMap, reverseGeocode]);
 
     const applyPlace = useCallback(
         (place) => {
@@ -947,7 +915,14 @@ export default function PlacesLocationInput({
                                             }
                                             onClick={() => selectPrediction(p)}
                                         >
-                                            <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-mustard-deep" />
+                                            <img
+                                                src={SUGGESTION_PIN_SRC}
+                                                alt=""
+                                                width={20}
+                                                height={24}
+                                                className="mt-0.5 h-5 w-4 shrink-0 object-contain"
+                                                aria-hidden
+                                            />
                                             <span className="min-w-0 flex-1">
                                                 <span className="flex items-center gap-2">
                                                     <span className="block text-sm font-semibold text-olive-950 dark:text-olive-50">
@@ -1001,34 +976,6 @@ export default function PlacesLocationInput({
                     role="img"
                     aria-label="Location map"
                 />
-                {status === 'ready' ? (
-                    <div className="absolute bottom-14 left-3 z-[500] flex max-w-[min(100%-1.5rem,16rem)] flex-col items-start gap-2 sm:bottom-12">
-                        <button
-                            type="button"
-                            onClick={useMyLocation}
-                            disabled={locating}
-                            aria-label={
-                                locating
-                                    ? 'Finding your location'
-                                    : 'Use my location'
-                            }
-                            title="Use my location"
-                            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-olive-900/10 bg-white px-3.5 text-sm font-semibold text-olive-900 shadow-soft transition hover:border-olive-900/25 hover:bg-mustard hover:text-earth-dusk disabled:cursor-wait disabled:opacity-70 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-100"
-                        >
-                            <CompassMark
-                                className={`h-4 w-4 shrink-0 ${
-                                    locating ? 'animate-pulse' : ''
-                                }`}
-                            />
-                            {locating ? 'Finding…' : 'My location'}
-                        </button>
-                        {locateNote ? (
-                            <p className="rounded-md bg-white/95 px-2.5 py-1.5 text-xs font-medium text-olive-700 shadow-soft dark:bg-olive-950/95 dark:text-olive-200">
-                                {locateNote}
-                            </p>
-                        ) : null}
-                    </div>
-                ) : null}
                 {status === 'degraded' ? (
                     <div className="pointer-events-none absolute inset-x-0 top-0 flex h-56 items-center justify-center px-4 text-center text-sm text-olive-600 sm:h-72 dark:text-olive-300">
                         Map preview unavailable. Search above still sets the

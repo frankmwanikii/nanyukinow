@@ -1,24 +1,10 @@
 import { useEffect, useState } from 'react';
 import { router } from '@inertiajs/react';
-import { UNICONS } from '@/Components/site/uniconsPaths';
 
 /**
- * Full-page Inertia visit overlay (soft scrim + Unicons spinner-alt).
- * Card placeholders keep their shimmer.
+ * Full-page Inertia visit overlay (soft scrim + branded logo pulse).
+ * Card placeholders keep their shimmer for deferred / partial loads.
  */
-function SpinnerAlt({ className = 'h-5 w-5' }) {
-    return (
-        <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            className={className}
-            aria-hidden="true"
-            fill="currentColor"
-            dangerouslySetInnerHTML={{ __html: UNICONS['spinner-alt'] }}
-        />
-    );
-}
-
 export default function PageLoadingSpinner() {
     const [visible, setVisible] = useState(false);
 
@@ -66,8 +52,18 @@ export default function PageLoadingSpinner() {
             aria-label="Loading page"
             aria-busy="true"
         >
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-olive-950/90 text-mustard shadow-soft ring-1 ring-white/20 dark:bg-olive-900/95">
-                <SpinnerAlt className="h-5 w-5 animate-spin" />
+            <div className="nn-logo-loader relative">
+                <span className="nn-logo-loader__ring pointer-events-none absolute -inset-2 rounded-2xl border-2 border-mustard" aria-hidden />
+                <div className="relative flex items-center justify-center rounded-2xl bg-olive-950/95 px-5 py-3.5 shadow-soft ring-1 ring-white/15 dark:bg-olive-900/95">
+                    <img
+                        src="/images/logo.png"
+                        alt=""
+                        width={969}
+                        height={542}
+                        decoding="async"
+                        className="nn-logo-loader__mark h-8 w-auto max-w-[9.5rem] object-contain object-center sm:h-9 sm:max-w-[11rem]"
+                    />
+                </div>
             </div>
             <span className="sr-only">Loading</span>
         </div>

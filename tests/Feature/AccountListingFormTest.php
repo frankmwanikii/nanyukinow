@@ -238,7 +238,7 @@ class AccountListingFormTest extends TestCase
             ->assertOk()
             ->assertJsonPath('results.0.structured_formatting.main_text', 'Sportsman Arms Hotel')
             ->assertJsonPath('results.0.source', 'local')
-            ->assertJsonPath('results.0.badge', 'Nanyuki Now');
+            ->assertJsonPath('results.0.badge', null);
     }
 
     public function test_draft_listing_is_created_and_updated(): void

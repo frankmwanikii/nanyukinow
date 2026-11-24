@@ -466,9 +466,49 @@ input[type='search']::-ms-clear {
     display: none !important;
 }
 
+/* Branded Inertia visit loader (logo + mustard ring) */
+@keyframes nn-logo-loader-ring {
+    0%,
+    100% {
+        opacity: 0.45;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.045);
+    }
+}
+
+@keyframes nn-logo-loader-mark {
+    0%,
+    100% {
+        opacity: 0.88;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.03);
+    }
+}
+
+.nn-logo-loader__ring {
+    animation: nn-logo-loader-ring 1.6s ease-in-out infinite;
+}
+
+.nn-logo-loader__mark {
+    animation: nn-logo-loader-mark 1.6s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
     #nprogress .bar {
         transition: none !important;
+    }
+
+    .nn-logo-loader__ring,
+    .nn-logo-loader__mark {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
     }
 }
 
