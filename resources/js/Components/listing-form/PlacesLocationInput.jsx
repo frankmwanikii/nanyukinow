@@ -20,7 +20,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 const DEFAULT_ZOOM = 14;
 const AREA_OPTIONS = LOOK_LOCATIONS;
 const ADDRESS_MAX_LENGTH = 255;
-const SUGGESTION_PIN_SRC = mapPinDataUrl({ fill: '#4b533a' });
+const SUGGESTION_PIN_SRC = mapPinDataUrl({ fill: '#f2b82e' });
 
 function clipAddress(value) {
     const text = typeof value === 'string' ? value.trim() : '';

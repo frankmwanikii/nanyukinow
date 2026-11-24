@@ -1,5 +1,5 @@
 /**
- * Map marker pin — logo olive teardrop with the Nanyuki Now mark in the head.
+ * Map marker pin — mustard teardrop with the Nanyuki Now mark in the head.
  * Mark: circular favicon (mustard N / mountains on olive).
  */
 
@@ -16,8 +16,8 @@ const MUSTARD = '#f2b82e';
 const OLIVE = '#4b533a';
 const EARTH = '#1c1712';
 const PIN_FACE = '#f4f5f1';
-/** Default branded pin body (logo green; mustard stays in the mark). */
-const BRAND_PIN = OLIVE;
+/** Default branded pin body (mustard for map contrast; logo mark in the head). */
+const BRAND_PIN = MUSTARD;
 
 /** Tip of the pin in the 256×280 viewBox. */
 const PIN_TIP = { x: 128, y: 238 };
@@ -165,8 +165,8 @@ export function googleMapPinIcon(
         };
     }
 
-    // Listing / form pins: logo green. Explore selected pin: mustard for contrast.
-    const color = fill || (listing ? BRAND_PIN : active ? MUSTARD : BRAND_PIN);
+    // Listing / form / explore pins: mustard for contrast on light tiles.
+    const color = fill || (listing || active ? BRAND_PIN : OLIVE);
 
     return {
         url: mapPinDataUrl({ fill: color }),
