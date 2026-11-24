@@ -13,8 +13,8 @@ export default function StoryCard({ article, featured = false }) {
                 href={`/stories/${article.slug}`}
                 className={`relative block overflow-hidden ${
                     featured
-                        ? 'aspect-[16/10] sm:aspect-auto sm:w-[46%] sm:min-h-[16rem]'
-                        : 'aspect-[16/10]'
+                        ? 'aspect-[16/9] sm:aspect-auto sm:w-[46%] sm:min-h-[16rem]'
+                        : 'aspect-[16/9] sm:aspect-[16/10]'
                 }`}
             >
                 <img
@@ -27,15 +27,15 @@ export default function StoryCard({ article, featured = false }) {
             </Link>
 
             <div
-                className={`flex flex-1 flex-col p-5 sm:p-6 ${
+                className={`flex min-w-0 flex-1 flex-col p-4 sm:p-6 ${
                     featured ? 'sm:justify-center' : ''
                 }`}
             >
-                <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-semibold uppercase tracking-[0.16em] text-olive-600">
-                    <span className="rounded-full bg-olive-100 px-2.5 py-1 text-[0.65rem] tracking-[0.14em] text-olive-700">
+                <div className="mb-2 flex min-w-0 flex-nowrap items-center gap-x-2.5 text-xs font-semibold uppercase tracking-[0.16em] text-olive-600 sm:mb-3 sm:gap-x-3">
+                    <span className="shrink-0 rounded-full bg-olive-100 px-2.5 py-1 text-[0.65rem] tracking-[0.14em] text-olive-700">
                         {article.category}
                     </span>
-                    <span className="normal-case tracking-normal text-olive-500">
+                    <span className="min-w-0 truncate normal-case tracking-normal text-olive-500">
                         {formatArticleDate(article.publishedAt)}
                         {article.readMinutes
                             ? ` · ${article.readMinutes} min read`
@@ -46,7 +46,7 @@ export default function StoryCard({ article, featured = false }) {
                 <h3
                     className={`font-display font-semibold tracking-tight text-earth-dusk ${
                         featured
-                            ? 'text-xl sm:text-2xl md:text-[1.7rem]'
+                            ? 'text-lg sm:text-2xl md:text-[1.7rem]'
                             : 'text-lg sm:text-xl'
                     }`}
                 >
@@ -58,13 +58,13 @@ export default function StoryCard({ article, featured = false }) {
                     </Link>
                 </h3>
 
-                <p className="mt-3 flex-1 text-sm leading-relaxed text-olive-700/85 sm:text-[0.95rem] sm:leading-7">
+                <p className="mt-2 line-clamp-2 flex-1 text-sm leading-relaxed text-olive-700/85 sm:mt-3 sm:line-clamp-3 sm:text-[0.95rem] sm:leading-7">
                     {article.excerpt}
                 </p>
 
                 <Link
                     href={`/stories/${article.slug}`}
-                    className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-olive-700 transition hover:text-mustard"
+                    className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-olive-700 transition hover:text-mustard sm:mt-5"
                 >
                     Read more
                     <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />

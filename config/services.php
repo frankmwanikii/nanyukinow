@@ -43,6 +43,15 @@ return [
     ],
 
     /*
+    | Gemini (Nyuki AI). Server-side only. Free-tier key from Google AI Studio.
+    | https://aistudio.google.com/apikey
+    */
+    'gemini' => [
+        'api_key' => env('GEMINI_API_KEY'),
+        'model' => env('GEMINI_MODEL', 'gemini-2.5-flash'),
+    ],
+
+    /*
     | Foursquare Places API (server-side only). Prefer Admin → Settings → Maps.
     | Docs: https://docs.foursquare.com/fsq-developers-places/reference/place-search
     */

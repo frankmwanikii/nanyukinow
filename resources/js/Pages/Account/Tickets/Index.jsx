@@ -1,5 +1,5 @@
 import AccountLayout from '@/Layouts/AccountLayout';
-import { ForwardMark, TicketMark, UploadMark } from '@/Components/site/Mark';
+import { ForwardMark, MailMark, UploadMark } from '@/Components/site/Mark';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useRef } from 'react';
 
@@ -100,10 +100,10 @@ export default function Index({ tickets = [], priorities = [] }) {
                 <section className="border border-olive-900/15 bg-white dark:border-olive-800 dark:bg-olive-900">
                     <div className="border-b border-olive-900/10 px-4 py-4 sm:px-5 dark:border-olive-800">
                         <div className="flex items-center gap-2.5">
-                            <TicketMark className="h-5 w-5 shrink-0 text-olive-800 dark:text-olive-200" />
+                            <MailMark className="h-5 w-5 shrink-0 text-olive-800 dark:text-olive-200" />
                             <div>
                                 <h2 className="font-display text-base font-semibold text-olive-950 dark:text-olive-50">
-                                    Open a ticket
+                                    Concern
                                 </h2>
                                 <p className="mt-0.5 text-sm text-olive-600 dark:text-olive-400">
                                     Tell us what you need help with. We reply to open tickets from the team.

@@ -18,9 +18,10 @@ class SettingController extends Controller
         $this->ensurePaymentGatewayDefaults();
         $this->ensureMapsDefaults();
         $this->ensureSocialDefaults();
+        $this->ensureAccessDefaults();
 
         $settings = SiteSetting::query()
-            ->whereIn('group', ['branding', 'pages', 'billing', 'payments', 'maps', 'social', 'seo'])
+            ->whereIn('group', ['branding', 'pages', 'billing', 'payments', 'maps', 'social', 'seo', 'access'])
             ->orderBy('group')
             ->orderBy('sort_order')
             ->get()
@@ -411,6 +412,39 @@ class SettingController extends Controller
         }
     }
 
+    private function ensureAccessDefaults(): void
+    {
+        $enabled = config('site.preview_gate_enabled') ? '1' : '0';
+        $previewPath = '/'.trim((string) config('site.preview_path', 'nn-dev-preview'), '/');
+
+        $defaults = [
+            [
+                'group' => 'access',
+                'key' => 'preview_gate_enabled',
+                'label' => 'Dev preview lock',
+                'type' => 'select',
+                'value' => $enabled,
+                'help' => 'When on, visitors only see the coming soon page until they open '.$previewPath.'. Turn off to make the full site public.',
+                'sort_order' => 1,
+            ],
+        ];
+
+        foreach ($defaults as $row) {
+            $setting = SiteSetting::query()->firstOrCreate(
+                ['key' => $row['key']],
+                $row,
+            );
+
+            $setting->fill([
+                'group' => $row['group'],
+                'label' => $row['label'],
+                'type' => $row['type'],
+                'help' => $row['help'],
+                'sort_order' => $row['sort_order'],
+            ])->save();
+        }
+    }
+
     private function ensureMapsDefaults(): void
     {
         $defaults = [
@@ -490,6 +524,10 @@ class SettingController extends Controller
             'place_search_provider' => [
                 ['value' => 'foursquare', 'label' => 'Foursquare'],
                 ['value' => 'osm', 'label' => 'OpenStreetMap only'],
+            ],
+            'preview_gate_enabled' => [
+                ['value' => '1', 'label' => 'On (require /nn-dev-preview)'],
+                ['value' => '0', 'label' => 'Off (site is public)'],
             ],
             default => null,
         };

@@ -10,7 +10,7 @@ import {
     MenuMark,
     MessageMark,
     SignOutMark,
-    TicketMark,
+    MailMark,
     UpgradePlansMark,
 } from '@/Components/site/Mark';
 import { FlashToast } from '@/Components/site/SuccessToast';
@@ -204,9 +204,9 @@ function AccountShell({ title = 'Account', children }) {
                     badge: unreadMessages,
                 },
                 {
-                    label: 'Tickets',
+                    label: 'Concern',
                     href: route('account.tickets.index'),
-                    icon: TicketMark,
+                    icon: MailMark,
                     active: navActive(['account.tickets.*']),
                 },
                 {

@@ -1,25 +1,9 @@
+import NyukiMessageBubble from '@/Components/site/NyukiMessageBubble';
 import { BackMark, ForwardMark, NyukiMark, SendArrowMark } from '@/Components/site/Mark';
+import useNyukiChat from '@/hooks/useNyukiChat';
 import SiteLayout from '@/Layouts/SiteLayout';
 import { Head, router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
-
-function MessageBubble({ role, children }) {
-    const isUser = role === 'user';
-
-    return (
-        <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
-            <div
-                className={`max-w-[min(92%,22rem)] rounded-2xl px-3.5 py-2.5 text-[15px] leading-relaxed shadow-sm sm:max-w-[20rem] ${
-                    isUser
-                        ? 'rounded-br-md bg-olive-900 text-white'
-                        : 'rounded-bl-md border border-olive-900/8 bg-white text-olive-900'
-                }`}
-            >
-                {children}
-            </div>
-        </div>
-    );
-}
 
 function readVisualViewport() {
     if (typeof window === 'undefined') {
@@ -41,23 +25,22 @@ function readVisualViewport() {
 }
 
 export default function Index({ prompts = [] }) {
-    const [draft, setDraft] = useState('');
-    const [messages, setMessages] = useState([]);
+    const { messages, draft, setDraft, busy, ask } = useNyukiChat();
     const [viewport, setViewport] = useState(() => readVisualViewport());
-    const endRef = useRef(null);
     const inputRef = useRef(null);
     const listRef = useRef(null);
     const focusScrollTimers = useRef([]);
 
-    const scrollChatToEnd = (smooth = false) => {
+    const scrollChatToStart = (smooth = false) => {
         const list = listRef.current;
-        if (list) {
-            list.scrollTop = list.scrollHeight;
+        if (!list) {
+            return;
         }
-        endRef.current?.scrollIntoView({
-            behavior: smooth ? 'smooth' : 'auto',
-            block: 'end',
-        });
+        if (smooth) {
+            list.scrollTo({ top: 0, behavior: 'smooth' });
+            return;
+        }
+        list.scrollTop = 0;
     };
 
     const clearFocusScrollTimers = () => {
@@ -65,16 +48,14 @@ export default function Index({ prompts = [] }) {
         focusScrollTimers.current = [];
     };
 
-    /** Keep the chat pinned above the keyboard while it animates open. */
+    /** Keep the composer above the keyboard while it animates open. */
     const pinAboveKeyboard = () => {
         clearFocusScrollTimers();
         setViewport(readVisualViewport());
-        scrollChatToEnd(false);
 
         [50, 150, 300, 450, 650].forEach((ms) => {
             const id = window.setTimeout(() => {
                 setViewport(readVisualViewport());
-                scrollChatToEnd(ms > 200);
             }, ms);
             focusScrollTimers.current.push(id);
         });
@@ -97,12 +78,8 @@ export default function Index({ prompts = [] }) {
     }, []);
 
     useEffect(() => {
-        scrollChatToEnd(true);
+        scrollChatToStart(false);
     }, [messages]);
-
-    useEffect(() => {
-        scrollChatToEnd(false);
-    }, [viewport.height]);
 
     const goBack = () => {
         if (typeof window !== 'undefined' && window.history.length > 1) {
@@ -112,32 +89,18 @@ export default function Index({ prompts = [] }) {
         router.visit(route('home'));
     };
 
-    const ask = (text) => {
-        const q = String(text || '').trim();
-        if (!q) {
-            return;
-        }
-
-        setMessages((prev) => [
-            ...prev,
-            { id: `u-${Date.now()}`, role: 'user', body: q },
-            {
-                id: `n-${Date.now()}`,
-                role: 'assistant',
-                body: "I'm learning the town map now — eats, stays, events, and every listing on Nanyuki Now. Ask again shortly and I'll pull answers from the live directory.",
-            },
-        ]);
-        setDraft('');
+    const send = async (text) => {
+        await ask(text);
         inputRef.current?.focus();
         pinAboveKeyboard();
     };
 
     const onSubmit = (e) => {
         e.preventDefault();
-        ask(draft);
+        void send(draft);
     };
 
-    const canSend = Boolean(draft.trim());
+    const canSend = Boolean(draft.trim()) && !busy;
     const keyboardOpen =
         typeof window !== 'undefined' &&
         viewport.height != null &&
@@ -149,6 +112,7 @@ export default function Index({ prompts = [] }) {
             hideFooter
             hideNav
             hideBottomNav
+            hideNyukiWidget
             lockViewport
             shellClassName="bg-[#ebe6dc] text-earth-dusk"
         >
@@ -163,7 +127,6 @@ export default function Index({ prompts = [] }) {
                         : '100dvh',
                 }}
             >
-                {/* Chat top bar — Meta AI / WhatsApp style */}
                 <header className="relative z-20 flex shrink-0 items-center gap-2 border-b border-white/10 bg-olive-900 px-2 pb-2.5 pt-[max(0.5rem,env(safe-area-inset-top))] text-white shadow-md sm:px-3">
                     <button
                         type="button"
@@ -184,7 +147,6 @@ export default function Index({ prompts = [] }) {
                     </div>
                 </header>
 
-                {/* Messages — scroll above the keyboard */}
                 <div
                     ref={listRef}
                     className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-4 sm:px-4"
@@ -200,7 +162,7 @@ export default function Index({ prompts = [] }) {
                                 </p>
                                 <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-olive-700">
                                     Recommendations, listing details, and
-                                    what&apos;s open in Nanyuki — from the live
+                                    what&apos;s open in Nanyuki, from the live
                                     directory.
                                 </p>
                             </div>
@@ -209,8 +171,9 @@ export default function Index({ prompts = [] }) {
                                     <li key={prompt}>
                                         <button
                                             type="button"
-                                            onClick={() => ask(prompt)}
-                                            className="flex w-full items-center gap-2.5 rounded-full border border-olive-900/12 bg-white/90 px-4 py-3 text-left text-sm font-medium text-olive-800 shadow-sm transition hover:border-olive-900/25 hover:bg-white"
+                                            onClick={() => void send(prompt)}
+                                            disabled={busy}
+                                            className="flex w-full items-center gap-2.5 rounded-full border border-olive-900/12 bg-white/90 px-4 py-3 text-left text-sm font-medium text-olive-800 shadow-sm transition hover:border-olive-900/25 hover:bg-white disabled:opacity-60"
                                         >
                                             <ForwardMark className="h-3.5 w-3.5 shrink-0 text-olive-500" />
                                             <span className="min-w-0 flex-1">
@@ -223,17 +186,40 @@ export default function Index({ prompts = [] }) {
                         </div>
                     ) : (
                         <div className="mx-auto flex max-w-lg flex-col gap-2.5">
-                            {messages.map((m) => (
-                                <MessageBubble key={m.id} role={m.role}>
-                                    {m.body}
-                                </MessageBubble>
-                            ))}
-                            <div ref={endRef} />
+                            {messages.map((m, index) => {
+                                const isLatestAssistant =
+                                    m.role === 'assistant' &&
+                                    !m.pending &&
+                                    !m.error &&
+                                    index ===
+                                        messages.findLastIndex(
+                                            (row) =>
+                                                row.role === 'assistant' &&
+                                                !row.pending &&
+                                                !row.error,
+                                        );
+
+                                return (
+                                    <NyukiMessageBubble
+                                        key={m.id}
+                                        role={m.role}
+                                        body={m.body}
+                                        citations={m.citations}
+                                        followUps={m.followUps}
+                                        exploreCta={m.exploreCta}
+                                        pending={m.pending}
+                                        error={m.error}
+                                        errorKind={m.errorKind}
+                                        showSuggestions={isLatestAssistant}
+                                        onAsk={(text) => void send(text)}
+                                        suggestionsDisabled={busy}
+                                    />
+                                );
+                            })}
                         </div>
                     )}
                 </div>
 
-                {/* Composer stays inside the visual viewport (above keyboard) */}
                 <div
                     className={`shrink-0 border-t border-olive-900/8 bg-[#ebe6dc] px-2.5 pt-2 sm:px-3 ${
                         keyboardOpen
@@ -257,15 +243,16 @@ export default function Index({ prompts = [] }) {
                                 onChange={(e) => setDraft(e.target.value)}
                                 onFocus={pinAboveKeyboard}
                                 onClick={pinAboveKeyboard}
+                                disabled={busy}
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter' && !e.shiftKey) {
                                         e.preventDefault();
-                                        ask(draft);
+                                        void send(draft);
                                     }
                                 }}
                                 placeholder="Message Nyuki…"
                                 enterKeyHint="send"
-                                className="max-h-28 min-h-[2.5rem] w-full resize-none border-0 bg-transparent py-2.5 text-[15px] leading-snug text-olive-950 placeholder:text-olive-400 focus:outline-none focus:ring-0"
+                                className="max-h-28 min-h-[2.5rem] w-full resize-none border-0 bg-transparent py-2.5 text-[15px] leading-snug text-olive-950 placeholder:text-olive-400 focus:outline-none focus:ring-0 disabled:opacity-70"
                             />
                         </div>
                         <button

@@ -9,6 +9,7 @@ return [
     |
     | When enabled, the public site stays locked until a visitor opens the
     | preview path once. That visit stores a session flag for later access.
+    | Admin Settings → Site access can override this at runtime.
     |
     */
 

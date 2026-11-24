@@ -182,26 +182,6 @@ function ExploreContent({
                 />
             </div>
 
-            {/* Mobile toolbar — filters only; map lives top-right on the results bar */}
-            <div className="flex shrink-0 items-center border-b border-olive-200 bg-white px-3 py-2.5 lg:hidden">
-                <button
-                    type="button"
-                    onClick={() =>
-                        setMobilePanel((p) =>
-                            p === 'filters' ? 'list' : 'filters',
-                        )
-                    }
-                    className={`inline-flex items-center justify-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition ${
-                        mobilePanel === 'filters'
-                            ? 'bg-olive-600 text-white'
-                            : 'bg-[#f3f1ec] text-olive-800'
-                    }`}
-                >
-                    <FiltersMark className="h-4 w-4" />
-                    Filters
-                </button>
-            </div>
-
             <div className="relative flex min-h-0 flex-1">
                 <ExploreSidebar
                     {...sidebarProps}
@@ -224,55 +204,86 @@ function ExploreContent({
                             : 'hidden lg:flex'
                     }`}
                 >
-                    <div className="grid shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2 px-3 py-2.5 sm:px-4">
-                        <div className="flex justify-start">
+                    <div className="grid shrink-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 border-b border-olive-200/80 bg-white px-3 py-2 sm:gap-3 sm:px-4">
+                        <div className="flex shrink-0 items-center">
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    setMobilePanel((p) =>
+                                        p === 'filters' ? 'list' : 'filters',
+                                    )
+                                }
+                                className={`inline-flex h-8 items-center justify-center gap-1 rounded-full px-2.5 text-[13px] font-semibold transition lg:hidden ${
+                                    mobilePanel === 'filters'
+                                        ? 'bg-olive-600 text-white'
+                                        : 'border border-olive-200/80 bg-transparent text-olive-800 hover:border-olive-400'
+                                }`}
+                                aria-label="Filters"
+                                aria-pressed={mobilePanel === 'filters'}
+                            >
+                                <FiltersMark className="h-3.5 w-3.5" />
+                                Filters
+                            </button>
+                        </div>
+
+                        <p className="min-w-0 truncate text-center text-[12px] leading-tight text-olive-700 sm:text-sm">
+                            <span className="sm:hidden">
+                                <span className="font-semibold text-earth-dusk">
+                                    {filtered.length === 0
+                                        ? '0'
+                                        : `${start}–${end}`}
+                                </span>
+                                {' of '}
+                                <span className="font-semibold text-earth-dusk">
+                                    {filtered.length}
+                                </span>
+                            </span>
+                            <span className="hidden sm:inline">
+                                Showing{' '}
+                                <span className="font-semibold text-earth-dusk">
+                                    {filtered.length === 0
+                                        ? '0'
+                                        : `${start}–${end}`}
+                                </span>{' '}
+                                out of{' '}
+                                <span className="font-semibold text-earth-dusk">
+                                    {filtered.length}
+                                </span>{' '}
+                                results
+                            </span>
+                        </p>
+
+                        <div className="flex shrink-0 items-center gap-1">
                             <button
                                 type="button"
                                 disabled={safePage <= 1}
                                 onClick={() =>
                                     setPage((p) => Math.max(1, p - 1))
                                 }
-                                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-olive-200/80 bg-transparent text-olive-700 transition hover:border-olive-400 disabled:cursor-not-allowed disabled:opacity-35"
+                                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-olive-200/80 bg-transparent text-olive-700 transition hover:border-olive-400 disabled:cursor-not-allowed disabled:opacity-35"
                                 aria-label="Previous page"
                                 title="Previous page"
                             >
-                                <BackMark className="h-5 w-5" />
+                                <BackMark className="h-4 w-4" />
                             </button>
-                        </div>
-
-                        <p className="truncate text-center text-sm text-olive-700">
-                            Showing{' '}
-                            <span className="font-semibold text-earth-dusk">
-                                {filtered.length === 0
-                                    ? '0'
-                                    : `${start}–${end}`}
-                            </span>{' '}
-                            out of{' '}
-                            <span className="font-semibold text-earth-dusk">
-                                {filtered.length}
-                            </span>{' '}
-                            results
-                        </p>
-
-                        <div className="flex items-center justify-end gap-1.5">
                             <button
                                 type="button"
                                 disabled={safePage >= totalPages}
                                 onClick={() =>
                                     setPage((p) => Math.min(totalPages, p + 1))
                                 }
-                                className="flex h-9 w-9 items-center justify-center rounded-full border border-olive-200/80 bg-transparent text-olive-700 transition hover:border-olive-400 disabled:cursor-not-allowed disabled:opacity-35"
+                                className="flex h-8 w-8 items-center justify-center rounded-full border border-olive-200/80 bg-transparent text-olive-700 transition hover:border-olive-400 disabled:cursor-not-allowed disabled:opacity-35"
                                 aria-label="Next page"
                                 title="Next page"
                             >
-                                <ForwardMark className="h-4 w-4" />
+                                <ForwardMark className="h-3.5 w-3.5" />
                             </button>
                             <button
                                 type="button"
                                 onClick={() =>
                                     mapOpen ? closeMap() : openMap()
                                 }
-                                className={`flex h-9 w-9 items-center justify-center rounded-full border transition ${
+                                className={`flex h-8 w-8 items-center justify-center rounded-full border transition ${
                                     mapOpen
                                         ? 'border-mustard bg-mustard text-olive-950'
                                         : 'border-olive-200/80 bg-transparent text-olive-700 hover:border-olive-400'
@@ -286,7 +297,7 @@ function ExploreContent({
                                         : 'Show listings on map'
                                 }
                             >
-                                <MapMark className="h-4 w-4" />
+                                <MapMark className="h-3.5 w-3.5" />
                             </button>
                         </div>
                     </div>

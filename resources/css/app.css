@@ -64,10 +64,76 @@
     }
 }
 
+@keyframes nn-nyuki-panel {
+    from {
+        opacity: 0;
+        transform: translateY(0.75rem) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes nn-nyuki-status {
+    from {
+        opacity: 0;
+        transform: translateY(0.2em);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes nn-nyuki-peek {
+    0%,
+    100% {
+        transform: rotate(-16deg) translateX(-3px);
+    }
+    50% {
+        transform: rotate(16deg) translateX(3px);
+    }
+}
+
+@keyframes nn-nyuki-peek-dots {
+    0%,
+    100% {
+        opacity: 0.35;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+.nn-nyuki-peek {
+    animation: nn-nyuki-peek 1.35s ease-in-out infinite;
+    transform-origin: 50% 70%;
+}
+
+.nn-nyuki-peek-dots span:nth-child(1) {
+    animation: nn-nyuki-peek-dots 1.2s ease-in-out infinite;
+}
+
+.nn-nyuki-peek-dots span:nth-child(2) {
+    animation: nn-nyuki-peek-dots 1.2s ease-in-out 0.2s infinite;
+}
+
+.nn-nyuki-peek-dots span:nth-child(3) {
+    animation: nn-nyuki-peek-dots 1.2s ease-in-out 0.4s infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .animate-\[nn-flip-in_320ms_ease-out\],
     .animate-\[nn-sheet-in_340ms_cubic-bezier\(0\.22\,1\,0\.36\,1\)\],
-    .animate-\[nn-backdrop-in_280ms_ease-out\] {
+    .animate-\[nn-backdrop-in_280ms_ease-out\],
+    .animate-\[nn-nyuki-panel_280ms_cubic-bezier\(0\.22\,1\,0\.36\,1\)\],
+    .animate-\[nn-nyuki-status_320ms_ease-out\] {
+        animation: none !important;
+    }
+
+    .nn-nyuki-peek,
+    .nn-nyuki-peek-dots span {
         animation: none !important;
     }
 }

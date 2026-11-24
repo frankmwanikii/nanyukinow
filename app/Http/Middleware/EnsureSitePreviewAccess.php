@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\SiteSetting;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -27,7 +28,7 @@ class EnsureSitePreviewAccess
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (! config('site.preview_gate_enabled')) {
+        if (! $this->previewGateEnabled()) {
             return $next($request);
         }
 
@@ -54,5 +55,19 @@ class EnsureSitePreviewAccess
                 'previewPath' => '/'.$previewPath,
             ], 404)
             ->header('X-Robots-Tag', 'noindex, nofollow');
+    }
+
+    /**
+     * Admin Settings can override SITE_PREVIEW_GATE without redeploying .env.
+     */
+    private function previewGateEnabled(): bool
+    {
+        $stored = SiteSetting::getValue('preview_gate_enabled');
+
+        if ($stored === null) {
+            return (bool) config('site.preview_gate_enabled');
+        }
+
+        return in_array(strtolower(trim((string) $stored)), ['1', 'true', 'on', 'yes', 'enabled'], true);
     }
 }

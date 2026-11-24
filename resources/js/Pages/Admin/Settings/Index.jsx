@@ -41,9 +41,22 @@ const groupMeta = {
         title: 'SEO & sharing',
         blurb: 'Default search and social preview metadata.',
     },
+    access: {
+        title: 'Site access',
+        blurb: 'Control whether the public site is locked behind the nn-dev-preview link.',
+    },
 };
 
-const groupOrder = ['branding', 'pages', 'billing', 'payments', 'maps', 'social', 'seo'];
+const groupOrder = [
+    'branding',
+    'pages',
+    'access',
+    'billing',
+    'payments',
+    'maps',
+    'social',
+    'seo',
+];
 
 const byKey = (items = []) =>
     Object.fromEntries(items.map((item) => [item.key, item]));

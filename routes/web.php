@@ -19,6 +19,7 @@ use App\Http\Controllers\ListingController;
 use App\Http\Controllers\ListingReportController;
 use App\Http\Controllers\ListingReviewController;
 use App\Http\Controllers\NewsletterController;
+use App\Http\Controllers\NyukiChatController;
 use App\Http\Controllers\NyukiController;
 use App\Http\Controllers\PricingPageController;
 use App\Http\Controllers\ProfileController;
@@ -48,6 +49,9 @@ Route::get('/listings/search', [ListingController::class, 'search'])
 Route::get('/pricing', PricingPageController::class)->name('pricing');
 
 Route::get('/nyuki', NyukiController::class)->name('nyuki');
+Route::post('/nyuki/chat', NyukiChatController::class)
+    ->middleware('throttle:12,1')
+    ->name('nyuki.chat');
 
 Route::get('/stories', function () {
     return Inertia::render('Stories/Index', [

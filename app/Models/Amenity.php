@@ -48,10 +48,17 @@ class Amenity extends Model
 
         if ($existing) {
             if (! filled($existing->icon_key)) {
+                $used = static::query()
+                    ->where('id', '!=', $existing->id)
+                    ->whereNotNull('icon_key')
+                    ->pluck('icon_key')
+                    ->all();
+
                 $existing->forceFill([
                     'icon_key' => AmenityIcon::guess(
                         (string) $existing->slug,
                         (string) $existing->name,
+                        $used,
                     ),
                 ])->saveQuietly();
             }
@@ -60,11 +67,15 @@ class Amenity extends Model
         }
 
         $slug = static::makeSlug($name);
+        $used = static::query()
+            ->whereNotNull('icon_key')
+            ->pluck('icon_key')
+            ->all();
 
         return static::query()->create([
             'name' => $name,
             'slug' => $slug,
-            'icon_key' => AmenityIcon::guess($slug, $name),
+            'icon_key' => AmenityIcon::guess($slug, $name, $used),
             'category_key' => $categoryKey,
             'is_active' => true,
             'usage_count' => 0,

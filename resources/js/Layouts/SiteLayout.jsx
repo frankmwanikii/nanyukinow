@@ -7,6 +7,9 @@ import SuccessToastHost from '@/Components/site/SuccessToast';
 const MobileBottomNav = lazy(
     () => import('@/Components/site/MobileBottomNav'),
 );
+const NyukiDesktopWidget = lazy(
+    () => import('@/Components/site/NyukiDesktopWidget'),
+);
 
 export default function SiteLayout({
     title,
@@ -14,6 +17,7 @@ export default function SiteLayout({
     hideFooter = false,
     hideNav = false,
     hideBottomNav = false,
+    hideNyukiWidget = false,
     compactNav = false,
     /** Explore-style map shell: fixed viewport, no page scroll */
     lockViewport = false,
@@ -44,6 +48,11 @@ export default function SiteLayout({
             {hideBottomNav ? null : (
                 <Suspense fallback={null}>
                     <MobileBottomNav />
+                </Suspense>
+            )}
+            {hideNyukiWidget ? null : (
+                <Suspense fallback={null}>
+                    <NyukiDesktopWidget />
                 </Suspense>
             )}
             <SuccessToastHost />

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\SiteSetting;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -101,5 +102,41 @@ class SitePreviewGateTest extends TestCase
         config(['site.preview_gate_enabled' => false]);
 
         $this->get('/')->assertOk();
+    }
+
+    public function test_admin_setting_can_disable_gate_while_config_is_on(): void
+    {
+        SiteSetting::query()->create([
+            'group' => 'access',
+            'key' => 'preview_gate_enabled',
+            'label' => 'Dev preview lock',
+            'type' => 'select',
+            'value' => '0',
+            'help' => null,
+            'sort_order' => 1,
+        ]);
+        SiteSetting::forgetCache();
+
+        $this->get('/')->assertOk();
+    }
+
+    public function test_admin_setting_can_enable_gate_while_config_is_off(): void
+    {
+        config(['site.preview_gate_enabled' => false]);
+
+        SiteSetting::query()->create([
+            'group' => 'access',
+            'key' => 'preview_gate_enabled',
+            'label' => 'Dev preview lock',
+            'type' => 'select',
+            'value' => '1',
+            'help' => null,
+            'sort_order' => 1,
+        ]);
+        SiteSetting::forgetCache();
+
+        $this->get('/')
+            ->assertNotFound()
+            ->assertViewIs('coming-soon');
     }
 }
