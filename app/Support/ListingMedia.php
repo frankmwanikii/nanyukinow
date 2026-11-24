@@ -18,6 +18,22 @@ class ListingMedia
     }
 
     /**
+     * Store a non-image upload as-is (videos, PDFs, etc.) under public disk.
+     */
+    public static function storeFile(UploadedFile $file, string $folder = 'listings'): string
+    {
+        $ext = strtolower($file->getClientOriginalExtension() ?: $file->extension() ?: 'bin');
+        $ext = preg_replace('/[^a-z0-9]/', '', $ext) ?: 'bin';
+        $path = trim($folder, '/').'/'.Str::uuid().'.'.$ext;
+
+        if (! Storage::disk('public')->putFileAs(dirname($path), $file, basename($path))) {
+            throw new RuntimeException('Could not write upload to public storage.');
+        }
+
+        return '/storage/'.$path;
+    }
+
+    /**
      * Store an upload, or raise a field-level validation error the form can show.
      */
     public static function storeOrFail(UploadedFile $file, string $folder, string $field): string

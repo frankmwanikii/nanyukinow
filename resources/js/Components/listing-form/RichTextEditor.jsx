@@ -1,5 +1,6 @@
 import FieldLabel from './FieldLabel';
 import { useAlert, usePrompt } from '@/Components/ConfirmDialog';
+import UploadProgressBar from '@/Components/site/UploadProgressBar';
 import { uploadEditorMedia } from '@/utils/uploadEditorMedia';
 import { EditorContent, useEditor } from '@tiptap/react';
 import { BubbleMenu } from '@tiptap/react/menus';
@@ -48,12 +49,13 @@ function normalizeEditorHtml(html) {
     return trimmed;
 }
 
-async function fileToEditorImage(file, uploadUrl = null) {
-    const url = await uploadEditorMedia(file, uploadUrl);
+async function fileToEditorImage(file, uploadUrl = null, onProgress = null) {
+    const url = await uploadEditorMedia(file, uploadUrl, { onProgress });
     if (url) {
         return url;
     }
 
+    onProgress?.(100);
     return compressImage(file);
 }
 
@@ -161,6 +163,7 @@ export default function RichTextEditor({
     const fileRef = useRef(null);
     const [fontSize, setFontSize] = useState('16px');
     const [uploading, setUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
     const [, setTick] = useState(0);
     const listId = useId();
     const showImages = allowImages && !compact;
@@ -273,8 +276,13 @@ export default function RichTextEditor({
         async (file) => {
             if (!editor || !file || !file.type.startsWith('image/')) return;
             setUploading(true);
+            setUploadProgress(0);
             try {
-                const src = await fileToEditorImage(file, uploadUrl);
+                const src = await fileToEditorImage(
+                    file,
+                    uploadUrl,
+                    setUploadProgress,
+                );
                 editor.chain().focus().setImage({ src, alt: '' }).run();
                 emitHtml(editor);
             } catch (err) {
@@ -285,6 +293,7 @@ export default function RichTextEditor({
                 });
             } finally {
                 setUploading(false);
+                setUploadProgress(0);
                 if (fileRef.current) fileRef.current.value = '';
             }
         },
@@ -485,7 +494,9 @@ export default function RichTextEditor({
                                     />
                                 )}
                                 <span className="hidden text-[11px] font-semibold sm:inline">
-                                    Image
+                                    {uploading
+                                        ? `${uploadProgress}%`
+                                        : 'Image'}
                                 </span>
                             </ToolBtn>
                             <input
@@ -570,6 +581,13 @@ export default function RichTextEditor({
 
                 <EditorContent editor={editor} />
             </div>
+            {uploading ? (
+                <UploadProgressBar
+                    className="mt-2"
+                    value={uploadProgress}
+                    label="Uploading image…"
+                />
+            ) : null}
             {error ? (
                 <p className="mt-1.5 text-sm text-rose-600 dark:text-rose-400">
                     {error}

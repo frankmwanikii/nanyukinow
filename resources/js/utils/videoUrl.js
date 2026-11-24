@@ -17,10 +17,12 @@ export function vimeoId(url) {
 export function isLikelyVideoUrl(value) {
     if (!value || typeof value !== 'string') return false;
     const v = value.trim();
-    if (!/^https?:\/\//i.test(v)) return false;
+    const isHttp = /^https?:\/\//i.test(v);
+    const isLocalStorage = /^\/storage\//i.test(v);
+    if (!isHttp && !isLocalStorage) return false;
     return (
-        /\.(mp4|webm|ogg)(\?|$)/i.test(v) ||
-        /youtube\.com|youtu\.be|vimeo\.com/i.test(v)
+        /\.(mp4|webm|ogg|mov)(\?|$)/i.test(v) ||
+        (isHttp && /youtube\.com|youtu\.be|vimeo\.com/i.test(v))
     );
 }
 

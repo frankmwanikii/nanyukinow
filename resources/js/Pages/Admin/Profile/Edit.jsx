@@ -25,7 +25,7 @@ function ProfileForm({ user }) {
     const [dragOver, setDragOver] = useState(false);
     const [localError, setLocalError] = useState(null);
 
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, progress, errors } = useForm({
         name: user.name || '',
         email: user.email || '',
         avatar: null,
@@ -299,11 +299,25 @@ function ProfileForm({ user }) {
                         />
                     </div>
 
-                    <div className="flex justify-end border-t border-olive-100 pt-5 dark:border-olive-800">
+                    <div className="flex flex-col items-end gap-2 border-t border-olive-100 pt-5 dark:border-olive-800">
                         <AdminButton type="submit" disabled={processing}>
                             <Save className="h-4 w-4" />
-                            {processing ? 'Saving…' : 'Save profile'}
+                            {processing
+                                ? progress?.percentage != null
+                                  ? `Uploading ${Math.round(progress.percentage)}%`
+                                  : 'Saving…'
+                                : 'Save profile'}
                         </AdminButton>
+                        {processing && progress?.percentage != null ? (
+                            <div className="h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-olive-200 dark:bg-olive-800">
+                                <div
+                                    className="h-full rounded-full bg-mustard transition-[width] duration-150"
+                                    style={{
+                                        width: `${Math.round(progress.percentage)}%`,
+                                    }}
+                                />
+                            </div>
+                        ) : null}
                     </div>
                 </form>
             </FormPanel>

@@ -516,11 +516,31 @@ function ChatPane({ conversation, onDelete }) {
                         type="submit"
                         disabled={form.processing || !canSend}
                         className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-mustard text-earth-dusk transition hover:bg-olive-900 hover:text-white disabled:opacity-50"
-                        aria-label="Send"
+                        aria-label={
+                            form.processing && form.progress?.percentage != null
+                                ? `Uploading ${Math.round(form.progress.percentage)}%`
+                                : 'Send'
+                        }
                     >
-                        <SendArrowMark className="h-5 w-5" />
+                        {form.processing && form.progress?.percentage != null ? (
+                            <span className="text-[10px] font-bold tabular-nums">
+                                {Math.round(form.progress.percentage)}%
+                            </span>
+                        ) : (
+                            <SendArrowMark className="h-5 w-5" />
+                        )}
                     </button>
                 </div>
+                {form.processing && form.progress?.percentage != null ? (
+                    <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-olive-200 dark:bg-olive-800">
+                        <div
+                            className="h-full rounded-full bg-mustard transition-[width] duration-150"
+                            style={{
+                                width: `${Math.round(form.progress.percentage)}%`,
+                            }}
+                        />
+                    </div>
+                ) : null}
                 {form.errors.body ? (
                     <p className="mt-2 text-sm text-rose-600">{form.errors.body}</p>
                 ) : null}

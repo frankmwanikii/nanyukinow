@@ -42,8 +42,10 @@ import {
     sectionCard,
 } from '@/Components/listing-form/fieldStyles';
 import FieldError from '@/Components/listing-form/FieldError';
+import UploadProgressBar from '@/Components/site/UploadProgressBar';
 import AccountLayout from '@/Layouts/AccountLayout';
 import AdminLayout from '@/Layouts/AdminLayout';
+import axios from 'axios';
 import { PROPERTY_TYPES, mainCategories } from '@/data/categories';
 import { countWords as eatDrinkCountWords } from '@/data/eatDrinkTierFeatures';
 import { resolveListingTier } from '@/data/listingTier';
@@ -474,6 +476,7 @@ export default function Form({
         [customGallerySpaces],
     );
     const [saveState, setSaveState] = useState('idle');
+    const [draftUploadProgress, setDraftUploadProgress] = useState(null);
     const [lastSavedAt, setLastSavedAt] = useState(null);
     const autosaveTimer = useRef(null);
     const autosaveReady = useRef(false);
@@ -632,6 +635,18 @@ export default function Form({
     } catch {
         // keep path fallback
     }
+    let editorVideoUploadUrl = isAdmin
+        ? '/admin/listings/editor-video'
+        : '/account/listings/editor-video';
+    try {
+        editorVideoUploadUrl = route(
+            isAdmin
+                ? 'admin.listings.editor-video'
+                : 'account.listings.editor-video',
+        );
+    } catch {
+        // keep path fallback
+    }
     const tierState = resolveListingTier(categoryKey, form.data.tier);
     const {
         listingTier,
@@ -765,12 +780,30 @@ export default function Form({
         draftSaving.current = true;
         draftPending.current = false;
         if (!silent) setSaveState('saving');
+        setDraftUploadProgress(0);
+
+        const csrf =
+            document
+                .querySelector('meta[name="csrf-token"]')
+                ?.getAttribute('content') || '';
+        const axiosConfig = {
+            headers: {
+                Accept: 'application/json',
+                'X-CSRF-TOKEN': csrf,
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            onUploadProgress: (event) => {
+                if (!event.total) {
+                    setDraftUploadProgress(event.loaded > 0 ? 50 : 0);
+                    return;
+                }
+                setDraftUploadProgress(
+                    Math.round((event.loaded / event.total) * 100),
+                );
+            },
+        };
 
         try {
-            const csrf =
-                document
-                    .querySelector('meta[name="csrf-token"]')
-                    ?.getAttribute('content') || '';
             const url = activeDraftKey
                 ? route(
                       isAdmin
@@ -784,69 +817,52 @@ export default function Form({
                           : 'account.listings.draft',
                   );
 
-            const res = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    Accept: 'application/json',
-                    'X-CSRF-TOKEN': csrf,
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-                credentials: 'same-origin',
-                body: buildDraftBody(latest),
-            });
-
-            let response = res;
-            if (
-                !response.ok &&
-                allowCreateFallback &&
-                activeDraftKey &&
-                (response.status === 404 || response.status === 410)
-            ) {
-                draftKeyRef.current = null;
-                setDraftKey(null);
-                response = await fetch(
-                    route(
-                        isAdmin
-                            ? 'admin.listings.draft'
-                            : 'account.listings.draft',
-                    ),
-                    {
-                        method: 'POST',
-                        headers: {
-                            Accept: 'application/json',
-                            'X-CSRF-TOKEN': csrf,
-                            'X-Requested-With': 'XMLHttpRequest',
-                        },
-                        credentials: 'same-origin',
-                        body: buildDraftBody(latest),
-                    },
+            let response;
+            try {
+                response = await axios.post(
+                    url,
+                    buildDraftBody(latest),
+                    axiosConfig,
                 );
+            } catch (err) {
+                const status = err?.response?.status;
+                if (
+                    allowCreateFallback &&
+                    activeDraftKey &&
+                    (status === 404 || status === 410)
+                ) {
+                    draftKeyRef.current = null;
+                    setDraftKey(null);
+                    response = await axios.post(
+                        route(
+                            isAdmin
+                                ? 'admin.listings.draft'
+                                : 'account.listings.draft',
+                        ),
+                        buildDraftBody(latest),
+                        axiosConfig,
+                    );
+                } else {
+                    const payload = err?.response?.data;
+                    if (payload?.errors && typeof payload.errors === 'object') {
+                        Object.entries(payload.errors).forEach(
+                            ([key, messages]) => {
+                                const message = Array.isArray(messages)
+                                    ? messages[0]
+                                    : messages;
+                                if (key && message) {
+                                    form.setError(key, String(message));
+                                }
+                            },
+                        );
+                    }
+
+                    setSaveState('error');
+                    return;
+                }
             }
 
-            if (!response.ok) {
-                let payload = null;
-                try {
-                    payload = await response.json();
-                } catch {
-                    payload = null;
-                }
-
-                if (payload?.errors && typeof payload.errors === 'object') {
-                    Object.entries(payload.errors).forEach(([key, messages]) => {
-                        const message = Array.isArray(messages)
-                            ? messages[0]
-                            : messages;
-                        if (key && message) {
-                            form.setError(key, String(message));
-                        }
-                    });
-                }
-
-                setSaveState('error');
-                return;
-            }
-
-            const json = await response.json();
+            const json = response.data;
             if (json?.listing?.slug || json?.listing?.id) {
                 const nextKey = json.listing.slug || json.listing.id;
                 draftKeyRef.current = nextKey;
@@ -944,6 +960,7 @@ export default function Form({
         } catch {
             setSaveState('error');
         } finally {
+            setDraftUploadProgress(null);
             draftSaving.current = false;
             if (draftPending.current) {
                 draftPending.current = false;
@@ -1471,7 +1488,11 @@ export default function Form({
                                     className="inline-flex items-center gap-2 rounded-sm border border-olive-200 bg-white px-4 py-2.5 text-sm font-semibold text-olive-800 disabled:opacity-50 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-100 dark:hover:bg-olive-800"
                                 >
                                     <Save className="h-4 w-4" />
-                                    {form.processing ? 'Saving…' : 'Save draft'}
+                                    {form.processing
+                                        ? form.progress?.percentage != null
+                                          ? `Saving ${Math.round(form.progress.percentage)}%`
+                                          : 'Saving…'
+                                        : 'Save draft'}
                                 </button>
                                 <button
                                     type="button"
@@ -1479,7 +1500,11 @@ export default function Form({
                                     onClick={(e) => submit(e, 'publish')}
                                     className="inline-flex items-center gap-2 rounded-sm bg-mustard px-4 py-2.5 text-sm font-bold text-earth-dusk disabled:opacity-50"
                                 >
-                                    {form.processing ? 'Publishing…' : 'Publish'}
+                                    {form.processing
+                                        ? form.progress?.percentage != null
+                                          ? `Publishing ${Math.round(form.progress.percentage)}%`
+                                          : 'Publishing…'
+                                        : 'Publish'}
                                 </button>
                             </div>
                         </div>
@@ -1513,10 +1538,13 @@ export default function Form({
 
                     {!isEdit ? (
                         <div className="flex items-center gap-2 text-xs font-semibold text-olive-600">
-                            {saveState === 'saving' ? (
+                            {saveState === 'saving' ||
+                            draftUploadProgress != null ? (
                                 <>
                                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                    Saving draft…
+                                    {draftUploadProgress != null
+                                        ? `Uploading ${draftUploadProgress}%`
+                                        : 'Saving draft…'}
                                 </>
                             ) : saveState === 'saved' ? (
                                 <>
@@ -1995,6 +2023,7 @@ export default function Form({
                                                 form.data.details?.video_url ||
                                                 ''
                                             }
+                                            uploadUrl={editorVideoUploadUrl}
                                             onChange={(partial) =>
                                                 patch({
                                                     details: {
@@ -2142,7 +2171,11 @@ export default function Form({
                                             className="inline-flex shrink-0 items-center gap-2 rounded-sm border border-olive-900/20 bg-white px-3.5 py-2 text-sm font-semibold text-olive-800 transition hover:border-olive-900/40 disabled:opacity-50 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-100 dark:hover:bg-olive-800"
                                         >
                                             <Save className="h-4 w-4" />
-                                            {form.processing ? 'Saving…' : 'Save draft'}
+                                            {form.processing
+                                                ? form.progress?.percentage != null
+                                                  ? `Saving ${Math.round(form.progress.percentage)}%`
+                                                  : 'Saving…'
+                                                : 'Save draft'}
                                         </button>
                                         <button
                                             type="button"
@@ -2150,7 +2183,11 @@ export default function Form({
                                             onClick={(e) => submit(e, 'publish')}
                                             className="inline-flex shrink-0 items-center gap-2 rounded-sm bg-mustard px-3.5 py-2 text-sm font-semibold text-earth-dusk transition hover:bg-olive-900 hover:text-white disabled:opacity-50 dark:hover:bg-olive-100 dark:hover:text-earth-dusk"
                                         >
-                                            {form.processing ? 'Publishing…' : 'Publish'}
+                                            {form.processing
+                                                ? form.progress?.percentage != null
+                                                  ? `Publishing ${Math.round(form.progress.percentage)}%`
+                                                  : 'Publishing…'
+                                                : 'Publish'}
                                         </button>
                                     </>
                                 ) : null}
@@ -2170,7 +2207,9 @@ export default function Form({
                                     >
                                         <Save className="h-4 w-4" />
                                         {form.processing
-                                            ? 'Saving…'
+                                            ? form.progress?.percentage != null
+                                              ? `Saving ${Math.round(form.progress.percentage)}%`
+                                              : 'Saving…'
                                             : isEdit
                                               ? 'Save changes'
                                               : 'Submit for review'}
@@ -2178,6 +2217,21 @@ export default function Form({
                                 ) : null}
                             </div>
                         </div>
+                        {form.processing && form.progress?.percentage != null ? (
+                            <div className="border-t border-olive-200 px-4 py-2 dark:border-olive-800">
+                                <UploadProgressBar
+                                    value={form.progress.percentage}
+                                    label="Uploading…"
+                                />
+                            </div>
+                        ) : draftUploadProgress != null ? (
+                            <div className="border-t border-olive-200 px-4 py-2 dark:border-olive-800">
+                                <UploadProgressBar
+                                    value={draftUploadProgress}
+                                    label="Uploading draft media…"
+                                />
+                            </div>
+                        ) : null}
                     </form>
                         </>
                     )}

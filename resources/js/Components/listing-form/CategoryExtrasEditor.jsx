@@ -39,6 +39,7 @@ import {
     formatGigWhenLabel,
     WEEKDAYS,
 } from '@/utils/eatDrinkDetails';
+import UploadProgressBar from '@/Components/site/UploadProgressBar';
 import { uploadEditorMedia } from '@/utils/uploadEditorMedia';
 import { Link } from '@inertiajs/react';
 import { ImagePlus, Images, Plus, Trash2, X } from '@/Components/site/LucideCompat';
@@ -438,6 +439,8 @@ function MenuImagesEditor({
     const [libraryOpen, setLibraryOpen] = useState(false);
     const [uploadError, setUploadError] = useState(null);
     const [uploading, setUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const [uploadLabel, setUploadLabel] = useState('Uploading…');
     const [imageUrl, setImageUrl] = useState('');
     const [imageUrlError, setImageUrlError] = useState(null);
     const fileInputRef = useRef(null);
@@ -473,18 +476,33 @@ function MenuImagesEditor({
         setUploadError(null);
         uploadingRef.current = true;
         setUploading(true);
+        setUploadProgress(0);
         const chosen = files.slice(0, slots);
         const urls = [];
         try {
-            for (const file of chosen) {
-                const url = await uploadEditorMedia(file, uploadUrl);
+            for (let i = 0; i < chosen.length; i += 1) {
+                const file = chosen[i];
+                setUploadLabel(
+                    chosen.length > 1
+                        ? `Uploading ${i + 1} of ${chosen.length}…`
+                        : 'Uploading image…',
+                );
+                const url = await uploadEditorMedia(file, uploadUrl, {
+                    onProgress: (pct) => {
+                        const base = (i / chosen.length) * 100;
+                        const slice = pct / chosen.length;
+                        setUploadProgress(Math.round(base + slice));
+                    },
+                });
                 if (url) {
                     urls.push(url);
                 }
             }
+            setUploadProgress(100);
         } finally {
             uploadingRef.current = false;
             setUploading(false);
+            setUploadProgress(0);
         }
         if (!urls.length) {
             setUploadError(
@@ -655,7 +673,7 @@ function MenuImagesEditor({
                                         <ImagePlus className="h-5 w-5" />
                                         <span className="text-[11px] font-semibold">
                                             {uploading
-                                                ? 'Uploading…'
+                                                ? `${uploadProgress}%`
                                                 : 'Add more'}
                                         </span>
                                         <span className="text-[10px] text-olive-500">
@@ -739,9 +757,10 @@ function MenuImagesEditor({
             )}
 
             {uploading ? (
-                <p className="text-sm font-medium text-olive-700 dark:text-olive-300">
-                    Uploading image…
-                </p>
+                <UploadProgressBar
+                    value={uploadProgress}
+                    label={uploadLabel}
+                />
             ) : null}
 
             {uploadError ? (
@@ -775,6 +794,7 @@ export default function CategoryExtrasEditor({
     onAmenityCreated,
 }) {
     const [imageTarget, setImageTarget] = useState(null); // { list, index, key } — sponsors/products only
+    const [singleUploadProgress, setSingleUploadProgress] = useState(null);
     const singleInputRef = useRef(null);
     const pendingSingleRef = useRef(null);
 
@@ -2133,14 +2153,29 @@ export default function CategoryExtrasEditor({
                     pendingSingleRef.current = null;
                     setImageTarget(null);
                     if (!file || !target) return;
-                    const url = await uploadEditorMedia(file, uploadUrl);
-                    if (url) {
-                        updateItem(target.list, target.index, {
-                            [target.key]: url,
+                    setSingleUploadProgress(0);
+                    try {
+                        const url = await uploadEditorMedia(file, uploadUrl, {
+                            onProgress: setSingleUploadProgress,
                         });
+                        if (url) {
+                            updateItem(target.list, target.index, {
+                                [target.key]: url,
+                            });
+                        }
+                    } finally {
+                        setSingleUploadProgress(null);
                     }
                 }}
             />
+            {singleUploadProgress != null ? (
+                <div className="sticky bottom-3 z-20 rounded-sm border border-olive-200 bg-white/95 p-3 shadow-soft dark:border-olive-700 dark:bg-olive-950/95">
+                    <UploadProgressBar
+                        value={singleUploadProgress}
+                        label="Uploading image…"
+                    />
+                </div>
+            ) : null}
         </div>
         </SectionErrorBoundary>
     );

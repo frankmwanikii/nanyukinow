@@ -245,11 +245,26 @@ export default function Index({ tickets = [], priorities = [] }) {
                                 disabled={form.processing}
                                 className="inline-flex items-center gap-1.5 rounded-sm border border-mustard bg-mustard px-4 py-2.5 text-sm font-semibold text-earth-dusk transition hover:bg-olive-900 hover:text-white disabled:opacity-60 dark:hover:bg-olive-100 dark:hover:text-earth-dusk"
                             >
-                                {form.processing ? 'Sending…' : 'Send ticket'}
+                                {form.processing
+                                    ? form.progress?.percentage != null
+                                      ? `Uploading ${Math.round(form.progress.percentage)}%`
+                                      : 'Sending…'
+                                    : 'Send ticket'}
                                 {!form.processing ? (
                                     <ForwardMark className="h-4 w-4" />
                                 ) : null}
                             </button>
+                            {form.processing &&
+                            form.progress?.percentage != null ? (
+                                <div className="h-1.5 overflow-hidden rounded-full bg-olive-200 dark:bg-olive-800">
+                                    <div
+                                        className="h-full rounded-full bg-mustard transition-[width] duration-150"
+                                        style={{
+                                            width: `${Math.round(form.progress.percentage)}%`,
+                                        }}
+                                    />
+                                </div>
+                            ) : null}
                         </div>
                     </form>
                 </section>

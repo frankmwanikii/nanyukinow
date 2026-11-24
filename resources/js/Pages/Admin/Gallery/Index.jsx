@@ -12,6 +12,7 @@ import {
     Th,
 } from '@/Components/Admin/ui';
 import { useConfirm } from '@/Components/ConfirmDialog';
+import UploadProgressBar from '@/Components/site/UploadProgressBar';
 import { Head, router, useForm } from '@inertiajs/react';
 import {
     Check,
@@ -196,11 +197,22 @@ export default function Index({ media, filters, counts, sources }) {
                             onClick={() => fileInputRef.current?.click()}
                         >
                             <Upload className="h-4 w-4" />
-                            {uploadForm.processing ? 'Uploading…' : 'Upload'}
+                            {uploadForm.processing
+                                ? `Uploading ${Math.round(uploadForm.progress?.percentage ?? 0)}%`
+                                : 'Upload'}
                         </AdminButton>
                     </>
                 }
             />
+
+            {uploadForm.processing ? (
+                <div className="mb-4 max-w-md">
+                    <UploadProgressBar
+                        value={uploadForm.progress?.percentage ?? 0}
+                        label="Uploading images…"
+                    />
+                </div>
+            ) : null}
 
             <FilterBar>
                 <AdminInput

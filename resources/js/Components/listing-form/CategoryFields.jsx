@@ -60,6 +60,7 @@ import {
 } from '@/data/eventsTierFeatures';
 import { isTieredCategory } from '@/data/listingTier';
 import { ImagePlus, Plus, X } from '@/Components/site/LucideCompat';
+import UploadProgressBar from '@/Components/site/UploadProgressBar';
 import { uploadEditorMedia } from '@/utils/uploadEditorMedia';
 import { useRef, useState } from 'react';
 
@@ -254,6 +255,7 @@ function HostPhotoField({
     const fileInputId = `${id}-file`;
     const urlInputId = `${id}-url`;
     const [uploading, setUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
     const [error, setError] = useState(null);
     const [imageUrl, setImageUrl] = useState('');
     const [imageUrlError, setImageUrlError] = useState(null);
@@ -273,8 +275,11 @@ function HostPhotoField({
         setImageUrlError(null);
         uploadingRef.current = true;
         setUploading(true);
+        setUploadProgress(0);
         try {
-            const url = await uploadEditorMedia(file, uploadUrl);
+            const url = await uploadEditorMedia(file, uploadUrl, {
+                onProgress: setUploadProgress,
+            });
             if (!url) {
                 setError(
                     'Could not upload that image. Try a JPG, PNG, or WebP under 5MB.',
@@ -285,6 +290,7 @@ function HostPhotoField({
         } finally {
             uploadingRef.current = false;
             setUploading(false);
+            setUploadProgress(0);
         }
     };
 
@@ -369,7 +375,9 @@ function HostPhotoField({
                                 onClick={openFilePicker}
                                 className="rounded-xl border border-white/30 bg-white/95 px-3 py-1.5 text-xs font-semibold text-olive-900 shadow-sm hover:bg-white disabled:opacity-60"
                             >
-                                {uploading ? 'Uploading…' : 'Replace photo'}
+                                {uploading
+                                    ? `Uploading ${uploadProgress}%`
+                                    : 'Replace photo'}
                             </button>
                             <button
                                 type="button"
@@ -400,7 +408,7 @@ function HostPhotoField({
                     <span>
                         <span className="block text-sm font-semibold text-olive-950 dark:text-olive-50">
                             {uploading
-                                ? 'Uploading…'
+                                ? `Uploading ${uploadProgress}%`
                                 : 'Drop host photo here'}
                         </span>
                         <span className="mt-1 block text-xs text-olive-500">
@@ -455,9 +463,10 @@ function HostPhotoField({
             </div>
 
             {uploading ? (
-                <p className="text-sm font-medium text-olive-700 dark:text-olive-300">
-                    Uploading host photo…
-                </p>
+                <UploadProgressBar
+                    value={uploadProgress}
+                    label="Uploading host photo…"
+                />
             ) : null}
 
             {error ? (

@@ -7,6 +7,7 @@ use App\Models\Listing;
 use App\Support\ListingMedia;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use RuntimeException;
 
 class EditorMediaController extends Controller
 {
@@ -22,6 +23,36 @@ class EditorMediaController extends Controller
         ]);
 
         $url = ListingMedia::store($data['image'], 'listings/editor');
+
+        return response()->json(['url' => $url], 201);
+    }
+
+    public function storeVideo(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'video' => [
+                'required',
+                'file',
+                'mimetypes:video/mp4,video/webm,video/ogg,video/quicktime',
+                'max:10240',
+            ],
+        ], [
+            'video.max' => 'Videos must be 10MB or smaller.',
+            'video.mimetypes' => 'Use an MP4, WebM, or OGG video.',
+        ]);
+
+        try {
+            $url = ListingMedia::storeFile($data['video'], 'listings/videos');
+        } catch (RuntimeException $e) {
+            $message = str_contains($e->getMessage(), 'not writable')
+                ? 'Could not save that video because storage is not writable. Please try again or contact support.'
+                : 'Could not save that video. Try an MP4 or WebM under 10MB.';
+
+            return response()->json([
+                'message' => $message,
+                'errors' => ['video' => [$message]],
+            ], 422);
+        }
 
         return response()->json(['url' => $url], 201);
     }
@@ -42,7 +73,7 @@ class EditorMediaController extends Controller
             ->orderByDesc('updated_at')
             ->get(['id', 'title', 'image_url', 'logo_url', 'event_poster_url', 'gallery'])
             ->each(function (Listing $listing) use (&$byUrl): void {
-                $push = function (?string $url, string $kind) use (&$byUrl, $listing): void {
+                $push = function (?string $url, string $kind) use (&$byUrl): void {
                     $url = is_string($url) ? trim($url) : '';
                     if ($url === '' || isset($byUrl[$url])) {
                         return;

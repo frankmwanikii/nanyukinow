@@ -141,6 +141,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/account/listings/editor-media', [EditorMediaController::class, 'store'])
             ->middleware('throttle:40,1')
             ->name('account.listings.editor-media');
+        Route::post('/account/listings/editor-video', [EditorMediaController::class, 'storeVideo'])
+            ->middleware('throttle:20,1')
+            ->name('account.listings.editor-video');
         Route::get('/account/media/browse', [EditorMediaController::class, 'browse'])
             ->middleware('throttle:60,1')
             ->name('account.media.browse');

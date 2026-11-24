@@ -57,6 +57,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('listings/editor-media', [EditorMediaController::class, 'store'])
             ->middleware('throttle:40,1')
             ->name('listings.editor-media');
+        Route::post('listings/editor-video', [EditorMediaController::class, 'storeVideo'])
+            ->middleware('throttle:20,1')
+            ->name('listings.editor-video');
 
         Route::get('claims', [ClaimController::class, 'index'])->name('claims.index');
         Route::get('claims/{claim}', [ClaimController::class, 'show'])->name('claims.show');

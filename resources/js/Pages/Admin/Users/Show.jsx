@@ -246,7 +246,7 @@ function ProfileEditor({ user }) {
     const [dragOver, setDragOver] = useState(false);
     const [localError, setLocalError] = useState(null);
 
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, progress, errors } = useForm({
         name: user.name || '',
         username: user.username || '',
         email: user.email || '',
@@ -558,8 +558,22 @@ function ProfileEditor({ user }) {
                         </p>
                         <AdminButton type="submit" disabled={processing}>
                             <Save className="h-4 w-4" />
-                            {processing ? 'Saving…' : 'Save changes'}
+                            {processing
+                                ? progress?.percentage != null
+                                  ? `Uploading ${Math.round(progress.percentage)}%`
+                                  : 'Saving…'
+                                : 'Save changes'}
                         </AdminButton>
+                        {processing && progress?.percentage != null ? (
+                            <div className="mt-2 h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-olive-200 dark:bg-olive-800">
+                                <div
+                                    className="h-full rounded-full bg-mustard transition-[width] duration-150"
+                                    style={{
+                                        width: `${Math.round(progress.percentage)}%`,
+                                    }}
+                                />
+                            </div>
+                        ) : null}
                     </div>
                 </form>
             </FormPanel>

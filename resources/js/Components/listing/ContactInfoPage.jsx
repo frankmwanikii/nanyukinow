@@ -33,28 +33,6 @@ function formatBytes(size) {
     return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function simulateUpload(docId, setDocs) {
-    let progress = 0;
-    const tick = () => {
-        progress = Math.min(100, progress + Math.floor(8 + Math.random() * 18));
-        setDocs((prev) =>
-            prev.map((doc) =>
-                doc.id === docId
-                    ? {
-                          ...doc,
-                          progress,
-                          status: progress >= 100 ? 'done' : 'uploading',
-                      }
-                    : doc,
-            ),
-        );
-        if (progress < 100) {
-            window.setTimeout(tick, 120 + Math.random() * 160);
-        }
-    };
-    window.setTimeout(tick, 80);
-}
-
 function InstagramIcon({ className = '' }) {
     return (
         <svg viewBox="0 0 24 24" className={className} fill="none" aria-hidden>
@@ -251,6 +229,7 @@ export function ContactMessageForm({
     const [fileError, setFileError] = useState('');
     const [formError, setFormError] = useState('');
     const [sending, setSending] = useState(false);
+    const [sendProgress, setSendProgress] = useState(0);
     const [sent, setSent] = useState(false);
     const [touched, setTouched] = useState({});
     const [submitted, setSubmitted] = useState(false);
@@ -355,14 +334,13 @@ export function ContactMessageForm({
                 file,
                 previewUrl,
                 progress: 0,
-                status: 'uploading',
+                status: 'ready',
             });
         }
 
         if (!incoming.length) return;
 
         setDocs((prev) => [...prev, ...incoming]);
-        incoming.forEach((doc) => simulateUpload(doc.id, setDocs));
     };
 
     const onFileChange = (e) => {
@@ -415,6 +393,17 @@ export function ContactMessageForm({
         }
 
         setSending(true);
+        setSendProgress(0);
+        const hasFiles = docs.some((doc) => doc?.file);
+        if (hasFiles) {
+            setDocs((prev) =>
+                prev.map((doc) =>
+                    doc.file
+                        ? { ...doc, progress: 0, status: 'uploading' }
+                        : doc,
+                ),
+            );
+        }
         try {
             const formData = new FormData();
             formData.append('first_name', firstName.trim());
@@ -439,6 +428,30 @@ export function ContactMessageForm({
                     headers: {
                         Accept: 'application/json',
                         'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    onUploadProgress: (event) => {
+                        const pct = event.total
+                            ? Math.round((event.loaded / event.total) * 100)
+                            : event.loaded > 0
+                              ? 50
+                              : 0;
+                        setSendProgress(pct);
+                        if (hasFiles) {
+                            setDocs((prev) =>
+                                prev.map((doc) =>
+                                    doc.file
+                                        ? {
+                                              ...doc,
+                                              progress: pct,
+                                              status:
+                                                  pct >= 100
+                                                      ? 'done'
+                                                      : 'uploading',
+                                          }
+                                        : doc,
+                                ),
+                            );
+                        }
                     },
                 },
             );
@@ -489,6 +502,7 @@ export function ContactMessageForm({
             }
         } finally {
             setSending(false);
+            setSendProgress(0);
         }
     };
 
@@ -717,9 +731,9 @@ export function ContactMessageForm({
                                                 {doc.file.name}
                                             </p>
                                             <p className="text-[11px] text-olive-500">
-                                                {doc.status === 'done'
-                                                    ? formatBytes(doc.file.size)
-                                                    : `Uploading ${doc.progress}%`}
+                                                {doc.status === 'uploading'
+                                                    ? `Uploading ${doc.progress}%`
+                                                    : formatBytes(doc.file.size)}
                                             </p>
                                         </div>
                                         <button
@@ -758,8 +772,8 @@ export function ContactMessageForm({
                         disabled={uploading || sending || (submitted && !formIsValid)}
                         className="inline-flex min-h-11 w-full items-center justify-center gap-2 border border-olive-900 bg-olive-900 px-6 py-3 text-sm font-semibold text-white transition hover:border-mustard hover:bg-mustard hover:text-olive-950 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
                     >
-                        {uploading
-                            ? 'Uploading…'
+                        {uploading || (sending && sendProgress > 0)
+                            ? `Uploading ${sendProgress || 0}%`
                             : sending
                               ? 'Sending…'
                               : 'Send message'}

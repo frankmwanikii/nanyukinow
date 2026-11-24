@@ -34,7 +34,15 @@ export default function UpdateProfileInformation({
     const [localError, setLocalError] = useState(null);
     const { confirm, dialog } = useConfirm();
 
-    const { data, setData, post, errors, processing, recentlySuccessful } = useForm({
+    const {
+        data,
+        setData,
+        post,
+        errors,
+        processing,
+        progress,
+        recentlySuccessful,
+    } = useForm({
         name: user.name,
         email: user.email,
         phone: user.phone || '',
@@ -403,7 +411,11 @@ export default function UpdateProfileInformation({
                         disabled={processing}
                         className="inline-flex items-center justify-center rounded-[2px] border border-mustard bg-mustard px-4 py-2.5 text-sm font-semibold text-earth-dusk transition hover:border-olive-900 hover:bg-olive-900 hover:text-white disabled:opacity-50 dark:hover:bg-olive-100 dark:hover:text-earth-dusk"
                     >
-                        {processing ? 'Saving…' : 'Save profile'}
+                        {processing
+                            ? progress?.percentage != null
+                              ? `Uploading ${Math.round(progress.percentage)}%`
+                              : 'Saving…'
+                            : 'Save profile'}
                     </button>
                     {recentlySuccessful && (
                         <p className="text-sm font-medium text-olive-600 dark:text-olive-400">
@@ -411,6 +423,16 @@ export default function UpdateProfileInformation({
                         </p>
                     )}
                 </div>
+                {processing && progress?.percentage != null ? (
+                    <div className="h-1.5 overflow-hidden rounded-full bg-olive-200 dark:bg-olive-800">
+                        <div
+                            className="h-full rounded-full bg-mustard transition-[width] duration-150"
+                            style={{
+                                width: `${Math.round(progress.percentage)}%`,
+                            }}
+                        />
+                    </div>
+                ) : null}
             </form>
 
             <ImageCropModal

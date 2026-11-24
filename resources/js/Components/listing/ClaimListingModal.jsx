@@ -60,6 +60,7 @@ export default function ClaimListingModal({ open, onClose, listing }) {
     const [captchaToken, setCaptchaToken] = useState('');
     const [captchaError, setCaptchaError] = useState('');
     const [sending, setSending] = useState(false);
+    const [sendProgress, setSendProgress] = useState(0);
     const [sent, setSent] = useState(false);
     const fileInputRef = useRef(null);
 
@@ -169,6 +170,7 @@ export default function ClaimListingModal({ open, onClose, listing }) {
         setFormError('');
         setCaptchaError('');
         setSending(true);
+        setSendProgress(0);
 
         const body = new FormData();
         body.append('first_name', firstName.trim());
@@ -185,6 +187,12 @@ export default function ClaimListingModal({ open, onClose, listing }) {
         router.post(route('listings.claim', listing.slug), body, {
             forceFormData: true,
             preserveScroll: true,
+            onProgress: (event) => {
+                const pct = event?.percentage;
+                if (typeof pct === 'number') {
+                    setSendProgress(Math.round(pct));
+                }
+            },
             onSuccess: () => {
                 setSent(true);
                 reset();
@@ -212,7 +220,10 @@ export default function ClaimListingModal({ open, onClose, listing }) {
                         : 'Could not submit this claim. Please check the form and try again.',
                 );
             },
-            onFinish: () => setSending(false),
+            onFinish: () => {
+                setSending(false);
+                setSendProgress(0);
+            },
         });
     };
 
@@ -429,7 +440,11 @@ export default function ClaimListingModal({ open, onClose, listing }) {
                         disabled={!confirmed || sending}
                         className="inline-flex min-h-11 items-center gap-2 bg-olive-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-mustard hover:text-olive-950 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                        {sending ? 'Submitting…' : 'Submit claim'}
+                        {sending
+                            ? sendProgress > 0
+                              ? `Uploading ${sendProgress}%`
+                              : 'Submitting…'
+                            : 'Submit claim'}
                         {!sending ? (
                             <SendArrowMark className="h-4 w-4" />
                         ) : null}
