@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Listing;
 use App\Models\Location;
 use App\Models\SitePage;
+use App\Support\HeroSlides;
 use App\Support\ListingOutbound;
 use App\Support\ListingPayload;
 use App\Support\ListingSearch;
@@ -30,6 +31,7 @@ class ListingController extends Controller
             'wildlifeSafaris' => Inertia::defer(fn () => $this->wildlifeCards(), 'below'),
             'events' => Inertia::defer(fn () => $this->eventCards(), 'below'),
             'page' => $page,
+            'heroSlides' => HeroSlides::forHome(),
         ]);
     }
 

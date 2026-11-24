@@ -3,39 +3,86 @@ import { useEffect, useRef, useState } from 'react';
 import { SearchMark } from '@/Components/site/Mark';
 import SearchSuggestions from '@/Components/site/SearchSuggestions';
 
-const HERO_PHOTOS = [
+const DEFAULT_HERO_PHOTOS = [
+    {
+        id: 'brand',
+        image: '/images/hero/slide_1.webp',
+        imageMobile: '/images/hero/slide_1_mobile.webp',
+        alt: 'Mount Kenya, wildlife, and town life around Nanyuki',
+        title: 'Nanyuki Now',
+        credit: 'Mount Kenya, wildlife, and town life',
+    },
     {
         id: 'wildlife',
         image: '/images/hero/slide-2.webp',
         imageMobile: '/images/hero/slide_2_mobile.webp',
         alt: 'Black rhinos on the Laikipia plains near Nanyuki',
-        title: 'Laikipia plains',
-        credit: 'Black rhinos near Nanyuki',
+        title: "Discover Nanyuki's wild side",
+        credit: 'Black rhinos on the Laikipia plains',
+    },
+    {
+        id: 'cabin',
+        image: '/images/hero/slide-3.webp',
+        alt: 'A-frame cabin stay in Nanyuki at dusk',
+        title: 'Unwind in the heart of Nanyuki',
+        credit: 'Stay. Relax. Explore',
     },
     {
         id: 'stay',
         image: '/images/hero/bnb3.webp',
         alt: 'Warm stone-walled stay interior in Nanyuki',
-        title: 'Stay in town',
-        credit: 'Stone-walled guest interior',
+        title: 'Your home away from home',
+        credit: 'Stone-walled guest stays in town',
     },
     {
         id: 'dining',
         image: '/images/hero/slide_4.webp',
         alt: 'Dining with a view of Mount Kenya at dusk',
-        title: 'Mount Kenya at dusk',
-        credit: 'Dining with a highland view',
+        title: "Nanyuki's finest flavors",
+        credit: 'Dining with a Mount Kenya view',
     },
 ];
 
 const PHOTO_INTERVAL_MS = 9000;
+
+function normalizeHeroPhotos(photos) {
+    if (!Array.isArray(photos) || photos.length === 0) {
+        return DEFAULT_HERO_PHOTOS;
+    }
+
+    const cleaned = photos
+        .map((photo, index) => {
+            const image =
+                typeof photo?.image === 'string' ? photo.image.trim() : '';
+            if (!image) {
+                return null;
+            }
+
+            return {
+                id: photo.id || `slide-${index + 1}`,
+                image,
+                imageMobile:
+                    typeof photo.imageMobile === 'string' &&
+                    photo.imageMobile.trim() !== ''
+                        ? photo.imageMobile.trim()
+                        : null,
+                alt: photo.alt || photo.title || 'Homepage hero photo',
+                title: photo.title || '',
+                credit: photo.credit || '',
+            };
+        })
+        .filter(Boolean);
+
+    return cleaned.length > 0 ? cleaned : DEFAULT_HERO_PHOTOS;
+}
 
 const HERO_PLACES = ['Nanyuki', 'Timau', 'Naromoru', 'Laikipia'];
 const PLACE_INTERVAL_MS = 3200;
 
 const OPEN_MOBILE_SEARCH = 'nn:open-mobile-search';
 
-export default function HeroSlider() {
+export default function HeroSlider({ photos = null }) {
+    const heroPhotos = normalizeHeroPhotos(photos);
     const [photoIndex, setPhotoIndex] = useState(0);
     const [progressKey, setProgressKey] = useState(0);
     const [placeIndex, setPlaceIndex] = useState(0);
@@ -76,15 +123,21 @@ export default function HeroSlider() {
     }, []);
 
     useEffect(() => {
-        if (reduceMotion || HERO_PHOTOS.length < 2) {
+        if (photoIndex >= heroPhotos.length) {
+            setPhotoIndex(0);
+        }
+    }, [heroPhotos.length, photoIndex]);
+
+    useEffect(() => {
+        if (reduceMotion || heroPhotos.length < 2) {
             return undefined;
         }
         const id = window.setInterval(() => {
-            setPhotoIndex((prev) => (prev + 1) % HERO_PHOTOS.length);
+            setPhotoIndex((prev) => (prev + 1) % heroPhotos.length);
             setProgressKey((key) => key + 1);
         }, PHOTO_INTERVAL_MS);
         return () => window.clearInterval(id);
-    }, [reduceMotion, progressKey]);
+    }, [reduceMotion, progressKey, heroPhotos.length]);
 
     useEffect(() => {
         if (reduceMotion || HERO_PLACES.length < 2) {
@@ -157,7 +210,7 @@ export default function HeroSlider() {
         );
     };
 
-    const activePhoto = HERO_PHOTOS[photoIndex] ?? HERO_PHOTOS[0];
+    const activePhoto = heroPhotos[photoIndex] ?? heroPhotos[0];
 
     const searchForm = (
         <form
@@ -220,7 +273,7 @@ export default function HeroSlider() {
             aria-label="Find places in Nanyuki"
         >
             <div className="absolute inset-0" aria-hidden="true">
-                {HERO_PHOTOS.map((photo, i) => {
+                {heroPhotos.map((photo, i) => {
                     const visible = i === photoIndex;
                     const kenBurnsClass =
                         i % 2 === 0
@@ -268,7 +321,7 @@ export default function HeroSlider() {
                     role="tablist"
                     aria-label="Hero photos"
                 >
-                    {HERO_PHOTOS.map((photo, i) => {
+                    {heroPhotos.map((photo, i) => {
                         const active = i === photoIndex;
                         const completed = i < photoIndex;
                         return (
@@ -277,7 +330,7 @@ export default function HeroSlider() {
                                 type="button"
                                 role="tab"
                                 aria-selected={active}
-                                aria-label={`Show ${photo.title}`}
+                                aria-label={`Show ${photo.title || `photo ${i + 1}`}`}
                                 onClick={() => goToPhoto(i)}
                                 className="relative block h-20 w-1 overflow-visible bg-white/35 transition hover:bg-white/55 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mustard"
                             >
@@ -305,15 +358,47 @@ export default function HeroSlider() {
                 </div>
             </div>
 
-            {/* Desktop: slide caption */}
-            <div className="pointer-events-none absolute bottom-28 left-8 z-20 hidden max-w-[14rem] text-white lg:block xl:bottom-32 xl:left-10">
-                <p className="text-[15px] font-semibold leading-snug">
-                    {activePhoto.title}
-                </p>
-                <p className="mt-1 text-sm leading-snug text-white/70">
-                    {activePhoto.credit}
-                </p>
+            {/* Desktop: slide caption (left rail) */}
+            <div className="pointer-events-none absolute bottom-28 left-8 z-20 hidden max-w-[16rem] text-white lg:block xl:bottom-32 xl:left-10">
+                {activePhoto.title ? (
+                    <p className="text-[15px] font-semibold leading-snug">
+                        {activePhoto.title}
+                    </p>
+                ) : null}
+                {activePhoto.credit ? (
+                    <p className="mt-1 text-sm leading-snug text-white/70">
+                        {activePhoto.credit}
+                    </p>
+                ) : null}
             </div>
+
+            {/* Mobile / tablet: slide dots */}
+            {heroPhotos.length > 1 ? (
+                <div
+                    className="pointer-events-none absolute inset-x-0 bottom-[7.5rem] z-20 flex justify-center gap-1.5 sm:bottom-36 lg:hidden"
+                    role="tablist"
+                    aria-label="Hero photos"
+                >
+                    {heroPhotos.map((photo, i) => {
+                        const active = i === photoIndex;
+                        return (
+                            <button
+                                key={photo.id}
+                                type="button"
+                                role="tab"
+                                aria-selected={active}
+                                aria-label={`Show ${photo.title || `photo ${i + 1}`}`}
+                                onClick={() => goToPhoto(i)}
+                                className={`pointer-events-auto h-1.5 rounded-full transition ${
+                                    active
+                                        ? 'w-6 bg-mustard'
+                                        : 'w-1.5 bg-white/55 hover:bg-white/80'
+                                }`}
+                            />
+                        );
+                    })}
+                </div>
+            ) : null}
 
             {/*
               Mobile: Find + place + search icon at bottom (opens bottom-nav search).
@@ -331,6 +416,21 @@ export default function HeroSlider() {
                 ) : null}
 
                 <div className="order-2 mx-auto mt-auto w-full max-w-xl text-center lg:max-w-3xl lg:pb-10 xl:max-w-4xl xl:pb-14">
+                    {(activePhoto.title || activePhoto.credit) &&
+                    !desktopLayout ? (
+                        <div className="mb-4 px-2 text-white sm:mb-5">
+                            {activePhoto.title ? (
+                                <p className="font-display text-lg font-semibold leading-snug sm:text-xl">
+                                    {activePhoto.title}
+                                </p>
+                            ) : null}
+                            {activePhoto.credit ? (
+                                <p className="mt-1 text-sm leading-snug text-white/75 sm:text-[15px]">
+                                    {activePhoto.credit}
+                                </p>
+                            ) : null}
+                        </div>
+                    ) : null}
                     <div className="flex flex-nowrap items-center justify-center gap-2.5 sm:gap-4 lg:gap-5">
                         <h1 className="min-w-0 shrink font-display text-[clamp(1.85rem,7.2vw,3.75rem)] font-semibold leading-[1.05] tracking-tight text-white sm:text-[clamp(2.25rem,9vw,3.75rem)] lg:text-[clamp(3rem,5vw,4.5rem)]">
                             {desktopLayout ? (

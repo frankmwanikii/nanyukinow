@@ -36,6 +36,7 @@ const navSections = [
             { label: 'Locations', href: 'admin.locations.index', icon: MapPin },
             { label: 'Stories', href: 'admin.stories.index', icon: Newspaper },
             { label: 'Gallery', href: 'admin.gallery.index', icon: Images },
+            { label: 'Hero slider', href: 'admin.hero-slider.index', icon: Images },
         ],
     },
     {

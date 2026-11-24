@@ -387,12 +387,13 @@ function HomeContent({
     wildlifeSafaris,
     events,
     pageContent = {},
+    heroSlides = null,
 }) {
     const hasPromoted = featured.length > 0;
 
     return (
         <>
-            <HeroSlider />
+            <HeroSlider photos={heroSlides} />
 
             <FeaturedMarquee items={featured} />
 
@@ -579,6 +580,7 @@ export default function Home({
     wildlifeSafaris,
     events,
     page = null,
+    heroSlides = null,
 }) {
     return (
         <SiteLayout title={page?.meta_title || 'Your city, right now'}>
@@ -591,6 +593,7 @@ export default function Home({
                 wildlifeSafaris={wildlifeSafaris}
                 events={events}
                 pageContent={page?.content || {}}
+                heroSlides={heroSlides}
             />
         </SiteLayout>
     );

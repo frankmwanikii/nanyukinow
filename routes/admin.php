@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\ClaimController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\FinanceController;
 use App\Http\Controllers\Admin\GalleryController;
+use App\Http\Controllers\Admin\HeroSliderController;
 use App\Http\Controllers\Admin\ListingController;
 use App\Http\Controllers\Admin\ListingEditLockController;
 use App\Http\Controllers\Admin\LocationController;
@@ -117,6 +118,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('gallery', [GalleryController::class, 'store'])->name('gallery.store');
         Route::delete('gallery', [GalleryController::class, 'destroy'])->name('gallery.destroy');
         Route::post('gallery/bulk-delete', [GalleryController::class, 'bulkDestroy'])->name('gallery.bulk-destroy');
+
+        Route::get('hero-slider', [HeroSliderController::class, 'index'])->name('hero-slider.index');
+        Route::put('hero-slider', [HeroSliderController::class, 'update'])->name('hero-slider.update');
+        Route::post('hero-slider/upload', [HeroSliderController::class, 'upload'])
+            ->middleware('throttle:40,1')
+            ->name('hero-slider.upload');
 
         Route::get('pricing', [PricingController::class, 'index'])->name('pricing.index');
         Route::get('pricing/{pricing}/edit', [PricingController::class, 'edit'])->name('pricing.edit');
