@@ -363,7 +363,19 @@ export default function Pricing({
                                         let ctaDisabled = false;
 
                                         if (user) {
-                                            if (isLowerThanCurrent) {
+                                            const onTrial = Boolean(currentPlan?.is_trial);
+
+                                            if (onTrial && !isFreeTier) {
+                                                ctaHref = route('account.upgrade', {
+                                                    billing:
+                                                        period === 'year' ? 'year' : 'month',
+                                                    category: categoryKey,
+                                                    plan: normalizePlanKey(plan.key),
+                                                });
+                                                ctaLabel = sameTier
+                                                    ? 'Subscribe'
+                                                    : plan.cta_label || 'Choose plan';
+                                            } else if (isLowerThanCurrent) {
                                                 ctaDisabled = true;
                                                 ctaHref = null;
                                                 ctaLabel = 'Add a listing';

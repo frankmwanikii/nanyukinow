@@ -1,10 +1,12 @@
 import AccountLayout from '@/Layouts/AccountLayout';
 import {
     BookmarkMark,
+    CloseMark,
     ListMark,
     UpgradePlansMark,
 } from '@/Components/site/Mark';
 import { Head, Link, router } from '@inertiajs/react';
+import { useState } from 'react';
 import {
     isAwaitingMpesaPrompt,
     memberFacingPaymentReference,
@@ -53,15 +55,89 @@ export default function Index({
     bookmarksCount = 0,
     pendingUpgrade = null,
 }) {
+    const [trialBannerHidden, setTrialBannerHidden] = useState(false);
+    const [trialBusy, setTrialBusy] = useState(false);
+    const trialBannerVisible =
+        Boolean(plan?.show_trial_banner) && !trialBannerHidden;
+
     const usedPct = plan.listing_limit
         ? Math.min(100, (plan.listings_used / plan.listing_limit) * 100)
         : 0;
+
+    const claimTrial = () => {
+        if (trialBusy) {
+            return;
+        }
+        setTrialBusy(true);
+        setTrialBannerHidden(true);
+        router.post(
+            route('account.premium-trial.claim'),
+            {},
+            {
+                preserveScroll: true,
+                onFinish: () => setTrialBusy(false),
+                onError: () => setTrialBannerHidden(false),
+            },
+        );
+    };
+
+    const dismissTrialBanner = () => {
+        if (trialBusy) {
+            return;
+        }
+        setTrialBannerHidden(true);
+        setTrialBusy(true);
+        router.post(
+            route('account.premium-trial.dismiss'),
+            {},
+            {
+                preserveScroll: true,
+                onFinish: () => setTrialBusy(false),
+                onError: () => setTrialBannerHidden(false),
+            },
+        );
+    };
 
     return (
         <AccountLayout title="Dashboard">
             <Head title="Dashboard" />
 
             <div className="space-y-5">
+                {trialBannerVisible ? (
+                    <section className="relative overflow-hidden border border-mustard/40 bg-gradient-to-br from-mustard/90 via-mustard to-[#e0a41f] px-4 py-4 text-earth-dusk shadow-sm sm:px-5">
+                        <button
+                            type="button"
+                            onClick={dismissTrialBanner}
+                            disabled={trialBusy}
+                            className="absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-center rounded-full text-earth-dusk/70 transition hover:bg-earth-dusk/10 hover:text-earth-dusk disabled:opacity-60"
+                            aria-label="Dismiss trial offer"
+                        >
+                            <CloseMark className="h-4 w-4" />
+                        </button>
+                        <div className="flex flex-col gap-3 pr-8 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                            <div className="min-w-0">
+                                <p className="font-display text-lg font-semibold tracking-tight sm:text-xl">
+                                    Get 3 months of Premium free
+                                </p>
+                                <p className="mt-1 max-w-xl text-sm leading-relaxed text-earth-dusk/80">
+                                    You are on Free now. Start a Premium trial
+                                    to list more places and unlock the full
+                                    toolkit. No payment for three months.
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={claimTrial}
+                                disabled={trialBusy}
+                                className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-sm bg-olive-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-olive-800 disabled:opacity-60"
+                            >
+                                <UpgradePlansMark className="h-4 w-4" />
+                                {trialBusy ? 'Starting…' : 'Start free trial'}
+                            </button>
+                        </div>
+                    </section>
+                ) : null}
+
                 <section className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
                     <MetricCard label="Plan">
                         <p className="font-display text-2xl font-semibold text-olive-950 dark:text-olive-50">
@@ -97,7 +173,13 @@ export default function Index({
                             <p className="mt-0.5 text-sm text-olive-600 dark:text-olive-400">
                                 {plan.is_expired
                                     ? `Plan expired. You’re on Free until you renew${plan.label ? ` ${plan.label}` : ''}. Listings stay saved and go live again after renewal.`
-                                    : plan.status === 'expiring_soon' && plan.days_remaining != null
+                                    : plan.is_trial && plan.scheduled_plan_label
+                                      ? `${plan.days_remaining != null ? `${plan.days_remaining} day${plan.days_remaining === 1 ? '' : 's'} left on your Premium trial. ` : ''}${plan.scheduled_plan_label} starts ${plan.scheduled_plan_at ? new Date(plan.scheduled_plan_at).toLocaleDateString() : 'after the trial'}.`
+                                      : plan.is_trial && plan.days_remaining != null
+                                      ? `${plan.days_remaining} day${plan.days_remaining === 1 ? '' : 's'} left on your Premium trial. Upgrade anytime to keep Premium after it ends.`
+                                      : plan.is_trial && plan.expires_at
+                                        ? `Premium trial ends ${new Date(plan.expires_at).toLocaleDateString()}`
+                                      : plan.status === 'expiring_soon' && plan.days_remaining != null
                                       ? `${plan.days_remaining} day${plan.days_remaining === 1 ? '' : 's'} left. Renew to keep listings visible.`
                                       : plan.expires_at
                                         ? `${plan.days_remaining != null ? `${plan.days_remaining} days left · ` : ''}Renews ${new Date(plan.expires_at).toLocaleDateString()}`
@@ -118,17 +200,23 @@ export default function Index({
                                     Renew plan
                                 </Link>
                             ) : null}
-                            {plan.key !== 'premium' && !plan.is_expired && !pendingUpgrade ? (
+                            {(plan.key !== 'premium' || plan.is_trial) &&
+                            !plan.is_expired &&
+                            !pendingUpgrade ? (
                                 <Link
                                     href={route('account.upgrade')}
                                     className={`inline-flex items-center gap-1.5 rounded-sm px-4 py-2 text-sm font-semibold transition ${
-                                        plan.can_renew
+                                        plan.can_renew && !plan.is_trial
                                             ? 'border border-olive-900/20 bg-white text-olive-900 hover:border-olive-900/40 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-100'
                                             : 'border border-mustard bg-mustard text-earth-dusk hover:bg-olive-900 hover:text-white dark:hover:bg-olive-100 dark:hover:text-earth-dusk'
                                     }`}
                                 >
                                     <UpgradePlansMark className="h-4 w-4" />
-                                    {plan.can_renew ? 'Change plan' : 'Upgrade plan'}
+                                    {plan.is_trial
+                                        ? 'Keep Premium'
+                                        : plan.can_renew
+                                          ? 'Change plan'
+                                          : 'Upgrade plan'}
                                 </Link>
                             ) : null}
                         </div>

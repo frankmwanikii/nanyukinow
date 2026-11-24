@@ -699,6 +699,89 @@ class AccountUpgradePageTest extends TestCase
             ->assertJsonValidationErrors(['phone']);
     }
 
+    public function test_trial_member_can_checkout_standard_or_premium(): void
+    {
+        PricingPlan::ensureDefaults();
+        $user = User::factory()->create([
+            'plan' => Membership::PREMIUM,
+            'plan_is_trial' => true,
+            'premium_trial_claimed_at' => now(),
+            'trial_banner_dismissed_at' => now(),
+            'plan_started_at' => now(),
+            'plan_expires_at' => now()->addDays(Membership::PREMIUM_TRIAL_DAYS),
+            'last_paid_plan' => null,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('account.upgrade'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Account/Upgrade')
+                ->where('plan.is_trial', true)
+                ->where('plan.key', Membership::PREMIUM));
+
+        $this->actingAs($user)
+            ->post(route('account.upgrade.store'), [
+                'to_plan' => Membership::STANDARD,
+                'billing_period' => 'month',
+                'payment_reference' => 'TRIAL-STD-1',
+                'payment_method' => 'mpesa',
+            ])
+            ->assertRedirect(route('account.index'));
+
+        $this->assertDatabaseHas('plan_upgrades', [
+            'user_id' => $user->id,
+            'to_plan' => Membership::STANDARD,
+            'payment_reference' => 'TRIAL-STD-1',
+            'status' => PlanUpgrade::STATUS_PENDING,
+        ]);
+
+        PlanUpgrade::query()->where('user_id', $user->id)->update([
+            'status' => PlanUpgrade::STATUS_CANCELLED,
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('account.upgrade.store'), [
+                'to_plan' => Membership::PREMIUM,
+                'billing_period' => 'month',
+                'payment_reference' => 'TRIAL-PREM-1',
+                'payment_method' => 'paypal',
+            ])
+            ->assertRedirect(route('account.index'));
+
+        $this->assertDatabaseHas('plan_upgrades', [
+            'user_id' => $user->id,
+            'to_plan' => Membership::PREMIUM,
+            'payment_reference' => 'TRIAL-PREM-1',
+            'status' => PlanUpgrade::STATUS_PENDING,
+        ]);
+    }
+
+    public function test_paid_premium_member_still_cannot_downgrade_to_standard(): void
+    {
+        PricingPlan::ensureDefaults();
+        $user = User::factory()->premium()->create([
+            'plan_is_trial' => false,
+            'plan_expires_at' => now()->addDays(20),
+        ]);
+
+        $this->actingAs($user)
+            ->from(route('account.upgrade'))
+            ->post(route('account.upgrade.store'), [
+                'to_plan' => Membership::STANDARD,
+                'billing_period' => 'month',
+                'payment_reference' => 'DOWNGRADE-1',
+                'payment_method' => 'mpesa',
+            ])
+            ->assertRedirect(route('account.upgrade'))
+            ->assertSessionHas('error');
+
+        $this->assertDatabaseMissing('plan_upgrades', [
+            'user_id' => $user->id,
+            'payment_reference' => 'DOWNGRADE-1',
+        ]);
+    }
+
     private function configurePalpluss(string $mode = 'sandbox', string $apiKey = 'pk_test_xxx', ?string $channelId = null): void
     {
         $prefix = $mode === 'live' ? 'palpluss_live_' : 'palpluss_sandbox_';

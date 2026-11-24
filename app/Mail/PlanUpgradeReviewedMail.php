@@ -5,6 +5,7 @@ namespace App\Mail;
 use App\Models\PlanUpgrade;
 use App\Support\MailBranding;
 use App\Support\Membership;
+use App\Support\PaymentReceipt;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Address;
@@ -55,22 +56,39 @@ class PlanUpgradeReviewedMail extends Mailable
             $greetingName = 'there';
         }
 
+        $this->upgrade->loadMissing('user');
+        $user = $this->upgrade->user;
+        $deferred = $approved
+            && $user
+            && filled($user->scheduled_plan)
+            && $user->scheduled_plan_at !== null
+            && $user->scheduled_plan_at->isFuture();
+        $startsOn = $deferred
+            ? $user->scheduled_plan_at->timezone(config('app.timezone'))->format('j M Y')
+            : null;
+
         return new Content(
             html: 'mail.plan-upgrade-reviewed',
             text: 'mail.plan-upgrade-reviewed-text',
             with: [
                 ...$brand,
                 'greetingName' => $greetingName,
-                'headline' => $approved ? 'Your plan is active' : 'Upgrade request update',
+                'headline' => $approved
+                    ? ($deferred ? 'Payment confirmed' : 'Your plan is active')
+                    : 'Upgrade request update',
                 'intro' => $approved
-                    ? 'good news. Your payment was confirmed and your plan is now active on '.$brand['appName'].'.'
+                    ? ($deferred
+                        ? 'good news. Your payment was confirmed. Your '.$label.' plan starts on '.$startsOn.' when your Premium trial ends, so you keep the full trial.'
+                        : 'good news. Your payment was confirmed and your plan is now active on '.$brand['appName'].'.')
                     : 'your upgrade request was not approved.',
                 'planLabel' => $label,
                 'periodLabel' => $periodLabel,
                 'paymentReference' => $this->upgrade->payment_reference,
                 'adminNotes' => $approved ? null : $this->upgrade->admin_notes,
                 'supportLine' => $approved
-                    ? 'You can add more listings and unlock better placement from your account.'
+                    ? ($deferred
+                        ? 'Your payment receipt is attached as a PDF. Enjoy the rest of your trial. '.$label.' begins automatically on '.$startsOn.'.'
+                        : 'Your payment receipt is attached as a PDF. You can add more listings and unlock better placement from your account.')
                     : 'You can submit a new upgrade request from your account whenever you are ready.',
                 'actionUrl' => $approved ? route('account.index') : route('account.upgrade'),
                 'actionLabel' => $approved ? 'Open account' : 'Try again',
@@ -86,6 +104,21 @@ class PlanUpgradeReviewedMail extends Mailable
      */
     public function attachments(): array
     {
-        return [];
+        if ($this->upgrade->status !== PlanUpgrade::STATUS_APPROVED) {
+            return [];
+        }
+
+        $pdf = PaymentReceipt::pdfOrNull($this->upgrade);
+
+        if ($pdf === null) {
+            return [];
+        }
+
+        return [
+            Attachment::fromData(
+                fn () => $pdf,
+                PaymentReceipt::filename($this->upgrade),
+            )->withMime('application/pdf'),
+        ];
     }
 }

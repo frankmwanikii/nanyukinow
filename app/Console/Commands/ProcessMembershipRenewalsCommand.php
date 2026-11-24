@@ -16,15 +16,37 @@ class ProcessMembershipRenewalsCommand extends Command
 {
     public function handle(): int
     {
+        $scheduled = $this->activateScheduledPlans();
         $reminders7 = $this->sendReminders(daysLeft: 7, column: 'plan_renewal_reminder_7d_sent_at');
         $reminders3 = $this->sendReminders(daysLeft: 3, column: 'plan_renewal_reminder_3d_sent_at');
         $expired = $this->expirePaidPlans();
 
+        $this->info("Scheduled paid plans activated: {$scheduled}");
         $this->info("Reminders (7d): {$reminders7}");
         $this->info("Reminders (3d): {$reminders3}");
         $this->info("Expired to Free: {$expired}");
 
         return self::SUCCESS;
+    }
+
+    private function activateScheduledPlans(): int
+    {
+        $activated = 0;
+
+        User::query()
+            ->whereNotNull('scheduled_plan')
+            ->whereNotNull('scheduled_plan_at')
+            ->where('scheduled_plan_at', '<=', now())
+            ->orderBy('id')
+            ->chunkById(100, function ($users) use (&$activated): void {
+                foreach ($users as $user) {
+                    if (Membership::activateScheduledIfDue($user)) {
+                        $activated++;
+                    }
+                }
+            });
+
+        return $activated;
     }
 
     private function sendReminders(int $daysLeft, string $column): int
@@ -41,7 +63,7 @@ class ProcessMembershipRenewalsCommand extends Command
             ->chunkById(100, function ($users) use ($daysLeft, $column, &$sent): void {
                 foreach ($users as $user) {
                     $planKey = Membership::normalize($user->plan);
-                    if ($planKey === Membership::FREE) {
+                    if ($planKey === Membership::FREE || $user->plan_is_trial) {
                         continue;
                     }
 

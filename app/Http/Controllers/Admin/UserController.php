@@ -8,6 +8,7 @@ use App\Models\PlanUpgrade;
 use App\Models\User;
 use App\Support\AdminPagination;
 use App\Support\ListingPayload;
+use App\Support\MemberAccount;
 use App\Support\Membership;
 use App\Support\UserAvatar;
 use Illuminate\Http\RedirectResponse;
@@ -210,7 +211,7 @@ class UserController extends Controller
             return back()->with('error', 'You cannot delete your own account.');
         }
 
-        $user->delete();
+        MemberAccount::delete($user);
 
         return redirect()
             ->route('admin.users.index')

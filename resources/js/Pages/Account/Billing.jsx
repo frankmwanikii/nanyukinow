@@ -142,6 +142,7 @@ export default function Billing({ plan, pendingUpgrade = null, history = [] }) {
     } = useClientPagination(history, HISTORY_PAGE_SIZE);
 
     const daysLeft = plan.days_remaining;
+    const hasTimedPlan = Boolean(plan.is_paid || plan.is_trial);
     const periodPct =
         plan.days_total && daysLeft != null
             ? Math.min(
@@ -176,9 +177,13 @@ export default function Billing({ plan, pendingUpgrade = null, history = [] }) {
                             <p className="mt-2 max-w-lg text-sm text-olive-600 dark:text-olive-400">
                                 {plan.is_expired
                                     ? 'Your paid period ended. You’re on Free until you renew. Listings stay saved and go live again after renewal.'
-                                    : plan.is_paid
-                                      ? `${plan.days_remaining != null ? `${plan.days_remaining} days left. ` : ''}Renews or expires on ${formatDate(plan.expires_at)}.`
-                                      : 'Free includes limited listing slots. Upgrade for more reach and time-based placement.'}
+                                    : plan.is_trial && plan.scheduled_plan_label
+                                      ? `${daysLeft != null ? `${daysLeft} day${daysLeft === 1 ? '' : 's'} left on your Premium trial. ` : ''}${plan.scheduled_plan_label} starts ${formatDate(plan.scheduled_plan_at)} after the trial ends.`
+                                      : plan.is_trial
+                                        ? `${daysLeft != null ? `${daysLeft} day${daysLeft === 1 ? '' : 's'} left on your Premium trial. ` : ''}Trial ends ${formatDate(plan.expires_at)}. Subscribe anytime to keep Premium.`
+                                        : plan.is_paid
+                                          ? `${daysLeft != null ? `${daysLeft} days left. ` : ''}Renews or expires on ${formatDate(plan.expires_at)}.`
+                                          : 'Free includes limited listing slots. Upgrade for more reach and time-based placement.'}
                             </p>
                         </div>
                         <div className="flex flex-wrap gap-2">
@@ -195,15 +200,20 @@ export default function Billing({ plan, pendingUpgrade = null, history = [] }) {
                                     <ForwardMark className="h-4 w-4" />
                                 </Link>
                             ) : null}
-                            {plan.key !== 'premium' && !plan.is_expired && (
+                            {(plan.key !== 'premium' || plan.is_trial) &&
+                            !plan.is_expired ? (
                                 <Link
                                     href={route('account.upgrade')}
                                     className="inline-flex items-center gap-1.5 rounded-sm bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-mustard hover:text-earth-dusk dark:bg-mustard dark:text-earth-dusk dark:hover:bg-olive-100"
                                 >
-                                    {plan.can_renew ? 'Change plan' : 'Upgrade plan'}
+                                    {plan.is_trial
+                                        ? 'Keep Premium'
+                                        : plan.can_renew
+                                          ? 'Change plan'
+                                          : 'Upgrade plan'}
                                     <ForwardMark className="h-4 w-4" />
                                 </Link>
-                            )}
+                            ) : null}
                             <Link
                                 href={route('account.upgrade')}
                                 className="inline-flex items-center gap-1.5 rounded-sm border border-olive-900/20 px-3.5 py-2 text-sm font-semibold text-olive-800 transition hover:bg-olive-50 dark:border-olive-700 dark:text-olive-200 dark:hover:bg-olive-800"
@@ -220,10 +230,10 @@ export default function Billing({ plan, pendingUpgrade = null, history = [] }) {
                                 <p className="text-sm font-medium">Days remaining</p>
                             </div>
                             <p className="mt-3 font-display text-3xl font-semibold tabular-nums text-olive-950 dark:text-olive-50">
-                                {plan.is_paid ? daysLeft : '—'}
+                                {hasTimedPlan && daysLeft != null ? daysLeft : '—'}
                             </p>
                             <p className="mt-1 text-xs text-olive-600 dark:text-olive-400">
-                                {plan.is_paid
+                                {hasTimedPlan
                                     ? plan.is_expired
                                         ? 'Expired'
                                         : daysLeft === 0
@@ -246,7 +256,7 @@ export default function Billing({ plan, pendingUpgrade = null, history = [] }) {
                                 </span>
                                 {plan.expires_at ? formatDate(plan.expires_at) : 'Ongoing'}
                             </p>
-                            {plan.is_paid && plan.days_total ? (
+                            {hasTimedPlan && plan.days_total ? (
                                 <div className="mt-3">
                                     <div className="h-1.5 overflow-hidden bg-olive-100 dark:bg-olive-800">
                                         <div
@@ -261,7 +271,9 @@ export default function Billing({ plan, pendingUpgrade = null, history = [] }) {
                                         />
                                     </div>
                                     <p className="mt-1.5 text-[11px] text-olive-600 dark:text-olive-400">
-                                        {Math.round(periodPct)}% of billing period used
+                                        {plan.is_trial
+                                            ? `${Math.round(periodPct)}% of trial used`
+                                            : `${Math.round(periodPct)}% of billing period used`}
                                     </p>
                                 </div>
                             ) : (

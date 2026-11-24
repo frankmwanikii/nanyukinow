@@ -28,7 +28,15 @@ class PlanUpgradeApproval
             $user = User::query()->findOrFail($locked->user_id);
             $days = $durationDays ?? Membership::durationDaysForPeriod($locked->billing_period);
 
-            Membership::activate($user, $locked->to_plan, $days);
+            if (
+                Membership::isConvertibleTrial($user)
+                && $user->plan_expires_at !== null
+                && $user->plan_expires_at->isFuture()
+            ) {
+                Membership::scheduleAfterTrial($user, $locked->to_plan, $days);
+            } else {
+                Membership::activate($user, $locked->to_plan, $days);
+            }
 
             $locked->update([
                 'status' => PlanUpgrade::STATUS_APPROVED,

@@ -10,6 +10,7 @@ use App\Http\Controllers\Account\MessageController;
 use App\Http\Controllers\Account\NotificationController;
 use App\Http\Controllers\Account\PaypalReturnController;
 use App\Http\Controllers\Account\PlaceSearchController;
+use App\Http\Controllers\Account\PremiumTrialController;
 use App\Http\Controllers\Account\StayGallerySpaceController;
 use App\Http\Controllers\Account\SupportTicketController as AccountSupportTicketController;
 use App\Http\Controllers\Account\UpgradeController as AccountUpgradeController;
@@ -110,6 +111,10 @@ Route::middleware('auth')->group(function () {
     })->name('dashboard');
 
     Route::get('/account', AccountDashboardController::class)->name('account.index');
+    Route::post('/account/premium-trial/claim', [PremiumTrialController::class, 'claim'])
+        ->name('account.premium-trial.claim');
+    Route::post('/account/premium-trial/dismiss', [PremiumTrialController::class, 'dismiss'])
+        ->name('account.premium-trial.dismiss');
     Route::get('/account/bookmarks', [AccountBookmarkController::class, 'index'])->name('account.bookmarks');
     Route::delete('/account/bookmarks', [AccountBookmarkController::class, 'destroyAll'])
         ->name('account.bookmarks.destroy-all');

@@ -184,10 +184,11 @@ export function GoogleContinueButton({
     dense = false,
     tone = 'default',
     label = 'Continue with Google',
+    intent = 'login',
 }) {
     return (
         <a
-            href={route('auth.google')}
+            href={route('auth.google', { intent })}
             className={`flex w-full items-center justify-center gap-3 font-medium transition ${authContinueClassName(
                 { dense, tone },
             )}`}

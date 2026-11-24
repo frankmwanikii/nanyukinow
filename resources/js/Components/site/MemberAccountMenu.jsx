@@ -8,9 +8,9 @@ import {
     DisclosureMark,
     GearMark,
     ListMark,
+    MailMark,
     MessageMark,
     SignOutMark,
-    TicketMark,
     UpgradePlansMark,
 } from '@/Components/site/Mark';
 import { plainText } from '@/utils/plainText';
@@ -179,9 +179,9 @@ export function MemberUserMenu({ user, compact = false }) {
             icon: MessageMark,
         },
         {
-            label: 'Tickets',
+            label: 'Concerns',
             href: route('account.tickets.index'),
-            icon: TicketMark,
+            icon: MailMark,
         },
         {
             label: 'Settings',

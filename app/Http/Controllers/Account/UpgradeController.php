@@ -135,8 +135,9 @@ class UpgradeController extends Controller
         $current = $user->effectivePlan();
         $isPeriodUpgrade = Membership::isBillingPeriodUpgrade($user, $toPlan, $billingPeriod);
         $isRenewal = Membership::isRenewal($user, $toPlan, $billingPeriod);
+        $onTrial = Membership::isConvertibleTrial($user);
 
-        if ($toPlan === Membership::FREE || ($toPlan === $current && ! $isPeriodUpgrade && ! $isRenewal)) {
+        if ($toPlan === Membership::FREE || ($toPlan === $current && ! $isPeriodUpgrade && ! $isRenewal && ! $onTrial)) {
             return response()->json([
                 'ok' => false,
                 'message' => 'Choose a higher plan than your current one.',
@@ -144,7 +145,7 @@ class UpgradeController extends Controller
             ], 422);
         }
 
-        if ($current === Membership::PREMIUM && ! $isPeriodUpgrade && ! $isRenewal) {
+        if ($current === Membership::PREMIUM && ! $isPeriodUpgrade && ! $isRenewal && ! $onTrial) {
             return response()->json([
                 'ok' => false,
                 'message' => 'You are already on Premium.',
@@ -241,17 +242,18 @@ class UpgradeController extends Controller
         $current = $user->effectivePlan();
         $isPeriodUpgrade = Membership::isBillingPeriodUpgrade($user, $toPlan, $billingPeriod);
         $isRenewal = Membership::isRenewal($user, $toPlan, $billingPeriod);
+        $onTrial = Membership::isConvertibleTrial($user);
 
-        if ($toPlan === Membership::FREE || ($toPlan === $current && ! $isPeriodUpgrade && ! $isRenewal)) {
+        if ($toPlan === Membership::FREE || ($toPlan === $current && ! $isPeriodUpgrade && ! $isRenewal && ! $onTrial)) {
             return back()->withErrors(['to_plan' => 'Choose a higher plan than your current one.']);
         }
 
-        if ($current === Membership::PREMIUM && ! $isPeriodUpgrade && ! $isRenewal) {
+        if ($current === Membership::PREMIUM && ! $isPeriodUpgrade && ! $isRenewal && ! $onTrial) {
             return back()->with('error', 'You are already on Premium.');
         }
 
         $rank = [Membership::FREE => 0, Membership::STANDARD => 1, Membership::PREMIUM => 2];
-        if (! $isPeriodUpgrade && ! $isRenewal && ($rank[$toPlan] ?? 0) <= ($rank[$current] ?? 0)) {
+        if (! $isPeriodUpgrade && ! $isRenewal && ! $onTrial && ($rank[$toPlan] ?? 0) <= ($rank[$current] ?? 0)) {
             return back()->withErrors(['to_plan' => 'Choose a higher plan than your current one.']);
         }
 

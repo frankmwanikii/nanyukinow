@@ -101,7 +101,8 @@ class GoogleAvatarImportTest extends TestCase
         $this->fakeGoogleAvatarHttp();
         $this->fakeSocialite($this->fakeGoogleUser());
 
-        $response = $this->get('/auth/google/callback');
+        $response = $this->withSession(['google_auth_intent' => 'register'])
+            ->get('/auth/google/callback');
 
         $response->assertRedirect(route('account.index', absolute: false));
 
@@ -117,7 +118,8 @@ class GoogleAvatarImportTest extends TestCase
         $this->fakeGoogleAvatarHttp();
         $this->fakeSocialite($this->fakeGoogleUser(email: 'Frank@Example.com'));
 
-        $this->get('/auth/google/callback')
+        $this->withSession(['google_auth_intent' => 'register'])
+            ->get('/auth/google/callback')
             ->assertRedirect(route('account.index', absolute: false));
 
         $this->assertSame(1, User::query()->count());

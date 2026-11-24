@@ -211,7 +211,7 @@ export default function Register() {
                 </p>
             </div>
 
-            <GoogleContinueButton />
+            <GoogleContinueButton intent="register" />
             <AuthOrDivider />
 
             <form onSubmit={submit} className="space-y-4">

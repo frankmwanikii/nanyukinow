@@ -101,9 +101,17 @@ class MemberNotificationsTest extends TestCase
                 $this->assertContains('database', $channels);
 
                 $mail = $notification->toMail($user);
+                $attachments = $mail->attachments();
 
-                return $mail instanceof PlanUpgradeReviewedMail
-                    && $mail->envelope()->subject === 'Your Standard plan is active';
+                $this->assertInstanceOf(PlanUpgradeReviewedMail::class, $mail);
+                $this->assertSame('Your Standard plan is active', $mail->envelope()->subject);
+                $this->assertCount(1, $attachments);
+                $this->assertStringContainsString(
+                    'Your payment receipt is attached as a PDF.',
+                    $mail->render(),
+                );
+
+                return true;
             },
         );
     }

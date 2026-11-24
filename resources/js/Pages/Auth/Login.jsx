@@ -236,7 +236,7 @@ export default function Login({ status, canResetPassword }) {
                     supported={passkeySupported}
                     loadingLabel="Waiting for Touch ID…"
                 />
-                <GoogleContinueButton />
+                <GoogleContinueButton intent="login" />
             </div>
 
             {passkeyError ? (
@@ -336,7 +336,9 @@ export default function Login({ status, canResetPassword }) {
                 onUsePassword={focusPassword}
                 onGoogle={() => {
                     markAddPasskeyIntent();
-                    window.location.href = route('auth.google');
+                    window.location.href = route('auth.google', {
+                        intent: 'login',
+                    });
                 }}
                 onRegister={() => {
                     window.location.href = route('register');

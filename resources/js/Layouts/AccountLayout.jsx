@@ -204,7 +204,7 @@ function AccountShell({ title = 'Account', children }) {
                     badge: unreadMessages,
                 },
                 {
-                    label: 'Concern',
+                    label: 'Concerns',
                     href: route('account.tickets.index'),
                     icon: MailMark,
                     active: navActive(['account.tickets.*']),

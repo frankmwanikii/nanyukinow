@@ -516,6 +516,7 @@ function planCtaState(
         viewPeriod != null &&
         pendingPeriod === viewPeriod;
 
+    const onTrial = Boolean(currentPlan?.is_trial);
     let ctaLabel = plan.cta_label || 'Upgrade';
     let ctaDisabled = false;
     let canCheckout = false;
@@ -523,6 +524,9 @@ function planCtaState(
     if (isPendingTarget) {
         ctaLabel = 'Pending';
         ctaDisabled = true;
+    } else if (onTrial && !isFreeTier) {
+        ctaLabel = sameTier ? 'Subscribe' : (plan.cta_label || 'Choose plan');
+        canCheckout = true;
     } else if (isLowerThanCurrent || isFreeTier) {
         ctaLabel = 'Included';
         ctaDisabled = true;

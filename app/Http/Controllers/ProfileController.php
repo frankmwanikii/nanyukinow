@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Support\MemberAccount;
 use App\Support\UserAvatar;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
@@ -83,8 +84,7 @@ class ProfileController extends Controller
 
         Auth::logout();
 
-        UserAvatar::delete($user->avatar_url);
-        $user->delete();
+        MemberAccount::delete($user);
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

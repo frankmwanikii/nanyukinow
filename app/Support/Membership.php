@@ -186,6 +186,8 @@ class Membership
         return $grouped;
     }
 
+    public const PREMIUM_TRIAL_DAYS = 90;
+
     public static function assignFree(User $user): void
     {
         if ($user->plan) {
@@ -196,6 +198,86 @@ class Membership
             'plan' => self::FREE,
             'plan_started_at' => now(),
             'plan_expires_at' => null,
+            'plan_is_trial' => false,
+        ])->save();
+    }
+
+    /**
+     * True when the member can still see / claim the free Premium trial offer.
+     */
+    public static function canOfferPremiumTrial(User $user): bool
+    {
+        if ($user->premium_trial_claimed_at !== null) {
+            return false;
+        }
+
+        if ($user->trial_banner_dismissed_at !== null) {
+            return false;
+        }
+
+        if ($user->plan_is_trial && ! $user->planIsExpired()) {
+            return false;
+        }
+
+        return self::normalize($user->effectivePlan()) === self::FREE;
+    }
+
+    /**
+     * Claim the one-time 3-month Premium trial. Does not set last_paid_plan.
+     */
+    public static function claimPremiumTrial(User $user, int $days = self::PREMIUM_TRIAL_DAYS): bool
+    {
+        if ($user->premium_trial_claimed_at !== null) {
+            return false;
+        }
+
+        if (self::normalize($user->effectivePlan()) !== self::FREE) {
+            return false;
+        }
+
+        $days = max(1, $days);
+
+        $user->forceFill([
+            'plan' => self::PREMIUM,
+            'plan_is_trial' => true,
+            'plan_started_at' => now(),
+            'plan_expires_at' => now()->addDays($days),
+            'premium_trial_claimed_at' => now(),
+            'trial_banner_dismissed_at' => now(),
+            'plan_renewal_reminder_7d_sent_at' => null,
+            'plan_renewal_reminder_3d_sent_at' => null,
+        ])->save();
+
+        self::restoreSuppressedListings($user);
+        ClaimPlanGrace::clearForUserListings($user);
+
+        $user->listings()
+            ->whereIn('tier', [self::FREE, self::STANDARD])
+            ->get()
+            ->each(function ($listing): void {
+                $updates = [
+                    'tier' => self::PREMIUM,
+                    'is_featured' => true,
+                ];
+
+                if (! self::isPromotedPriority($listing->priority)) {
+                    $updates['priority'] = self::listingPriority(self::PREMIUM);
+                }
+
+                $listing->update($updates);
+            });
+
+        return true;
+    }
+
+    public static function dismissTrialBanner(User $user): void
+    {
+        if ($user->trial_banner_dismissed_at !== null) {
+            return;
+        }
+
+        $user->forceFill([
+            'trial_banner_dismissed_at' => now(),
         ])->save();
     }
 
@@ -225,6 +307,16 @@ class Membership
         $lastPaid = self::normalize($user->last_paid_plan ?? null);
 
         return $lastPaid !== self::FREE ? $lastPaid : null;
+    }
+
+    /**
+     * True when the member is on an active Premium trial (not a paid Premium subscription).
+     */
+    public static function isConvertibleTrial(User $user): bool
+    {
+        return (bool) $user->plan_is_trial
+            && self::normalize($user->effectivePlan()) === self::PREMIUM
+            && ! $user->planIsExpired();
     }
 
     /**
@@ -281,7 +373,59 @@ class Membership
     }
 
     /**
+     * Queue a paid plan to begin when the active Premium trial ends.
+     */
+    public static function scheduleAfterTrial(User $user, string $plan, int $days): void
+    {
+        $plan = self::normalize($plan);
+        $days = max(1, $days);
+
+        if ($plan === self::FREE) {
+            return;
+        }
+
+        $startsAt = $user->plan_expires_at !== null && $user->plan_expires_at->isFuture()
+            ? $user->plan_expires_at->copy()
+            : now();
+
+        $user->forceFill([
+            'scheduled_plan' => $plan,
+            'scheduled_plan_days' => $days,
+            'scheduled_plan_at' => $startsAt,
+        ])->save();
+    }
+
+    /**
+     * Activate a deferred paid plan when the trial window has ended.
+     */
+    public static function activateScheduledIfDue(User $user): bool
+    {
+        $plan = self::normalize($user->scheduled_plan ?? null);
+        $days = (int) ($user->scheduled_plan_days ?? 0);
+        $startsAt = $user->scheduled_plan_at;
+
+        if ($plan === self::FREE || $days < 1 || $startsAt === null) {
+            return false;
+        }
+
+        if ($startsAt->isFuture() && ! $user->planIsExpired()) {
+            return false;
+        }
+
+        $user->forceFill([
+            'scheduled_plan' => null,
+            'scheduled_plan_days' => null,
+            'scheduled_plan_at' => null,
+        ])->save();
+
+        self::activate($user, $plan, $days);
+
+        return true;
+    }
+
+    /**
      * Drop an expired paid member to Free and hide their listings without deleting them.
+     * Premium trials fall back to Free without writing last_paid_plan.
      */
     public static function expireToFree(User $user): bool
     {
@@ -289,21 +433,43 @@ class Membership
             return false;
         }
 
-        $stored = self::normalize($user->plan);
-        $lastPaid = $stored !== self::FREE
-            ? $stored
-            : self::normalize($user->last_paid_plan ?? null);
-
-        if ($lastPaid === self::FREE) {
+        if (self::activateScheduledIfDue($user)) {
             return false;
         }
 
-        $user->forceFill([
-            'last_paid_plan' => $lastPaid,
-            'plan' => self::FREE,
-            'plan_renewal_reminder_7d_sent_at' => null,
-            'plan_renewal_reminder_3d_sent_at' => null,
-        ])->save();
+        $wasTrial = (bool) $user->plan_is_trial;
+        $stored = self::normalize($user->plan);
+
+        if ($wasTrial) {
+            $user->forceFill([
+                'plan' => self::FREE,
+                'plan_is_trial' => false,
+                'scheduled_plan' => null,
+                'scheduled_plan_days' => null,
+                'scheduled_plan_at' => null,
+                'plan_renewal_reminder_7d_sent_at' => null,
+                'plan_renewal_reminder_3d_sent_at' => null,
+            ])->save();
+        } else {
+            $lastPaid = $stored !== self::FREE
+                ? $stored
+                : self::normalize($user->last_paid_plan ?? null);
+
+            if ($lastPaid === self::FREE) {
+                return false;
+            }
+
+            $user->forceFill([
+                'last_paid_plan' => $lastPaid,
+                'plan' => self::FREE,
+                'plan_is_trial' => false,
+                'scheduled_plan' => null,
+                'scheduled_plan_days' => null,
+                'scheduled_plan_at' => null,
+                'plan_renewal_reminder_7d_sent_at' => null,
+                'plan_renewal_reminder_3d_sent_at' => null,
+            ])->save();
+        }
 
         $user->listings()
             ->where(function ($query) {
@@ -351,6 +517,10 @@ class Membership
                 'plan' => self::FREE,
                 'plan_started_at' => now(),
                 'plan_expires_at' => null,
+                'plan_is_trial' => false,
+                'scheduled_plan' => null,
+                'scheduled_plan_days' => null,
+                'scheduled_plan_at' => null,
                 'plan_renewal_reminder_7d_sent_at' => null,
                 'plan_renewal_reminder_3d_sent_at' => null,
             ])->save();
@@ -373,6 +543,10 @@ class Membership
         $user->forceFill([
             'plan' => $plan,
             'last_paid_plan' => $plan,
+            'plan_is_trial' => false,
+            'scheduled_plan' => null,
+            'scheduled_plan_days' => null,
+            'scheduled_plan_at' => null,
             'plan_started_at' => $startedAt,
             'plan_expires_at' => $expiresAt,
             'plan_renewal_reminder_7d_sent_at' => null,
@@ -442,6 +616,13 @@ class Membership
             }
         }
 
+        $isTrial = (bool) $user->plan_is_trial && $plan === self::PREMIUM && ! $isExpired;
+
+        if ($user->plan_is_trial && ($isExpired || $plan === self::FREE)) {
+            $user->forceFill(['plan_is_trial' => false])->saveQuietly();
+            $isTrial = false;
+        }
+
         $status = match (true) {
             $isExpired && $renewPlan !== null => 'expired',
             $plan === self::FREE => 'free',
@@ -450,29 +631,43 @@ class Membership
         };
 
         $renewBillingPeriod = $renewPlan ? self::renewBillingPeriodFor($user) : null;
+        $label = $isTrial ? 'Premium trial' : self::label($displayPlan);
 
         return [
             'key' => $plan,
-            'label' => self::label($displayPlan),
-            'badge_label' => self::badgeLabel($displayPlan),
+            'label' => $label,
+            'badge_label' => $isTrial ? 'Premium trial' : self::badgeLabel($displayPlan),
             'listing_limit' => $limit,
             'listings_used' => $used,
             'listings_remaining' => max(0, $limit - $used),
             'can_create' => $used < $limit,
             'allowed_tiers' => self::allowedTiers($plan),
-            'billing_period' => $isPaid ? self::billingPeriodFor($user, $plan) : $renewBillingPeriod,
+            'billing_period' => $isPaid && ! $isTrial ? self::billingPeriodFor($user, $plan) : $renewBillingPeriod,
             'started_at' => $startedAt?->toIso8601String(),
             'expires_at' => $expiresAt?->toIso8601String(),
             'is_expired' => $isExpired,
-            'is_paid' => $isPaid,
+            'is_paid' => $isPaid && ! $isTrial,
+            'is_trial' => $isTrial,
+            'trial_days' => self::PREMIUM_TRIAL_DAYS,
+            'show_trial_banner' => self::canOfferPremiumTrial($user),
             'status' => $status,
             'days_remaining' => $daysRemaining,
             'days_total' => $daysTotal,
             'days_used' => $daysUsed,
             'period_percent' => $usagePercent,
-            'renew_plan' => $renewPlan,
-            'renew_billing_period' => $renewBillingPeriod,
-            'can_renew' => $renewPlan !== null,
+            'renew_plan' => $isTrial ? null : $renewPlan,
+            'renew_billing_period' => $isTrial ? null : $renewBillingPeriod,
+            'can_renew' => ! $isTrial && $renewPlan !== null,
+            'scheduled_plan' => $user->scheduled_plan
+                ? self::normalize($user->scheduled_plan)
+                : null,
+            'scheduled_plan_label' => $user->scheduled_plan
+                ? self::label($user->scheduled_plan)
+                : null,
+            'scheduled_plan_days' => $user->scheduled_plan_days !== null
+                ? (int) $user->scheduled_plan_days
+                : null,
+            'scheduled_plan_at' => $user->scheduled_plan_at?->toIso8601String(),
         ];
     }
 

@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Notifications\WelcomeMemberNotification;
 use App\Support\UserAvatar;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
@@ -14,24 +15,37 @@ use Throwable;
 
 class GoogleAuthController extends Controller
 {
-    public function redirect(): RedirectResponse
+    public const INTENT_LOGIN = 'login';
+
+    public const INTENT_REGISTER = 'register';
+
+    public function redirect(Request $request): RedirectResponse
     {
         if (! $this->credentialsConfigured()) {
             return redirect()
                 ->route('home')
                 ->with('status', 'Google sign-in is not configured yet. Please use email instead.');
         }
+
+        $intent = $request->string('intent')->toString() === self::INTENT_REGISTER
+            ? self::INTENT_REGISTER
+            : self::INTENT_LOGIN;
+
+        $request->session()->put('google_auth_intent', $intent);
 
         return Socialite::driver('google')->redirect();
     }
 
-    public function callback(): RedirectResponse
+    public function callback(Request $request): RedirectResponse
     {
         if (! $this->credentialsConfigured()) {
             return redirect()
                 ->route('home')
                 ->with('status', 'Google sign-in is not configured yet. Please use email instead.');
         }
+
+        $intent = $request->session()->pull('google_auth_intent', self::INTENT_LOGIN);
+        $allowCreate = $intent === self::INTENT_REGISTER;
 
         try {
             $googleUser = Socialite::driver('google')->user();
@@ -54,6 +68,12 @@ class GoogleAuthController extends Controller
         $user = User::query()->where('email', $email)->first();
 
         if (! $user) {
+            if (! $allowCreate) {
+                return redirect()
+                    ->route('login')
+                    ->with('status', 'No account found with those details. Join first, then sign in with Google.');
+            }
+
             $base = Str::lower(Str::slug(Str::before($email, '@'), '_')) ?: 'user';
             $base = Str::limit(preg_replace('/[^a-z0-9_-]/', '', $base) ?: 'user', 24, '');
             $username = $base;
