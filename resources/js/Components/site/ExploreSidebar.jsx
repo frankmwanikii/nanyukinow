@@ -13,6 +13,7 @@ import {
     PROPERTY_TYPES,
     resolveDirectoryCategories,
 } from '@/data/categories';
+import { NEAR_ME_LOCATION } from '@/data/listings';
 
 const RATING_OPTIONS = [
     { value: 5, label: '5 stars', stars: 5 },
@@ -29,6 +30,7 @@ export default function ExploreSidebar({
     location,
     onLocationChange,
     locations = [],
+    nearMeStatus = 'idle',
     categoryKey,
     onCategoryChange,
     subcategory,
@@ -266,25 +268,41 @@ export default function ExploreSidebar({
                         ) : null}
 
                         <Field label="Where to look?">
-                            <div className="relative">
-                                <MapPin className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-olive-400" />
-                                <select
-                                    value={location || ''}
-                                    onChange={(e) =>
-                                        onLocationChange(
-                                            e.target.value || null,
-                                        )
-                                    }
-                                    className="w-full appearance-none rounded-lg border-olive-200 bg-white py-2.5 pl-9 pr-9 text-sm text-earth-dusk focus:border-mustard focus:ring-mustard"
-                                >
-                                    <option value="">All locations</option>
-                                    {locations.map((area) => (
-                                        <option key={area} value={area}>
-                                            {area}
+                            <div className="space-y-2">
+                                <div className="relative">
+                                    <MapPin className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-olive-400" />
+                                    <select
+                                        value={location || ''}
+                                        onChange={(e) =>
+                                            onLocationChange(
+                                                e.target.value || null,
+                                            )
+                                        }
+                                        className="w-full appearance-none rounded-lg border-olive-200 bg-white py-2.5 pl-9 pr-9 text-sm text-earth-dusk focus:border-mustard focus:ring-mustard"
+                                    >
+                                        <option value="">All locations</option>
+                                        <option value={NEAR_ME_LOCATION}>
+                                            Near me
                                         </option>
-                                    ))}
-                                </select>
-                                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-olive-400" />
+                                        {locations.map((area) => (
+                                            <option key={area} value={area}>
+                                                {area}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-olive-400" />
+                                </div>
+                                {location === NEAR_ME_LOCATION ? (
+                                    <p className="text-xs text-olive-600">
+                                        {nearMeStatus === 'loading'
+                                            ? 'Getting your location…'
+                                            : nearMeStatus === 'error'
+                                              ? 'Couldn’t access your location. Allow location access and try again.'
+                                              : nearMeStatus === 'ready'
+                                                ? 'Showing listings closest to you.'
+                                                : 'Uses your live location to find nearby places.'}
+                                    </p>
+                                ) : null}
                             </div>
                         </Field>
 

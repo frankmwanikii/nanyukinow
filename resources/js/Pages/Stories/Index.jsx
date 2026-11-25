@@ -20,6 +20,9 @@ const SORTS = [
     { key: 'a-z', label: 'A to Z' },
 ];
 
+const panelClass =
+    'rounded-xl border border-olive-200/90 bg-white p-5 sm:p-6';
+
 export default function StoriesIndex({
     articles = [],
     categories = [],
@@ -73,6 +76,13 @@ export default function StoriesIndex({
         });
     };
 
+    const clearFilters = () => {
+        setSort('latest');
+        setQ('');
+        setCategory('all');
+        sync('all', '');
+    };
+
     const activeLabel =
         category === 'all'
             ? 'All stories'
@@ -87,27 +97,19 @@ export default function StoriesIndex({
     return (
         <SiteLayout title={page?.meta_title || 'Stories'}>
             <header
-                className="relative flex min-h-[48svh] items-center justify-center overflow-hidden bg-olive-900 pt-24 text-center sm:min-h-[55svh] sm:pt-28"
+                className="relative flex min-h-[42svh] items-end overflow-hidden bg-olive-900 pt-28 sm:min-h-[48svh] sm:pt-32"
                 style={{
                     backgroundImage: `url('${heroImage}')`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                 }}
             >
-                <div className="absolute inset-0 bg-gradient-to-b from-earth-dusk/55 via-earth-dusk/50 to-earth-dusk/75" />
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(242,184,46,0.18),_transparent_55%)]" />
-                <div className="relative mx-auto max-w-3xl px-4 py-14 sm:px-6 sm:py-16">
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-mustard sm:text-sm">
-                        {content.hero_tag || 'Local Updates'}
-                    </p>
-                    <h1 className="mt-3 font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-[2.75rem] md:leading-tight">
-                        {content.headline || 'Nanyuki Stories Hub'}
+                <div className="absolute inset-0 bg-gradient-to-t from-earth-dusk via-earth-dusk/55 to-earth-dusk/25" />
+                <div className="relative mx-auto w-full max-w-site px-4 pb-10 sm:px-6 sm:pb-12">
+                    <h1 className="max-w-2xl font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-[2.75rem] md:leading-tight">
+                        {content.headline || 'Nanyuki Stories'}
                     </h1>
-                    <div
-                        className="mx-auto mt-4 h-1 w-14 rounded-full bg-gradient-to-r from-mustard to-mustard/40"
-                        aria-hidden
-                    />
-                    <p className="mt-4 text-sm leading-relaxed text-white/80 sm:text-base">
+                    <p className="mt-3 max-w-xl text-sm leading-relaxed text-white/80 sm:text-base">
                         {content.subtext ||
                             'Guides, weather wisdom, and local tips from around Nanyuki.'}
                     </p>
@@ -115,24 +117,20 @@ export default function StoriesIndex({
             </header>
 
             <section className="bg-[#f3f5f7] py-10 sm:py-14">
-                <div className="mx-auto grid max-w-site gap-8 px-4 sm:px-6 lg:grid-cols-[16rem_minmax(0,1fr)] xl:grid-cols-[17.5rem_minmax(0,1fr)] xl:gap-10">
+                <div className="mx-auto grid max-w-site gap-8 px-4 sm:px-6 lg:grid-cols-[15.5rem_minmax(0,1fr)] xl:grid-cols-[16.5rem_minmax(0,1fr)] xl:gap-10">
                     <aside
                         className="min-w-0 lg:sticky lg:top-28 lg:self-start"
                         aria-label="Story categories"
                     >
-                        <div className="rounded-2xl bg-white p-5 shadow-soft ring-1 ring-olive-100/80 sm:p-6">
-                            <p className="text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-olive-500">
-                                Browse
-                            </p>
-                            <h2 className="mt-1 font-display text-lg font-semibold text-earth-dusk">
-                                Contents
+                        <div className={panelClass}>
+                            <h2 className="font-display text-lg font-semibold text-earth-dusk">
+                                Categories
                             </h2>
                             <nav
-                                className="mt-4 flex gap-2 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:pb-0 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                                className="mt-3 -mx-1 flex gap-1 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:pb-0 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                                 aria-label="Filter by category"
                             >
                                 <CategoryLink
-                                    index="01"
                                     label="All stories"
                                     active={category === 'all'}
                                     onClick={() => {
@@ -140,10 +138,9 @@ export default function StoriesIndex({
                                         sync('all', q);
                                     }}
                                 />
-                                {categories.map((cat, i) => (
+                                {categories.map((cat) => (
                                     <CategoryLink
                                         key={cat.slug || cat.id}
-                                        index={String(i + 2).padStart(2, '0')}
                                         label={cat.name}
                                         active={
                                             category === cat.slug ||
@@ -162,7 +159,7 @@ export default function StoriesIndex({
                     <div className="min-w-0">
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                             <label className="relative block min-w-0 flex-1">
-                                <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-olive-400" />
+                                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-olive-400" />
                                 <input
                                     value={q}
                                     onChange={(e) => {
@@ -171,68 +168,63 @@ export default function StoriesIndex({
                                     }}
                                     placeholder="Search stories…"
                                     aria-label="Search stories"
-                                    className="w-full rounded-full border-0 bg-white py-3 pl-11 pr-4 text-sm text-earth-dusk shadow-soft ring-1 ring-olive-100 placeholder:text-olive-400 focus:ring-2 focus:ring-mustard/60"
+                                    className="w-full rounded-md border border-olive-200 bg-white py-2.5 pl-10 pr-3 text-sm text-earth-dusk placeholder:text-olive-400 focus:border-olive-400 focus:outline-none focus:ring-1 focus:ring-olive-400"
                                 />
                             </label>
                             <button
                                 type="button"
                                 onClick={() => setFiltersOpen((o) => !o)}
-                                className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-semibold text-olive-800 shadow-soft ring-1 ring-olive-100 transition hover:bg-olive-50"
+                                className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-md border border-olive-200 bg-white px-3.5 text-sm font-medium text-olive-800 transition hover:border-olive-300 hover:bg-[#f7f6f2]"
                                 aria-expanded={filtersOpen}
                             >
-                                {filtersOpen ? 'Hide Filters' : 'Show Filters'}
                                 <Filter className="h-4 w-4" />
+                                {filtersOpen ? 'Hide filters' : 'Sort'}
                             </button>
                         </div>
 
                         {filtersOpen ? (
-                            <div className="mt-3 rounded-2xl bg-white p-4 shadow-soft ring-1 ring-olive-100 sm:p-5">
-                                <div className="flex flex-wrap items-start justify-between gap-3">
-                                    <div>
-                                        <p className="text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-olive-500">
-                                            Sort and rank
-                                        </p>
-                                        <h3 className="mt-1 font-display text-base font-semibold text-earth-dusk">
-                                            Story filters
-                                        </h3>
-                                    </div>
+                            <div className={`mt-3 ${panelClass}`}>
+                                <div className="flex flex-wrap items-center justify-between gap-3">
+                                    <p className="font-display text-base font-semibold text-earth-dusk">
+                                        Sort by
+                                    </p>
                                     <button
                                         type="button"
-                                        className="text-sm font-semibold text-olive-600 underline-offset-2 hover:underline"
-                                        onClick={() => {
-                                            setSort('latest');
-                                            setQ('');
-                                            setCategory('all');
-                                            sync('all', '');
-                                        }}
+                                        className="text-sm font-medium text-olive-600 underline-offset-2 hover:underline"
+                                        onClick={clearFilters}
                                     >
                                         Reset
                                     </button>
                                 </div>
                                 <div
-                                    className="mt-4 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                                    className="mt-3 flex flex-wrap gap-2"
                                     role="group"
                                     aria-label="Sort stories"
                                 >
-                                    {SORTS.map((item) => (
-                                        <button
-                                            key={item.key}
-                                            type="button"
-                                            onClick={() => setSort(item.key)}
-                                            className={`shrink-0 rounded-full px-3.5 py-2 text-sm font-semibold transition ${
-                                                sort === item.key
-                                                    ? 'bg-olive-800 text-mustard'
-                                                    : 'bg-olive-50 text-olive-800 hover:bg-olive-100'
-                                            }`}
-                                        >
-                                            {item.label}
-                                        </button>
-                                    ))}
+                                    {SORTS.map((item) => {
+                                        const active = sort === item.key;
+                                        return (
+                                            <button
+                                                key={item.key}
+                                                type="button"
+                                                onClick={() =>
+                                                    setSort(item.key)
+                                                }
+                                                className={`rounded-md px-3 py-2 text-sm font-medium transition ${
+                                                    active
+                                                        ? 'bg-olive-800 text-white'
+                                                        : 'border border-olive-200 bg-[#f7f6f2] text-olive-800 hover:border-olive-300 hover:bg-white'
+                                                }`}
+                                            >
+                                                {item.label}
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         ) : null}
 
-                        <div className="mt-6 flex flex-wrap items-end justify-between gap-3">
+                        <div className="mt-8 flex flex-wrap items-end justify-between gap-3 border-b border-[#d8dde3] pb-4">
                             <h2 className="font-display text-2xl font-semibold text-earth-dusk">
                                 {activeLabel}
                             </h2>
@@ -248,19 +240,16 @@ export default function StoriesIndex({
                         </div>
 
                         {pageItems.length === 0 ? (
-                            <div className="mt-6 rounded-2xl bg-white px-6 py-16 text-center shadow-soft">
-                                <p className="font-display text-lg text-olive-800">
+                            <div
+                                className={`mt-6 ${panelClass} py-14 text-center`}
+                            >
+                                <p className="font-display text-lg text-earth-dusk">
                                     No stories match that filter.
                                 </p>
                                 <button
                                     type="button"
-                                    onClick={() => {
-                                        setSort('latest');
-                                        setQ('');
-                                        setCategory('all');
-                                        sync('all', '');
-                                    }}
-                                    className="mt-4 text-sm font-semibold text-olive-700 underline-offset-2 hover:underline"
+                                    onClick={clearFilters}
+                                    className="mt-3 text-sm font-medium text-olive-700 underline-offset-2 hover:underline"
                                 >
                                     Clear filters
                                 </button>
@@ -287,7 +276,7 @@ export default function StoriesIndex({
                                     onClick={() =>
                                         setPage((p) => Math.max(1, p - 1))
                                     }
-                                    className="inline-flex h-10 items-center gap-1 rounded-full bg-white px-3 text-sm font-semibold text-olive-800 shadow-soft ring-1 ring-olive-100 disabled:opacity-40"
+                                    className="inline-flex h-10 items-center gap-1 rounded-md border border-olive-200 bg-white px-3 text-sm font-medium text-olive-800 transition hover:bg-[#f7f6f2] disabled:opacity-40"
                                 >
                                     <ChevronLeft className="h-4 w-4" />
                                     Prev
@@ -300,10 +289,10 @@ export default function StoriesIndex({
                                         key={n}
                                         type="button"
                                         onClick={() => setPage(n)}
-                                        className={`flex h-10 min-w-10 items-center justify-center rounded-full px-3 text-sm font-semibold ${
+                                        className={`flex h-10 min-w-10 items-center justify-center rounded-md px-3 text-sm font-medium ${
                                             n === safePage
-                                                ? 'bg-olive-800 text-mustard'
-                                                : 'bg-white text-olive-800 shadow-soft ring-1 ring-olive-100'
+                                                ? 'bg-olive-800 text-white'
+                                                : 'border border-olive-200 bg-white text-olive-800 hover:bg-[#f7f6f2]'
                                         }`}
                                         aria-current={
                                             n === safePage ? 'page' : undefined
@@ -320,7 +309,7 @@ export default function StoriesIndex({
                                             Math.min(totalPages, p + 1),
                                         )
                                     }
-                                    className="inline-flex h-10 items-center gap-1 rounded-full bg-white px-3 text-sm font-semibold text-olive-800 shadow-soft ring-1 ring-olive-100 disabled:opacity-40"
+                                    className="inline-flex h-10 items-center gap-1 rounded-md border border-olive-200 bg-white px-3 text-sm font-medium text-olive-800 transition hover:bg-[#f7f6f2] disabled:opacity-40"
                                 >
                                     Next
                                     <ChevronRight className="h-4 w-4" />
@@ -334,25 +323,18 @@ export default function StoriesIndex({
     );
 }
 
-function CategoryLink({ index, label, active, onClick }) {
+function CategoryLink({ label, active, onClick }) {
     return (
         <button
             type="button"
             onClick={onClick}
-            className={`flex shrink-0 items-center gap-3 rounded-full px-3.5 py-2.5 text-left text-sm font-semibold transition lg:w-full lg:rounded-xl ${
+            className={`shrink-0 rounded-md px-2.5 py-2 text-left text-sm transition lg:w-full ${
                 active
-                    ? 'bg-olive-800 text-mustard'
-                    : 'bg-olive-50 text-olive-800 hover:bg-olive-100 lg:bg-transparent lg:hover:bg-olive-50'
+                    ? 'bg-olive-800 font-semibold text-white'
+                    : 'font-medium text-olive-700 hover:bg-[#f7f6f2] hover:text-earth-dusk'
             }`}
         >
-            <span
-                className={`hidden text-[0.7rem] tabular-nums lg:inline ${
-                    active ? 'text-mustard/70' : 'text-olive-400'
-                }`}
-            >
-                {index}
-            </span>
-            <span>{label}</span>
+            {label}
         </button>
     );
 }

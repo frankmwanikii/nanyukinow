@@ -14,9 +14,13 @@ import Pagination from '@/Components/site/Pagination';
 import SiteLayout from '@/Layouts/SiteLayout';
 import { explorePath } from '@/data/categories';
 import {
+    distanceKm,
     enrichListing,
     filterListings,
+    listingHasCoordinates,
     LOOK_LOCATIONS,
+    NEAR_ME_LOCATION,
+    NEAR_ME_RADIUS_KM,
 } from '@/data/listings';
 
 const PAGE_SIZE = 12;
@@ -33,6 +37,30 @@ function syncUrl({ category, subcategory, propertyType, q, location }) {
     if (current !== next) {
         window.history.replaceState({}, '', next);
     }
+}
+
+function requestUserCoords() {
+    return new Promise((resolve, reject) => {
+        if (!navigator?.geolocation) {
+            reject(new Error('Geolocation is not supported.'));
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                resolve({
+                    lat: Number(position.coords.latitude.toFixed(7)),
+                    lng: Number(position.coords.longitude.toFixed(7)),
+                });
+            },
+            (error) => reject(error),
+            {
+                enableHighAccuracy: true,
+                timeout: 15000,
+                maximumAge: 60_000,
+            },
+        );
+    });
 }
 
 function ExploreContent({
@@ -56,6 +84,8 @@ function ExploreContent({
     const [mapOpen, setMapOpen] = useState(false);
     const [mobilePanel, setMobilePanel] = useState('list');
     const [page, setPage] = useState(1);
+    const [userCoords, setUserCoords] = useState(null);
+    const [nearMeStatus, setNearMeStatus] = useState('idle');
 
     useEffect(() => {
         setCategoryKey(initialCategory);
@@ -96,23 +126,92 @@ function ExploreContent({
 
     useEffect(() => {
         setPage(1);
-    }, [categoryKey, subcategory, propertyType, query, location, minRating, openNow]);
+    }, [
+        categoryKey,
+        subcategory,
+        propertyType,
+        query,
+        location,
+        minRating,
+        openNow,
+        userCoords,
+    ]);
+
+    useEffect(() => {
+        if (location !== NEAR_ME_LOCATION) {
+            setNearMeStatus('idle');
+            return undefined;
+        }
+
+        let cancelled = false;
+        setNearMeStatus('loading');
+
+        requestUserCoords()
+            .then((coords) => {
+                if (cancelled) return;
+                setUserCoords(coords);
+                setNearMeStatus('ready');
+            })
+            .catch(() => {
+                if (cancelled) return;
+                setUserCoords(null);
+                setNearMeStatus('error');
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [location]);
 
     const filtered = useMemo(() => {
+        const nearMe = location === NEAR_ME_LOCATION;
         const items = filterListings(catalogue, {
             categoryKey,
             subcategory,
             propertyType,
             query,
-            location,
+            location: nearMe ? null : location,
             minRating,
             openNow,
-        }).map((item, index) => enrichListing(item, index));
+        });
 
-        return [...items].sort(
-            (a, b) => (b.rating ?? 0) - (a.rating ?? 0),
-        );
-    }, [catalogue, categoryKey, subcategory, propertyType, query, location, minRating, openNow]);
+        if (nearMe) {
+            if (!userCoords || nearMeStatus !== 'ready') {
+                return [];
+            }
+
+            return items
+                .filter((item) => listingHasCoordinates(item))
+                .map((item, index) => {
+                    const enriched = enrichListing(item, index);
+                    const km = distanceKm(
+                        userCoords.lat,
+                        userCoords.lng,
+                        enriched.lat,
+                        enriched.lng,
+                    );
+
+                    return { ...enriched, distanceKm: km };
+                })
+                .filter((item) => item.distanceKm <= NEAR_ME_RADIUS_KM)
+                .sort((a, b) => a.distanceKm - b.distanceKm);
+        }
+
+        return items
+            .map((item, index) => enrichListing(item, index))
+            .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
+    }, [
+        catalogue,
+        categoryKey,
+        subcategory,
+        propertyType,
+        query,
+        location,
+        minRating,
+        openNow,
+        userCoords,
+        nearMeStatus,
+    ]);
 
     const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
     const safePage = Math.min(page, totalPages);
@@ -131,6 +230,16 @@ function ExploreContent({
         setPropertyType(null);
         setMinRating(0);
         setOpenNow(false);
+        setUserCoords(null);
+        setNearMeStatus('idle');
+    };
+
+    const handleLocationChange = (value) => {
+        setLocation(value);
+        if (value !== NEAR_ME_LOCATION) {
+            setUserCoords(null);
+            setNearMeStatus('idle');
+        }
     };
 
     const applySearch = () => {
@@ -157,8 +266,9 @@ function ExploreContent({
         query,
         onQueryChange: setQuery,
         location,
-        onLocationChange: setLocation,
+        onLocationChange: handleLocationChange,
         locations: locations?.length ? locations : LOOK_LOCATIONS,
+        nearMeStatus,
         categoryKey,
         onCategoryChange: handleCategoryChange,
         subcategory,
@@ -307,12 +417,27 @@ function ExploreContent({
                             <div className="flex h-full min-h-[240px] flex-col items-center justify-center border border-dashed border-olive-300 bg-white/70 px-6 text-center">
                                 <EmptyListingsMark className="mx-auto h-12 w-12 text-earth-dusk sm:h-14 sm:w-14" />
                                 <p className="mt-3 font-display text-xl font-semibold tracking-tight text-earth-dusk sm:text-2xl">
-                                    {sitePage?.content?.empty_title ||
-                                        'Nothing here yet!'}
+                                    {location === NEAR_ME_LOCATION &&
+                                    nearMeStatus === 'loading'
+                                        ? 'Finding places near you'
+                                        : location === NEAR_ME_LOCATION &&
+                                            nearMeStatus === 'error'
+                                          ? 'Location unavailable'
+                                          : sitePage?.content?.empty_title ||
+                                            'Nothing here yet!'}
                                 </p>
                                 <p className="mt-2 max-w-sm text-sm leading-relaxed text-olive-600 sm:text-base">
-                                    {sitePage?.content?.empty_body ||
-                                        'Try another category, clear filters, or check back soon for new listings.'}
+                                    {location === NEAR_ME_LOCATION &&
+                                    nearMeStatus === 'loading'
+                                        ? 'Allow location access so we can sort listings by distance.'
+                                        : location === NEAR_ME_LOCATION &&
+                                            nearMeStatus === 'error'
+                                          ? 'Allow location access in your browser, then choose Near me again.'
+                                          : location === NEAR_ME_LOCATION &&
+                                              nearMeStatus === 'ready'
+                                            ? 'No mapped listings within about 40 km of you. Try All locations or another town.'
+                                            : sitePage?.content?.empty_body ||
+                                              'Try another category, clear filters, or check back soon for new listings.'}
                                 </p>
                                 <button
                                     type="button"

@@ -6,10 +6,8 @@ export default function Logo({
     className = '',
 }) {
     const isHero = variant === 'hero';
-    const src =
-        tone === 'onLight'
-            ? '/images/logo-on-light.png'
-            : '/images/logo.png';
+    const onLight = tone === 'onLight';
+    const src = onLight ? '/images/logo-on-light.png' : '/images/logo.png';
 
     return (
         <Link
@@ -19,14 +17,16 @@ export default function Logo({
         >
             <img
                 src={src}
-                alt="Nanyuki Now — Your city, right now"
+                alt="Nanyuki Now. Your city right now"
                 className={`w-auto object-contain ${
                     isHero
                         ? 'h-28 drop-shadow-lg sm:h-40 md:h-48'
-                        : 'h-10 sm:h-14'
+                        : onLight
+                          ? 'h-36 w-auto max-w-[14rem] sm:h-44 sm:max-w-[17rem]'
+                          : 'h-10 sm:h-14'
                 }`}
-                width={969}
-                height={542}
+                width={onLight ? 1024 : 969}
+                height={onLight ? 1024 : 542}
                 decoding="async"
             />
         </Link>

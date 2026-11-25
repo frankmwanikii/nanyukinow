@@ -296,8 +296,13 @@ export function MemberNotificationsBell() {
     const alertUnread = notifications?.unread_count || 0;
     const chatUnread = messages?.unread_count || 0;
     const unread = alertUnread + chatUnread;
-    const recentAlerts = notifications?.recent || [];
-    const recentChats = messages?.recent || [];
+    const recentChats = (messages?.recent || [])
+        .filter((item) => item.unread)
+        .slice(0, 4);
+    const recentAlerts = (notifications?.recent || [])
+        .filter((item) => !item.read_at)
+        .slice(0, 4);
+    const hasLatest = recentChats.length > 0 || recentAlerts.length > 0;
 
     const openAlert = (item) => {
         setOpen(false);
@@ -328,11 +333,11 @@ export function MemberNotificationsBell() {
                                   <p className="text-sm font-semibold text-olive-950">
                                       Messages
                                   </p>
-                                  <p className="mt-0.5 text-xs text-olive-500">
-                                      {unread > 0
-                                          ? `${unread} unread`
-                                          : 'You’re all caught up'}
-                                  </p>
+                                  {unread > 0 ? (
+                                      <p className="mt-0.5 text-xs text-olive-500">
+                                          {unread} unread
+                                      </p>
+                                  ) : null}
                               </div>
                               {unread > 0 ? (
                                   <button
@@ -347,26 +352,24 @@ export function MemberNotificationsBell() {
                           </div>
 
                           <div className="max-h-[min(22rem,calc(100vh-6rem))] overflow-y-auto">
-                              {recentChats.length === 0 &&
-                              recentAlerts.length === 0 ? (
+                              {!hasLatest ? (
                                   <div className="px-4 py-10 text-center">
                                       <BellMark className="mx-auto h-8 w-8 text-olive-300" />
                                       <p className="mt-3 text-sm font-medium text-olive-800">
-                                          No messages yet
+                                          You’re all caught up
+                                      </p>
+                                      <p className="mt-1 text-xs text-olive-500">
+                                          New messages will show up here.
                                       </p>
                                   </div>
                               ) : (
                                   <ul className="divide-y divide-olive-900/8">
-                                      {recentChats.slice(0, 4).map((item) => (
+                                      {recentChats.map((item) => (
                                           <li key={`c-${item.id}`}>
                                               <Link
                                                   href={item.url}
                                                   onClick={() => setOpen(false)}
-                                                  className={`flex w-full items-start gap-3 px-4 py-3.5 text-left transition hover:bg-olive-50 ${
-                                                      item.unread
-                                                          ? 'bg-mustard/5'
-                                                          : ''
-                                                  }`}
+                                                  className="flex w-full items-start gap-3 bg-mustard/5 px-4 py-3.5 text-left transition hover:bg-olive-50"
                                               >
                                                   <MemberAvatar
                                                       user={{
@@ -383,9 +386,7 @@ export function MemberNotificationsBell() {
                                                           <span className="truncate text-sm font-semibold text-olive-950">
                                                               {item.from}
                                                           </span>
-                                                          {item.unread ? (
-                                                              <span className="h-2 w-2 shrink-0 bg-mustard" />
-                                                          ) : null}
+                                                          <span className="h-2 w-2 shrink-0 bg-mustard" />
                                                       </span>
                                                       <span className="mt-0.5 line-clamp-2 text-xs leading-relaxed text-olive-600">
                                                           {plainText(item.body)}
@@ -397,22 +398,18 @@ export function MemberNotificationsBell() {
                                               </Link>
                                           </li>
                                       ))}
-                                      {recentAlerts.slice(0, 4).map((item) => (
+                                      {recentAlerts.map((item) => (
                                           <li key={`a-${item.id}`}>
                                               <button
                                                   type="button"
                                                   onClick={() => openAlert(item)}
-                                                  className={`flex w-full items-start gap-3 px-4 py-3.5 text-left transition hover:bg-olive-50 ${
-                                                      !item.read_at
-                                                          ? 'bg-mustard/5'
-                                                          : ''
-                                                  }`}
+                                                  className="flex w-full items-start gap-3 bg-mustard/5 px-4 py-3.5 text-left transition hover:bg-olive-50"
                                               >
                                                   <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-olive-50 ring-1 ring-olive-900/10">
                                                       <img
                                                           src={
                                                               item.sender_avatar ||
-                                                              '/images/logo.png'
+                                                              '/images/logo-on-light.png'
                                                           }
                                                           alt=""
                                                           className="h-5 w-5 object-contain"
@@ -424,9 +421,7 @@ export function MemberNotificationsBell() {
                                                               {item.sender_name ||
                                                                   'Nanyuki Now'}
                                                           </span>
-                                                          {!item.read_at ? (
-                                                              <span className="h-2 w-2 shrink-0 bg-mustard" />
-                                                          ) : null}
+                                                          <span className="h-2 w-2 shrink-0 bg-mustard" />
                                                       </span>
                                                       <span className="mt-0.5 line-clamp-2 text-xs leading-relaxed text-olive-600">
                                                           {plainText(

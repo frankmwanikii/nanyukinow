@@ -8,9 +8,13 @@ import {
     Share2,
     UserRound,
 } from '@/Components/site/LucideCompat';
-import { useEffect, useMemo, useState } from 'react';
+import ShareListingModal from '@/Components/listing/ShareListingModal';
+import { useMemo, useState } from 'react';
 import SiteLayout from '@/Layouts/SiteLayout';
 import { formatArticleDate } from '@/utils/formatArticleDate';
+
+const panelClass =
+    'rounded-xl border border-olive-200/90 bg-white p-5 sm:p-6';
 
 function XIcon({ className = '' }) {
     return (
@@ -36,13 +40,13 @@ function FacebookIcon({ className = '' }) {
     );
 }
 
+function shareActionClass() {
+    return 'inline-flex items-center gap-2 rounded-md border border-olive-200 bg-[#f7f6f2] px-3 py-2 text-sm font-medium text-olive-800 transition hover:border-olive-300 hover:bg-white hover:text-earth-dusk';
+}
+
 function ShareBar({ article }) {
     const [copied, setCopied] = useState(false);
-    const [canNativeShare, setCanNativeShare] = useState(false);
-
-    useEffect(() => {
-        setCanNativeShare(typeof navigator !== 'undefined' && !!navigator.share);
-    }, []);
+    const [shareOpen, setShareOpen] = useState(false);
 
     const shareUrl = useMemo(() => {
         if (typeof window === 'undefined') {
@@ -83,59 +87,53 @@ function ShareBar({ article }) {
         }
     };
 
-    const nativeShare = async () => {
-        if (!navigator.share) return;
-        try {
-            await navigator.share({
-                title: article.title,
-                text: article.excerpt || article.subtitle || '',
-                url: shareUrl,
-            });
-        } catch {
-            // cancelled
-        }
-    };
-
     return (
-        <div className="border-t border-[#d8dde3] pt-6">
-            <div className="flex flex-wrap items-baseline justify-between gap-3">
+        <>
+            <div className={panelClass}>
                 <p className="font-display text-lg font-semibold text-earth-dusk">
                     Share
                 </p>
-                {canNativeShare ? (
+                <div className="mt-4 flex flex-wrap gap-2">
                     <button
                         type="button"
-                        onClick={nativeShare}
-                        className="inline-flex items-center gap-2 text-sm font-semibold text-olive-800 transition hover:text-earth-dusk"
+                        onClick={() => setShareOpen(true)}
+                        className={shareActionClass()}
                     >
                         <Share2 className="h-4 w-4" />
-                        Share device
+                        Share
                     </button>
-                ) : null}
-            </div>
-            <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2">
-                {links.map(({ label, href, icon: Icon }) => (
-                    <a
-                        key={label}
-                        href={href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 text-sm font-medium text-olive-700 underline-offset-2 transition hover:text-earth-dusk hover:underline"
+                    {links.map(({ label, href, icon: Icon }) => (
+                        <a
+                            key={label}
+                            href={href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={shareActionClass()}
+                        >
+                            <Icon className="h-4 w-4" />
+                            {label}
+                        </a>
+                    ))}
+                    <button
+                        type="button"
+                        onClick={copyLink}
+                        className={shareActionClass()}
                     >
-                        <Icon className="h-4 w-4" />
-                        {label}
-                    </a>
-                ))}
-                <button
-                    type="button"
-                    onClick={copyLink}
-                    className="inline-flex items-center gap-2 text-sm font-medium text-olive-700 underline-offset-2 transition hover:text-earth-dusk hover:underline"
-                >
-                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                    {copied ? 'Copied' : 'Copy link'}
-                </button>
+                        {copied ? (
+                            <Check className="h-4 w-4" />
+                        ) : (
+                            <Copy className="h-4 w-4" />
+                        )}
+                        {copied ? 'Copied' : 'Copy link'}
+                    </button>
+                </div>
             </div>
-        </div>
+            <ShareListingModal
+                open={shareOpen}
+                onClose={() => setShareOpen(false)}
+                listing={{ title: article.title }}
+            />
+        </>
     );
 }
 
@@ -200,11 +198,11 @@ function NavCard({ story, direction }) {
     return (
         <Link
             href={`/stories/${story.slug}`}
-            className="group flex min-w-0 flex-col gap-3 border-t border-[#d8dde3] pt-5 sm:flex-row sm:items-center"
+            className={`group flex min-w-0 flex-col gap-3 ${panelClass} transition hover:border-olive-300 sm:flex-row sm:items-center`}
         >
             {isPrev && story.image ? (
                 <span
-                    className="aspect-[4/3] w-full shrink-0 bg-cover bg-center sm:h-20 sm:w-28 sm:aspect-auto"
+                    className="aspect-[4/3] w-full shrink-0 overflow-hidden rounded-md bg-cover bg-center sm:h-20 sm:w-28 sm:aspect-auto"
                     style={{ backgroundImage: `url('${story.image}')` }}
                     aria-hidden
                 />
@@ -234,7 +232,7 @@ function NavCard({ story, direction }) {
             </span>
             {!isPrev && story.image ? (
                 <span
-                    className="aspect-[4/3] w-full shrink-0 bg-cover bg-center sm:h-20 sm:w-28 sm:aspect-auto"
+                    className="aspect-[4/3] w-full shrink-0 overflow-hidden rounded-md bg-cover bg-center sm:h-20 sm:w-28 sm:aspect-auto"
                     style={{ backgroundImage: `url('${story.image}')` }}
                     aria-hidden
                 />
@@ -385,14 +383,14 @@ export default function StoryShow({
                     </article>
 
                     <aside
-                        className="min-w-0 space-y-10 lg:sticky lg:top-32"
+                        className="min-w-0 space-y-5 lg:sticky lg:top-32"
                         aria-label="Stories sidebar"
                     >
-                        <div>
+                        <div className={panelClass}>
                             <h2 className="font-display text-lg font-semibold text-earth-dusk">
                                 Categories
                             </h2>
-                            <ul className="mt-3 border-t border-[#d8dde3]">
+                            <ul className="mt-3 -mx-1">
                                 {categories.map((cat) => {
                                     const active =
                                         cat.slug === article.categorySlug;
@@ -400,10 +398,10 @@ export default function StoryShow({
                                         <li key={cat.slug || cat.id}>
                                             <Link
                                                 href={`/stories?category=${encodeURIComponent(cat.slug)}`}
-                                                className={`block border-b border-[#d8dde3] py-2.5 text-sm transition ${
+                                                className={`block rounded-md px-2 py-2 text-sm transition ${
                                                     active
-                                                        ? 'font-semibold text-earth-dusk'
-                                                        : 'text-olive-700 hover:text-earth-dusk'
+                                                        ? 'bg-olive-800 font-semibold text-white'
+                                                        : 'text-olive-700 hover:bg-[#f7f6f2] hover:text-earth-dusk'
                                                 }`}
                                                 aria-current={
                                                     active ? 'page' : undefined
@@ -417,13 +415,13 @@ export default function StoryShow({
                             </ul>
                         </div>
 
-                        <div>
+                        <div className={panelClass}>
                             <h2 className="font-display text-lg font-semibold text-earth-dusk">
                                 Popular
                             </h2>
-                            <div className="mt-3 border-t border-[#d8dde3]">
+                            <div className="mt-3 space-y-3">
                                 {popular.length === 0 ? (
-                                    <p className="py-3 text-sm text-olive-500">
+                                    <p className="text-sm text-olive-500">
                                         More stories coming soon.
                                     </p>
                                 ) : (
@@ -431,18 +429,18 @@ export default function StoryShow({
                                         <Link
                                             key={item.id}
                                             href={`/stories/${item.slug}`}
-                                            className="group flex gap-3 border-b border-[#d8dde3] py-3"
+                                            className="group flex gap-3"
                                         >
                                             {item.image ? (
                                                 <img
                                                     src={item.image}
                                                     alt=""
-                                                    className="h-14 w-14 shrink-0 object-cover"
+                                                    className="h-14 w-14 shrink-0 rounded-md object-cover"
                                                     loading="lazy"
                                                 />
                                             ) : (
                                                 <span
-                                                    className="h-14 w-14 shrink-0 bg-olive-800"
+                                                    className="h-14 w-14 shrink-0 rounded-md bg-olive-800"
                                                     aria-hidden
                                                 />
                                             )}
@@ -464,7 +462,7 @@ export default function StoryShow({
                             </div>
                             <Link
                                 href="/stories"
-                                className="mt-4 inline-flex text-sm font-medium text-olive-700 underline-offset-2 hover:underline"
+                                className="mt-5 inline-flex text-sm font-medium text-olive-700 underline-offset-2 hover:underline"
                             >
                                 Browse all stories
                             </Link>

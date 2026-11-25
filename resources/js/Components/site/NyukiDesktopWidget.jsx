@@ -107,7 +107,7 @@ export default function NyukiDesktopWidget() {
 
     const widget = (
         <div
-            className="pointer-events-none fixed bottom-6 right-6 z-[1150] hidden flex-col items-end gap-3 lg:flex"
+            className="pointer-events-none fixed bottom-20 right-6 z-[1150] hidden flex-col items-end gap-3 lg:flex"
             data-nyuki-desktop-widget
         >
             {open ? (

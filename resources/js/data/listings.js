@@ -1197,11 +1197,39 @@ export { categoryKeys } from './categories';
 /** Areas covered by Nanyuki Now listings. */
 export const LOOK_LOCATIONS = ['Nanyuki', 'Timau', 'Naromoru'];
 
+/** Special Explore location filter: sort by live device position. */
+export const NEAR_ME_LOCATION = 'near-me';
+
+/** Max distance for “Near me” results (km). */
+export const NEAR_ME_RADIUS_KM = 40;
+
 const AREA_COORDS = {
     Nanyuki: { lat: -0.0167, lng: 37.0728 },
     Timau: { lat: 0.082, lng: 37.239 },
     Naromoru: { lat: -0.163, lng: 37.017 },
 };
+
+export function listingHasCoordinates(item) {
+    return (
+        Number.isFinite(Number(item?.lat ?? item?.latitude)) &&
+        Number.isFinite(Number(item?.lng ?? item?.longitude))
+    );
+}
+
+/** Great-circle distance in kilometres. */
+export function distanceKm(lat1, lng1, lat2, lng2) {
+    const toRad = (degrees) => (degrees * Math.PI) / 180;
+    const earthRadiusKm = 6371;
+    const dLat = toRad(lat2 - lat1);
+    const dLng = toRad(lng2 - lng1);
+    const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(toRad(lat1)) *
+            Math.cos(toRad(lat2)) *
+            Math.sin(dLng / 2) ** 2;
+
+    return 2 * earthRadiusKm * Math.asin(Math.sqrt(a));
+}
 
 function resolveLocation(item, index = 0) {
     if (LOOK_LOCATIONS.includes(item.location)) {

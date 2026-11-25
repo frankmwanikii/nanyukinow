@@ -57,7 +57,9 @@ class ListingController extends Controller
             'subcategory' => $request->string('subcategory')->toString() ?: null,
             'propertyType' => $request->string('propertyType')->toString() ?: null,
             'q' => $request->string('q')->toString() ?: null,
-            'location' => in_array($location, $allowed, true) ? $location : null,
+            'location' => $location === 'near-me' || in_array($location, $allowed, true)
+                ? $location
+                : null,
             'page' => SitePage::findBySlug('explore')?->toPublicArray(),
         ]);
     }
@@ -369,16 +371,16 @@ class ListingController extends Controller
             ->featured()
             ->with('storyCategory')
             ->orderByDesc('published_at')
-            ->limit(5)
+            ->limit(4)
             ->get();
 
-        if ($featured->count() < 5) {
+        if ($featured->count() < 4) {
             $extra = Story::query()
                 ->published()
                 ->with('storyCategory')
                 ->whereNotIn('id', $featured->pluck('id')->all())
                 ->orderByDesc('published_at')
-                ->limit(5 - $featured->count())
+                ->limit(4 - $featured->count())
                 ->get();
             $featured = $featured->concat($extra);
         }

@@ -314,91 +314,66 @@ export default function HeroSlider({ photos = null }) {
 
             <span className="sr-only">{activePhoto.alt}</span>
 
-            {/* Desktop: centered vertical progress */}
-            <div className="pointer-events-none absolute inset-y-0 left-8 z-20 hidden lg:flex lg:items-center xl:left-10">
-                <div
-                    className="pointer-events-auto flex flex-col items-center gap-3"
-                    role="tablist"
-                    aria-label="Hero photos"
-                >
-                    {heroPhotos.map((photo, i) => {
-                        const active = i === photoIndex;
-                        const completed = i < photoIndex;
-                        return (
-                            <button
-                                key={photo.id}
-                                type="button"
-                                role="tab"
-                                aria-selected={active}
-                                aria-label={`Show ${photo.title || `photo ${i + 1}`}`}
-                                onClick={() => goToPhoto(i)}
-                                className="relative block h-20 w-1 overflow-visible bg-white/35 transition hover:bg-white/55 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mustard"
-                            >
-                                {completed ? (
-                                    <span className="absolute inset-0 bg-mustard" />
-                                ) : null}
-                                {active ? (
-                                    <span
-                                        key={progressKey}
-                                        className={`absolute inset-x-0 top-0 w-full bg-mustard ${
-                                            reduceMotion
-                                                ? 'h-full'
-                                                : 'animate-hero-progress-y'
-                                        }`}
-                                    >
+            {/* Side rail: progress + caption as one stacked column */}
+            <div className="pointer-events-none absolute bottom-[8.5rem] left-3 z-20 flex w-[min(14rem,calc(100vw-5.5rem))] flex-col gap-6 sm:bottom-36 sm:left-5 sm:w-[16rem] sm:gap-7 lg:bottom-28 lg:left-8 lg:gap-8 xl:bottom-32 xl:left-10">
+                {heroPhotos.length > 1 ? (
+                    <div
+                        className="pointer-events-auto flex flex-col gap-3"
+                        role="tablist"
+                        aria-label="Hero photos"
+                    >
+                        {heroPhotos.map((photo, i) => {
+                            const active = i === photoIndex;
+                            const completed = i < photoIndex;
+                            return (
+                                <button
+                                    key={photo.id}
+                                    type="button"
+                                    role="tab"
+                                    aria-selected={active}
+                                    aria-label={`Show ${photo.title || `photo ${i + 1}`}`}
+                                    onClick={() => goToPhoto(i)}
+                                    className="relative block h-11 w-1 shrink-0 overflow-visible bg-white/35 transition hover:bg-white/55 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mustard sm:h-14 lg:h-16"
+                                >
+                                    {completed ? (
+                                        <span className="absolute inset-0 bg-mustard" />
+                                    ) : null}
+                                    {active ? (
                                         <span
-                                            aria-hidden="true"
-                                            className="absolute bottom-0 left-1/2 h-3.5 w-3.5 -translate-x-1/2 translate-y-1/2 rounded-full bg-mustard"
-                                        />
-                                    </span>
-                                ) : null}
-                            </button>
-                        );
-                    })}
-                </div>
-            </div>
-
-            {/* Desktop: slide caption (left rail) */}
-            <div className="pointer-events-none absolute bottom-28 left-8 z-20 hidden max-w-[16rem] text-white lg:block xl:bottom-32 xl:left-10">
-                {activePhoto.title ? (
-                    <p className="text-[15px] font-semibold leading-snug">
-                        {activePhoto.title}
-                    </p>
+                                            key={progressKey}
+                                            className={`absolute inset-x-0 top-0 w-full bg-mustard ${
+                                                reduceMotion
+                                                    ? 'h-full'
+                                                    : 'animate-hero-progress-y'
+                                            }`}
+                                        >
+                                            <span
+                                                aria-hidden="true"
+                                                className="absolute bottom-0 left-1/2 h-2.5 w-2.5 -translate-x-1/2 translate-y-1/2 rounded-full bg-mustard sm:h-3 sm:w-3"
+                                            />
+                                        </span>
+                                    ) : null}
+                                </button>
+                            );
+                        })}
+                    </div>
                 ) : null}
-                {activePhoto.credit ? (
-                    <p className="mt-1 text-sm leading-snug text-white/70">
-                        {activePhoto.credit}
-                    </p>
-                ) : null}
-            </div>
 
-            {/* Mobile / tablet: slide dots */}
-            {heroPhotos.length > 1 ? (
-                <div
-                    className="pointer-events-none absolute inset-x-0 bottom-[7.5rem] z-20 flex justify-center gap-1.5 sm:bottom-36 lg:hidden"
-                    role="tablist"
-                    aria-label="Hero photos"
-                >
-                    {heroPhotos.map((photo, i) => {
-                        const active = i === photoIndex;
-                        return (
-                            <button
-                                key={photo.id}
-                                type="button"
-                                role="tab"
-                                aria-selected={active}
-                                aria-label={`Show ${photo.title || `photo ${i + 1}`}`}
-                                onClick={() => goToPhoto(i)}
-                                className={`pointer-events-auto h-1.5 rounded-full transition ${
-                                    active
-                                        ? 'w-6 bg-mustard'
-                                        : 'w-1.5 bg-white/55 hover:bg-white/80'
-                                }`}
-                            />
-                        );
-                    })}
-                </div>
-            ) : null}
+                {(activePhoto.title || activePhoto.credit) && (
+                    <div className="text-white">
+                        {activePhoto.title ? (
+                            <p className="font-display text-[15px] font-semibold leading-snug sm:text-base">
+                                {activePhoto.title}
+                            </p>
+                        ) : null}
+                        {activePhoto.credit ? (
+                            <p className="mt-1.5 text-sm leading-snug text-white/70">
+                                {activePhoto.credit}
+                            </p>
+                        ) : null}
+                    </div>
+                )}
+            </div>
 
             {/*
               Mobile: Find + place + search icon at bottom (opens bottom-nav search).
@@ -416,21 +391,6 @@ export default function HeroSlider({ photos = null }) {
                 ) : null}
 
                 <div className="order-2 mx-auto mt-auto w-full max-w-xl text-center lg:max-w-3xl lg:pb-10 xl:max-w-4xl xl:pb-14">
-                    {(activePhoto.title || activePhoto.credit) &&
-                    !desktopLayout ? (
-                        <div className="mb-4 px-2 text-white sm:mb-5">
-                            {activePhoto.title ? (
-                                <p className="font-display text-lg font-semibold leading-snug sm:text-xl">
-                                    {activePhoto.title}
-                                </p>
-                            ) : null}
-                            {activePhoto.credit ? (
-                                <p className="mt-1 text-sm leading-snug text-white/75 sm:text-[15px]">
-                                    {activePhoto.credit}
-                                </p>
-                            ) : null}
-                        </div>
-                    ) : null}
                     <div className="flex flex-nowrap items-center justify-center gap-2.5 sm:gap-4 lg:gap-5">
                         <h1 className="min-w-0 shrink font-display text-[clamp(1.85rem,7.2vw,3.75rem)] font-semibold leading-[1.05] tracking-tight text-white sm:text-[clamp(2.25rem,9vw,3.75rem)] lg:text-[clamp(3rem,5vw,4.5rem)]">
                             {desktopLayout ? (

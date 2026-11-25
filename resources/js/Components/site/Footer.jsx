@@ -153,10 +153,7 @@ export default function Footer() {
                 <div className="relative mx-auto max-w-site overflow-hidden rounded-2xl bg-[#f3f1ea] text-olive-950 shadow-[0_1px_0_rgba(255,255,255,0.06)_inset]">
                     <div className="relative z-10 grid gap-10 px-5 py-10 sm:px-8 sm:py-12 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1.85fr)] lg:gap-14 lg:px-10 lg:py-14">
                         <div className="space-y-5">
-                            <Logo
-                                tone="onLight"
-                                className="[&_img]:h-11 sm:[&_img]:h-12"
-                            />
+                            <Logo tone="onLight" />
                             <p className="max-w-sm text-base leading-relaxed text-olive-600">
                                 Your living guide to Laikipia’s highland town.
                                 Listings, stories, and what’s happening right
