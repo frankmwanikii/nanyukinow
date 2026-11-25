@@ -20,10 +20,11 @@ import { Head, router } from '@inertiajs/react';
 import { Plus } from '@/Components/site/LucideCompat';
 import { useEffect, useRef, useState } from 'react';
 
-export default function Index({ stories, filters }) {
+export default function Index({ stories, categories = [], filters }) {
     const { confirm, dialog } = useConfirm();
     const [q, setQ] = useState(filters.q || '');
     const [status, setStatus] = useState(filters.status || '');
+    const [categoryId, setCategoryId] = useState(filters.category_id || '');
     const [perPage, setPerPage] = useState(filters.per_page || 15);
     const skipDebounce = useRef(true);
 
@@ -42,7 +43,12 @@ export default function Index({ stories, filters }) {
         }
 
         const timer = setTimeout(() => {
-            pushFilters({ q, status, per_page: perPage });
+            pushFilters({
+                q,
+                status,
+                category_id: categoryId,
+                per_page: perPage,
+            });
         }, 350);
 
         return () => clearTimeout(timer);
@@ -56,11 +62,20 @@ export default function Index({ stories, filters }) {
 
             <PageHeader
                 title="Stories"
+                description="Newsroom for guides and editorial content."
                 actions={
-                    <AdminLink href={route('admin.stories.create')}>
-                        <Plus className="h-4 w-4" />
-                        New story
-                    </AdminLink>
+                    <div className="flex flex-wrap gap-2">
+                        <AdminLink
+                            href={route('admin.story-categories.index')}
+                            variant="secondary"
+                        >
+                            Categories
+                        </AdminLink>
+                        <AdminLink href={route('admin.stories.create')}>
+                            <Plus className="h-4 w-4" />
+                            New story
+                        </AdminLink>
+                    </div>
                 }
             />
 
@@ -70,6 +85,7 @@ export default function Index({ stories, filters }) {
                     value={q}
                     onChange={(e) => setQ(e.target.value)}
                     className="min-w-[200px] flex-1"
+                    placeholder="Search stories…"
                 />
                 <AdminSelect
                     label="Status"
@@ -77,13 +93,40 @@ export default function Index({ stories, filters }) {
                     onChange={(e) => {
                         const next = e.target.value;
                         setStatus(next);
-                        pushFilters({ q, status: next, per_page: perPage });
+                        pushFilters({
+                            q,
+                            status: next,
+                            category_id: categoryId,
+                            per_page: perPage,
+                        });
                     }}
                     className="w-40"
                 >
-                    <option value="">All</option>
+                    <option value="">All statuses</option>
                     <option value="published">Published</option>
                     <option value="draft">Draft</option>
+                </AdminSelect>
+                <AdminSelect
+                    label="Category"
+                    value={categoryId}
+                    onChange={(e) => {
+                        const next = e.target.value;
+                        setCategoryId(next);
+                        pushFilters({
+                            q,
+                            status,
+                            category_id: next,
+                            per_page: perPage,
+                        });
+                    }}
+                    className="min-w-[10rem]"
+                >
+                    <option value="">All categories</option>
+                    {categories.map((category) => (
+                        <option key={category.id} value={category.id}>
+                            {category.name}
+                        </option>
+                    ))}
                 </AdminSelect>
             </FilterBar>
 
@@ -107,7 +150,12 @@ export default function Index({ stories, filters }) {
                             perPage={perPage}
                             onPerPageChange={(n) => {
                                 setPerPage(n);
-                                pushFilters({ q, status, per_page: n });
+                                pushFilters({
+                                    q,
+                                    status,
+                                    category_id: categoryId,
+                                    per_page: n,
+                                });
                             }}
                         />
                     }
@@ -130,22 +178,50 @@ export default function Index({ stories, filters }) {
                                         <MediaCell
                                             image={story.image_url}
                                             title={story.title}
-                                            subtitle={story.slug}
-                                            href={route('admin.stories.edit', story.id)}
+                                            subtitle={
+                                                story.is_featured
+                                                    ? `${story.slug} · Featured`
+                                                    : story.slug
+                                            }
+                                            href={route(
+                                                'admin.stories.edit',
+                                                story.id,
+                                            )}
                                         />
                                     </Td>
                                     <Td>
-                                        <span className="text-sm text-olive-600 dark:text-olive-300">{story.category || '—'}</span>
+                                        <span className="text-sm text-olive-600 dark:text-olive-300">
+                                            {story.category || '—'}
+                                        </span>
                                     </Td>
                                     <Td>
-                                        <span className="text-sm text-olive-600 dark:text-olive-300">{story.author || '—'}</span>
+                                        <span className="text-sm text-olive-600 dark:text-olive-300">
+                                            {story.author || '—'}
+                                        </span>
                                     </Td>
                                     <Td>
-                                        <StatusBadge status={story.is_published ? 'published' : 'draft'} />
+                                        <div className="flex flex-wrap items-center gap-1.5">
+                                            <StatusBadge
+                                                status={
+                                                    story.is_published
+                                                        ? 'published'
+                                                        : 'draft'
+                                                }
+                                            />
+                                            {story.is_featured ? (
+                                                <span className="inline-flex rounded-full bg-mustard/25 px-2 py-0.5 text-[0.65rem] font-semibold text-olive-900 dark:text-mustard">
+                                                    Featured
+                                                </span>
+                                            ) : null}
+                                        </div>
                                     </Td>
                                     <Td>
                                         <span className="text-sm text-olive-500 dark:text-olive-400">
-                                            {story.updated_at ? new Date(story.updated_at).toLocaleDateString() : '—'}
+                                            {story.updated_at
+                                                ? new Date(
+                                                      story.updated_at,
+                                                  ).toLocaleDateString()
+                                                : '—'}
                                         </span>
                                     </Td>
                                     <Td align="right">
@@ -153,24 +229,37 @@ export default function Index({ stories, filters }) {
                                             items={[
                                                 {
                                                     label: 'Edit',
-                                                    href: route('admin.stories.edit', story.id),
+                                                    href: route(
+                                                        'admin.stories.edit',
+                                                        story.id,
+                                                    ),
                                                 },
                                                 {
                                                     label: 'View',
-                                                    href: route('stories.show', story.slug),
+                                                    href: route(
+                                                        'stories.show',
+                                                        story.slug,
+                                                    ),
                                                     external: true,
                                                 },
                                                 {
                                                     label: 'Delete',
                                                     danger: true,
                                                     onClick: async () => {
-                                                        const ok = await confirm({
-                                                            title: 'Delete story?',
-                                                            message: `Delete “${story.title}”? This cannot be undone.`,
-                                                            confirmLabel: 'Delete',
-                                                        });
+                                                        const ok =
+                                                            await confirm({
+                                                                title: 'Delete story?',
+                                                                message: `Delete “${story.title}”? This cannot be undone.`,
+                                                                confirmLabel:
+                                                                    'Delete',
+                                                            });
                                                         if (!ok) return;
-                                                        router.delete(route('admin.stories.destroy', story.id));
+                                                        router.delete(
+                                                            route(
+                                                                'admin.stories.destroy',
+                                                                story.id,
+                                                            ),
+                                                        );
                                                     },
                                                 },
                                             ]}

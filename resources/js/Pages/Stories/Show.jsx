@@ -1,21 +1,16 @@
 import { Link } from '@inertiajs/react';
 import {
     ArrowLeft,
+    ArrowRight,
     Check,
-    Clock,
     Copy,
-    Lightbulb,
+    Eye,
     Share2,
+    UserRound,
 } from '@/Components/site/LucideCompat';
 import { useEffect, useMemo, useState } from 'react';
 import SiteLayout from '@/Layouts/SiteLayout';
-import StoryCard from '@/Components/site/StoryCard';
-import StoryComments from '@/Components/site/StoryComments';
-import {
-    articles,
-    formatArticleDate,
-    getArticleBySlug,
-} from '@/data/articles';
+import { formatArticleDate } from '@/utils/formatArticleDate';
 
 function XIcon({ className = '' }) {
     return (
@@ -41,14 +36,6 @@ function FacebookIcon({ className = '' }) {
     );
 }
 
-function LinkedInIcon({ className = '' }) {
-    return (
-        <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden>
-            <path d="M6.5 8.5A2 2 0 1 1 6.5 4.5a2 2 0 0 1 0 4zm.1 2.2H4.4V20h2.2V10.7zm4.2 0H8.7V20h2.1v-4.8c0-1.3.7-2.1 1.8-2.1 1 0 1.5.7 1.5 2.1V20H16v-5.4c0-2.8-1.5-4.1-3.5-4.1-1.3 0-2.1.6-2.5 1.3h-.1v-1.1h-.1z" />
-        </svg>
-    );
-}
-
 function ShareBar({ article }) {
     const [copied, setCopied] = useState(false);
     const [canNativeShare, setCanNativeShare] = useState(false);
@@ -64,7 +51,7 @@ function ShareBar({ article }) {
         return `${window.location.origin}/stories/${article.slug}`;
     }, [article.slug]);
 
-    const shareText = `${article.title} — Nanyuki Now`;
+    const shareText = `${article.title}. Nanyuki Now`;
     const encodedUrl = encodeURIComponent(shareUrl);
     const encodedText = encodeURIComponent(shareText);
 
@@ -84,11 +71,6 @@ function ShareBar({ article }) {
             href: `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedText}`,
             icon: XIcon,
         },
-        {
-            label: 'LinkedIn',
-            href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
-            icon: LinkedInIcon,
-        },
     ];
 
     const copyLink = async () => {
@@ -106,7 +88,7 @@ function ShareBar({ article }) {
         try {
             await navigator.share({
                 title: article.title,
-                text: article.excerpt,
+                text: article.excerpt || article.subtitle || '',
                 url: shareUrl,
             });
         } catch {
@@ -115,35 +97,30 @@ function ShareBar({ article }) {
     };
 
     return (
-        <div className="rounded-2xl border border-olive-200 bg-white p-5 shadow-soft sm:p-6">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                    <p className="font-display text-lg font-semibold text-earth-dusk">
-                        Share this story
-                    </p>
-                    <p className="mt-1 text-sm text-olive-600">
-                        Pass it along to someone planning a trip.
-                    </p>
-                </div>
+        <div className="border-t border-[#d8dde3] pt-6">
+            <div className="flex flex-wrap items-baseline justify-between gap-3">
+                <p className="font-display text-lg font-semibold text-earth-dusk">
+                    Share
+                </p>
                 {canNativeShare ? (
                     <button
                         type="button"
                         onClick={nativeShare}
-                        className="inline-flex items-center gap-2 rounded-full bg-olive-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-mustard hover:text-olive-950"
+                        className="inline-flex items-center gap-2 text-sm font-semibold text-olive-800 transition hover:text-earth-dusk"
                     >
                         <Share2 className="h-4 w-4" />
-                        Share
+                        Share device
                     </button>
                 ) : null}
             </div>
-            <div className="mt-5 flex flex-wrap gap-2">
+            <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2">
                 {links.map(({ label, href, icon: Icon }) => (
                     <a
                         key={label}
                         href={href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 rounded-full bg-earth-sand/80 px-3.5 py-2 text-sm font-semibold text-olive-800 ring-1 ring-olive-200/80 transition hover:bg-olive-600 hover:text-white hover:ring-olive-600"
+                        className="inline-flex items-center gap-2 text-sm font-medium text-olive-700 underline-offset-2 transition hover:text-earth-dusk hover:underline"
                     >
                         <Icon className="h-4 w-4" />
                         {label}
@@ -152,13 +129,9 @@ function ShareBar({ article }) {
                 <button
                     type="button"
                     onClick={copyLink}
-                    className="inline-flex items-center gap-2 rounded-full bg-earth-sand/80 px-3.5 py-2 text-sm font-semibold text-olive-800 ring-1 ring-olive-200/80 transition hover:bg-olive-600 hover:text-white hover:ring-olive-600"
+                    className="inline-flex items-center gap-2 text-sm font-medium text-olive-700 underline-offset-2 transition hover:text-earth-dusk hover:underline"
                 >
-                    {copied ? (
-                        <Check className="h-4 w-4" />
-                    ) : (
-                        <Copy className="h-4 w-4" />
-                    )}
+                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                     {copied ? 'Copied' : 'Copy link'}
                 </button>
             </div>
@@ -168,77 +141,117 @@ function ShareBar({ article }) {
 
 function ArticleSections({ sections = [] }) {
     return (
-        <div className="mt-12 space-y-14 sm:space-y-16">
-            {sections.map((section, index) => {
-                const reverse = index % 2 === 1;
-                return (
-                    <section
-                        key={section.id || section.title}
-                        className="grid items-center gap-8 lg:grid-cols-2 lg:gap-12"
-                    >
-                        <div className={reverse ? 'lg:order-2' : ''}>
-                            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-olive-600">
-                                {String(index + 1).padStart(2, '0')}
-                            </p>
-                            <h2 className="mt-2 font-display text-2xl font-semibold tracking-tight text-earth-dusk sm:text-3xl">
-                                {section.title}
-                            </h2>
-                            <div className="mt-4 space-y-4 text-base leading-relaxed text-olive-800/90 sm:text-[1.05rem] sm:leading-8">
-                                {(section.paragraphs || []).map((paragraph, i) => (
-                                    <p key={i}>{paragraph}</p>
-                                ))}
-                            </div>
-                            {section.list?.length ? (
-                                <ol className="mt-6 space-y-4">
-                                    {section.list.map((item, i) => (
-                                        <li
-                                            key={item.title || i}
-                                            className="flex gap-4 rounded-2xl bg-white p-4 shadow-soft ring-1 ring-olive-100 sm:p-5"
-                                        >
-                                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-olive-600 font-display text-sm font-bold text-white">
-                                                {i + 1}
-                                            </span>
-                                            <div>
-                                                <p className="font-display text-base font-semibold text-earth-dusk">
-                                                    {item.title}
-                                                </p>
-                                                <p className="mt-1 text-sm leading-relaxed text-olive-700 sm:text-[0.95rem]">
-                                                    {item.text}
-                                                </p>
-                                            </div>
-                                        </li>
-                                    ))}
-                                </ol>
-                            ) : null}
+        <div className="mt-10 space-y-10 sm:space-y-12">
+            {sections.map((section, index) => (
+                <section key={section.id || section.title || index}>
+                    <h2 className="font-display text-2xl font-semibold tracking-tight text-earth-dusk sm:text-3xl">
+                        {section.title}
+                    </h2>
+                    <div className="mt-4 space-y-4 text-base leading-[1.85] text-olive-800/90 sm:text-[1.05rem]">
+                        {(section.paragraphs || []).map((paragraph, i) => (
+                            <p key={i}>{paragraph}</p>
+                        ))}
+                    </div>
+                    {section.list?.length ? (
+                        <ol className="mt-6 space-y-0 border-t border-[#d8dde3]">
+                            {section.list.map((item, i) => (
+                                <li
+                                    key={item.title || i}
+                                    className="flex gap-4 border-b border-[#d8dde3] py-4"
+                                >
+                                    <span className="w-6 shrink-0 font-display text-sm font-semibold tabular-nums text-olive-500">
+                                        {String(i + 1).padStart(2, '0')}
+                                    </span>
+                                    <div>
+                                        <p className="font-display text-base font-semibold text-earth-dusk">
+                                            {item.title}
+                                        </p>
+                                        <p className="mt-1 text-sm leading-relaxed text-olive-700 sm:text-[0.95rem]">
+                                            {item.text}
+                                        </p>
+                                    </div>
+                                </li>
+                            ))}
+                        </ol>
+                    ) : null}
+                    {section.image ? (
+                        <div className="mt-6">
+                            <img
+                                src={section.image}
+                                alt={section.imageAlt || ''}
+                                className="aspect-[16/9] w-full object-cover"
+                                loading="lazy"
+                            />
                         </div>
-
-                        {section.image ? (
-                            <div
-                                className={`overflow-hidden rounded-2xl shadow-lift ${
-                                    reverse ? 'lg:order-1' : ''
-                                }`}
-                            >
-                                <img
-                                    src={section.image}
-                                    alt={section.imageAlt || ''}
-                                    className="aspect-[4/3] h-full w-full object-cover"
-                                    loading="lazy"
-                                />
-                            </div>
-                        ) : null}
-                    </section>
-                );
-            })}
+                    ) : null}
+                </section>
+            ))}
         </div>
     );
 }
 
-export default function StoryShow({ slug }) {
-    const article = getArticleBySlug(slug);
+function NavCard({ story, direction }) {
+    if (!story) {
+        return <span className="hidden sm:block" aria-hidden />;
+    }
 
+    const isPrev = direction === 'prev';
+
+    return (
+        <Link
+            href={`/stories/${story.slug}`}
+            className="group flex min-w-0 flex-col gap-3 border-t border-[#d8dde3] pt-5 sm:flex-row sm:items-center"
+        >
+            {isPrev && story.image ? (
+                <span
+                    className="aspect-[4/3] w-full shrink-0 bg-cover bg-center sm:h-20 sm:w-28 sm:aspect-auto"
+                    style={{ backgroundImage: `url('${story.image}')` }}
+                    aria-hidden
+                />
+            ) : null}
+            <span className={`min-w-0 flex-1 ${isPrev ? '' : 'sm:text-right'}`}>
+                <span className="inline-flex items-center gap-1.5 text-sm text-olive-600">
+                    {isPrev ? (
+                        <>
+                            <ArrowLeft className="h-3.5 w-3.5" />
+                            Previous
+                        </>
+                    ) : (
+                        <>
+                            Next
+                            <ArrowRight className="h-3.5 w-3.5" />
+                        </>
+                    )}
+                </span>
+                {story.category ? (
+                    <span className="mt-1 block text-sm text-olive-500">
+                        {story.category}
+                    </span>
+                ) : null}
+                <strong className="mt-1 block font-display text-base font-semibold leading-snug text-earth-dusk transition group-hover:underline">
+                    {story.title}
+                </strong>
+            </span>
+            {!isPrev && story.image ? (
+                <span
+                    className="aspect-[4/3] w-full shrink-0 bg-cover bg-center sm:h-20 sm:w-28 sm:aspect-auto"
+                    style={{ backgroundImage: `url('${story.image}')` }}
+                    aria-hidden
+                />
+            ) : null}
+        </Link>
+    );
+}
+
+export default function StoryShow({
+    article = null,
+    popular = [],
+    adjacent = { prev: null, next: null },
+    categories = [],
+}) {
     if (!article) {
         return (
-            <SiteLayout title="Story not found">
+            <SiteLayout title="Story not found" compactNav>
                 <section className="mx-auto max-w-2xl px-4 py-28 text-center sm:px-6">
                     <h1 className="font-display text-3xl font-semibold text-earth-dusk">
                         Story not found
@@ -248,7 +261,7 @@ export default function StoryShow({ slug }) {
                     </p>
                     <Link
                         href="/stories"
-                        className="mt-8 inline-flex rounded-full bg-olive-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-mustard hover:text-olive-950"
+                        className="mt-8 inline-flex rounded-full bg-olive-800 px-6 py-3 text-sm font-semibold text-mustard transition hover:bg-mustard hover:text-olive-950"
                     >
                         Back to stories
                     </Link>
@@ -257,65 +270,82 @@ export default function StoryShow({ slug }) {
         );
     }
 
-    const related = articles
-        .filter((item) => item.id !== article.id)
-        .slice(0, 3);
-    const hasSections = Array.isArray(article.sections) && article.sections.length > 0;
+    const hasSections =
+        Array.isArray(article.sections) && article.sections.length > 0;
+    const views = Number(article.views || 0);
 
     return (
-        <SiteLayout title={article.title}>
-            <article>
-                {/* Hero — retained overlay design */}
-                <header className="relative flex min-h-[58svh] items-end overflow-hidden bg-olive-900 pt-24 sm:min-h-[64svh] sm:pt-28">
-                    <div className="absolute inset-0">
-                        <img
-                            src={article.image}
-                            alt=""
-                            className="h-full w-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#1c1712] via-[#1c1712]/55 to-[#1c1712]/25" />
-                    </div>
-                    <div className="relative mx-auto w-full max-w-4xl px-4 pb-12 pt-16 sm:px-6 sm:pb-16">
-                        <Link
-                            href="/stories"
-                            className="inline-flex items-center gap-2 text-sm font-semibold text-white/80 transition hover:text-mustard"
-                        >
-                            <ArrowLeft className="h-4 w-4" />
-                            All stories
-                        </Link>
-                        <p className="mt-6 text-xs font-semibold uppercase tracking-[0.2em] text-mint">
-                            {article.category}
-                        </p>
-                        <h1 className="mt-3 max-w-3xl font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl md:leading-tight">
+        <SiteLayout title={article.title} compactNav>
+            <section className="bg-[#f3f5f7] pb-14 pt-32 sm:pb-16 sm:pt-36">
+                <div className="mx-auto grid max-w-site gap-8 px-4 sm:px-6 lg:grid-cols-[minmax(0,1.7fr)_minmax(260px,0.75fr)] lg:gap-10 lg:items-start">
+                    <article className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-olive-600">
+                            <span>
+                                Published On:{' '}
+                                <strong className="font-semibold text-earth-dusk">
+                                    {formatArticleDate(article.publishedAt)}
+                                </strong>
+                            </span>
+                            <span className="text-olive-300" aria-hidden>
+                                ·
+                            </span>
+                            <span>
+                                Categories:{' '}
+                                <Link
+                                    href={
+                                        article.categorySlug
+                                            ? `/stories?category=${encodeURIComponent(article.categorySlug)}`
+                                            : '/stories'
+                                    }
+                                    className="font-semibold text-olive-800 underline-offset-2 hover:underline"
+                                >
+                                    {article.category || 'Stories'}
+                                </Link>
+                            </span>
+                        </div>
+
+                        <hr className="mt-4 border-0 border-t border-[#d8dde3] sm:mt-5" />
+
+                        <h1 className="mt-4 max-w-3xl font-display text-[1.85rem] font-semibold leading-tight tracking-tight text-earth-dusk sm:mt-5 sm:text-4xl md:text-[2.75rem] md:leading-[1.15]">
                             {article.title}
                         </h1>
-                        <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-white/75">
-                            <span>{formatArticleDate(article.publishedAt)}</span>
-                            <span className="inline-flex items-center gap-1.5">
-                                <Clock className="h-3.5 w-3.5" />
-                                {article.readMinutes} min read
+
+                        {article.subtitle ? (
+                            <p className="mt-3 max-w-2xl text-base leading-relaxed text-olive-700 sm:text-lg">
+                                {article.subtitle}
+                            </p>
+                        ) : null}
+
+                        <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-olive-600">
+                            <span className="inline-flex items-center gap-2">
+                                <UserRound className="h-4 w-4" />
+                                {article.author || 'Nanyuki Now'}
                             </span>
-                            <span>By {article.author}</span>
+                            <span className="inline-flex items-center gap-2">
+                                <Eye className="h-4 w-4" />
+                                {views.toLocaleString()}{' '}
+                                {views === 1 ? 'view' : 'views'}
+                            </span>
                         </div>
-                    </div>
-                </header>
 
-                <div className="bg-earth-sand py-10 sm:py-14">
-                    <div
-                        className={`mx-auto px-4 sm:px-6 ${
-                            hasSections ? 'max-w-5xl' : 'max-w-3xl'
-                        }`}
-                    >
-                        <p className="mx-auto max-w-3xl font-display text-lg leading-relaxed text-olive-800 sm:text-xl sm:leading-8">
-                            {(article.body && article.body[0]) || article.excerpt}
-                        </p>
+                        {article.image ? (
+                            <figure className="mt-8">
+                                <img
+                                    src={article.image}
+                                    alt={article.title}
+                                    className="aspect-[16/9] w-full object-cover"
+                                    loading="eager"
+                                />
+                            </figure>
+                        ) : null}
 
-                        {!hasSections && article.body?.length > 1 ? (
-                            <div className="mx-auto mt-8 max-w-3xl space-y-5 text-base leading-relaxed text-olive-800/90 sm:text-[1.05rem] sm:leading-8">
-                                {article.body.slice(1).map((paragraph, i) => (
-                                    <p key={i}>{paragraph}</p>
-                                ))}
-                            </div>
+                        {article.bodyHtml ? (
+                            <div
+                                className="nn-editor story-body mt-8 max-w-3xl text-[1.05rem] leading-[1.85] text-[#2a2a2a] [&_a]:text-olive-800 [&_a]:underline [&_blockquote]:border-l-4 [&_blockquote]:border-mustard [&_blockquote]:bg-mustard/10 [&_blockquote]:px-4 [&_blockquote]:py-3 [&_h2]:mt-8 [&_h2]:font-display [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:text-earth-dusk [&_h3]:mt-6 [&_h3]:font-display [&_h3]:text-xl [&_h3]:font-semibold [&_img]:my-6 [&_img]:rounded-2xl [&_p]:mt-4 [&_p:first-child]:mt-0"
+                                dangerouslySetInnerHTML={{
+                                    __html: article.bodyHtml,
+                                }}
+                            />
                         ) : null}
 
                         {hasSections ? (
@@ -323,59 +353,125 @@ export default function StoryShow({ slug }) {
                         ) : null}
 
                         {article.proTip ? (
-                            <aside className="mx-auto mt-12 max-w-3xl overflow-hidden rounded-2xl border border-mustard/30 bg-white shadow-soft">
-                                <div className="flex gap-4 p-5 sm:gap-5 sm:p-6">
-                                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-mustard/20 text-olive-900">
-                                        <Lightbulb className="h-5 w-5" />
-                                    </div>
-                                    <div>
-                                        <p className="font-display text-lg font-semibold text-earth-dusk">
-                                            Pro-tip
-                                        </p>
-                                        <p className="mt-2 text-sm leading-relaxed text-olive-700 sm:text-base sm:leading-7">
-                                            {article.proTip}
-                                        </p>
-                                    </div>
-                                </div>
+                            <aside className="mt-10 border-l-2 border-mustard pl-4 sm:pl-5">
+                                <p className="font-display text-lg font-semibold text-earth-dusk">
+                                    Pro tip
+                                </p>
+                                <p className="mt-2 text-sm leading-relaxed text-olive-700 sm:text-base sm:leading-7">
+                                    {article.proTip}
+                                </p>
                             </aside>
                         ) : null}
 
-                        <div className="mx-auto mt-12 max-w-3xl space-y-8">
+                        <div className="mt-10">
                             <ShareBar article={article} />
-                            <StoryComments slug={article.slug} />
-                            <div className="flex flex-wrap gap-3">
-                                <Link
-                                    href={`/stories?category=${encodeURIComponent(article.category)}`}
-                                    className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-olive-700 ring-1 ring-olive-200 transition hover:bg-olive-600 hover:text-white hover:ring-olive-600"
-                                >
-                                    More in {article.category}
-                                </Link>
-                                <Link
-                                    href="/stories"
-                                    className="rounded-full bg-olive-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-mustard hover:text-olive-950"
-                                >
-                                    Browse all stories
-                                </Link>
-                            </div>
                         </div>
-                    </div>
-                </div>
-            </article>
 
-            {related.length > 0 ? (
-                <section className="border-t border-olive-200/80 bg-white py-12 sm:py-16">
-                    <div className="mx-auto max-w-site px-4 sm:px-6">
-                        <h2 className="font-display text-2xl font-semibold text-earth-dusk sm:text-3xl">
-                            Keep reading
-                        </h2>
-                        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                            {related.map((item) => (
-                                <StoryCard key={item.id} article={item} />
-                            ))}
+                        {(adjacent?.prev || adjacent?.next) && (
+                            <nav
+                                className="mt-10 grid gap-4 sm:grid-cols-2"
+                                aria-label="More stories"
+                            >
+                                <NavCard
+                                    story={adjacent.prev}
+                                    direction="prev"
+                                />
+                                <NavCard
+                                    story={adjacent.next}
+                                    direction="next"
+                                />
+                            </nav>
+                        )}
+                    </article>
+
+                    <aside
+                        className="min-w-0 space-y-10 lg:sticky lg:top-32"
+                        aria-label="Stories sidebar"
+                    >
+                        <div>
+                            <h2 className="font-display text-lg font-semibold text-earth-dusk">
+                                Categories
+                            </h2>
+                            <ul className="mt-3 border-t border-[#d8dde3]">
+                                {categories.map((cat) => {
+                                    const active =
+                                        cat.slug === article.categorySlug;
+                                    return (
+                                        <li key={cat.slug || cat.id}>
+                                            <Link
+                                                href={`/stories?category=${encodeURIComponent(cat.slug)}`}
+                                                className={`block border-b border-[#d8dde3] py-2.5 text-sm transition ${
+                                                    active
+                                                        ? 'font-semibold text-earth-dusk'
+                                                        : 'text-olive-700 hover:text-earth-dusk'
+                                                }`}
+                                                aria-current={
+                                                    active ? 'page' : undefined
+                                                }
+                                            >
+                                                {cat.name}
+                                            </Link>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
                         </div>
-                    </div>
-                </section>
-            ) : null}
+
+                        <div>
+                            <h2 className="font-display text-lg font-semibold text-earth-dusk">
+                                Popular
+                            </h2>
+                            <div className="mt-3 border-t border-[#d8dde3]">
+                                {popular.length === 0 ? (
+                                    <p className="py-3 text-sm text-olive-500">
+                                        More stories coming soon.
+                                    </p>
+                                ) : (
+                                    popular.map((item) => (
+                                        <Link
+                                            key={item.id}
+                                            href={`/stories/${item.slug}`}
+                                            className="group flex gap-3 border-b border-[#d8dde3] py-3"
+                                        >
+                                            {item.image ? (
+                                                <img
+                                                    src={item.image}
+                                                    alt=""
+                                                    className="h-14 w-14 shrink-0 object-cover"
+                                                    loading="lazy"
+                                                />
+                                            ) : (
+                                                <span
+                                                    className="h-14 w-14 shrink-0 bg-olive-800"
+                                                    aria-hidden
+                                                />
+                                            )}
+                                            <span className="min-w-0 self-center">
+                                                <strong className="block font-display text-sm font-semibold leading-snug text-earth-dusk transition group-hover:underline">
+                                                    {item.title}
+                                                </strong>
+                                                {(item.excerpt ||
+                                                    item.subtitle) && (
+                                                    <span className="mt-1 line-clamp-2 text-xs leading-relaxed text-olive-600">
+                                                        {item.excerpt ||
+                                                            item.subtitle}
+                                                    </span>
+                                                )}
+                                            </span>
+                                        </Link>
+                                    ))
+                                )}
+                            </div>
+                            <Link
+                                href="/stories"
+                                className="mt-4 inline-flex text-sm font-medium text-olive-700 underline-offset-2 hover:underline"
+                            >
+                                Browse all stories
+                            </Link>
+                        </div>
+                    </aside>
+                </div>
+            </section>
         </SiteLayout>
     );
 }

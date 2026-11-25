@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Listing;
 use App\Models\Location;
 use App\Models\SitePage;
+use App\Models\Story;
 use App\Support\HeroSlides;
 use App\Support\ListingOutbound;
 use App\Support\ListingPayload;
@@ -30,6 +31,7 @@ class ListingController extends Controller
             'airbnbs' => Inertia::defer(fn () => $this->airbnbCards(), 'below'),
             'wildlifeSafaris' => Inertia::defer(fn () => $this->wildlifeCards(), 'below'),
             'events' => Inertia::defer(fn () => $this->eventCards(), 'below'),
+            'stories' => $this->homeStories(),
             'page' => $page,
             'heroSlides' => HeroSlides::forHome(),
         ]);
@@ -351,6 +353,38 @@ class ListingController extends Controller
                 return [($isPast ? 1 : 0), $start ?? '9999-12-31'];
             })
             ->take(12)
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Prefer featured published stories, then fill with latest.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function homeStories(): array
+    {
+        $featured = Story::query()
+            ->published()
+            ->featured()
+            ->with('storyCategory')
+            ->orderByDesc('published_at')
+            ->limit(5)
+            ->get();
+
+        if ($featured->count() < 5) {
+            $extra = Story::query()
+                ->published()
+                ->with('storyCategory')
+                ->whereNotIn('id', $featured->pluck('id')->all())
+                ->orderByDesc('published_at')
+                ->limit(5 - $featured->count())
+                ->get();
+            $featured = $featured->concat($extra);
+        }
+
+        return $featured
+            ->map(fn (Story $story) => $story->toPublicArray())
             ->values()
             ->all();
     }

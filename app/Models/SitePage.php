@@ -93,6 +93,8 @@ class SitePage extends Model
                 ['key' => 'instructions', 'label' => 'How upgrades work', 'type' => 'textarea', 'rows' => 4, 'help' => 'Shown on the public pricing page.'],
             ],
             'stories' => [
+                ['key' => 'hero_image', 'label' => 'Hero image URL', 'type' => 'image', 'help' => 'Full-bleed stories hub background.'],
+                ['key' => 'hero_tag', 'label' => 'Hero eyebrow', 'type' => 'text'],
                 ['key' => 'headline', 'label' => 'Page headline', 'type' => 'text'],
                 ['key' => 'subtext', 'label' => 'Supporting text', 'type' => 'textarea', 'rows' => 3],
             ],
@@ -245,8 +247,10 @@ class SitePage extends Model
                 'meta_title' => 'Stories & travel tips',
                 'meta_description' => 'Local stories and travel tips from Nanyuki.',
                 'content' => [
-                    'headline' => 'Stories & travel tips',
-                    'subtext' => 'Guides, dispatches, and notes from around Nanyuki.',
+                    'hero_image' => '/images/stories/shopping-hero.webp',
+                    'hero_tag' => 'Local Updates',
+                    'headline' => 'Nanyuki Stories Hub',
+                    'subtext' => 'Guides, weather wisdom, and local tips from around Nanyuki.',
                 ],
                 'is_published' => true,
                 'sort_order' => 4,

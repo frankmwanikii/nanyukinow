@@ -483,6 +483,13 @@ class SearchController extends Controller
                 'keywords' => ['stories', 'story', 'articles', 'blog', 'news'],
             ],
             [
+                'id' => 'story-categories',
+                'title' => 'Story categories',
+                'subtitle' => 'Story topics',
+                'href' => route('admin.story-categories.index'),
+                'keywords' => ['story categories', 'story category', 'topics', 'editorial categories'],
+            ],
+            [
                 'id' => 'gallery',
                 'title' => 'Gallery',
                 'subtitle' => 'Media library',

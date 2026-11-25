@@ -25,6 +25,7 @@ use App\Http\Controllers\NyukiController;
 use App\Http\Controllers\PricingPageController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SitePreviewController;
+use App\Http\Controllers\StoryController;
 use App\Http\Controllers\Webhooks\PalplussWebhookController;
 use App\Http\Controllers\Webhooks\PaypalWebhookController;
 use App\Models\SitePage;
@@ -54,19 +55,8 @@ Route::post('/nyuki/chat', NyukiChatController::class)
     ->middleware('throttle:12,1')
     ->name('nyuki.chat');
 
-Route::get('/stories', function () {
-    return Inertia::render('Stories/Index', [
-        'category' => request()->string('category')->toString() ?: null,
-        'q' => request()->string('q')->toString() ?: null,
-        'page' => SitePage::findBySlug('stories')?->toPublicArray(),
-    ]);
-})->name('stories.index');
-
-Route::get('/stories/{slug}', function (string $slug) {
-    return Inertia::render('Stories/Show', [
-        'slug' => $slug,
-    ]);
-})->name('stories.show');
+Route::get('/stories', [StoryController::class, 'index'])->name('stories.index');
+Route::get('/stories/{slug}', [StoryController::class, 'show'])->name('stories.show');
 
 Route::get('/listings/{slug}', [ListingController::class, 'show'])->name('listings.show');
 Route::get('/listings/{slug}/visit', [ListingController::class, 'visit'])

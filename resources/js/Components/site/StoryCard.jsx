@@ -1,75 +1,55 @@
 import { Link } from '@inertiajs/react';
-import { ArrowRight } from '@/Components/site/LucideCompat';
-import { formatArticleDate } from '@/data/articles';
+import { Eye } from '@/Components/site/LucideCompat';
 
-export default function StoryCard({ article, featured = false }) {
+export default function StoryCard({
+    article,
+    className = '',
+    compact = false,
+}) {
     return (
-        <article
-            className={`group flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-soft transition hover:-translate-y-1 hover:shadow-lift ${
-                featured ? 'sm:flex-row' : ''
-            }`}
+        <Link
+            href={`/stories/${article.slug}`}
+            className={`group flex h-full flex-col overflow-hidden rounded-xl bg-white shadow-[0_4px_15px_rgba(0,0,0,0.05)] ring-1 ring-olive-100/80 transition duration-300 hover:-translate-y-2 hover:shadow-lift ${className}`}
+            data-category={article.categorySlug || article.category || ''}
+            data-views={article.views ?? 0}
+            data-date={article.publishedAt || ''}
+            data-featured={article.isFeatured ? '1' : '0'}
         >
-            <Link
-                href={`/stories/${article.slug}`}
-                className={`relative block overflow-hidden ${
-                    featured
-                        ? 'aspect-[16/9] sm:aspect-auto sm:w-[46%] sm:min-h-[16rem]'
-                        : 'aspect-[16/9] sm:aspect-[16/10]'
-                }`}
-            >
-                <img
-                    src={article.image}
-                    alt=""
-                    className="h-full w-full object-cover transition duration-700 ease-out group-hover:scale-105"
-                    loading="lazy"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-earth-dusk/25 via-transparent to-transparent" />
-            </Link>
-
             <div
-                className={`flex min-w-0 flex-1 flex-col p-4 sm:p-6 ${
-                    featured ? 'sm:justify-center' : ''
+                className={`bg-cover bg-center ${
+                    compact ? 'h-40' : 'h-[12.5rem] sm:h-[13.5rem]'
                 }`}
-            >
-                <div className="mb-2 flex min-w-0 flex-nowrap items-center gap-x-2.5 text-xs font-semibold uppercase tracking-[0.16em] text-olive-600 sm:mb-3 sm:gap-x-3">
-                    <span className="shrink-0 rounded-full bg-olive-100 px-2.5 py-1 text-[0.65rem] tracking-[0.14em] text-olive-700">
+                style={{
+                    backgroundImage: article.image
+                        ? `url('${article.image}')`
+                        : undefined,
+                    backgroundColor: '#3f3127',
+                }}
+                role="img"
+                aria-label=""
+            />
+            <div className="flex min-w-0 flex-1 flex-col p-4 sm:p-5">
+                {article.category ? (
+                    <span className="inline-flex w-fit rounded-md bg-mustard px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-[0.12em] text-olive-950">
                         {article.category}
                     </span>
-                    <span className="min-w-0 truncate normal-case tracking-normal text-olive-500">
-                        {formatArticleDate(article.publishedAt)}
-                        {article.readMinutes
-                            ? ` · ${article.readMinutes} min read`
-                            : ''}
+                ) : null}
+                <h3 className="mt-3 font-display text-base font-semibold leading-snug tracking-tight text-earth-dusk transition group-hover:text-olive-700 sm:text-lg">
+                    {article.title}
+                </h3>
+                {(article.excerpt || article.subtitle) && (
+                    <p className="mt-2 line-clamp-3 flex-1 text-sm leading-relaxed text-olive-700/85">
+                        {article.excerpt || article.subtitle}
+                    </p>
+                )}
+                <div className="mt-4 flex items-center gap-3 text-xs font-medium text-olive-500">
+                    <span className="inline-flex items-center gap-1.5">
+                        <Eye className="h-3.5 w-3.5" />
+                        {Number(article.views || 0).toLocaleString()}{' '}
+                        {Number(article.views || 0) === 1 ? 'view' : 'views'}
                     </span>
                 </div>
-
-                <h3
-                    className={`font-display font-semibold tracking-tight text-earth-dusk ${
-                        featured
-                            ? 'text-lg sm:text-2xl md:text-[1.7rem]'
-                            : 'text-lg sm:text-xl'
-                    }`}
-                >
-                    <Link
-                        href={`/stories/${article.slug}`}
-                        className="transition hover:text-olive-700"
-                    >
-                        {article.title}
-                    </Link>
-                </h3>
-
-                <p className="mt-2 line-clamp-2 flex-1 text-sm leading-relaxed text-olive-700/85 sm:mt-3 sm:line-clamp-3 sm:text-[0.95rem] sm:leading-7">
-                    {article.excerpt}
-                </p>
-
-                <Link
-                    href={`/stories/${article.slug}`}
-                    className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-olive-700 transition hover:text-mustard sm:mt-5"
-                >
-                    Read more
-                    <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
-                </Link>
             </div>
-        </article>
+        </Link>
     );
 }

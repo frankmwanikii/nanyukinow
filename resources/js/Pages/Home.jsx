@@ -386,6 +386,7 @@ function HomeContent({
     airbnbs,
     wildlifeSafaris,
     events,
+    stories = [],
     pageContent = {},
     heroSlides = null,
 }) {
@@ -564,7 +565,7 @@ function HomeContent({
                 <EventsSection items={events} />
             )}
 
-            <StoriesSection />
+            <StoriesSection stories={stories} />
 
             <Newsletter />
         </>
@@ -579,6 +580,7 @@ export default function Home({
     airbnbs,
     wildlifeSafaris,
     events,
+    stories = [],
     page = null,
     heroSlides = null,
 }) {
@@ -592,6 +594,7 @@ export default function Home({
                 airbnbs={airbnbs}
                 wildlifeSafaris={wildlifeSafaris}
                 events={events}
+                stories={stories}
                 pageContent={page?.content || {}}
                 heroSlides={heroSlides}
             />

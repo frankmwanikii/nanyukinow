@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SearchController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\StoryCategoryController;
 use App\Http\Controllers\Admin\StoryController;
 use App\Http\Controllers\Admin\SupportTicketController;
 use App\Http\Controllers\Admin\UserController;
@@ -119,9 +120,18 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('stories', [StoryController::class, 'index'])->name('stories.index');
         Route::get('stories/create', [StoryController::class, 'create'])->name('stories.create');
         Route::post('stories', [StoryController::class, 'store'])->name('stories.store');
+        Route::post('stories/upload', [StoryController::class, 'upload'])
+            ->middleware('throttle:40,1')
+            ->name('stories.upload');
         Route::get('stories/{story}/edit', [StoryController::class, 'edit'])->name('stories.edit');
         Route::put('stories/{story}', [StoryController::class, 'update'])->name('stories.update');
         Route::delete('stories/{story}', [StoryController::class, 'destroy'])->name('stories.destroy');
+
+        Route::get('story-categories', [StoryCategoryController::class, 'index'])->name('story-categories.index');
+        Route::post('story-categories', [StoryCategoryController::class, 'store'])->name('story-categories.store');
+        Route::put('story-categories/{storyCategory}', [StoryCategoryController::class, 'update'])->name('story-categories.update');
+        Route::delete('story-categories/{storyCategory}', [StoryCategoryController::class, 'destroy'])->name('story-categories.destroy');
+        Route::post('story-categories/reorder', [StoryCategoryController::class, 'reorder'])->name('story-categories.reorder');
 
         Route::get('gallery', [GalleryController::class, 'index'])->name('gallery.index');
         Route::get('gallery/browse', [GalleryController::class, 'browse'])->name('gallery.browse');
