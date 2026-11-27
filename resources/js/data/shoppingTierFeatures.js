@@ -136,6 +136,62 @@ export function productItemImages(item) {
     return [];
 }
 
+/** Product showcase currencies: Shs (KES), USD, EUR. */
+export const PRODUCT_CURRENCIES = [
+    { code: 'KES', label: 'Shs', prefix: 'Shs' },
+    { code: 'USD', label: 'USD', prefix: '$' },
+    { code: 'EUR', label: 'EUR', prefix: '€' },
+];
+
+export function normalizeProductCurrency(code) {
+    const value = String(code || '')
+        .trim()
+        .toUpperCase();
+    if (value === 'USD' || value === 'EUR') {
+        return value;
+    }
+    return 'KES';
+}
+
+export function productCurrencyMeta(code) {
+    const normalized = normalizeProductCurrency(code);
+    return (
+        PRODUCT_CURRENCIES.find((item) => item.code === normalized) ||
+        PRODUCT_CURRENCIES[0]
+    );
+}
+
+export function formatProductPrice(price, currency = 'KES') {
+    if (price == null || price === '') {
+        return null;
+    }
+
+    let amount = null;
+    if (typeof price === 'number') {
+        amount = Number.isFinite(price) ? price : null;
+    } else {
+        const digits = String(price).replace(/\D+/g, '');
+        if (!digits) {
+            return null;
+        }
+        amount = Number(digits);
+        if (!Number.isFinite(amount)) {
+            return null;
+        }
+    }
+
+    if (amount === null) {
+        return null;
+    }
+
+    const meta = productCurrencyMeta(currency);
+    const formatted = Math.floor(amount).toLocaleString('en-KE');
+    if (meta.code === 'USD' || meta.code === 'EUR') {
+        return `${meta.prefix}${formatted}`;
+    }
+    return `${meta.prefix} ${formatted}`;
+}
+
 export function shoppingDescriptionWordLimit(tier) {
     return tierMeets(tier, 'featured') ? null : FREE_DESCRIPTION_WORD_LIMIT;
 }

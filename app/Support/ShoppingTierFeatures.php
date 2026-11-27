@@ -193,6 +193,13 @@ class ShoppingTierFeatures
             if (! is_array($item)) {
                 continue;
             }
+
+            $currency = strtoupper(trim((string) ($item['currency'] ?? 'KES')));
+            if (! in_array($currency, ['KES', 'USD', 'EUR'], true)) {
+                $currency = 'KES';
+            }
+            $item['currency'] = $currency;
+
             $normalized[] = $item;
             if (count($normalized) >= $limit) {
                 break;

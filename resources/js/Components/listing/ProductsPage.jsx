@@ -4,25 +4,15 @@ import {
     Package,
     Tag,
 } from '@/Components/site/LucideCompat';
-import { productItemImages } from '@/data/shoppingTierFeatures';
+import {
+    formatProductPrice,
+    productItemImages,
+} from '@/data/shoppingTierFeatures';
 import { useEffect, useMemo, useState } from 'react';
 import GalleryLightbox from './GalleryLightbox';
 import SwipeImageRail from './SwipeImageRail';
 
 const PAGE_SIZE = 12;
-
-function formatPrice(price) {
-    if (price == null || price === '') return null;
-    if (typeof price === 'number') {
-        if (!Number.isFinite(price)) return null;
-        return `KES ${price.toLocaleString('en-KE')}`;
-    }
-    const digits = String(price).replace(/\D+/g, '');
-    if (!digits) return null;
-    const amount = Number(digits);
-    if (!Number.isFinite(amount)) return null;
-    return `KES ${amount.toLocaleString('en-KE')}`;
-}
 
 function normalizeProducts(products = []) {
     if (!Array.isArray(products)) return [];
@@ -34,6 +24,7 @@ function normalizeProducts(products = []) {
                     id: `product-${index}`,
                     name: item,
                     price: null,
+                    currency: 'KES',
                     image: null,
                     images: [],
                     description: null,
@@ -47,6 +38,7 @@ function normalizeProducts(products = []) {
                 id: item.id || `product-${index}`,
                 name,
                 price: item.price ?? item.amount ?? null,
+                currency: item.currency || 'KES',
                 images,
                 image: images[0] || null,
                 description: item.description || item.note || null,
@@ -125,7 +117,9 @@ export default function ProductsPage({ listing }) {
         lightbox != null
             ? lightboxItems[Math.min(lightbox, lightboxItems.length - 1)]
             : null;
-    const activePrice = active ? formatPrice(active.price) : null;
+    const activePrice = active
+        ? formatProductPrice(active.price, active.currency)
+        : null;
     const gallerySlides = useMemo(
         () =>
             lightboxItems.map((slide) => ({
@@ -198,7 +192,10 @@ export default function ProductsPage({ listing }) {
                         className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                     >
                         {pageItems.map((product) => {
-                            const priceLabel = formatPrice(product.price);
+                            const priceLabel = formatProductPrice(
+                                product.price,
+                                product.currency,
+                            );
                             return (
                                 <li
                                     key={product.id}

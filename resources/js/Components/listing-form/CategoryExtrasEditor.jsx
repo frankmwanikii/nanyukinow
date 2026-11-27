@@ -26,6 +26,9 @@ import ServicesTierUpsell from './ServicesTierUpsell';
 import EventsTierUpsell from './EventsTierUpsell';
 import {
     canUseShoppingFeature,
+    normalizeProductCurrency,
+    PRODUCT_CURRENCIES,
+    productCurrencyMeta,
     productItemImages,
     shoppingProductHelp,
     shoppingProductImagesPerItem,
@@ -1848,61 +1851,106 @@ export default function CategoryExtrasEditor({
                                         }
                                         onCreated={onProductCategoryCreated}
                                     />
-                                    <div className="min-w-0 sm:col-span-2 sm:max-w-xs">
+                                    <div className="min-w-0 sm:col-span-2 sm:max-w-md">
                                         <label
                                             className={label}
                                             htmlFor={`product-price-${index}`}
                                         >
-                                            Price (KES)
+                                            Price
                                         </label>
-                                        <div className="relative">
-                                            <span className="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-sm font-semibold text-olive-500">
-                                                KES
-                                            </span>
-                                            <input
-                                                id={`product-price-${index}`}
-                                                type="number"
-                                                inputMode="numeric"
-                                                min={0}
-                                                step={1}
-                                                className={`${field} pl-14`}
-                                                value={String(
-                                                    item.price ?? '',
-                                                ).replace(/\D+/g, '')}
-                                                onChange={(e) => {
-                                                    const digits = String(
-                                                        e.target.value,
-                                                    ).replace(/\D+/g, '');
+                                        <div className="flex gap-2">
+                                            <select
+                                                id={`product-currency-${index}`}
+                                                className={`${field} w-[7.25rem] shrink-0`}
+                                                value={normalizeProductCurrency(
+                                                    item.currency,
+                                                )}
+                                                onChange={(e) =>
                                                     updateItem(
                                                         'products',
                                                         index,
                                                         {
-                                                            price:
-                                                                digits === ''
-                                                                    ? ''
-                                                                    : Number(
-                                                                          digits,
-                                                                      ),
+                                                            currency:
+                                                                normalizeProductCurrency(
+                                                                    e.target
+                                                                        .value,
+                                                                ),
                                                         },
-                                                    );
-                                                }}
-                                                onKeyDown={(e) => {
-                                                    if (
-                                                        [
-                                                            'e',
-                                                            'E',
-                                                            '+',
-                                                            '-',
-                                                            '.',
-                                                            ',',
-                                                        ].includes(e.key)
-                                                    ) {
-                                                        e.preventDefault();
+                                                    )
+                                                }
+                                                aria-label="Currency"
+                                            >
+                                                {PRODUCT_CURRENCIES.map(
+                                                    (option) => (
+                                                        <option
+                                                            key={option.code}
+                                                            value={option.code}
+                                                        >
+                                                            {option.label}
+                                                        </option>
+                                                    ),
+                                                )}
+                                            </select>
+                                            <div className="relative min-w-0 flex-1">
+                                                <span className="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-sm font-semibold text-olive-500">
+                                                    {
+                                                        productCurrencyMeta(
+                                                            item.currency,
+                                                        ).prefix
                                                     }
-                                                }}
-                                                placeholder="0"
-                                                autoComplete="off"
-                                            />
+                                                </span>
+                                                <input
+                                                    id={`product-price-${index}`}
+                                                    type="number"
+                                                    inputMode="numeric"
+                                                    min={0}
+                                                    step={1}
+                                                    className={`${field} ${
+                                                        normalizeProductCurrency(
+                                                            item.currency,
+                                                        ) === 'KES'
+                                                            ? 'pl-14'
+                                                            : 'pl-10'
+                                                    }`}
+                                                    value={String(
+                                                        item.price ?? '',
+                                                    ).replace(/\D+/g, '')}
+                                                    onChange={(e) => {
+                                                        const digits = String(
+                                                            e.target.value,
+                                                        ).replace(/\D+/g, '');
+                                                        updateItem(
+                                                            'products',
+                                                            index,
+                                                            {
+                                                                price:
+                                                                    digits ===
+                                                                    ''
+                                                                        ? ''
+                                                                        : Number(
+                                                                              digits,
+                                                                          ),
+                                                            },
+                                                        );
+                                                    }}
+                                                    onKeyDown={(e) => {
+                                                        if (
+                                                            [
+                                                                'e',
+                                                                'E',
+                                                                '+',
+                                                                '-',
+                                                                '.',
+                                                                ',',
+                                                            ].includes(e.key)
+                                                        ) {
+                                                            e.preventDefault();
+                                                        }
+                                                    }}
+                                                    placeholder="0"
+                                                    autoComplete="off"
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -1946,6 +1994,7 @@ export default function CategoryExtrasEditor({
                                 name: '',
                                 category: '',
                                 price: '',
+                                currency: 'KES',
                                 description: '',
                                 image: '',
                                 images: [],
