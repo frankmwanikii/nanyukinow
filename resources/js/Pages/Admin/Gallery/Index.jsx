@@ -52,11 +52,26 @@ function usageSummary(item) {
     return `${sources[0]} +${sources.length - 1} more`;
 }
 
-export default function Index({ media, filters, counts, sources }) {
+const DEFAULT_SORT_OPTIONS = [
+    { value: 'newest', label: 'Newest first' },
+    { value: 'oldest', label: 'Oldest first' },
+    { value: 'name', label: 'Name A to Z' },
+    { value: 'size', label: 'Largest first' },
+    { value: 'kind', label: 'Type' },
+];
+
+export default function Index({
+    media,
+    filters,
+    counts,
+    sources,
+    sortOptions = DEFAULT_SORT_OPTIONS,
+}) {
     const { confirm, dialog } = useConfirm();
     const [q, setQ] = useState(filters.q || '');
     const [source, setSource] = useState(filters.source || '');
     const [view, setView] = useState(filters.view || 'grid');
+    const [sort, setSort] = useState(filters.sort || 'newest');
     const [selected, setSelected] = useState([]);
     const [preview, setPreview] = useState(null);
     const [copiedId, setCopiedId] = useState(null);
@@ -88,7 +103,7 @@ export default function Index({ media, filters, counts, sources }) {
             return undefined;
         }
         const timer = setTimeout(() => {
-            pushFilters({ q, source, view });
+            pushFilters({ q, source, view, sort });
         }, 350);
         return () => clearTimeout(timer);
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -108,9 +123,10 @@ export default function Index({ media, filters, counts, sources }) {
     }, [preview]);
 
     const setFilter = (key, value) => {
-        const next = { q, source, view, [key]: value };
+        const next = { q, source, view, sort, [key]: value };
         if (key === 'source') setSource(value);
         if (key === 'view') setView(value);
+        if (key === 'sort') setSort(value);
         pushFilters(next);
     };
 
@@ -244,6 +260,37 @@ export default function Index({ media, filters, counts, sources }) {
                             placeholder="Search images…"
                             className="w-full rounded-xl border border-olive-200 bg-white py-2.5 pl-10 pr-3 text-sm text-olive-950 outline-none transition placeholder:text-olive-400 focus:border-olive-500 focus:ring-2 focus:ring-olive-500/20 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-50"
                         />
+                    </label>
+
+                    <label className="relative shrink-0 self-start">
+                        <span className="sr-only">Sort images</span>
+                        <select
+                            value={sort}
+                            onChange={(e) => setFilter('sort', e.target.value)}
+                            className="appearance-none rounded-xl border border-olive-200 bg-white py-2.5 pl-3.5 pr-9 text-sm font-semibold text-olive-900 outline-none transition focus:border-olive-500 focus:ring-2 focus:ring-olive-500/20 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-50"
+                        >
+                            {sortOptions.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </select>
+                        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-olive-400">
+                            <svg
+                                viewBox="0 0 24 24"
+                                className="h-3.5 w-3.5"
+                                aria-hidden="true"
+                            >
+                                <path
+                                    d="M8 10l4 4 4-4"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                />
+                            </svg>
+                        </span>
                     </label>
 
                     <div

@@ -54,6 +54,70 @@ class GalleryIndexTest extends TestCase
                 ->where('media.current_page', 1));
     }
 
+    public function test_admin_gallery_defaults_to_newest_first_and_can_sort_by_name(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $category = Category::query()->create([
+            'name' => 'Stay',
+            'slug' => 'stay',
+            'sort_order' => 1,
+        ]);
+
+        $older = Listing::query()->create([
+            'title' => 'Older Sort Listing',
+            'slug' => 'older-sort-listing',
+            'category_id' => $category->id,
+            'user_id' => $admin->id,
+            'location' => 'Nanyuki',
+            'status' => 'published',
+            'tier' => 'featured',
+            'is_published' => true,
+            'image_url' => '/storage/listings/covers/aaa-older-cover.jpg',
+            'updated_at' => now()->subDay(),
+        ]);
+        $older->forceFill(['updated_at' => now()->subDay()])->save();
+
+        $newer = Listing::query()->create([
+            'title' => 'Newer Sort Listing',
+            'slug' => 'newer-sort-listing',
+            'category_id' => $category->id,
+            'user_id' => $admin->id,
+            'location' => 'Nanyuki',
+            'status' => 'published',
+            'tier' => 'featured',
+            'is_published' => true,
+            'image_url' => '/storage/listings/covers/zzz-newer-cover.jpg',
+            'updated_at' => now(),
+        ]);
+        $newer->forceFill(['updated_at' => now()])->save();
+
+        $newest = $this->actingAs($admin)
+            ->get(route('admin.gallery.index', [
+                'q' => 'cover.jpg',
+                'sort' => 'newest',
+            ]));
+
+        $newest->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Admin/Gallery/Index')
+                ->where('filters.sort', 'newest')
+                ->where('media.data.0.url', '/storage/listings/covers/zzz-newer-cover.jpg')
+                ->where('media.data.1.url', '/storage/listings/covers/aaa-older-cover.jpg'));
+
+        $byName = $this->actingAs($admin)
+            ->get(route('admin.gallery.index', [
+                'q' => 'cover.jpg',
+                'sort' => 'name',
+            ]));
+
+        $byName->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Admin/Gallery/Index')
+                ->where('filters.sort', 'name')
+                ->where('media.data.0.url', '/storage/listings/covers/aaa-older-cover.jpg')
+                ->where('media.data.1.url', '/storage/listings/covers/zzz-newer-cover.jpg'));
+    }
+
     public function test_admin_gallery_browse_returns_every_matching_image(): void
     {
         $admin = User::factory()->admin()->create();

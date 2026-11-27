@@ -19,10 +19,16 @@ class GalleryController extends Controller
         $q = trim($request->string('q')->toString());
         $source = $request->string('source')->toString();
         $view = $request->string('view')->toString() === 'list' ? 'list' : 'grid';
+        $sort = $request->string('sort')->toString();
 
         $allowedSources = ['listings', 'stories', 'avatars', 'branding', 'pages', 'site'];
         if (! in_array($source, $allowedSources, true)) {
             $source = '';
+        }
+
+        $allowedSorts = ['newest', 'oldest', 'name', 'size', 'kind'];
+        if (! in_array($sort, $allowedSorts, true)) {
+            $sort = 'newest';
         }
 
         $all = MediaLibrary::items();
@@ -51,6 +57,16 @@ class GalleryController extends Controller
             })->values();
         }
 
+        $all = (match ($sort) {
+            'oldest' => $all->sortBy(fn (array $item) => $item['updated_at'] ?? ''),
+            'name' => $all->sortBy(fn (array $item) => mb_strtolower((string) ($item['filename'] ?? ''))),
+            'size' => $all->sortByDesc(fn (array $item) => $item['size'] ?? -1),
+            'kind' => $all->sortBy(function (array $item) {
+                return mb_strtolower(trim(($item['kind'] ?? '').' '.($item['filename'] ?? '')));
+            }),
+            default => $all->sortByDesc(fn (array $item) => $item['updated_at'] ?? ''),
+        })->values();
+
         $total = $all->count();
         // Admin gallery shows the full library in one view (no page cap).
         $perPage = max(1, $total);
@@ -72,10 +88,18 @@ class GalleryController extends Controller
                 'q' => $q,
                 'source' => $source,
                 'view' => $view,
+                'sort' => $sort,
             ],
             'counts' => [
                 'all' => array_sum($counts),
                 ...$counts,
+            ],
+            'sortOptions' => [
+                ['value' => 'newest', 'label' => 'Newest first'],
+                ['value' => 'oldest', 'label' => 'Oldest first'],
+                ['value' => 'name', 'label' => 'Name A to Z'],
+                ['value' => 'size', 'label' => 'Largest first'],
+                ['value' => 'kind', 'label' => 'Type'],
             ],
             'sources' => [
                 ['key' => '', 'label' => 'All'],
