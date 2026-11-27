@@ -204,20 +204,20 @@ export default function ProductsPage({ listing }) {
                                     key={product.id}
                                     className="group flex flex-col overflow-hidden rounded-2xl border border-olive-200/70 bg-white shadow-soft transition hover:-translate-y-0.5 hover:shadow-lift"
                                 >
-                                    <div className="relative aspect-[4/3] overflow-hidden bg-olive-50">
+                                    <div className="relative aspect-[3/4] overflow-hidden bg-olive-50">
                                         {product.image ? (
                                             <button
                                                 type="button"
                                                 onClick={() =>
                                                     openLightbox(product, 0)
                                                 }
-                                                className="relative block h-full w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-mustard"
+                                                className="relative flex h-full w-full items-center justify-center text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-mustard"
                                                 aria-label={`View ${product.name}`}
                                             >
                                                 <img
                                                     src={product.image}
                                                     alt=""
-                                                    className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]"
+                                                    className="max-h-full max-w-full object-contain p-2 transition duration-500 group-hover:scale-[1.02]"
                                                     loading="lazy"
                                                 />
                                                 <span className="absolute bottom-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-olive-900 shadow-soft opacity-0 transition group-hover:opacity-100">
