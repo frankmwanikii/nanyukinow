@@ -54,6 +54,7 @@ import {
     Trash2,
     X,
 } from '@/Components/site/LucideCompat';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Component, useRef, useState } from 'react';
 
 class SectionErrorBoundary extends Component {
@@ -402,6 +403,15 @@ function ImageDropzonePick({
     );
 }
 
+function imageListKeys(list) {
+    const seen = new Map();
+    return list.map((src) => {
+        const count = seen.get(src) || 0;
+        seen.set(src, count + 1);
+        return count === 0 ? src : `${src}__${count}`;
+    });
+}
+
 function MenuImagesEditor({
     images = [],
     inputId,
@@ -410,6 +420,7 @@ function MenuImagesEditor({
     libraryRoute = null,
     uploadUrl = null,
 }) {
+    const reduceMotion = useReducedMotion();
     const unlimited = maxImages == null;
     const safeMax = unlimited
         ? Number.POSITIVE_INFINITY
@@ -421,12 +432,14 @@ function MenuImagesEditor({
     const [uploadLabel, setUploadLabel] = useState('Uploading…');
     const [imageUrl, setImageUrl] = useState('');
     const [imageUrlError, setImageUrlError] = useState(null);
-    const [dragIndex, setDragIndex] = useState(null);
-    const [overIndex, setOverIndex] = useState(null);
+    const [activeIndex, setActiveIndex] = useState(null);
+    const [ghost, setGhost] = useState(null);
     const fileInputRef = useRef(null);
     const imagesRef = useRef(images);
     const uploadingRef = useRef(false);
+    const dragRef = useRef(null);
     const urlInputId = `${inputId}-url`;
+    const imageKeys = imageListKeys(Array.isArray(images) ? images : []);
 
     imagesRef.current = Array.isArray(images) ? images : [];
 
@@ -434,6 +447,7 @@ function MenuImagesEditor({
         ? Number.POSITIVE_INFINITY
         : Math.max(0, safeMax - imagesRef.current.length);
     const atLimit = !unlimited && remaining <= 0;
+    const isReordering = activeIndex != null;
 
     const addFiles = async (fileList) => {
         if (uploadingRef.current) {
@@ -575,7 +589,86 @@ function MenuImagesEditor({
         const next = [...imagesRef.current];
         const [item] = next.splice(from, 1);
         next.splice(to, 0, item);
+        imagesRef.current = next;
         onChange(next);
+    };
+
+    const endDrag = () => {
+        dragRef.current = null;
+        setActiveIndex(null);
+        setGhost(null);
+    };
+
+    const onCardPointerDown = (event, index) => {
+        if (uploading || event.button !== 0) {
+            return;
+        }
+        if (event.target.closest?.('button')) {
+            return;
+        }
+        const card = event.currentTarget;
+        dragRef.current = {
+            pointerId: event.pointerId,
+            from: index,
+            startX: event.clientX,
+            startY: event.clientY,
+            moved: false,
+            width: card.offsetWidth,
+            height: card.offsetHeight,
+            src: imagesRef.current[index],
+        };
+        card.setPointerCapture?.(event.pointerId);
+    };
+
+    const onCardPointerMove = (event) => {
+        const drag = dragRef.current;
+        if (!drag || drag.pointerId !== event.pointerId) {
+            return;
+        }
+
+        const dx = event.clientX - drag.startX;
+        const dy = event.clientY - drag.startY;
+        if (!drag.moved && Math.hypot(dx, dy) < 8) {
+            return;
+        }
+
+        if (!drag.moved) {
+            drag.moved = true;
+            setActiveIndex(drag.from);
+        }
+
+        setGhost({
+            src: drag.src,
+            x: event.clientX,
+            y: event.clientY,
+            w: drag.width,
+            h: drag.height,
+        });
+
+        const stack = document.elementsFromPoint(event.clientX, event.clientY);
+        const target = stack.find((node) =>
+            node instanceof Element
+                ? node.hasAttribute('data-image-index')
+                : false,
+        );
+        if (!target) {
+            return;
+        }
+        const to = Number.parseInt(target.getAttribute('data-image-index'), 10);
+        if (!Number.isFinite(to) || to === drag.from) {
+            return;
+        }
+        moveImage(drag.from, to);
+        drag.from = to;
+        setActiveIndex(to);
+    };
+
+    const onCardPointerUp = (event) => {
+        const drag = dragRef.current;
+        if (!drag || drag.pointerId !== event.pointerId) {
+            return;
+        }
+        endDrag();
     };
 
     const openFilePicker = () => {
@@ -648,81 +741,47 @@ function MenuImagesEditor({
                         <div className="space-y-2">
                             {images.length > 1 ? (
                                 <p className={help}>
-                                    Drag photos to reorder. The first photo is
-                                    the cover.
+                                    Drag photos to reorder. Other photos slide
+                                    to make room. The first photo is the cover.
                                 </p>
                             ) : null}
-                            <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                            <ul
+                                className={`grid grid-cols-2 gap-2 sm:grid-cols-3 ${
+                                    isReordering ? 'select-none' : ''
+                                }`}
+                            >
                                 {images.map((src, index) => {
-                                    const isDragging = dragIndex === index;
-                                    const isOver =
-                                        overIndex === index &&
-                                        dragIndex != null &&
-                                        dragIndex !== index;
+                                    const isDragging = activeIndex === index;
                                     return (
-                                        <li
-                                            key={`${src}-${index}`}
-                                            draggable={!uploading}
-                                            onDragStart={(e) => {
-                                                if (
-                                                    uploading ||
-                                                    e.target.closest?.('button')
-                                                ) {
-                                                    e.preventDefault();
-                                                    return;
-                                                }
-                                                e.dataTransfer.effectAllowed =
-                                                    'move';
-                                                e.dataTransfer.setData(
-                                                    'text/plain',
-                                                    String(index),
-                                                );
-                                                setDragIndex(index);
-                                            }}
-                                            onDragOver={(e) => {
-                                                e.preventDefault();
-                                                e.dataTransfer.dropEffect =
-                                                    'move';
-                                                if (overIndex !== index) {
-                                                    setOverIndex(index);
-                                                }
-                                            }}
-                                            onDragLeave={() => {
-                                                if (overIndex === index) {
-                                                    setOverIndex(null);
-                                                }
-                                            }}
-                                            onDrop={(e) => {
-                                                e.preventDefault();
-                                                const raw =
-                                                    e.dataTransfer.getData(
-                                                        'text/plain',
-                                                    );
-                                                const from = Number.parseInt(
-                                                    raw,
-                                                    10,
-                                                );
-                                                if (Number.isFinite(from)) {
-                                                    moveImage(from, index);
-                                                }
-                                                setDragIndex(null);
-                                                setOverIndex(null);
-                                            }}
-                                            onDragEnd={() => {
-                                                setDragIndex(null);
-                                                setOverIndex(null);
-                                            }}
-                                            className={`group relative overflow-hidden rounded-xl bg-olive-100 transition ${
+                                        <motion.li
+                                            key={imageKeys[index]}
+                                            layout={
+                                                reduceMotion ? false : 'position'
+                                            }
+                                            transition={
+                                                reduceMotion
+                                                    ? { duration: 0 }
+                                                    : {
+                                                          type: 'spring',
+                                                          stiffness: 420,
+                                                          damping: 34,
+                                                          mass: 0.7,
+                                                      }
+                                            }
+                                            data-image-index={index}
+                                            onPointerDown={(event) =>
+                                                onCardPointerDown(event, index)
+                                            }
+                                            onPointerMove={onCardPointerMove}
+                                            onPointerUp={onCardPointerUp}
+                                            onPointerCancel={onCardPointerUp}
+                                            className={`group relative overflow-hidden rounded-xl bg-olive-100 touch-none ${
                                                 uploading
                                                     ? ''
                                                     : 'cursor-grab active:cursor-grabbing'
                                             } ${
                                                 isDragging
-                                                    ? 'opacity-50 ring-2 ring-mustard/70'
-                                                    : ''
-                                            } ${
-                                                isOver
-                                                    ? 'ring-2 ring-olive-700'
+                                                    ? 'z-10 opacity-35 ring-2 ring-mustard/80'
                                                     : ''
                                             }`}
                                         >
@@ -734,12 +793,9 @@ function MenuImagesEditor({
                                             />
                                             <button
                                                 type="button"
-                                                disabled={uploading}
+                                                disabled={uploading || isReordering}
                                                 onClick={() => removeAt(index)}
                                                 onPointerDown={(e) =>
-                                                    e.stopPropagation()
-                                                }
-                                                onMouseDown={(e) =>
                                                     e.stopPropagation()
                                                 }
                                                 className="absolute right-1.5 top-1.5 inline-flex h-7 w-7 items-center justify-center rounded-sm bg-white/95 text-rose-700 shadow-sm disabled:opacity-60"
@@ -756,14 +812,14 @@ function MenuImagesEditor({
                                                     ? ' · cover'
                                                     : ''}
                                             </span>
-                                        </li>
+                                        </motion.li>
                                     );
                                 })}
                                 {!atLimit ? (
                                     <li>
                                         <button
                                             type="button"
-                                            disabled={uploading}
+                                            disabled={uploading || isReordering}
                                             onClick={openAdd}
                                             className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-1.5 rounded-sm border border-dashed border-olive-300 bg-white/70 text-olive-600 transition hover:border-mustard hover:bg-mustard/5 disabled:cursor-wait disabled:opacity-60"
                                         >
@@ -782,6 +838,26 @@ function MenuImagesEditor({
                                     </li>
                                 ) : null}
                             </ul>
+                            {ghost ? (
+                                <div
+                                    aria-hidden="true"
+                                    className="pointer-events-none fixed z-[2200] overflow-hidden rounded-xl shadow-lift ring-2 ring-mustard/50"
+                                    style={{
+                                        left: ghost.x,
+                                        top: ghost.y,
+                                        width: ghost.w,
+                                        height: ghost.h,
+                                        transform:
+                                            'translate(-50%, -50%) rotate(2deg) scale(1.04)',
+                                    }}
+                                >
+                                    <img
+                                        src={ghost.src}
+                                        alt=""
+                                        className="h-full w-full object-cover"
+                                    />
+                                </div>
+                            ) : null}
                         </div>
                     ) : (
                         <div className="space-y-2">
