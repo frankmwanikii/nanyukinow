@@ -78,10 +78,17 @@ export default function Index({ entries = [], limit = 24, searchUrl }) {
     const { query, setQuery, results, loading, error } = useListingSearch(searchUrl);
     const [dragIndex, setDragIndex] = useState(null);
     const [localEntries, setLocalEntries] = useState(entries);
+    const localEntriesRef = useRef(entries);
 
     useEffect(() => {
         setLocalEntries(entries);
+        localEntriesRef.current = entries;
     }, [entries]);
+
+    const setOrderedEntries = (next) => {
+        localEntriesRef.current = next;
+        setLocalEntries(next);
+    };
 
     const pinListing = (listingId) => {
         addForm.setData('listing_id', listingId);
@@ -101,7 +108,7 @@ export default function Index({ entries = [], limit = 24, searchUrl }) {
     };
 
     const persistOrder = (nextEntries) => {
-        setLocalEntries(nextEntries);
+        setOrderedEntries(nextEntries);
         router.post(
             route('admin.gold-list.reorder'),
             {
@@ -132,11 +139,11 @@ export default function Index({ entries = [], limit = 24, searchUrl }) {
         if (dragIndex === null || dragIndex === index) {
             return;
         }
-        const next = [...localEntries];
+        const next = [...localEntriesRef.current];
         const [row] = next.splice(dragIndex, 1);
         next.splice(index, 0, row);
         setDragIndex(index);
-        setLocalEntries(next);
+        setOrderedEntries(next);
     };
 
     const onDragEnd = () => {
@@ -144,7 +151,7 @@ export default function Index({ entries = [], limit = 24, searchUrl }) {
             return;
         }
         setDragIndex(null);
-        persistOrder(localEntries);
+        persistOrder(localEntriesRef.current);
     };
 
     return (
@@ -198,7 +205,7 @@ export default function Index({ entries = [], limit = 24, searchUrl }) {
                                         <p className="truncate text-xs text-olive-500">
                                             {[listing.category, listing.location]
                                                 .filter(Boolean)
-                                                .join(' · ') || listing.slug}
+                                                .join(', ') || listing.slug}
                                         </p>
                                     </div>
                                     <AdminButton
@@ -268,7 +275,7 @@ export default function Index({ entries = [], limit = 24, searchUrl }) {
                                     <p className="truncate text-xs text-olive-500">
                                         {[entry.category, entry.location]
                                             .filter(Boolean)
-                                            .join(' · ') ||
+                                            .join(', ') ||
                                             entry.slug ||
                                             'Listing'}
                                         {!entry.is_published ? (
