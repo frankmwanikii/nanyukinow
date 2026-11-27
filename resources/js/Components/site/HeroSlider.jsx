@@ -96,7 +96,23 @@ function visibleHeroPhotos(photos, isDesktop) {
     return filtered.length > 0 ? filtered : photos;
 }
 
-const HERO_PLACES = ['Nanyuki', 'Timau', 'Naromoru', 'Laikipia'];
+// Rotates in the mobile search pill ("Search …") and desktop "Find …" headline.
+const HERO_PLACES = [
+    'Nanyuki',
+    'Airbnbs',
+    'Hotels',
+    'Cafes',
+    'Timau',
+    'Restaurants',
+    'Bars',
+    'Lodges',
+    'Naromoru',
+    'Events',
+    'Shopping',
+    'Laikipia',
+    'Spas',
+    'Properties',
+];
 const PLACE_INTERVAL_MS = 3200;
 const TYPEWRITER_MS = 72;
 const TYPEWRITER_SETTLE_MS = 480;
