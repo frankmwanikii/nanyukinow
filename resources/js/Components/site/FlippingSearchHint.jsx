@@ -1,12 +1,18 @@
 import { useEffect, useState } from 'react';
 
 const FLIP_WORDS = [
+    'Airbnbs',
     'Hotels',
-    'Events',
     'Cafes',
+    'Restaurants',
+    'Bars',
+    'Lodges',
+    'Events',
     'Properties',
     'Shopping',
-    'Restaurants',
+    'Things to do',
+    'Services',
+    'Spas',
 ];
 
 /**
@@ -37,7 +43,7 @@ export default function FlippingSearchHint({
             aria-hidden
         >
             <span className="shrink-0">{prefix}</span>
-            <span className="relative inline-flex h-[1.25em] min-w-[7.5rem] items-center">
+            <span className="relative inline-flex h-[1.25em] min-w-[9rem] items-center">
                 <span
                     key={FLIP_WORDS[index]}
                     className="absolute left-0 font-semibold text-white/80"

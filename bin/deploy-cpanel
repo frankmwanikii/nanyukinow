@@ -259,7 +259,7 @@ if [[ "$MODE" == "fast" ]]; then
     while IFS= read -r path; do
       [[ -z "$path" ]] && continue
       case "$path" in
-        .github/*|tests/*|node_modules/*|.cursor/*|.agents/*|.tools/*|storage/logs/*|storage/framework/*|public/hot|.env*|.deploy-cpanel.env|bin/deploy-cpanel|bin/install-cpanel-deploy-hook|.gitignore|README.md)
+        .github/*|tests/*|node_modules/*|.cursor/*|.agents/*|.tools/*|storage/logs/*|storage/framework/*|public/hot|.env*|.deploy-cpanel.env|.cpanel-deploy-rev|README.md|*.md)
           continue
           ;;
         public/build/*)
@@ -275,12 +275,6 @@ if [[ "$MODE" == "fast" ]]; then
     done <"$CHANGED_FILE"
   fi
 
-  if [[ "$NEED_ASSETS" == "1" ]]; then
-    if [[ -d "$ROOT/public/build" ]]; then
-      find public/build -type f | sed 's|^\./||' >>"$LIST"
-    fi
-  fi
-
   # Always refresh route/view/config caches after code or asset deploys
   sort -u "$LIST" -o "$LIST"
   COUNT="$(grep -c . "$LIST" || true)"
@@ -291,7 +285,60 @@ if [[ "$MODE" == "fast" ]]; then
     echo "==> No file changes to upload"
   fi
 
-  remote_artisan "migrate --force|config:cache|route:cache|view:cache|storage:link"
+  if [[ "$NEED_ASSETS" == "1" && -d "$ROOT/public/build" ]]; then
+    echo "==> Uploading public/build archive"
+    BUILD_ARCHIVE="/tmp/nn-build-$STAMP.tar.gz"
+    tar -C "$ROOT/public" -czf "$BUILD_ARCHIVE" build
+    export BUILD_ARCHIVE CPANEL_FTP_HOST CPANEL_FTP_USER CPANEL_FTP_PASSWORD CPANEL_DEPLOY_TOKEN STAMP APP_URL
+    python3 - <<'PY'
+import ftplib, os
+from pathlib import Path
+host=os.environ['CPANEL_FTP_HOST']; user=os.environ['CPANEL_FTP_USER']; passwd=os.environ['CPANEL_FTP_PASSWORD']
+token=os.environ['CPANEL_DEPLOY_TOKEN'].strip(); stamp=os.environ['STAMP']
+ftp=ftplib.FTP(); ftp.connect(host,21,timeout=180); ftp.login(user,passwd); ftp.set_pasv(True)
+with open(os.environ['BUILD_ARCHIVE'],'rb') as f:
+    ftp.storbinary('STOR nn-build.tar.gz', f)
+script='''<?php
+$token = $_GET['token'] ?? '';
+$expected = trim((string) @file_get_contents(__DIR__ . '/.deploy_token'));
+if ($expected === '' || !hash_equals($expected, (string)$token)) { http_response_code(403); echo 'forbidden'; exit; }
+header('Content-Type: text/plain');
+set_time_limit(0);
+chdir(__DIR__ . '/public');
+$cmd = 'tar -xzf ../nn-build.tar.gz';
+$des = [0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']];
+$p = proc_open($cmd, $des, $pipes, getcwd());
+if (!is_resource($p)) { echo "proc_open failed\\n"; exit(1); }
+fclose($pipes[0]);
+echo stream_get_contents($pipes[1]);
+echo stream_get_contents($pipes[2]);
+echo 'exit ' . proc_close($p) . "\\n";
+@unlink(__DIR__ . '/nn-build.tar.gz');
+echo "BUILD_DONE\\n";
+'''
+Path(f'/tmp/nn-ci-extract-{stamp}.php').write_text(script)
+Path(f'/tmp/nn-deploy-token-{stamp}').write_text(token)
+with open(f'/tmp/nn-ci-extract-{stamp}.php','rb') as f: ftp.storbinary('STOR nn-ci-extract.php', f)
+with open(f'/tmp/nn-deploy-token-{stamp}','rb') as f: ftp.storbinary('STOR .deploy_token', f)
+ftp.quit(); print('build archive uploaded')
+PY
+    curl -fsS --max-time 180 \
+      --resolve "nanyukinow.co.ke:443:${CPANEL_FTP_HOST}" \
+      --resolve "nanyukinow.co.ke:80:${CPANEL_FTP_HOST}" \
+      "${APP_URL}/nn-ci-extract.php?token=${CPANEL_DEPLOY_TOKEN}"
+    python3 - <<'PY'
+import ftplib, os
+ftp=ftplib.FTP(); ftp.connect(os.environ['CPANEL_FTP_HOST'],21,timeout=60)
+ftp.login(os.environ['CPANEL_FTP_USER'], os.environ['CPANEL_FTP_PASSWORD']); ftp.set_pasv(True)
+for name in ['nn-ci-extract.php','.deploy_token','nn-build.tar.gz']:
+    try: ftp.delete(name)
+    except Exception: pass
+ftp.quit()
+PY
+    rm -f "$BUILD_ARCHIVE"
+  fi
+
+  remote_artisan "migrate --force|config:cache|route:cache|view:cache"
 else
   WORK="/tmp/nn-cpanel-deploy-$STAMP"
   ARCHIVE="/tmp/nanyukinow-release-$STAMP.tar.gz"
