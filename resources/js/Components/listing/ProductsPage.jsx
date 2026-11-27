@@ -18,10 +18,14 @@ function isRichHtml(value) {
     return /<[a-z][\s\S]*>/i.test(String(value || ''));
 }
 
+/** Matches 3 text lines + See more button row when equalizing empty cards. */
+const DESCRIPTION_SLOT_CLASS = 'min-h-[7.25rem] sm:min-h-[7.75rem]';
+
 /**
  * Product card description: 3-line clamp, fade into See more / See less.
+ * reserveSlot keeps empty cards the same height when siblings have copy.
  */
-function ProductDescription({ content }) {
+function ProductDescription({ content, reserveSlot = false }) {
     const contentRef = useRef(null);
     const [expanded, setExpanded] = useState(false);
     const [needsMore, setNeedsMore] = useState(false);
@@ -29,6 +33,7 @@ function ProductDescription({ content }) {
     const [fullHeight, setFullHeight] = useState(0);
     const rich = isRichHtml(content);
     const clamped = needsMore && !expanded;
+    const hasContent = Boolean(String(content || '').trim());
 
     useEffect(() => {
         const el = contentRef.current;
@@ -37,29 +42,22 @@ function ProductDescription({ content }) {
         }
 
         const measure = () => {
-            const previousMax = el.parentElement?.style.maxHeight;
-            const previousOverflow = el.parentElement?.style.overflow;
-            if (el.parentElement) {
-                el.parentElement.style.maxHeight = 'none';
-                el.parentElement.style.overflow = 'visible';
-            }
-
+            el.classList.remove('line-clamp-3');
             const styles = window.getComputedStyle(el);
             const parsedLine = Number.parseFloat(styles.lineHeight);
+            const fontSize = Number.parseFloat(styles.fontSize) || 14;
             const lineHeight = Number.isFinite(parsedLine)
                 ? parsedLine
-                : Number.parseFloat(styles.fontSize) * 1.5 || 20;
-            const collapsed = Math.ceil(lineHeight * 3);
+                : fontSize * 1.625;
+            const collapsed = Math.ceil(lineHeight * 3 + 2);
             const full = el.scrollHeight;
-
-            if (el.parentElement) {
-                el.parentElement.style.maxHeight = previousMax || '';
-                el.parentElement.style.overflow = previousOverflow || '';
+            if (clamped) {
+                el.classList.add('line-clamp-3');
             }
 
             setCollapsedHeight(collapsed);
             setFullHeight(full);
-            const overflow = full > collapsed + 2;
+            const overflow = full > collapsed + 1;
             setNeedsMore(overflow);
             if (!overflow) {
                 setExpanded(false);
@@ -78,10 +76,15 @@ function ProductDescription({ content }) {
             observer?.disconnect();
             window.removeEventListener('resize', measure);
         };
-    }, [content]);
+    }, [content, clamped]);
 
-    if (!content) {
-        return null;
+    if (!hasContent) {
+        if (!reserveSlot) {
+            return null;
+        }
+        return (
+            <div className={DESCRIPTION_SLOT_CLASS} aria-hidden="true" />
+        );
     }
 
     const maxHeight = needsMore
@@ -91,7 +94,7 @@ function ProductDescription({ content }) {
         : undefined;
 
     return (
-        <div>
+        <div className={reserveSlot ? DESCRIPTION_SLOT_CLASS : undefined}>
             <div className="relative">
                 <div
                     className="overflow-hidden transition-[max-height] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
@@ -104,13 +107,17 @@ function ProductDescription({ content }) {
                     {rich ? (
                         <div
                             ref={contentRef}
-                            className="nn-editor text-xs leading-relaxed text-olive-600 sm:text-sm"
+                            className={`nn-editor text-xs leading-relaxed text-olive-600 sm:text-sm [&_p]:my-0 [&_p+p]:mt-1.5 ${
+                                clamped ? 'line-clamp-3' : ''
+                            }`}
                             dangerouslySetInnerHTML={{ __html: content }}
                         />
                     ) : (
                         <p
                             ref={contentRef}
-                            className="text-xs leading-relaxed text-olive-600 sm:text-sm"
+                            className={`text-xs leading-relaxed text-olive-600 sm:text-sm ${
+                                clamped ? 'line-clamp-3' : ''
+                            }`}
                         >
                             {content}
                         </p>
@@ -119,7 +126,7 @@ function ProductDescription({ content }) {
                 {clamped ? (
                     <div
                         aria-hidden="true"
-                        className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-white via-white/85 to-transparent"
+                        className="pointer-events-none absolute inset-x-0 bottom-0 h-2.5 bg-gradient-to-t from-white to-transparent"
                     />
                 ) : null}
             </div>
@@ -148,6 +155,8 @@ function ProductDescription({ content }) {
                         />
                     </svg>
                 </button>
+            ) : reserveSlot ? (
+                <div className="mt-2 h-9" aria-hidden="true" />
             ) : null}
         </div>
     );
@@ -228,6 +237,9 @@ export default function ProductsPage({ listing }) {
     const pageItems = visible.slice(
         (safePage - 1) * PAGE_SIZE,
         safePage * PAGE_SIZE,
+    );
+    const pageHasDescriptions = pageItems.some((item) =>
+        Boolean(String(item.description || '').trim()),
     );
 
     useEffect(() => {
@@ -374,6 +386,7 @@ export default function ProductsPage({ listing }) {
                                         <ProductDescription
                                             key={`${product.id}-desc`}
                                             content={product.description}
+                                            reserveSlot={pageHasDescriptions}
                                         />
                                         <div className="mt-auto border-t border-olive-100 pt-2.5">
                                             {priceLabel ? (
