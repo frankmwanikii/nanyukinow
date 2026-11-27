@@ -193,170 +193,6 @@ function RoomTitleField({ value, onChange, options = POPULAR_ROOM_TYPES, id }) {
     );
 }
 
-function parseImageUrl(raw, setError) {
-    const value = (raw || '').trim();
-    if (!value) {
-        setError('Paste an image URL.');
-        return null;
-    }
-    try {
-        const parsed = new URL(value);
-        if (!['http:', 'https:'].includes(parsed.protocol)) {
-            setError('URL must start with http:// or https://');
-            return null;
-        }
-    } catch {
-        setError('That does not look like a valid URL.');
-        return null;
-    }
-    setError(null);
-    return value;
-}
-
-function ImagePickButton({
-    image,
-    onPick,
-    onClear,
-    onApplyUrl,
-    onFiles = null,
-    urlInputId,
-    title = 'Image',
-}) {
-    const [urlDraft, setUrlDraft] = useState('');
-    const [urlError, setUrlError] = useState(null);
-    const inputId = urlInputId || 'image-url';
-
-    const submitUrl = () => {
-        const raw = parseImageUrl(urlDraft, setUrlError);
-        if (!raw) {
-            return;
-        }
-        onApplyUrl?.(raw);
-        setUrlDraft('');
-        setUrlError(null);
-    };
-
-    const onDropFiles = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        const files = e.dataTransfer?.files;
-        if (files?.length) {
-            if (onFiles) {
-                onFiles(files);
-                return;
-            }
-            onPick?.();
-        }
-    };
-
-    return (
-        <div className="min-w-0 space-y-2">
-            <div className="flex flex-wrap items-center gap-2">
-                <p className={label}>{title}</p>
-                {image ? (
-                    <span className="bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200">
-                        Set
-                    </span>
-                ) : null}
-            </div>
-            <div className="flex flex-wrap items-start gap-3">
-                <div
-                    onDragOver={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                    }}
-                    onDrop={onDropFiles}
-                    className="w-[7.5rem] shrink-0 overflow-hidden rounded-xl bg-olive-100 sm:w-36 dark:bg-olive-950"
-                >
-                    {image ? (
-                        <div className="group relative">
-                            <img
-                                src={image}
-                                alt=""
-                                className="aspect-[3/4] w-full object-cover"
-                            />
-                            <button
-                                type="button"
-                                onClick={onClear}
-                                className="absolute right-1.5 top-1.5 inline-flex h-7 w-7 items-center justify-center rounded-sm bg-white/95 text-rose-700 shadow-sm"
-                                aria-label="Clear image"
-                            >
-                                <X className="h-3.5 w-3.5" strokeWidth={2.5} />
-                            </button>
-                            <button
-                                type="button"
-                                onClick={onPick}
-                                className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 to-transparent px-2 py-1.5 text-left text-[10px] font-semibold text-white"
-                            >
-                                Replace
-                            </button>
-                        </div>
-                    ) : (
-                        <button
-                            type="button"
-                            onClick={onPick}
-                            className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-1.5 border border-dashed border-olive-300 bg-white/70 text-olive-600 transition hover:border-mustard hover:bg-mustard/5 dark:border-olive-700 dark:bg-olive-950/70 dark:text-olive-300"
-                        >
-                            <ImagePlus className="h-5 w-5" />
-                            <span className="text-[11px] font-semibold">
-                                Add image
-                            </span>
-                            <span className="px-2 text-center text-[10px] text-olive-500">
-                                Drop or click
-                            </span>
-                        </button>
-                    )}
-                </div>
-                <div className="min-w-0 flex-1 basis-[12rem] space-y-2">
-                    {onApplyUrl ? (
-                        <>
-                            <label className={label} htmlFor={inputId}>
-                                Image URL (optional)
-                            </label>
-                            <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
-                                <input
-                                    id={inputId}
-                                    type="url"
-                                    className={`${field} min-w-0 flex-1`}
-                                    value={urlDraft}
-                                    onChange={(e) => {
-                                        setUrlDraft(e.target.value);
-                                        setUrlError(null);
-                                    }}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                            e.preventDefault();
-                                            submitUrl();
-                                        }
-                                    }}
-                                    placeholder="https://…/photo.jpg"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={submitUrl}
-                                    className="inline-flex shrink-0 items-center justify-center rounded-sm bg-olive-900 px-3.5 py-2.5 text-sm font-semibold text-white transition hover:bg-olive-800"
-                                >
-                                    Use URL
-                                </button>
-                            </div>
-                            {urlError ? (
-                                <p className="text-sm text-rose-600">
-                                    {urlError}
-                                </p>
-                            ) : (
-                                <p className={help}>
-                                    Paste a direct image link if you already
-                                    host the photo online.
-                                </p>
-                            )}
-                        </>
-                    ) : null}
-                </div>
-            </div>
-        </div>
-    );
-}
-
 /**
  * Logo slot for event sponsors: square frame, contain-fit preview, no tinted icon chip.
  */
@@ -822,7 +658,11 @@ function MenuImagesEditor({
                             <ImageDropzonePick
                                 inputId={inputId}
                                 image=""
-                                remainingLabel={`up to ${safeMax} images`}
+                                remainingLabel={
+                                    safeMax === 1
+                                        ? '1 image'
+                                        : `up to ${safeMax} images`
+                                }
                                 disabled={uploading}
                                 onPickClick={openFilePicker}
                                 onFiles={(files) => void addFiles(files)}
@@ -927,7 +767,7 @@ export default function CategoryExtrasEditor({
     amenityOptions = [],
     onAmenityCreated,
 }) {
-    const [imageTarget, setImageTarget] = useState(null); // { list, index, key } — sponsors/products only
+    const [imageTarget, setImageTarget] = useState(null); // { list, index, key } — sponsors only
     const [singleUploadProgress, setSingleUploadProgress] = useState(null);
     const singleInputRef = useRef(null);
     const pendingSingleRef = useRef(null);
@@ -975,23 +815,6 @@ export default function CategoryExtrasEditor({
             const list = Array.isArray(base[key]) ? [...base[key]] : [];
             return { ...base, [key]: [...list, blank] };
         });
-    };
-
-    const uploadSingleImage = async (list, index, key, file) => {
-        if (!file || !uploadUrl) {
-            return;
-        }
-        setSingleUploadProgress(0);
-        try {
-            const url = await uploadEditorMedia(file, uploadUrl, {
-                onProgress: setSingleUploadProgress,
-            });
-            if (url) {
-                updateItem(list, index, { [key]: url });
-            }
-        } finally {
-            setSingleUploadProgress(null);
-        }
     };
 
     const patchRoomType = (index, patch) => {
@@ -2091,40 +1914,23 @@ export default function CategoryExtrasEditor({
                                     allowImages={false}
                                     compact
                                 />
-                                <ImagePickButton
-                                    title="Product image"
-                                    image={item.image}
-                                    urlInputId={`product-image-url-${index}`}
-                                    onPick={() =>
-                                        setImageTarget({
-                                            list: 'products',
-                                            index,
-                                            key: 'image',
-                                        })
-                                    }
-                                    onClear={() =>
-                                        updateItem('products', index, {
-                                            image: '',
-                                        })
-                                    }
-                                    onApplyUrl={(url) =>
-                                        updateItem('products', index, {
-                                            image: url,
-                                        })
-                                    }
-                                    onFiles={(files) => {
-                                        const file = files?.[0];
-                                        if (!file) {
-                                            return;
+                                <div className="min-w-0">
+                                    <p className={label}>Product image</p>
+                                    <MenuImagesEditor
+                                        inputId={`product-image-${index}`}
+                                        images={
+                                            item.image ? [item.image] : []
                                         }
-                                        void uploadSingleImage(
-                                            'products',
-                                            index,
-                                            'image',
-                                            file,
-                                        );
-                                    }}
-                                />
+                                        maxImages={1}
+                                        libraryRoute={libraryRoute}
+                                        uploadUrl={uploadUrl}
+                                        onChange={(urls) =>
+                                            updateItem('products', index, {
+                                                image: urls[0] || '',
+                                            })
+                                        }
+                                    />
+                                </div>
                             </li>
                         ))}
                     </ul>
@@ -2218,40 +2024,23 @@ export default function CategoryExtrasEditor({
                                         />
                                     </div>
                                 </div>
-                                <ImagePickButton
-                                    title="Work image"
-                                    image={item.image}
-                                    urlInputId={`portfolio-image-url-${index}`}
-                                    onPick={() =>
-                                        setImageTarget({
-                                            list: 'portfolio',
-                                            index,
-                                            key: 'image',
-                                        })
-                                    }
-                                    onClear={() =>
-                                        updateItem('portfolio', index, {
-                                            image: '',
-                                        })
-                                    }
-                                    onApplyUrl={(url) =>
-                                        updateItem('portfolio', index, {
-                                            image: url,
-                                        })
-                                    }
-                                    onFiles={(files) => {
-                                        const file = files?.[0];
-                                        if (!file) {
-                                            return;
+                                <div className="min-w-0">
+                                    <p className={label}>Work image</p>
+                                    <MenuImagesEditor
+                                        inputId={`portfolio-image-${index}`}
+                                        images={
+                                            item.image ? [item.image] : []
                                         }
-                                        void uploadSingleImage(
-                                            'portfolio',
-                                            index,
-                                            'image',
-                                            file,
-                                        );
-                                    }}
-                                />
+                                        maxImages={1}
+                                        libraryRoute={libraryRoute}
+                                        uploadUrl={uploadUrl}
+                                        onChange={(urls) =>
+                                            updateItem('portfolio', index, {
+                                                image: urls[0] || '',
+                                            })
+                                        }
+                                    />
+                                </div>
                             </li>
                         ))}
                     </ul>
@@ -2350,11 +2139,7 @@ export default function CategoryExtrasEditor({
                 initialPanel={libraryRoute ? 'library' : 'menu'}
                 remaining={1}
                 target={
-                    imageTarget?.list === 'sponsors'
-                        ? 'sponsor'
-                        : imageTarget?.list === 'products'
-                          ? 'cover'
-                          : 'logo'
+                    imageTarget?.list === 'sponsors' ? 'sponsor' : 'logo'
                 }
                 onUpload={() => {
                     pendingSingleRef.current = imageTarget;
