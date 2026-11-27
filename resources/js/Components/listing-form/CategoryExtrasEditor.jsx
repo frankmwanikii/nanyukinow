@@ -28,7 +28,6 @@ import {
     canUseShoppingFeature,
     normalizeProductCurrency,
     PRODUCT_CURRENCIES,
-    productCurrencyMeta,
     productItemImages,
     shoppingProductHelp,
     shoppingProductImagesPerItem,
@@ -1858,10 +1857,10 @@ export default function CategoryExtrasEditor({
                                         >
                                             Price
                                         </label>
-                                        <div className="flex gap-2">
+                                        <div className="flex min-w-0 overflow-hidden border border-olive-900/20 bg-white focus-within:border-olive-900 dark:border-olive-700 dark:bg-olive-950 dark:focus-within:border-mustard">
                                             <select
                                                 id={`product-currency-${index}`}
-                                                className={`${field} w-[7.25rem] shrink-0`}
+                                                className="w-[5.75rem] shrink-0 border-0 border-r border-olive-900/20 bg-olive-50/80 px-3 py-3 text-sm font-semibold text-olive-800 outline-none dark:border-olive-700 dark:bg-olive-900 dark:text-olive-100"
                                                 value={normalizeProductCurrency(
                                                     item.currency,
                                                 )}
@@ -1891,66 +1890,50 @@ export default function CategoryExtrasEditor({
                                                     ),
                                                 )}
                                             </select>
-                                            <div className="relative min-w-0 flex-1">
-                                                <span className="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-sm font-semibold text-olive-500">
-                                                    {
-                                                        productCurrencyMeta(
-                                                            item.currency,
-                                                        ).prefix
+                                            <input
+                                                id={`product-price-${index}`}
+                                                type="number"
+                                                inputMode="numeric"
+                                                min={0}
+                                                step={1}
+                                                className="min-w-0 flex-1 border-0 bg-transparent px-3.5 py-3 text-base text-olive-900 outline-none placeholder:text-olive-400 dark:text-olive-50 dark:placeholder:text-olive-500"
+                                                value={String(
+                                                    item.price ?? '',
+                                                ).replace(/\D+/g, '')}
+                                                onChange={(e) => {
+                                                    const digits = String(
+                                                        e.target.value,
+                                                    ).replace(/\D+/g, '');
+                                                    updateItem(
+                                                        'products',
+                                                        index,
+                                                        {
+                                                            price:
+                                                                digits === ''
+                                                                    ? ''
+                                                                    : Number(
+                                                                          digits,
+                                                                      ),
+                                                        },
+                                                    );
+                                                }}
+                                                onKeyDown={(e) => {
+                                                    if (
+                                                        [
+                                                            'e',
+                                                            'E',
+                                                            '+',
+                                                            '-',
+                                                            '.',
+                                                            ',',
+                                                        ].includes(e.key)
+                                                    ) {
+                                                        e.preventDefault();
                                                     }
-                                                </span>
-                                                <input
-                                                    id={`product-price-${index}`}
-                                                    type="number"
-                                                    inputMode="numeric"
-                                                    min={0}
-                                                    step={1}
-                                                    className={`${field} ${
-                                                        normalizeProductCurrency(
-                                                            item.currency,
-                                                        ) === 'KES'
-                                                            ? 'pl-14'
-                                                            : 'pl-10'
-                                                    }`}
-                                                    value={String(
-                                                        item.price ?? '',
-                                                    ).replace(/\D+/g, '')}
-                                                    onChange={(e) => {
-                                                        const digits = String(
-                                                            e.target.value,
-                                                        ).replace(/\D+/g, '');
-                                                        updateItem(
-                                                            'products',
-                                                            index,
-                                                            {
-                                                                price:
-                                                                    digits ===
-                                                                    ''
-                                                                        ? ''
-                                                                        : Number(
-                                                                              digits,
-                                                                          ),
-                                                            },
-                                                        );
-                                                    }}
-                                                    onKeyDown={(e) => {
-                                                        if (
-                                                            [
-                                                                'e',
-                                                                'E',
-                                                                '+',
-                                                                '-',
-                                                                '.',
-                                                                ',',
-                                                            ].includes(e.key)
-                                                        ) {
-                                                            e.preventDefault();
-                                                        }
-                                                    }}
-                                                    placeholder="0"
-                                                    autoComplete="off"
-                                                />
-                                            </div>
+                                                }}
+                                                placeholder="0"
+                                                autoComplete="off"
+                                            />
                                         </div>
                                     </div>
                                 </div>
