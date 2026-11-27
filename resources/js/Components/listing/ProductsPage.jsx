@@ -204,20 +204,20 @@ export default function ProductsPage({ listing }) {
                                     key={product.id}
                                     className="group flex flex-col overflow-hidden rounded-2xl border border-olive-200/70 bg-white shadow-soft transition hover:-translate-y-0.5 hover:shadow-lift"
                                 >
-                                    <div className="relative aspect-[3/4] overflow-hidden bg-olive-50">
+                                    <div className="relative aspect-[4/5] overflow-hidden bg-olive-100">
                                         {product.image ? (
                                             <button
                                                 type="button"
                                                 onClick={() =>
                                                     openLightbox(product, 0)
                                                 }
-                                                className="relative flex h-full w-full items-center justify-center text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-mustard"
+                                                className="absolute inset-0 block text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-mustard"
                                                 aria-label={`View ${product.name}`}
                                             >
                                                 <img
                                                     src={product.image}
                                                     alt=""
-                                                    className="max-h-full max-w-full object-contain p-2 transition duration-500 group-hover:scale-[1.02]"
+                                                    className="h-full w-full object-cover object-bottom transition duration-500 group-hover:scale-[1.03]"
                                                     loading="lazy"
                                                 />
                                                 <span className="absolute bottom-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-olive-900 shadow-soft opacity-0 transition group-hover:opacity-100">
@@ -239,14 +239,14 @@ export default function ProductsPage({ listing }) {
                                             </div>
                                         )}
                                         {product.category ? (
-                                            <span className="pointer-events-none absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-semibold text-olive-800 shadow-soft">
+                                            <span className="pointer-events-none absolute left-3 top-3 z-[1] inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-semibold text-olive-800 shadow-soft">
                                                 <Tag className="h-3 w-3 text-mustard" />
                                                 {product.category}
                                             </span>
                                         ) : null}
                                     </div>
-                                    <div className="flex flex-1 flex-col gap-2 p-4">
-                                        <h3 className="font-display text-base font-semibold text-earth-dusk">
+                                    <div className="flex flex-1 flex-col gap-1.5 px-3.5 py-3.5">
+                                        <h3 className="line-clamp-2 font-display text-sm font-semibold leading-snug text-earth-dusk sm:text-base">
                                             {product.name}
                                         </h3>
                                         {product.description ? (
@@ -254,20 +254,20 @@ export default function ProductsPage({ listing }) {
                                                 String(product.description),
                                             ) ? (
                                                 <div
-                                                    className="nn-editor line-clamp-3 text-sm leading-relaxed text-olive-600"
+                                                    className="nn-editor line-clamp-2 text-xs leading-relaxed text-olive-600 sm:text-sm"
                                                     dangerouslySetInnerHTML={{
                                                         __html: product.description,
                                                     }}
                                                 />
                                             ) : (
-                                                <p className="line-clamp-2 text-sm leading-relaxed text-olive-600">
+                                                <p className="line-clamp-2 text-xs leading-relaxed text-olive-600 sm:text-sm">
                                                     {product.description}
                                                 </p>
                                             )
                                         ) : null}
-                                        <div className="mt-auto border-t border-olive-100 pt-3">
+                                        <div className="mt-auto border-t border-olive-100 pt-2.5">
                                             {priceLabel ? (
-                                                <p className="font-display text-lg font-semibold text-olive-800">
+                                                <p className="font-display text-base font-semibold text-olive-800 sm:text-lg">
                                                     {priceLabel}
                                                 </p>
                                             ) : (
