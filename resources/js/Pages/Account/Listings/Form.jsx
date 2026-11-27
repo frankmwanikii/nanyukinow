@@ -482,6 +482,7 @@ export default function Form({
     const autosaveReady = useRef(false);
     const draftSaving = useRef(false);
     const draftPending = useRef(false);
+    const lastDraftFingerprint = useRef(null);
     const formDataRef = useRef(null);
     const slugTouched = useRef(
         Boolean(listing?.slug) &&
@@ -763,6 +764,60 @@ export default function Form({
         return body;
     };
 
+    const draftHasMediaUploads = (data = formDataRef.current || form.data) => {
+        if (data?.cover && categoryKey !== 'events') {
+            return true;
+        }
+        if (data?.logo || data?.event_poster) {
+            return true;
+        }
+        return galleryItems.some((g) => g.file);
+    };
+
+    const draftFingerprint = (data = formDataRef.current || form.data) => {
+        const galleryUrls = serializeGalleryItems(galleryItems, {
+            categorized: categorizedGallery,
+        });
+        return JSON.stringify({
+            title: data.title || '',
+            category_id: data.category_id || '',
+            subcategory: data.subcategory || [],
+            property_type: data.property_type || '',
+            location: data.location || '',
+            city: data.city || '',
+            tagline: data.tagline || '',
+            description: data.description || '',
+            phone: data.phone || '',
+            whatsapp: data.whatsapp || '',
+            email: data.email || '',
+            website: data.website || '',
+            address: data.address || '',
+            venue: data.venue || '',
+            latitude: data.latitude ?? '',
+            longitude: data.longitude ?? '',
+            price_range: data.price_range || '',
+            image_url: data.image_url || '',
+            logo_url: data.logo_url || '',
+            event_poster_url: data.event_poster_url || '',
+            tier: data.tier || '',
+            amenities: data.amenities || [],
+            hours: data.hours || [],
+            details: data.details || {},
+            social_links: data.social_links || {},
+            start_at: data.start_at || '',
+            end_at: data.end_at || '',
+            ticket_options: data.ticket_options || [],
+            ticket_url: data.ticket_url || '',
+            gallery_urls: galleryUrls,
+            has_cover: Boolean(data.cover && categoryKey !== 'events'),
+            has_logo: Boolean(data.logo),
+            has_poster: Boolean(data.event_poster),
+            pending_gallery: galleryItems
+                .filter((g) => g.file)
+                .map((g) => g.id),
+        });
+    };
+
     const persistDraft = async ({
         silent = true,
         overrides = {},
@@ -775,6 +830,15 @@ export default function Form({
         const activeDraftKey = draftKeyRef.current;
         if (!categoryId && !activeDraftKey) return;
 
+        const fingerprint = draftFingerprint(latest);
+        if (
+            silent &&
+            activeDraftKey &&
+            fingerprint === lastDraftFingerprint.current
+        ) {
+            return;
+        }
+
         if (draftSaving.current) {
             // Another save is in flight. Queue one more pass with latest fields.
             draftPending.current = true;
@@ -783,8 +847,15 @@ export default function Form({
 
         draftSaving.current = true;
         draftPending.current = false;
-        if (!silent) setSaveState('saving');
-        setDraftUploadProgress(0);
+        const uploadingMedia = draftHasMediaUploads(latest);
+        // Keep "Draft saved" stable during quiet field autosaves. Only show
+        // progress for explicit saves or real media uploads.
+        if (!silent) {
+            setSaveState('saving');
+        }
+        if (uploadingMedia) {
+            setDraftUploadProgress(0);
+        }
 
         const csrf =
             document
@@ -796,15 +867,17 @@ export default function Form({
                 'X-CSRF-TOKEN': csrf,
                 'X-Requested-With': 'XMLHttpRequest',
             },
-            onUploadProgress: (event) => {
-                if (!event.total) {
-                    setDraftUploadProgress(event.loaded > 0 ? 50 : 0);
-                    return;
-                }
-                setDraftUploadProgress(
-                    Math.round((event.loaded / event.total) * 100),
-                );
-            },
+            onUploadProgress: uploadingMedia
+                ? (event) => {
+                      if (!event.total) {
+                          setDraftUploadProgress(event.loaded > 0 ? 50 : 0);
+                          return;
+                      }
+                      setDraftUploadProgress(
+                          Math.round((event.loaded / event.total) * 100),
+                      );
+                  }
+                : undefined,
         };
 
         try {
@@ -890,14 +963,22 @@ export default function Form({
                 }
                 const savedCover = persistedMediaUrl(json.listing.image_url);
                 if (savedCover) {
-                    form.setData('image_url', savedCover);
-                    form.setData('cover', null);
+                    if (formDataRef.current?.image_url !== savedCover) {
+                        form.setData('image_url', savedCover);
+                    }
+                    if (formDataRef.current?.cover) {
+                        form.setData('cover', null);
+                    }
                     setCoverPreview(savedCover);
                 }
                 const savedLogo = persistedMediaUrl(json.listing.logo_url);
                 if (savedLogo) {
-                    form.setData('logo_url', savedLogo);
-                    form.setData('logo', null);
+                    if (formDataRef.current?.logo_url !== savedLogo) {
+                        form.setData('logo_url', savedLogo);
+                    }
+                    if (formDataRef.current?.logo) {
+                        form.setData('logo', null);
+                    }
                     setLogoPreview(savedLogo);
                 }
                 const savedPoster = persistedMediaUrl(
@@ -907,12 +988,20 @@ export default function Form({
                             : null),
                 );
                 if (savedPoster) {
-                    form.setData('event_poster_url', savedPoster);
-                    form.setData('event_poster', null);
+                    if (formDataRef.current?.event_poster_url !== savedPoster) {
+                        form.setData('event_poster_url', savedPoster);
+                    }
+                    if (formDataRef.current?.event_poster) {
+                        form.setData('event_poster', null);
+                    }
                     setPosterPreview(savedPoster);
                     if (categoryKey === 'events') {
-                        form.setData('image_url', savedPoster);
-                        form.setData('cover', null);
+                        if (formDataRef.current?.image_url !== savedPoster) {
+                            form.setData('image_url', savedPoster);
+                        }
+                        if (formDataRef.current?.cover) {
+                            form.setData('cover', null);
+                        }
                         setCoverPreview(savedPoster);
                     }
                 }
@@ -947,18 +1036,30 @@ export default function Form({
                         .filter(Boolean);
 
                     // Keep local unsaved files if the server returned nothing new yet.
+                    // Reuse the current array when URLs match so autosave does not loop.
                     setGalleryItems((current) => {
                         const pending = current.filter((g) => g.file);
                         if (!savedGallery.length && pending.length) {
                             return current;
                         }
                         if (!pending.length) {
-                            return savedGallery;
+                            const sameGallery =
+                                current.length === savedGallery.length &&
+                                current.every(
+                                    (item, index) =>
+                                        !item.file &&
+                                        item.url === savedGallery[index]?.url &&
+                                        (item.kind || null) ===
+                                            (savedGallery[index]?.kind ||
+                                                null),
+                                );
+                            return sameGallery ? current : savedGallery;
                         }
                         return [...savedGallery, ...pending];
                     });
                 }
             }
+            lastDraftFingerprint.current = fingerprint;
             setLastSavedAt(json.saved_at || new Date().toISOString());
             setSaveState('saved');
         } catch {
