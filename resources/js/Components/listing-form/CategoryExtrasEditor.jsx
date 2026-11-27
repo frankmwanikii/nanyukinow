@@ -421,6 +421,8 @@ function MenuImagesEditor({
     const [uploadLabel, setUploadLabel] = useState('Uploading…');
     const [imageUrl, setImageUrl] = useState('');
     const [imageUrlError, setImageUrlError] = useState(null);
+    const [dragIndex, setDragIndex] = useState(null);
+    const [overIndex, setOverIndex] = useState(null);
     const fileInputRef = useRef(null);
     const imagesRef = useRef(images);
     const uploadingRef = useRef(false);
@@ -559,6 +561,23 @@ function MenuImagesEditor({
         onChange(imagesRef.current.filter((_, i) => i !== index));
     };
 
+    const moveImage = (from, to) => {
+        if (uploadingRef.current) return;
+        if (
+            from === to ||
+            from < 0 ||
+            to < 0 ||
+            from >= imagesRef.current.length ||
+            to >= imagesRef.current.length
+        ) {
+            return;
+        }
+        const next = [...imagesRef.current];
+        const [item] = next.splice(from, 1);
+        next.splice(to, 0, item);
+        onChange(next);
+    };
+
     const openFilePicker = () => {
         if (uploadingRef.current || atLimit) return;
         fileInputRef.current?.click();
@@ -626,57 +645,144 @@ function MenuImagesEditor({
                     ) : null}
 
                     {images.length ? (
-                        <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                            {images.map((src, index) => (
-                                <li
-                                    key={`${src}-${index}`}
-                                    className="group relative overflow-hidden rounded-xl bg-olive-100"
-                                >
-                                    <img
-                                        src={src}
-                                        alt=""
-                                        className="aspect-[3/4] w-full object-cover"
-                                    />
-                                    <button
-                                        type="button"
-                                        disabled={uploading}
-                                        onClick={() => removeAt(index)}
-                                        className="absolute right-1.5 top-1.5 inline-flex h-7 w-7 items-center justify-center rounded-sm bg-white/95 text-rose-700 shadow-sm disabled:opacity-60"
-                                        aria-label={`Remove image ${index + 1}`}
-                                    >
-                                        <X
-                                            className="h-3.5 w-3.5"
-                                            strokeWidth={2.5}
-                                        />
-                                    </button>
-                                    <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/50 to-transparent px-2 py-1.5 text-[10px] font-semibold text-white">
-                                        {index + 1} / {images.length}
-                                    </span>
-                                </li>
-                            ))}
-                            {!atLimit ? (
-                                <li>
-                                    <button
-                                        type="button"
-                                        disabled={uploading}
-                                        onClick={openAdd}
-                                        className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-1.5 rounded-sm border border-dashed border-olive-300 bg-white/70 text-olive-600 transition hover:border-mustard hover:bg-mustard/5 disabled:cursor-wait disabled:opacity-60"
-                                    >
-                                        <ImagePlus className="h-5 w-5" />
-                                        <span className="text-[11px] font-semibold">
-                                            {uploading
-                                                ? `${uploadProgress}%`
-                                                : 'Add more'}
-                                        </span>
-                                        <span className="text-[10px] text-olive-500">
-                                            {unlimited
-                                                ? `${images.length} added`
-                                                : `${images.length}/${safeMax}`}
-                                        </span>
-                                    </button>
-                                </li>
+                        <div className="space-y-2">
+                            {images.length > 1 ? (
+                                <p className={help}>
+                                    Drag photos to reorder. The first photo is
+                                    the cover.
+                                </p>
                             ) : null}
-                        </ul>
+                            <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                                {images.map((src, index) => {
+                                    const isDragging = dragIndex === index;
+                                    const isOver =
+                                        overIndex === index &&
+                                        dragIndex != null &&
+                                        dragIndex !== index;
+                                    return (
+                                        <li
+                                            key={`${src}-${index}`}
+                                            draggable={!uploading}
+                                            onDragStart={(e) => {
+                                                if (
+                                                    uploading ||
+                                                    e.target.closest?.('button')
+                                                ) {
+                                                    e.preventDefault();
+                                                    return;
+                                                }
+                                                e.dataTransfer.effectAllowed =
+                                                    'move';
+                                                e.dataTransfer.setData(
+                                                    'text/plain',
+                                                    String(index),
+                                                );
+                                                setDragIndex(index);
+                                            }}
+                                            onDragOver={(e) => {
+                                                e.preventDefault();
+                                                e.dataTransfer.dropEffect =
+                                                    'move';
+                                                if (overIndex !== index) {
+                                                    setOverIndex(index);
+                                                }
+                                            }}
+                                            onDragLeave={() => {
+                                                if (overIndex === index) {
+                                                    setOverIndex(null);
+                                                }
+                                            }}
+                                            onDrop={(e) => {
+                                                e.preventDefault();
+                                                const raw =
+                                                    e.dataTransfer.getData(
+                                                        'text/plain',
+                                                    );
+                                                const from = Number.parseInt(
+                                                    raw,
+                                                    10,
+                                                );
+                                                if (Number.isFinite(from)) {
+                                                    moveImage(from, index);
+                                                }
+                                                setDragIndex(null);
+                                                setOverIndex(null);
+                                            }}
+                                            onDragEnd={() => {
+                                                setDragIndex(null);
+                                                setOverIndex(null);
+                                            }}
+                                            className={`group relative overflow-hidden rounded-xl bg-olive-100 transition ${
+                                                uploading
+                                                    ? ''
+                                                    : 'cursor-grab active:cursor-grabbing'
+                                            } ${
+                                                isDragging
+                                                    ? 'opacity-50 ring-2 ring-mustard/70'
+                                                    : ''
+                                            } ${
+                                                isOver
+                                                    ? 'ring-2 ring-olive-700'
+                                                    : ''
+                                            }`}
+                                        >
+                                            <img
+                                                src={src}
+                                                alt=""
+                                                draggable={false}
+                                                className="pointer-events-none aspect-[3/4] w-full object-cover"
+                                            />
+                                            <button
+                                                type="button"
+                                                disabled={uploading}
+                                                onClick={() => removeAt(index)}
+                                                onPointerDown={(e) =>
+                                                    e.stopPropagation()
+                                                }
+                                                onMouseDown={(e) =>
+                                                    e.stopPropagation()
+                                                }
+                                                className="absolute right-1.5 top-1.5 inline-flex h-7 w-7 items-center justify-center rounded-sm bg-white/95 text-rose-700 shadow-sm disabled:opacity-60"
+                                                aria-label={`Remove image ${index + 1}`}
+                                            >
+                                                <X
+                                                    className="h-3.5 w-3.5"
+                                                    strokeWidth={2.5}
+                                                />
+                                            </button>
+                                            <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/50 to-transparent px-2 py-1.5 text-[10px] font-semibold text-white">
+                                                {index + 1} / {images.length}
+                                                {index === 0
+                                                    ? ' · cover'
+                                                    : ''}
+                                            </span>
+                                        </li>
+                                    );
+                                })}
+                                {!atLimit ? (
+                                    <li>
+                                        <button
+                                            type="button"
+                                            disabled={uploading}
+                                            onClick={openAdd}
+                                            className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-1.5 rounded-sm border border-dashed border-olive-300 bg-white/70 text-olive-600 transition hover:border-mustard hover:bg-mustard/5 disabled:cursor-wait disabled:opacity-60"
+                                        >
+                                            <ImagePlus className="h-5 w-5" />
+                                            <span className="text-[11px] font-semibold">
+                                                {uploading
+                                                    ? `${uploadProgress}%`
+                                                    : 'Add more'}
+                                            </span>
+                                            <span className="text-[10px] text-olive-500">
+                                                {unlimited
+                                                    ? `${images.length} added`
+                                                    : `${images.length}/${safeMax}`}
+                                            </span>
+                                        </button>
+                                    </li>
+                                ) : null}
+                            </ul>
+                        </div>
                     ) : (
                         <div className="space-y-2">
                             <ImageDropzonePick
