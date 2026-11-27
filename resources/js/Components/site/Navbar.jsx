@@ -530,7 +530,7 @@ export default function Navbar({ compact = false }) {
 
                 <form
                     ref={searchRef}
-                    className="relative z-10 ml-1 hidden h-10 min-w-0 max-w-xs flex-1 items-center self-center lg:flex xl:max-w-sm"
+                    className="relative z-10 ml-6 hidden h-10 min-w-0 max-w-xs flex-1 items-center self-center lg:ml-10 lg:flex xl:ml-14 xl:max-w-sm"
                     onSubmit={submitSearch}
                     role="search"
                 >
