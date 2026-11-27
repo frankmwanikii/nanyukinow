@@ -455,10 +455,18 @@ class ListingController extends Controller
         $galleryFileMeta = is_array($data['gallery_file_meta'] ?? null)
             ? $data['gallery_file_meta']
             : [];
-        $galleryUrls = ListingGallery::fromRequest($galleryEntries, $galleryFiles, $galleryFileMeta);
+        $galleryUrls = ListingGallery::fromRequest(
+            $galleryEntries,
+            $galleryFiles,
+            $galleryFileMeta,
+            is_array($listing?->gallery) ? $listing->gallery : [],
+        );
 
-        $imageUrl = ListingMedia::persistPublicUrl($data['image_url'] ?? null, 'listings/covers')
-            ?? ListingMedia::normalizePublicUrl($listing?->image_url);
+        $imageUrl = ListingMedia::persistPublicUrl(
+            $data['image_url'] ?? null,
+            'listings/covers',
+            $listing?->image_url,
+        ) ?? ListingMedia::normalizePublicUrl($listing?->image_url);
         if ($request->hasFile('cover')) {
             if ($listing?->image_url) {
                 ListingMedia::delete($listing->image_url);
@@ -466,8 +474,11 @@ class ListingController extends Controller
             $imageUrl = ListingMedia::storeOrFail($request->file('cover'), 'listings/covers', 'cover');
         }
 
-        $logoUrl = ListingMedia::persistPublicUrl($data['logo_url'] ?? null, 'listings/logos')
-            ?? ListingMedia::normalizePublicUrl($listing?->logo_url);
+        $logoUrl = ListingMedia::persistPublicUrl(
+            $data['logo_url'] ?? null,
+            'listings/logos',
+            $listing?->logo_url,
+        ) ?? ListingMedia::normalizePublicUrl($listing?->logo_url);
         if ($request->hasFile('logo')) {
             if ($listing?->logo_url) {
                 ListingMedia::delete($listing->logo_url);
@@ -475,8 +486,11 @@ class ListingController extends Controller
             $logoUrl = ListingMedia::storeOrFail($request->file('logo'), 'listings/logos', 'logo');
         }
 
-        $posterUrl = ListingMedia::persistPublicUrl($data['event_poster_url'] ?? null, 'listings/posters')
-            ?? ListingMedia::normalizePublicUrl($listing?->event_poster_url);
+        $posterUrl = ListingMedia::persistPublicUrl(
+            $data['event_poster_url'] ?? null,
+            'listings/posters',
+            $listing?->event_poster_url,
+        ) ?? ListingMedia::normalizePublicUrl($listing?->event_poster_url);
         if ($request->hasFile('event_poster')) {
             if ($listing?->event_poster_url) {
                 ListingMedia::delete($listing->event_poster_url);

@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\Listing;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -75,12 +76,30 @@ class ListingMedia
     }
 
     /**
+     * Whether the URL is a remote http(s) image that still needs local import.
+     */
+    public static function isRemoteHttpUrl(?string $url): bool
+    {
+        $normalized = self::normalizePublicUrl($url);
+
+        return $normalized !== null
+            && (str_starts_with($normalized, 'http://')
+                || str_starts_with($normalized, 'https://'));
+    }
+
+    /**
      * Normalize a media URL and, for remote http(s) sources (Instagram CDN, etc.),
      * copy into local public storage when possible so long CDN query strings never
      * blow out DB columns and hotlinks do not expire.
+     *
+     * Pass $previousUrl from the listing being updated so unchanged remotes are not
+     * re-downloaded on every save (failed imports otherwise retry forever).
      */
-    public static function persistPublicUrl(?string $url, string $folder = 'listings'): ?string
-    {
+    public static function persistPublicUrl(
+        ?string $url,
+        string $folder = 'listings',
+        ?string $previousUrl = null,
+    ): ?string {
         $normalized = self::normalizePublicUrl($url);
         if ($normalized === null) {
             return null;
@@ -88,6 +107,11 @@ class ListingMedia
 
         if (str_starts_with($normalized, '/storage/')) {
             return $normalized;
+        }
+
+        $previous = self::normalizePublicUrl($previousUrl);
+        if ($previous !== null && $normalized === $previous) {
+            return $previous;
         }
 
         if (str_starts_with($normalized, 'http://') || str_starts_with($normalized, 'https://')) {
@@ -216,6 +240,105 @@ class ListingMedia
         foreach ($urls as $url) {
             static::delete($url);
         }
+    }
+
+    /**
+     * Import remote cover/logo/poster/gallery URLs for one listing into /storage/.
+     * Does not touch details JSON. Returns counts; caller may persist when changed.
+     *
+     * @return array{
+     *     changed: bool,
+     *     imported: int,
+     *     failed: int,
+     *     skipped: int,
+     *     image_url: ?string,
+     *     logo_url: ?string,
+     *     event_poster_url: ?string,
+     *     gallery: list<mixed>
+     * }
+     */
+    public static function localizeListingRemoteMedia(Listing $listing): array
+    {
+        $imported = 0;
+        $failed = 0;
+        $skipped = 0;
+
+        $localize = function (?string $url, string $folder) use (&$imported, &$failed, &$skipped): ?string {
+            $normalized = self::normalizePublicUrl($url);
+            if ($normalized === null) {
+                return null;
+            }
+
+            if (! self::isRemoteHttpUrl($normalized)) {
+                $skipped++;
+
+                return $normalized;
+            }
+
+            $local = self::importFromUrl($normalized, $folder);
+            if ($local !== null) {
+                $imported++;
+
+                return $local;
+            }
+
+            $failed++;
+
+            return $normalized;
+        };
+
+        $imageUrl = $localize($listing->image_url, 'listings/covers');
+        $logoUrl = $localize($listing->logo_url, 'listings/logos');
+        $posterUrl = $localize($listing->event_poster_url, 'listings/posters');
+
+        $gallery = [];
+        foreach (is_array($listing->gallery) ? $listing->gallery : [] as $entry) {
+            if (is_string($entry)) {
+                $gallery[] = $localize($entry, 'listings/gallery');
+
+                continue;
+            }
+
+            if (! is_array($entry)) {
+                continue;
+            }
+
+            $src = null;
+            if (isset($entry['src']) && is_string($entry['src']) && trim($entry['src']) !== '') {
+                $src = trim($entry['src']);
+            } elseif (isset($entry['url']) && is_string($entry['url']) && trim($entry['url']) !== '') {
+                $src = trim($entry['url']);
+            }
+
+            $next = $localize($src, 'listings/gallery');
+            if ($next === null || $next === '') {
+                continue;
+            }
+
+            $gallery[] = [
+                ...$entry,
+                'src' => $next,
+            ];
+        }
+
+        $changed = $imageUrl !== self::normalizePublicUrl($listing->image_url)
+            || $logoUrl !== self::normalizePublicUrl($listing->logo_url)
+            || $posterUrl !== self::normalizePublicUrl($listing->event_poster_url)
+            || json_encode($gallery) !== json_encode($listing->gallery ?? []);
+
+        return [
+            'changed' => $changed,
+            'imported' => $imported,
+            'failed' => $failed,
+            'skipped' => $skipped,
+            'image_url' => $imageUrl,
+            'logo_url' => $logoUrl,
+            'event_poster_url' => $posterUrl,
+            'gallery' => array_values(array_filter(
+                $gallery,
+                static fn ($item) => $item !== null && $item !== '',
+            )),
+        ];
     }
 
     /**

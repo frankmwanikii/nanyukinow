@@ -13,15 +13,32 @@ class ListingGallery
      * @param  list<mixed>  $entries
      * @param  list<UploadedFile|null>  $files
      * @param  list<mixed>  $fileMeta
+     * @param  list<mixed>  $existingGallery  Current listing gallery; unchanged remotes skip re-import
      * @return list<string|array{src: string, label: string, kind: string}>
      */
-    public static function fromRequest(array $entries, array $files = [], array $fileMeta = []): array
-    {
+    public static function fromRequest(
+        array $entries,
+        array $files = [],
+        array $fileMeta = [],
+        array $existingGallery = [],
+    ): array {
         $gallery = [];
+        $knownUrls = [];
+        foreach ($existingGallery as $existing) {
+            $existingUrl = self::entryUrl($existing);
+            if ($existingUrl !== null) {
+                $knownUrls[$existingUrl] = true;
+            }
+        }
 
         foreach ($entries as $entry) {
             if (is_string($entry) && trim($entry) !== '') {
-                $url = ListingMedia::persistPublicUrl($entry, 'listings/gallery');
+                $raw = trim($entry);
+                $url = ListingMedia::persistPublicUrl(
+                    $raw,
+                    'listings/gallery',
+                    isset($knownUrls[$raw]) ? $raw : null,
+                );
                 if ($url) {
                     $gallery[] = $url;
                 }
@@ -37,7 +54,11 @@ class ListingGallery
                 ? trim($entry['src'])
                 : (isset($entry['url']) && is_string($entry['url']) ? trim($entry['url']) : '');
 
-            $src = ListingMedia::persistPublicUrl($src, 'listings/gallery') ?? '';
+            $src = ListingMedia::persistPublicUrl(
+                $src,
+                'listings/gallery',
+                ($src !== '' && isset($knownUrls[$src])) ? $src : null,
+            ) ?? '';
 
             if ($src === '') {
                 continue;

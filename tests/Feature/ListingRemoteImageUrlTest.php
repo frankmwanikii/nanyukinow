@@ -84,4 +84,19 @@ class ListingRemoteImageUrlTest extends TestCase
         $this->assertSame($remote, $saved);
         $this->assertGreaterThan(255, strlen((string) $saved));
     }
+
+    public function test_persist_public_url_does_not_retry_unchanged_failed_remote(): void
+    {
+        Storage::fake('public');
+
+        $remote = 'https://scontent.cdninstagram.com/v/t51.2885-15/'.str_repeat('y', 500).'.jpg?oh=1';
+        Http::fake([
+            'scontent.cdninstagram.com/*' => Http::response('nope', 403),
+        ]);
+
+        $saved = ListingMedia::persistPublicUrl($remote, 'listings/covers', $remote);
+
+        $this->assertSame($remote, $saved);
+        Http::assertNothingSent();
+    }
 }
