@@ -119,7 +119,15 @@ export default function ListingShow({
     );
 
     return (
-        <SiteLayout title={listing.title} compactNav>
+        <SiteLayout
+            title={listing.title}
+            description={
+                listing.tagline ||
+                listing.description ||
+                undefined
+            }
+            compactNav
+        >
             {preview ? (
                 <div className="border-b border-amber-200 bg-amber-50 px-4 py-2.5 text-center text-sm font-semibold text-amber-950 sm:px-6">
                     Preview only — this listing is{' '}

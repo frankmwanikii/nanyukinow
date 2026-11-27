@@ -95,7 +95,10 @@ export default function StoriesIndex({
     const to = Math.min(filtered.length, safePage * PAGE_SIZE);
 
     return (
-        <SiteLayout title={page?.meta_title || 'Stories'}>
+        <SiteLayout
+            title={page?.meta_title || 'Stories'}
+            description={page?.meta_description || undefined}
+        >
             <header
                 className="relative flex min-h-[42svh] items-end overflow-hidden bg-olive-900 pt-28 sm:min-h-[48svh] sm:pt-32"
                 style={{

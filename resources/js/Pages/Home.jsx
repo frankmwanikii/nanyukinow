@@ -649,7 +649,10 @@ export default function Home({
     heroSlides = null,
 }) {
     return (
-        <SiteLayout title={page?.meta_title || 'Your city, right now'}>
+        <SiteLayout
+            title={page?.meta_title || 'Your city, right now'}
+            description={page?.meta_description || undefined}
+        >
             <HomeContent
                 featured={featured}
                 trending={trending}

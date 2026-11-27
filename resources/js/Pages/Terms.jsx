@@ -70,7 +70,10 @@ export default function Terms({ page = null }) {
     }, [customBody]);
 
     return (
-        <SiteLayout title={page?.meta_title || 'Terms of Service'}>
+        <SiteLayout
+            title={page?.meta_title || 'Terms of Service'}
+            description={page?.meta_description || undefined}
+        >
             <div className="relative overflow-hidden border-b border-olive-200/60 bg-gradient-to-br from-olive-900 via-olive-800 to-earth-dusk">
                 <div
                     className="pointer-events-none absolute inset-0 opacity-[0.18]"

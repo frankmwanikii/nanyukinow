@@ -13,6 +13,7 @@ const NyukiDesktopWidget = lazy(
 
 export default function SiteLayout({
     title,
+    description,
     children,
     hideFooter = false,
     hideNav = false,
@@ -24,10 +25,37 @@ export default function SiteLayout({
     shellClassName = 'bg-earth-sand text-earth-dusk',
 }) {
     const padForBottomNav = !hideBottomNav && !lockViewport;
+    const metaDescription =
+        typeof description === 'string' && description.trim() !== ''
+            ? description.trim()
+            : null;
 
     return (
         <>
-            <Head title={title} />
+            <Head title={title}>
+                {metaDescription ? (
+                    <meta
+                        head-key="description"
+                        name="description"
+                        content={metaDescription}
+                    />
+                ) : null}
+                {title ? (
+                    <meta
+                        head-key="og:title"
+                        property="og:title"
+                        content={title}
+                    />
+                ) : null}
+                {metaDescription ? (
+                    <meta
+                        head-key="og:description"
+                        property="og:description"
+                        content={metaDescription}
+                    />
+                ) : null}
+                <meta head-key="og:type" property="og:type" content="website" />
+            </Head>
             <div
                 className={`font-sans antialiased ${shellClassName} ${
                     lockViewport

@@ -25,6 +25,7 @@ use App\Http\Controllers\NyukiChatController;
 use App\Http\Controllers\NyukiController;
 use App\Http\Controllers\PricingPageController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SitePreviewController;
 use App\Http\Controllers\StoryController;
 use App\Http\Controllers\Webhooks\PalplussWebhookController;
@@ -45,6 +46,8 @@ Route::get('/'.trim((string) config('site.preview_path'), '/'), SitePreviewContr
     ->name('site.preview');
 
 Route::get('/', [ListingController::class, 'home'])->name('home');
+
+Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 
 Route::get('/explore', [ListingController::class, 'explore'])->name('explore');
 

@@ -608,6 +608,7 @@ export default function Explore({
     return (
         <SiteLayout
             title={page?.meta_title || 'Explore Nanyuki'}
+            description={page?.meta_description || undefined}
             hideFooter
             compactNav
             lockViewport

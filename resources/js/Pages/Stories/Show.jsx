@@ -273,7 +273,11 @@ export default function StoryShow({
     const views = Number(article.views || 0);
 
     return (
-        <SiteLayout title={article.title} compactNav>
+        <SiteLayout
+            title={article.title}
+            description={article.excerpt || article.subtitle || undefined}
+            compactNav
+        >
             <section className="bg-[#f3f5f7] pb-14 pt-32 sm:pb-16 sm:pt-36">
                 <div className="mx-auto grid max-w-site gap-8 px-4 sm:px-6 lg:grid-cols-[minmax(0,1.7fr)_minmax(260px,0.75fr)] lg:gap-10 lg:items-start">
                     <article className="min-w-0">

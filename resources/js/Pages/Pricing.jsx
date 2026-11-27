@@ -6,7 +6,7 @@ import {
     getPricingCategoryBreakdown,
     normalizePlanKey,
 } from '@/data/pricingCategoryBreakdown';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { useEffect, useMemo, useState } from 'react';
 
 function amountForPeriod(plan, period) {
@@ -253,8 +253,10 @@ export default function Pricing({
     };
 
     return (
-        <SiteLayout>
-            <Head title={page?.meta_title || 'Pricing'} />
+        <SiteLayout
+            title={page?.meta_title || 'Pricing'}
+            description={page?.meta_description || undefined}
+        >
 
             <div className="border-b border-olive-800 bg-olive-900">
                 <div className="mx-auto max-w-5xl px-4 pb-14 pt-28 sm:px-6 sm:pt-32">

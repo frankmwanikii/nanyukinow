@@ -1,2 +1,18 @@
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /account
+Disallow: /nn-admin
+Disallow: /admin
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /confirm-password
+Disallow: /dashboard
+Disallow: /profile
+Disallow: /nn-dev-preview
+Disallow: /listings/search
+Disallow: /webhooks
+
+Sitemap: https://nanyukinow.co.ke/sitemap.xml

@@ -21,6 +21,7 @@ class EnsureSitePreviewAccess
             'up',
             'webhooks/*',
             'newsletter',
+            'sitemap.xml',
             // Staff must reach sign-in and the dashboard without the public unlock.
             ...AdminArea::patterns(),
         ];
