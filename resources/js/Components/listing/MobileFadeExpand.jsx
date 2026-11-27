@@ -87,7 +87,7 @@ export default function MobileFadeExpand({
             {needsClamp ? (
                 <button
                     type="button"
-                    className={`relative z-[1] mt-3 inline-flex min-h-11 items-center justify-center rounded-full border border-olive-900/20 bg-white px-4 py-2 text-sm font-semibold text-olive-900 transition hover:border-olive-900/40 hover:bg-olive-50 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-100 dark:hover:bg-olive-900${
+                    className={`relative z-[1] mt-3 inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-olive-900/20 bg-white px-4 py-2 text-sm font-semibold text-olive-900 transition hover:border-olive-900/40 hover:bg-olive-50 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-100 dark:hover:bg-olive-900${
                         mobileOnly ? ' sm:hidden' : ''
                     }`}
                     aria-expanded={expanded}
@@ -95,6 +95,22 @@ export default function MobileFadeExpand({
                     onClick={() => setExpanded((value) => !value)}
                 >
                     {expanded ? lessLabel : moreLabel}
+                    <svg
+                        viewBox="0 0 24 24"
+                        className={`h-4 w-4 shrink-0 transition ${
+                            expanded ? 'rotate-180' : ''
+                        }`}
+                        aria-hidden="true"
+                    >
+                        <path
+                            d="M8 10l4 4 4-4"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                        />
+                    </svg>
                 </button>
             ) : null}
         </div>

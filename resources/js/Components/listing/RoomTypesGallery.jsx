@@ -219,11 +219,27 @@ function RoomTypePanel({ room, onOpenImage, compact = false }) {
                     {aboutPreview && (descNeedsClamp || descExpanded) ? (
                         <button
                             type="button"
-                            className="mt-1.5 inline-flex min-h-11 items-center justify-center rounded-full border border-olive-900/20 bg-white px-4 py-2 text-sm font-semibold text-olive-900 transition hover:border-olive-900/40 hover:bg-olive-50"
+                            className="mt-1.5 inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-olive-900/20 bg-white px-4 py-2 text-sm font-semibold text-olive-900 transition hover:border-olive-900/40 hover:bg-olive-50"
                             aria-expanded={descExpanded}
                             onClick={() => setDescExpanded((open) => !open)}
                         >
                             {descExpanded ? 'View less' : 'View more'}
+                            <svg
+                                viewBox="0 0 24 24"
+                                className={`h-4 w-4 shrink-0 transition ${
+                                    descExpanded ? 'rotate-180' : ''
+                                }`}
+                                aria-hidden="true"
+                            >
+                                <path
+                                    d="M8 10l4 4 4-4"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                />
+                            </svg>
                         </button>
                     ) : aboutPreview ? (
                         <span
