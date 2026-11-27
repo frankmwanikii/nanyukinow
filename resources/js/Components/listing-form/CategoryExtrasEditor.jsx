@@ -2021,21 +2021,61 @@ export default function CategoryExtrasEditor({
                                         />
                                     </div>
                                     <div className="min-w-0 sm:col-span-2 sm:max-w-xs">
-                                        <label className={label}>Price</label>
-                                        <input
-                                            className={field}
-                                            value={
-                                                item.price === 0 || item.price
-                                                    ? String(item.price)
-                                                    : ''
-                                            }
-                                            onChange={(e) =>
-                                                updateItem('products', index, {
-                                                    price: e.target.value,
-                                                })
-                                            }
-                                            placeholder="e.g. 450 or KES 450"
-                                        />
+                                        <label
+                                            className={label}
+                                            htmlFor={`product-price-${index}`}
+                                        >
+                                            Price (KES)
+                                        </label>
+                                        <div className="relative">
+                                            <span className="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-sm font-semibold text-olive-500">
+                                                KES
+                                            </span>
+                                            <input
+                                                id={`product-price-${index}`}
+                                                type="number"
+                                                inputMode="numeric"
+                                                min={0}
+                                                step={1}
+                                                className={`${field} pl-14`}
+                                                value={String(
+                                                    item.price ?? '',
+                                                ).replace(/\D+/g, '')}
+                                                onChange={(e) => {
+                                                    const digits = String(
+                                                        e.target.value,
+                                                    ).replace(/\D+/g, '');
+                                                    updateItem(
+                                                        'products',
+                                                        index,
+                                                        {
+                                                            price:
+                                                                digits === ''
+                                                                    ? ''
+                                                                    : Number(
+                                                                          digits,
+                                                                      ),
+                                                        },
+                                                    );
+                                                }}
+                                                onKeyDown={(e) => {
+                                                    if (
+                                                        [
+                                                            'e',
+                                                            'E',
+                                                            '+',
+                                                            '-',
+                                                            '.',
+                                                            ',',
+                                                        ].includes(e.key)
+                                                    ) {
+                                                        e.preventDefault();
+                                                    }
+                                                }}
+                                                placeholder="0"
+                                                autoComplete="off"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                                 <RichTextEditor

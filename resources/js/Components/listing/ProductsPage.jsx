@@ -7,13 +7,14 @@ const PAGE_SIZE = 12;
 function formatPrice(price) {
     if (price == null || price === '') return null;
     if (typeof price === 'number') {
+        if (!Number.isFinite(price)) return null;
         return `KES ${price.toLocaleString('en-KE')}`;
     }
-    const raw = String(price).trim();
-    if (!raw) return null;
-    if (/^(kes|ksh|\$|€|£)/i.test(raw)) return raw;
-    if (/^\d/.test(raw)) return `KES ${raw}`;
-    return raw;
+    const digits = String(price).replace(/\D+/g, '');
+    if (!digits) return null;
+    const amount = Number(digits);
+    if (!Number.isFinite(amount)) return null;
+    return `KES ${amount.toLocaleString('en-KE')}`;
 }
 
 function normalizeProducts(products = []) {
