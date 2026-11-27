@@ -117,11 +117,27 @@ function ProductDescription({ content }) {
             {needsMore ? (
                 <button
                     type="button"
-                    className="mt-1.5 text-xs font-semibold text-olive-800 underline decoration-olive-300 underline-offset-2 transition hover:decoration-mustard"
+                    className="mt-2 inline-flex min-h-9 items-center justify-center gap-1.5 rounded-full border border-olive-900/20 bg-white px-3.5 py-1.5 text-xs font-semibold text-olive-900 transition hover:border-olive-900/40 hover:bg-olive-50"
                     aria-expanded={expanded}
                     onClick={() => setExpanded((value) => !value)}
                 >
                     {expanded ? 'See less' : 'See more'}
+                    <svg
+                        viewBox="0 0 24 24"
+                        className={`h-3.5 w-3.5 shrink-0 transition duration-300 ${
+                            expanded ? 'rotate-180' : ''
+                        }`}
+                        aria-hidden="true"
+                    >
+                        <path
+                            d="M8 10l4 4 4-4"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                        />
+                    </svg>
                 </button>
             ) : null}
         </div>
@@ -303,7 +319,7 @@ export default function ProductsPage({ listing }) {
 
                     <ul
                         id="products-list"
-                        className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                        className="grid items-start gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                     >
                         {pageItems.map((product) => {
                             const priceLabel = formatProductPrice(
@@ -313,7 +329,7 @@ export default function ProductsPage({ listing }) {
                             return (
                                 <li
                                     key={product.id}
-                                    className="group flex flex-col overflow-hidden rounded-2xl border border-olive-200/70 bg-white shadow-soft transition hover:-translate-y-0.5 hover:shadow-lift"
+                                    className="group flex w-full flex-col overflow-hidden rounded-2xl border border-olive-200/70 bg-white shadow-soft transition hover:-translate-y-0.5 hover:shadow-lift"
                                 >
                                     <div className="relative overflow-hidden bg-olive-100">
                                         {product.images.length ? (
@@ -347,6 +363,7 @@ export default function ProductsPage({ listing }) {
                                             {product.name}
                                         </h3>
                                         <ProductDescription
+                                            key={`${product.id}-desc`}
                                             content={product.description}
                                         />
                                         <div className="mt-auto border-t border-olive-100 pt-2.5">
