@@ -42,7 +42,14 @@ import {
 import UploadProgressBar from '@/Components/site/UploadProgressBar';
 import { uploadEditorMedia } from '@/utils/uploadEditorMedia';
 import { Link } from '@inertiajs/react';
-import { ImagePlus, Images, Plus, Trash2, X } from '@/Components/site/LucideCompat';
+import {
+    ImagePlus,
+    Images,
+    Plus,
+    Trash2,
+    Upload,
+    X,
+} from '@/Components/site/LucideCompat';
 import { Component, useRef, useState } from 'react';
 
 class SectionErrorBoundary extends Component {
@@ -207,7 +214,15 @@ function parseImageUrl(raw, setError) {
     return value;
 }
 
-function ImagePickButton({ image, onPick, onClear, onApplyUrl, urlInputId }) {
+function ImagePickButton({
+    image,
+    onPick,
+    onClear,
+    onApplyUrl,
+    onFiles = null,
+    urlInputId,
+    title = 'Image',
+}) {
     const [urlDraft, setUrlDraft] = useState('');
     const [urlError, setUrlError] = useState(null);
     const inputId = urlInputId || 'image-url';
@@ -222,49 +237,91 @@ function ImagePickButton({ image, onPick, onClear, onApplyUrl, urlInputId }) {
         setUrlError(null);
     };
 
+    const onDropFiles = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const files = e.dataTransfer?.files;
+        if (files?.length) {
+            if (onFiles) {
+                onFiles(files);
+                return;
+            }
+            onPick?.();
+        }
+    };
+
     return (
-        <div className="min-w-0 space-y-3">
-            <div className="flex items-center gap-3">
+        <div className="min-w-0">
+            <div className="mb-2 flex flex-wrap items-center gap-2">
+                <p className={label}>{title}</p>
                 {image ? (
-                    <img
-                        src={image}
-                        alt=""
-                        className="h-14 w-14 shrink-0 rounded-xl object-cover ring-1 ring-olive-200"
-                    />
-                ) : (
-                    <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-olive-50 text-olive-400 ring-1 ring-olive-200 dark:bg-olive-900 dark:text-olive-500 dark:ring-olive-700">
-                        <ImagePlus className="h-5 w-5" />
+                    <span className="bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200">
+                        Set
                     </span>
-                )}
-                <div className="flex flex-wrap gap-2">
-                    <button
-                        type="button"
-                        onClick={onPick}
-                        className="rounded-sm border border-olive-200 bg-white px-3 py-1.5 text-xs font-semibold text-olive-800 hover:border-mustard dark:border-olive-700 dark:bg-olive-900 dark:text-olive-100 dark:hover:border-mustard"
-                    >
-                        {image ? 'Replace image' : 'Add image'}
-                    </button>
+                ) : null}
+            </div>
+            <div
+                onDragOver={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }}
+                onDrop={onDropFiles}
+                className="overflow-hidden rounded-xl bg-olive-100 ring-1 ring-olive-200/80 dark:bg-olive-950 dark:ring-olive-700"
+            >
+                <div className="group relative aspect-[4/3] w-full overflow-hidden bg-gradient-to-br from-olive-50 via-white to-olive-100/80 dark:from-olive-950 dark:via-olive-900 dark:to-olive-950 sm:aspect-[16/10]">
                     {image ? (
+                        <>
+                            <img
+                                src={image}
+                                alt=""
+                                className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.015]"
+                            />
+                            <div className="absolute inset-x-0 bottom-0 flex flex-wrap gap-2 bg-gradient-to-t from-black/55 to-transparent p-3 pt-8">
+                                <button
+                                    type="button"
+                                    onClick={onPick}
+                                    className="rounded-xl border border-white/30 bg-white/95 px-3 py-1.5 text-xs font-semibold text-olive-900 shadow-sm hover:bg-white"
+                                >
+                                    Replace image
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={onClear}
+                                    className="rounded-sm bg-white/90 px-3 py-1.5 text-xs font-semibold text-rose-700 shadow-sm hover:bg-white"
+                                >
+                                    Clear
+                                </button>
+                            </div>
+                        </>
+                    ) : (
                         <button
                             type="button"
-                            onClick={onClear}
-                            className="rounded-sm px-3 py-1.5 text-xs font-semibold text-olive-500 hover:text-rose-700 dark:text-olive-400 dark:hover:text-rose-400"
+                            onClick={onPick}
+                            className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-4 text-center transition hover:bg-mustard/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-mustard"
                         >
-                            Clear
+                            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-olive-100 dark:bg-olive-900 dark:ring-olive-700">
+                                <Upload className="h-4 w-4 text-olive-700 dark:text-olive-300" />
+                            </span>
+                            <span className="text-sm font-semibold text-olive-900 dark:text-olive-100">
+                                Drop photo here
+                            </span>
+                            <span className="text-xs text-olive-500 dark:text-olive-400">
+                                Or click to upload · JPG, PNG, WebP
+                            </span>
                         </button>
-                    ) : null}
+                    )}
                 </div>
             </div>
             {onApplyUrl ? (
-                <div className="min-w-0">
+                <div className="mt-3 min-w-0">
                     <label className={label} htmlFor={inputId}>
                         Image URL (optional)
                     </label>
-                    <div className="flex flex-col gap-2 sm:flex-row">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
                         <input
                             id={inputId}
                             type="url"
-                            className={field}
+                            className={`${field} min-w-0 flex-1`}
                             value={urlDraft}
                             onChange={(e) => {
                                 setUrlDraft(e.target.value);
@@ -918,6 +975,23 @@ export default function CategoryExtrasEditor({
             const list = Array.isArray(base[key]) ? [...base[key]] : [];
             return { ...base, [key]: [...list, blank] };
         });
+    };
+
+    const uploadSingleImage = async (list, index, key, file) => {
+        if (!file || !uploadUrl) {
+            return;
+        }
+        setSingleUploadProgress(0);
+        try {
+            const url = await uploadEditorMedia(file, uploadUrl, {
+                onProgress: setSingleUploadProgress,
+            });
+            if (url) {
+                updateItem(list, index, { [key]: url });
+            }
+        } finally {
+            setSingleUploadProgress(null);
+        }
     };
 
     const patchRoomType = (index, patch) => {
@@ -1905,10 +1979,10 @@ export default function CategoryExtrasEditor({
                         {products.map((item, index) => (
                             <li
                                 key={`product-${index}`}
-                                className="space-y-3 rounded-xl border border-olive-100 bg-olive-50/40 p-3"
+                                className="space-y-4 rounded-xl border border-olive-100 bg-olive-50/40 p-3 sm:p-4 dark:border-olive-800 dark:bg-olive-950/40"
                             >
-                                <div className="flex items-center justify-between">
-                                    <span className="text-xs font-semibold uppercase tracking-wide text-olive-500">
+                                <div className="flex items-center justify-between gap-2">
+                                    <span className="text-xs font-semibold uppercase tracking-wide text-olive-500 dark:text-olive-400">
                                         Product {index + 1}
                                     </span>
                                     <RowActions
@@ -1917,8 +1991,8 @@ export default function CategoryExtrasEditor({
                                         }
                                     />
                                 </div>
-                                <div className="grid gap-3 sm:grid-cols-2">
-                                    <div>
+                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                    <div className="min-w-0">
                                         <label className={label}>Name</label>
                                         <input
                                             className={field}
@@ -1931,7 +2005,7 @@ export default function CategoryExtrasEditor({
                                             placeholder="Product name"
                                         />
                                     </div>
-                                    <div>
+                                    <div className="min-w-0">
                                         <label className={label}>
                                             Category
                                         </label>
@@ -1946,7 +2020,7 @@ export default function CategoryExtrasEditor({
                                             placeholder="e.g. Dairy"
                                         />
                                     </div>
-                                    <div>
+                                    <div className="min-w-0">
                                         <label className={label}>Price</label>
                                         <input
                                             className={field}
@@ -1963,7 +2037,7 @@ export default function CategoryExtrasEditor({
                                             placeholder="e.g. 450 or KES 450"
                                         />
                                     </div>
-                                    <div className="sm:col-span-2">
+                                    <div className="min-w-0">
                                         <label className={label}>
                                             Description
                                         </label>
@@ -1980,6 +2054,7 @@ export default function CategoryExtrasEditor({
                                     </div>
                                 </div>
                                 <ImagePickButton
+                                    title="Product image"
                                     image={item.image}
                                     urlInputId={`product-image-url-${index}`}
                                     onPick={() =>
@@ -1999,6 +2074,18 @@ export default function CategoryExtrasEditor({
                                             image: url,
                                         })
                                     }
+                                    onFiles={(files) => {
+                                        const file = files?.[0];
+                                        if (!file) {
+                                            return;
+                                        }
+                                        void uploadSingleImage(
+                                            'products',
+                                            index,
+                                            'image',
+                                            file,
+                                        );
+                                    }}
                                 />
                             </li>
                         ))}
@@ -2094,6 +2181,7 @@ export default function CategoryExtrasEditor({
                                     </div>
                                 </div>
                                 <ImagePickButton
+                                    title="Work image"
                                     image={item.image}
                                     urlInputId={`portfolio-image-url-${index}`}
                                     onPick={() =>
@@ -2113,6 +2201,18 @@ export default function CategoryExtrasEditor({
                                             image: url,
                                         })
                                     }
+                                    onFiles={(files) => {
+                                        const file = files?.[0];
+                                        if (!file) {
+                                            return;
+                                        }
+                                        void uploadSingleImage(
+                                            'portfolio',
+                                            index,
+                                            'image',
+                                            file,
+                                        );
+                                    }}
                                 />
                             </li>
                         ))}
