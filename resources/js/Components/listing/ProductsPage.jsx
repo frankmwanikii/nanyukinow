@@ -19,7 +19,7 @@ function isRichHtml(value) {
 }
 
 /**
- * Product card description: 2-line clamp with smooth See more / See less.
+ * Product card description: 3-line clamp, fade into See more / See less.
  */
 function ProductDescription({ content }) {
     const contentRef = useRef(null);
@@ -28,6 +28,7 @@ function ProductDescription({ content }) {
     const [collapsedHeight, setCollapsedHeight] = useState(0);
     const [fullHeight, setFullHeight] = useState(0);
     const rich = isRichHtml(content);
+    const clamped = needsMore && !expanded;
 
     useEffect(() => {
         const el = contentRef.current;
@@ -48,7 +49,7 @@ function ProductDescription({ content }) {
             const lineHeight = Number.isFinite(parsedLine)
                 ? parsedLine
                 : Number.parseFloat(styles.fontSize) * 1.5 || 20;
-            const collapsed = Math.ceil(lineHeight * 2);
+            const collapsed = Math.ceil(lineHeight * 3);
             const full = el.scrollHeight;
 
             if (el.parentElement) {
@@ -91,33 +92,41 @@ function ProductDescription({ content }) {
 
     return (
         <div>
-            <div
-                className="overflow-hidden transition-[max-height] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
-                style={
-                    needsMore && maxHeight != null
-                        ? { maxHeight: `${maxHeight}px` }
-                        : undefined
-                }
-            >
-                {rich ? (
+            <div className="relative">
+                <div
+                    className="overflow-hidden transition-[max-height] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
+                    style={
+                        needsMore && maxHeight != null
+                            ? { maxHeight: `${maxHeight}px` }
+                            : undefined
+                    }
+                >
+                    {rich ? (
+                        <div
+                            ref={contentRef}
+                            className="nn-editor text-xs leading-relaxed text-olive-600 sm:text-sm"
+                            dangerouslySetInnerHTML={{ __html: content }}
+                        />
+                    ) : (
+                        <p
+                            ref={contentRef}
+                            className="text-xs leading-relaxed text-olive-600 sm:text-sm"
+                        >
+                            {content}
+                        </p>
+                    )}
+                </div>
+                {clamped ? (
                     <div
-                        ref={contentRef}
-                        className="nn-editor text-xs leading-relaxed text-olive-600 sm:text-sm"
-                        dangerouslySetInnerHTML={{ __html: content }}
+                        aria-hidden="true"
+                        className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-white via-white/85 to-transparent"
                     />
-                ) : (
-                    <p
-                        ref={contentRef}
-                        className="text-xs leading-relaxed text-olive-600 sm:text-sm"
-                    >
-                        {content}
-                    </p>
-                )}
+                ) : null}
             </div>
             {needsMore ? (
                 <button
                     type="button"
-                    className="mt-2 inline-flex min-h-9 items-center justify-center gap-1.5 rounded-full border border-olive-900/20 bg-white px-3.5 py-1.5 text-xs font-semibold text-olive-900 transition hover:border-olive-900/40 hover:bg-olive-50"
+                    className="relative z-[1] mt-2 inline-flex min-h-9 items-center justify-center gap-1.5 rounded-full border border-olive-900/20 bg-white px-3.5 py-1.5 text-xs font-semibold text-olive-900 transition hover:border-olive-900/40 hover:bg-olive-50"
                     aria-expanded={expanded}
                     onClick={() => setExpanded((value) => !value)}
                 >
