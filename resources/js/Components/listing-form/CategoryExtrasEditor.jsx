@@ -268,7 +268,7 @@ function ImagePickButton({
                 onDrop={onDropFiles}
                 className="overflow-hidden rounded-xl bg-olive-100 ring-1 ring-olive-200/80 dark:bg-olive-950 dark:ring-olive-700"
             >
-                <div className="group relative aspect-[4/3] w-full overflow-hidden bg-gradient-to-br from-olive-50 via-white to-olive-100/80 dark:from-olive-950 dark:via-olive-900 dark:to-olive-950 sm:aspect-[16/10]">
+                <div className="group relative h-28 w-full overflow-hidden bg-gradient-to-br from-olive-50 via-white to-olive-100/80 dark:from-olive-950 dark:via-olive-900 dark:to-olive-950 sm:h-32">
                     {image ? (
                         <>
                             <img
@@ -276,7 +276,7 @@ function ImagePickButton({
                                 alt=""
                                 className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.015]"
                             />
-                            <div className="absolute inset-x-0 bottom-0 flex flex-wrap gap-2 bg-gradient-to-t from-black/55 to-transparent p-3 pt-8">
+                            <div className="absolute inset-x-0 bottom-0 flex flex-wrap gap-2 bg-gradient-to-t from-black/55 to-transparent p-2.5 pt-6">
                                 <button
                                     type="button"
                                     onClick={onPick}
@@ -297,10 +297,10 @@ function ImagePickButton({
                         <button
                             type="button"
                             onClick={onPick}
-                            className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-4 text-center transition hover:bg-mustard/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-mustard"
+                            className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 px-4 text-center transition hover:bg-mustard/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-mustard"
                         >
-                            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-olive-100 dark:bg-olive-900 dark:ring-olive-700">
-                                <Upload className="h-4 w-4 text-olive-700 dark:text-olive-300" />
+                            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white shadow-sm ring-1 ring-olive-100 dark:bg-olive-900 dark:ring-olive-700">
+                                <Upload className="h-3.5 w-3.5 text-olive-700 dark:text-olive-300" />
                             </span>
                             <span className="text-sm font-semibold text-olive-900 dark:text-olive-100">
                                 Drop photo here
@@ -2020,7 +2020,7 @@ export default function CategoryExtrasEditor({
                                             placeholder="e.g. Dairy"
                                         />
                                     </div>
-                                    <div className="min-w-0">
+                                    <div className="min-w-0 sm:col-span-2 sm:max-w-xs">
                                         <label className={label}>Price</label>
                                         <input
                                             className={field}
@@ -2037,22 +2037,20 @@ export default function CategoryExtrasEditor({
                                             placeholder="e.g. 450 or KES 450"
                                         />
                                     </div>
-                                    <div className="min-w-0">
-                                        <label className={label}>
-                                            Description
-                                        </label>
-                                        <input
-                                            className={field}
-                                            value={item.description || ''}
-                                            onChange={(e) =>
-                                                updateItem('products', index, {
-                                                    description: e.target.value,
-                                                })
-                                            }
-                                            placeholder="Short description"
-                                        />
-                                    </div>
                                 </div>
+                                <RichTextEditor
+                                    id={`product-description-${index}`}
+                                    label="Description"
+                                    value={item.description || ''}
+                                    onChange={(html) =>
+                                        updateItem('products', index, {
+                                            description: html,
+                                        })
+                                    }
+                                    placeholder="Short description, highlights, sizes…"
+                                    allowImages={false}
+                                    compact
+                                />
                                 <ImagePickButton
                                     title="Product image"
                                     image={item.image}

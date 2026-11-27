@@ -222,9 +222,20 @@ export default function ProductsPage({ listing }) {
                                             {product.name}
                                         </h3>
                                         {product.description ? (
-                                            <p className="line-clamp-2 text-sm leading-relaxed text-olive-600">
-                                                {product.description}
-                                            </p>
+                                            /<[a-z][\s\S]*>/i.test(
+                                                String(product.description),
+                                            ) ? (
+                                                <div
+                                                    className="nn-editor line-clamp-3 text-sm leading-relaxed text-olive-600"
+                                                    dangerouslySetInnerHTML={{
+                                                        __html: product.description,
+                                                    }}
+                                                />
+                                            ) : (
+                                                <p className="line-clamp-2 text-sm leading-relaxed text-olive-600">
+                                                    {product.description}
+                                                </p>
+                                            )
                                         ) : null}
                                         <div className="mt-auto border-t border-olive-100 pt-3">
                                             {priceLabel ? (
@@ -320,9 +331,20 @@ export default function ProductsPage({ listing }) {
                         .join(' · ')}
                     footer={
                         active.description ? (
-                            <p className="mx-auto max-w-2xl text-center text-sm text-white/80">
-                                {active.description}
-                            </p>
+                            /<[a-z][\s\S]*>/i.test(
+                                String(active.description),
+                            ) ? (
+                                <div
+                                    className="nn-editor mx-auto max-w-2xl text-center text-sm text-white/80"
+                                    dangerouslySetInnerHTML={{
+                                        __html: active.description,
+                                    }}
+                                />
+                            ) : (
+                                <p className="mx-auto max-w-2xl text-center text-sm text-white/80">
+                                    {active.description}
+                                </p>
+                            )
                         ) : null
                     }
                 />
