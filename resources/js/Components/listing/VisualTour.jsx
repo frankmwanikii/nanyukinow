@@ -33,7 +33,7 @@ function MosaicTile({
         <button
             type="button"
             onClick={onClick}
-            className={`group relative block min-h-0 overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-mustard ${
+            className={`group relative block overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-mustard ${
                 contain ? 'bg-olive-950' : ''
             } ${className}`}
             aria-label={alt}
@@ -622,7 +622,7 @@ export default function VisualTour({
                                     ? 'col-span-1 row-span-1 h-full min-h-0 sm:col-span-2 sm:row-span-2'
                                     : containImages
                                       ? 'mx-auto aspect-[3/4] max-h-[70vh] w-full max-w-md sm:max-w-lg'
-                                      : 'aspect-[16/10]'
+                                      : 'aspect-[16/10] w-full'
                             }
                         >
                             {!showSide ? (
@@ -645,7 +645,7 @@ export default function VisualTour({
                                               openMosaicAt(index + 1)
                                           }
                                           contain={containImages}
-                                          className={`h-full min-h-0 ${
+                                          className={`h-full min-h-0 w-full ${
                                               side.length === 1
                                                   ? 'sm:col-span-2 sm:row-span-2'
                                                   : side.length === 2
