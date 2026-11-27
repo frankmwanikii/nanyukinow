@@ -410,7 +410,10 @@ function MenuImagesEditor({
     libraryRoute = null,
     uploadUrl = null,
 }) {
-    const safeMax = Math.max(1, Number(maxImages) || 1);
+    const unlimited = maxImages == null;
+    const safeMax = unlimited
+        ? Number.POSITIVE_INFINITY
+        : Math.max(1, Number(maxImages) || 1);
     const [libraryOpen, setLibraryOpen] = useState(false);
     const [uploadError, setUploadError] = useState(null);
     const [uploading, setUploading] = useState(false);
@@ -425,8 +428,10 @@ function MenuImagesEditor({
 
     imagesRef.current = Array.isArray(images) ? images : [];
 
-    const remaining = Math.max(0, safeMax - imagesRef.current.length);
-    const atLimit = remaining <= 0;
+    const remaining = unlimited
+        ? Number.POSITIVE_INFINITY
+        : Math.max(0, safeMax - imagesRef.current.length);
+    const atLimit = !unlimited && remaining <= 0;
 
     const addFiles = async (fileList) => {
         if (uploadingRef.current) {
@@ -442,8 +447,10 @@ function MenuImagesEditor({
         }
 
         const current = imagesRef.current;
-        const slots = Math.max(0, safeMax - current.length);
-        if (slots <= 0) {
+        const slots = unlimited
+            ? Number.POSITIVE_INFINITY
+            : Math.max(0, safeMax - current.length);
+        if (!unlimited && slots <= 0) {
             setUploadError(`This set already has ${safeMax} images.`);
             return;
         }
@@ -491,17 +498,27 @@ function MenuImagesEditor({
             );
         }
         const latest = imagesRef.current;
-        onChange([...latest, ...urls].slice(0, safeMax));
+        onChange(
+            unlimited
+                ? [...latest, ...urls]
+                : [...latest, ...urls].slice(0, safeMax),
+        );
     };
 
     const addUrls = (urls) => {
         if (!urls?.length || uploadingRef.current) return;
         const current = imagesRef.current;
-        const slots = Math.max(0, safeMax - current.length);
-        if (slots <= 0) return;
+        const slots = unlimited
+            ? Number.POSITIVE_INFINITY
+            : Math.max(0, safeMax - current.length);
+        if (!unlimited && slots <= 0) return;
         setUploadError(null);
         setImageUrlError(null);
-        onChange([...current, ...urls].slice(0, safeMax));
+        onChange(
+            unlimited
+                ? [...current, ...urls]
+                : [...current, ...urls].slice(0, safeMax),
+        );
     };
 
     const parseImageUrl = (raw) => {
@@ -527,7 +544,7 @@ function MenuImagesEditor({
     const submitImageUrl = () => {
         if (uploadingRef.current) return;
         const current = imagesRef.current;
-        if (current.length >= safeMax) {
+        if (!unlimited && current.length >= safeMax) {
             setImageUrlError(`This set already has ${safeMax} images.`);
             return;
         }
@@ -652,7 +669,9 @@ function MenuImagesEditor({
                                                 : 'Add more'}
                                         </span>
                                         <span className="text-[10px] text-olive-500">
-                                            {images.length}/{safeMax}
+                                            {unlimited
+                                                ? `${images.length} added`
+                                                : `${images.length}/${safeMax}`}
                                         </span>
                                     </button>
                                 </li>
@@ -664,9 +683,11 @@ function MenuImagesEditor({
                                 inputId={inputId}
                                 image=""
                                 remainingLabel={
-                                    safeMax === 1
-                                        ? '1 image'
-                                        : `up to ${safeMax} images`
+                                    unlimited
+                                        ? 'add as many as you need'
+                                        : safeMax === 1
+                                          ? '1 image'
+                                          : `up to ${safeMax} images`
                                 }
                                 disabled={uploading}
                                 onPickClick={openFilePicker}
@@ -748,7 +769,7 @@ function MenuImagesEditor({
                 </p>
             ) : null}
 
-            {!libraryOpen && atLimit ? (
+            {!libraryOpen && !unlimited && atLimit ? (
                 <p className={help}>
                     This set is at the {safeMax}-image limit.
                 </p>
@@ -916,9 +937,15 @@ export default function CategoryExtrasEditor({
             : Math.max(0, shoppingProductCap - products.length);
     const atShoppingProductLimit =
         shoppingProductCap != null && shoppingProductsRemaining <= 0;
+    const shoppingImagesPerProduct =
+        categoryKey === 'shopping'
+            ? shoppingProductImagesPerItem(tier)
+            : null;
     const imagesPerProduct =
         categoryKey === 'shopping'
-            ? Math.max(1, shoppingProductImagesPerItem(tier) || 5)
+            ? shoppingImagesPerProduct == null
+                ? null
+                : Math.max(1, shoppingImagesPerProduct)
             : 5;
     const portfolio = Array.isArray(details.portfolio) ? details.portfolio : [];
     const portfolioCap =

@@ -402,8 +402,8 @@ export const PRICING_CATEGORY_BREAKDOWNS = {
                 label: 'Product catalogue',
                 values: {
                     free: no,
-                    featured: 'Up to 5 products',
-                    premium: 'Up to 50 products',
+                    featured: 'Up to 5 products · 5 photos each',
+                    premium: 'Up to 50 products · unlimited photos each',
                 },
             },
             {

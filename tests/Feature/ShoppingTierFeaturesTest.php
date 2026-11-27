@@ -17,6 +17,32 @@ class ShoppingTierFeaturesTest extends TestCase
         $this->assertSame(0, ShoppingTierFeatures::productLimit(Membership::FREE));
         $this->assertSame(5, ShoppingTierFeatures::productLimit(Membership::STANDARD));
         $this->assertSame(50, ShoppingTierFeatures::productLimit(Membership::PREMIUM));
+
+        $this->assertSame(0, ShoppingTierFeatures::productImagesPerItem(Membership::FREE));
+        $this->assertSame(5, ShoppingTierFeatures::productImagesPerItem(Membership::STANDARD));
+        $this->assertNull(ShoppingTierFeatures::productImagesPerItem(Membership::PREMIUM));
+    }
+
+    public function test_standard_tier_caps_product_images_premium_keeps_all(): void
+    {
+        $manyImages = array_map(
+            static fn (int $i): string => "/storage/p{$i}.jpg",
+            range(1, 12),
+        );
+
+        $standard = ShoppingTierFeatures::normalizeProducts([
+            ['name' => 'Dress', 'images' => $manyImages],
+        ], Membership::STANDARD);
+
+        $this->assertCount(5, $standard[0]['images']);
+        $this->assertSame('/storage/p1.jpg', $standard[0]['image']);
+
+        $premium = ShoppingTierFeatures::normalizeProducts([
+            ['name' => 'Dress', 'images' => $manyImages],
+        ], Membership::PREMIUM);
+
+        $this->assertCount(12, $premium[0]['images']);
+        $this->assertSame('/storage/p1.jpg', $premium[0]['image']);
     }
 
     public function test_free_tier_strips_standard_and_premium_shopping_fields(): void

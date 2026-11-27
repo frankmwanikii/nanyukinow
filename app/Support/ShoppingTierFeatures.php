@@ -14,6 +14,8 @@ class ShoppingTierFeatures
 
     public const PREMIUM_PRODUCT_LIMIT = 50;
 
+    public const STANDARD_PRODUCT_IMAGES_PER_ITEM = 5;
+
     /** @var array<string, int> */
     public const GALLERY_LIMITS = [
         Membership::FREE => 0,
@@ -26,6 +28,17 @@ class ShoppingTierFeatures
         Membership::FREE => 0,
         Membership::STANDARD => self::STANDARD_PRODUCT_LIMIT,
         Membership::PREMIUM => self::PREMIUM_PRODUCT_LIMIT,
+    ];
+
+    /**
+     * Photos allowed on each showcased product. null = unlimited.
+     *
+     * @var array<string, int|null>
+     */
+    public const PRODUCT_IMAGES_PER_ITEM = [
+        Membership::FREE => 0,
+        Membership::STANDARD => self::STANDARD_PRODUCT_IMAGES_PER_ITEM,
+        Membership::PREMIUM => null,
     ];
 
     /**
@@ -62,6 +75,20 @@ class ShoppingTierFeatures
         $tier = Membership::normalize($tier);
 
         return self::PRODUCT_LIMITS[$tier] ?? self::PRODUCT_LIMITS[Membership::FREE];
+    }
+
+    /**
+     * Cap of photos per product, or null when unlimited.
+     */
+    public static function productImagesPerItem(?string $tier): ?int
+    {
+        $tier = Membership::normalize($tier);
+
+        if (array_key_exists($tier, self::PRODUCT_IMAGES_PER_ITEM)) {
+            return self::PRODUCT_IMAGES_PER_ITEM[$tier];
+        }
+
+        return self::PRODUCT_IMAGES_PER_ITEM[Membership::FREE];
     }
 
     public static function tierMeets(?string $current, string $required): bool
@@ -199,6 +226,7 @@ class ShoppingTierFeatures
                 $currency = 'KES';
             }
             $item['currency'] = $currency;
+            $item = self::normalizeProductImages($item, $tier);
 
             $normalized[] = $item;
             if (count($normalized) >= $limit) {
@@ -207,6 +235,45 @@ class ShoppingTierFeatures
         }
 
         return $normalized;
+    }
+
+    /**
+     * @param  array<string, mixed>  $item
+     * @return array<string, mixed>
+     */
+    private static function normalizeProductImages(array $item, ?string $tier): array
+    {
+        $imageLimit = self::productImagesPerItem($tier);
+        $images = [];
+
+        if (isset($item['images']) && is_array($item['images'])) {
+            foreach ($item['images'] as $url) {
+                if (! is_string($url)) {
+                    continue;
+                }
+                $trimmed = trim($url);
+                if ($trimmed === '') {
+                    continue;
+                }
+                $images[] = $trimmed;
+            }
+        } elseif (isset($item['image']) && is_string($item['image'])) {
+            $trimmed = trim($item['image']);
+            if ($trimmed !== '') {
+                $images[] = $trimmed;
+            }
+        }
+
+        if ($imageLimit !== null) {
+            $images = array_values(array_slice($images, 0, max(0, $imageLimit)));
+        } else {
+            $images = array_values($images);
+        }
+
+        $item['images'] = $images;
+        $item['image'] = $images[0] ?? '';
+
+        return $item;
     }
 
     /**

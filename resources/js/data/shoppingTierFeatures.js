@@ -21,11 +21,11 @@ export const PRODUCT_LIMITS = {
     premium: 50,
 };
 
-/** Photos allowed on each showcased product. */
+/** Photos allowed on each showcased product. null = unlimited. */
 export const PRODUCT_IMAGES_PER_ITEM = {
     free: 0,
     featured: 5,
-    premium: 8,
+    premium: null,
 };
 
 export const FREE_DESCRIPTION_WORD_LIMIT = 150;
@@ -113,11 +113,14 @@ export function shoppingProductLimit(tier) {
     return PRODUCT_LIMITS[normalizeTier(tier)] ?? PRODUCT_LIMITS.free;
 }
 
+/** @returns {number|null} Cap per product, or null when unlimited. */
 export function shoppingProductImagesPerItem(tier) {
-    return (
-        PRODUCT_IMAGES_PER_ITEM[normalizeTier(tier)] ??
-        PRODUCT_IMAGES_PER_ITEM.free
-    );
+    const key = normalizeTier(tier);
+    if (Object.prototype.hasOwnProperty.call(PRODUCT_IMAGES_PER_ITEM, key)) {
+        return PRODUCT_IMAGES_PER_ITEM[key];
+    }
+
+    return PRODUCT_IMAGES_PER_ITEM.free;
 }
 
 /** Normalize product photos: prefer `images[]`, fall back to legacy `image`. */

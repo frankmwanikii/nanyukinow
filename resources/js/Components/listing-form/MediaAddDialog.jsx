@@ -73,7 +73,13 @@ export default function MediaAddDialog({
     const titleId = useId();
     const copy = TARGET_COPY[target] || TARGET_COPY.gallery;
     const single = target !== 'gallery';
-    const maxSelect = single ? 1 : Math.max(1, remaining);
+    const unlimited =
+        remaining == null || !Number.isFinite(Number(remaining));
+    const maxSelect = single
+        ? 1
+        : unlimited
+          ? Number.POSITIVE_INFINITY
+          : Math.max(1, Number(remaining));
 
     const [panel, setPanel] = useState('menu'); // menu | library | url
     const [q, setQ] = useState('');
@@ -208,7 +214,9 @@ export default function MediaAddDialog({
                     <p className="mt-1 text-sm text-olive-500 dark:text-olive-400">
                         {single
                             ? 'Upload, grab from gallery, or paste a URL'
-                            : `${remaining} slot${remaining === 1 ? '' : 's'} remaining`}
+                            : unlimited
+                              ? 'Add as many as you need'
+                              : `${remaining} slot${remaining === 1 ? '' : 's'} remaining`}
                     </p>
                 </div>
             </div>
@@ -314,7 +322,9 @@ export default function MediaAddDialog({
                                     {total > items.length ? ` of ${total}` : ''}
                                     {single
                                         ? ' · pick one'
-                                        : ` · select up to ${maxSelect}`}
+                                        : unlimited
+                                          ? ' · select any'
+                                          : ` · select up to ${maxSelect}`}
                                 </p>
                                 <div className="flex items-center gap-2">
                                     <button
