@@ -8,7 +8,7 @@ import { useDetailSectionTone } from './DetailSection';
  */
 export default function MobileFadeExpand({
     children,
-    maxHeight = 168,
+    maxHeight = 480,
     moreLabel = 'View more',
     lessLabel = 'View less',
     className = '',
@@ -37,7 +37,8 @@ export default function MobileFadeExpand({
             const prevOverflow = el.style.overflow;
             el.style.maxHeight = 'none';
             el.style.overflow = 'visible';
-            const tall = el.scrollHeight > maxHeight + 12;
+            // Only clamp when content is clearly overflowing the limit.
+            const tall = el.scrollHeight > maxHeight + 48;
             el.style.maxHeight = prevMax;
             el.style.overflow = prevOverflow;
             setNeedsClamp(tall);
@@ -86,7 +87,7 @@ export default function MobileFadeExpand({
             {needsClamp ? (
                 <button
                     type="button"
-                    className={`relative z-[1] mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-olive-900 underline decoration-olive-300 underline-offset-4 transition hover:decoration-mustard${
+                    className={`relative z-[1] mt-3 inline-flex min-h-11 items-center justify-center rounded-sm border border-olive-900/20 bg-white px-3.5 py-2 text-sm font-semibold text-olive-900 transition hover:border-olive-900/40 hover:bg-olive-50 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-100 dark:hover:bg-olive-900${
                         mobileOnly ? ' sm:hidden' : ''
                     }`}
                     aria-expanded={expanded}

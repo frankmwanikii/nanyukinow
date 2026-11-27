@@ -21,6 +21,13 @@ export const PRODUCT_LIMITS = {
     premium: 50,
 };
 
+/** Photos allowed on each showcased product. */
+export const PRODUCT_IMAGES_PER_ITEM = {
+    free: 0,
+    featured: 5,
+    premium: 8,
+};
+
 export const FREE_DESCRIPTION_WORD_LIMIT = 150;
 
 /** Feature → minimum tier required */
@@ -104,6 +111,29 @@ export function shoppingGalleryLimit(tier) {
 
 export function shoppingProductLimit(tier) {
     return PRODUCT_LIMITS[normalizeTier(tier)] ?? PRODUCT_LIMITS.free;
+}
+
+export function shoppingProductImagesPerItem(tier) {
+    return (
+        PRODUCT_IMAGES_PER_ITEM[normalizeTier(tier)] ??
+        PRODUCT_IMAGES_PER_ITEM.free
+    );
+}
+
+/** Normalize product photos: prefer `images[]`, fall back to legacy `image`. */
+export function productItemImages(item) {
+    if (!item || typeof item !== 'object') {
+        return [];
+    }
+    if (Array.isArray(item.images)) {
+        return item.images
+            .map((url) => (typeof url === 'string' ? url.trim() : ''))
+            .filter(Boolean);
+    }
+    if (typeof item.image === 'string' && item.image.trim()) {
+        return [item.image.trim()];
+    }
+    return [];
 }
 
 export function shoppingDescriptionWordLimit(tier) {

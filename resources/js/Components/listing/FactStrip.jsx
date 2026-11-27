@@ -236,7 +236,7 @@ function StayFactSections({ facts }) {
         <>
             {sections.map((section) => (
                 <DetailSection key={section.title} title={section.title}>
-                    <MobileFadeExpand maxHeight={260}>
+                    <MobileFadeExpand maxHeight={420}>
                         <DetailGrid items={section.items} lodging />
                     </MobileFadeExpand>
                 </DetailSection>

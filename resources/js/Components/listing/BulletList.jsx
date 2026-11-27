@@ -100,7 +100,7 @@ export default function BulletList({ title, items = [], ordered = false }) {
     return (
         <DetailSection title={title}>
             {openSurface ? (
-                <MobileFadeExpand maxHeight={220}>{listEl}</MobileFadeExpand>
+                <MobileFadeExpand maxHeight={400}>{listEl}</MobileFadeExpand>
             ) : (
                 listEl
             )}

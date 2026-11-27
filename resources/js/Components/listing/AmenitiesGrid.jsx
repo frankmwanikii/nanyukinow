@@ -39,7 +39,7 @@ export default function AmenitiesGrid({
     if (openSurface) {
         return (
             <DetailSection title={title}>
-                <MobileFadeExpand maxHeight={220}>
+                <MobileFadeExpand maxHeight={400}>
                     <ul className="grid grid-cols-1 gap-x-8 gap-y-3.5 sm:grid-cols-2">
                         {items.map((item) => (
                             <li

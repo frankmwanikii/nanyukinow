@@ -1,4 +1,11 @@
-import { Expand, Package, Tag } from '@/Components/site/LucideCompat';
+import {
+    ChevronLeft,
+    ChevronRight,
+    Expand,
+    Package,
+    Tag,
+} from '@/Components/site/LucideCompat';
+import { productItemImages } from '@/data/shoppingTierFeatures';
 import { useEffect, useMemo, useState } from 'react';
 import GalleryLightbox from './GalleryLightbox';
 
@@ -28,17 +35,20 @@ function normalizeProducts(products = []) {
                     name: item,
                     price: null,
                     image: null,
+                    images: [],
                     description: null,
                     category: null,
                 };
             }
             const name = item.name || item.title || item.label;
             if (!name) return null;
+            const images = productItemImages(item);
             return {
                 id: item.id || `product-${index}`,
                 name,
                 price: item.price ?? item.amount ?? null,
-                image: item.image || item.src || item.photo || null,
+                images,
+                image: images[0] || null,
                 description: item.description || item.note || null,
                 category: item.category || item.tag || null,
             };
@@ -70,7 +80,15 @@ export default function ProductsPage({ listing }) {
     );
 
     const lightboxItems = useMemo(
-        () => visible.filter((p) => p.image),
+        () =>
+            visible.flatMap((product) =>
+                product.images.map((src, imageIndex) => ({
+                    ...product,
+                    image: src,
+                    slideKey: `${product.id}-${imageIndex}`,
+                    imageIndex,
+                })),
+            ),
         [visible],
     );
 
@@ -94,9 +112,12 @@ export default function ProductsPage({ listing }) {
             ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
 
-    const openLightbox = (product) => {
-        if (!product?.image) return;
-        const index = lightboxItems.findIndex((p) => p.id === product.id);
+    const openLightbox = (product, imageIndex = 0) => {
+        if (!product?.images?.length) return;
+        const index = lightboxItems.findIndex(
+            (slide) =>
+                slide.id === product.id && slide.imageIndex === imageIndex,
+        );
         if (index >= 0) setLightbox(index);
     };
 
@@ -107,10 +128,10 @@ export default function ProductsPage({ listing }) {
     const activePrice = active ? formatPrice(active.price) : null;
     const gallerySlides = useMemo(
         () =>
-            lightboxItems.map((product) => ({
-                src: product.image,
-                label: product.name,
-                alt: product.name,
+            lightboxItems.map((slide) => ({
+                src: slide.image,
+                label: slide.name,
+                alt: slide.name,
             })),
         [lightboxItems],
     );
@@ -188,7 +209,7 @@ export default function ProductsPage({ listing }) {
                                             <button
                                                 type="button"
                                                 onClick={() =>
-                                                    openLightbox(product)
+                                                    openLightbox(product, 0)
                                                 }
                                                 className="relative block h-full w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-mustard"
                                                 aria-label={`View ${product.name}`}
@@ -202,6 +223,12 @@ export default function ProductsPage({ listing }) {
                                                 <span className="absolute bottom-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-olive-900 shadow-soft opacity-0 transition group-hover:opacity-100">
                                                     <Expand className="h-3.5 w-3.5" />
                                                 </span>
+                                                {product.images.length > 1 ? (
+                                                    <span className="absolute bottom-3 left-3 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-semibold text-olive-800 shadow-soft">
+                                                        {product.images.length}{' '}
+                                                        photos
+                                                    </span>
+                                                ) : null}
                                             </button>
                                         ) : (
                                             <div className="flex h-full items-center justify-center text-olive-400">
@@ -277,26 +304,23 @@ export default function ProductsPage({ listing }) {
                                 {Array.from(
                                     { length: totalPages },
                                     (_, i) => i + 1,
-                                ).map((n) => {
-                                    const pageActive = n === safePage;
-                                    return (
-                                        <button
-                                            key={n}
-                                            type="button"
-                                            onClick={() => goTo(n)}
-                                            className={`inline-flex h-9 min-w-9 items-center justify-center rounded-xl px-2.5 text-sm font-semibold transition ${
-                                                pageActive
-                                                    ? 'bg-olive-700 text-white'
-                                                    : 'text-olive-700 hover:bg-olive-50'
-                                            }`}
-                                            aria-current={
-                                                pageActive ? 'page' : undefined
-                                            }
-                                        >
-                                            {n}
-                                        </button>
-                                    );
-                                })}
+                                ).map((n) => (
+                                    <button
+                                        key={n}
+                                        type="button"
+                                        onClick={() => goTo(n)}
+                                        className={`inline-flex h-9 min-w-9 items-center justify-center rounded-xl px-2 text-sm font-semibold transition ${
+                                            n === safePage
+                                                ? 'bg-olive-800 text-white'
+                                                : 'text-olive-700 hover:bg-olive-50'
+                                        }`}
+                                        aria-current={
+                                            n === safePage ? 'page' : undefined
+                                        }
+                                    >
+                                        {n}
+                                    </button>
+                                ))}
 
                                 <button
                                     type="button"

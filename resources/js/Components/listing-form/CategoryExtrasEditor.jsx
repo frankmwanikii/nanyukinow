@@ -25,7 +25,9 @@ import ServicesTierUpsell from './ServicesTierUpsell';
 import EventsTierUpsell from './EventsTierUpsell';
 import {
     canUseShoppingFeature,
+    productItemImages,
     shoppingProductHelp,
+    shoppingProductImagesPerItem,
     shoppingProductLimit,
 } from '@/data/shoppingTierFeatures';
 import {
@@ -909,6 +911,10 @@ export default function CategoryExtrasEditor({
             : Math.max(0, shoppingProductCap - products.length);
     const atShoppingProductLimit =
         shoppingProductCap != null && shoppingProductsRemaining <= 0;
+    const imagesPerProduct =
+        categoryKey === 'shopping'
+            ? Math.max(1, shoppingProductImagesPerItem(tier) || 5)
+            : 5;
     const portfolio = Array.isArray(details.portfolio) ? details.portfolio : [];
     const portfolioCap =
         categoryKey === 'services' ? servicesPortfolioLimit(tier) : null;
@@ -1915,17 +1921,16 @@ export default function CategoryExtrasEditor({
                                     compact
                                 />
                                 <div className="min-w-0">
-                                    <p className={label}>Product image</p>
+                                    <p className={label}>Product images</p>
                                     <MenuImagesEditor
                                         inputId={`product-image-${index}`}
-                                        images={
-                                            item.image ? [item.image] : []
-                                        }
-                                        maxImages={1}
+                                        images={productItemImages(item)}
+                                        maxImages={imagesPerProduct}
                                         libraryRoute={libraryRoute}
                                         uploadUrl={uploadUrl}
                                         onChange={(urls) =>
                                             updateItem('products', index, {
+                                                images: urls,
                                                 image: urls[0] || '',
                                             })
                                         }
@@ -1944,6 +1949,7 @@ export default function CategoryExtrasEditor({
                                 price: '',
                                 description: '',
                                 image: '',
+                                images: [],
                             })
                         }
                         className="inline-flex items-center gap-1.5 rounded-sm bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
