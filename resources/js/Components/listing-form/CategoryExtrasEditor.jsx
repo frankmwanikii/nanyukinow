@@ -47,7 +47,6 @@ import {
     Images,
     Plus,
     Trash2,
-    Upload,
     X,
 } from '@/Components/site/LucideCompat';
 import { Component, useRef, useState } from 'react';
@@ -251,8 +250,8 @@ function ImagePickButton({
     };
 
     return (
-        <div className="min-w-0">
-            <div className="mb-2 flex flex-wrap items-center gap-2">
+        <div className="min-w-0 space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
                 <p className={label}>{title}</p>
                 {image ? (
                     <span className="bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200">
@@ -260,99 +259,100 @@ function ImagePickButton({
                     </span>
                 ) : null}
             </div>
-            <div
-                onDragOver={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                }}
-                onDrop={onDropFiles}
-                className="overflow-hidden rounded-xl bg-olive-100 ring-1 ring-olive-200/80 dark:bg-olive-950 dark:ring-olive-700"
-            >
-                <div className="group relative h-28 w-full overflow-hidden bg-gradient-to-br from-olive-50 via-white to-olive-100/80 dark:from-olive-950 dark:via-olive-900 dark:to-olive-950 sm:h-32">
+            <div className="flex flex-wrap items-start gap-3">
+                <div
+                    onDragOver={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }}
+                    onDrop={onDropFiles}
+                    className="w-[7.5rem] shrink-0 overflow-hidden rounded-xl bg-olive-100 sm:w-36 dark:bg-olive-950"
+                >
                     {image ? (
-                        <>
+                        <div className="group relative">
                             <img
                                 src={image}
                                 alt=""
-                                className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.015]"
+                                className="aspect-[3/4] w-full object-cover"
                             />
-                            <div className="absolute inset-x-0 bottom-0 flex flex-wrap gap-2 bg-gradient-to-t from-black/55 to-transparent p-2.5 pt-6">
-                                <button
-                                    type="button"
-                                    onClick={onPick}
-                                    className="rounded-xl border border-white/30 bg-white/95 px-3 py-1.5 text-xs font-semibold text-olive-900 shadow-sm hover:bg-white"
-                                >
-                                    Replace image
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={onClear}
-                                    className="rounded-sm bg-white/90 px-3 py-1.5 text-xs font-semibold text-rose-700 shadow-sm hover:bg-white"
-                                >
-                                    Clear
-                                </button>
-                            </div>
-                        </>
+                            <button
+                                type="button"
+                                onClick={onClear}
+                                className="absolute right-1.5 top-1.5 inline-flex h-7 w-7 items-center justify-center rounded-sm bg-white/95 text-rose-700 shadow-sm"
+                                aria-label="Clear image"
+                            >
+                                <X className="h-3.5 w-3.5" strokeWidth={2.5} />
+                            </button>
+                            <button
+                                type="button"
+                                onClick={onPick}
+                                className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 to-transparent px-2 py-1.5 text-left text-[10px] font-semibold text-white"
+                            >
+                                Replace
+                            </button>
+                        </div>
                     ) : (
                         <button
                             type="button"
                             onClick={onPick}
-                            className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 px-4 text-center transition hover:bg-mustard/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-mustard"
+                            className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-1.5 border border-dashed border-olive-300 bg-white/70 text-olive-600 transition hover:border-mustard hover:bg-mustard/5 dark:border-olive-700 dark:bg-olive-950/70 dark:text-olive-300"
                         >
-                            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white shadow-sm ring-1 ring-olive-100 dark:bg-olive-900 dark:ring-olive-700">
-                                <Upload className="h-3.5 w-3.5 text-olive-700 dark:text-olive-300" />
+                            <ImagePlus className="h-5 w-5" />
+                            <span className="text-[11px] font-semibold">
+                                Add image
                             </span>
-                            <span className="text-sm font-semibold text-olive-900 dark:text-olive-100">
-                                Drop photo here
-                            </span>
-                            <span className="text-xs text-olive-500 dark:text-olive-400">
-                                Or click to upload · JPG, PNG, WebP
+                            <span className="px-2 text-center text-[10px] text-olive-500">
+                                Drop or click
                             </span>
                         </button>
                     )}
+                </div>
+                <div className="min-w-0 flex-1 basis-[12rem] space-y-2">
+                    {onApplyUrl ? (
+                        <>
+                            <label className={label} htmlFor={inputId}>
+                                Image URL (optional)
+                            </label>
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
+                                <input
+                                    id={inputId}
+                                    type="url"
+                                    className={`${field} min-w-0 flex-1`}
+                                    value={urlDraft}
+                                    onChange={(e) => {
+                                        setUrlDraft(e.target.value);
+                                        setUrlError(null);
+                                    }}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            submitUrl();
+                                        }
+                                    }}
+                                    placeholder="https://…/photo.jpg"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={submitUrl}
+                                    className="inline-flex shrink-0 items-center justify-center rounded-sm bg-olive-900 px-3.5 py-2.5 text-sm font-semibold text-white transition hover:bg-olive-800"
+                                >
+                                    Use URL
+                                </button>
+                            </div>
+                            {urlError ? (
+                                <p className="text-sm text-rose-600">
+                                    {urlError}
+                                </p>
+                            ) : (
+                                <p className={help}>
+                                    Paste a direct image link if you already
+                                    host the photo online.
+                                </p>
+                            )}
+                        </>
+                    ) : null}
                 </div>
             </div>
-            {onApplyUrl ? (
-                <div className="mt-3 min-w-0">
-                    <label className={label} htmlFor={inputId}>
-                        Image URL (optional)
-                    </label>
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
-                        <input
-                            id={inputId}
-                            type="url"
-                            className={`${field} min-w-0 flex-1`}
-                            value={urlDraft}
-                            onChange={(e) => {
-                                setUrlDraft(e.target.value);
-                                setUrlError(null);
-                            }}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                    e.preventDefault();
-                                    submitUrl();
-                                }
-                            }}
-                            placeholder="https://…/photo.jpg"
-                        />
-                        <button
-                            type="button"
-                            onClick={submitUrl}
-                            className="inline-flex shrink-0 items-center justify-center rounded-sm bg-olive-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-olive-800"
-                        >
-                            Use URL
-                        </button>
-                    </div>
-                    {urlError ? (
-                        <p className="mt-1.5 text-sm text-rose-600">{urlError}</p>
-                    ) : (
-                        <p className={help}>
-                            Paste a direct image link if you already host the
-                            photo online.
-                        </p>
-                    )}
-                </div>
-            ) : null}
         </div>
     );
 }
