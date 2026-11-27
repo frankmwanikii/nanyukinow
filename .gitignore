@@ -6,6 +6,7 @@
 .env.backup
 .env.production
 .deploy-cpanel.env
+.cpanel-deploy-rev
 .phpactor.json
 .phpunit.result.cache
 /.codex

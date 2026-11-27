@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Deploy the current working tree to cPanel over FTP.
-# Used by the local post-commit hook while GitHub Actions is unavailable.
+# Fast path for typical commits (under ~2 minutes). Full rebuild when deps change.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -24,75 +24,341 @@ set +a
 : "${CPANEL_DEPLOY_TOKEN:?}"
 APP_URL="${CPANEL_APP_URL:-https://nanyukinow.co.ke}"
 
-LOG_DIR="$ROOT/storage/logs"
-mkdir -p "$LOG_DIR"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
-WORK="/tmp/nn-cpanel-deploy-$STAMP"
-ARCHIVE="/tmp/nanyukinow-release-$STAMP.tar.gz"
+REV_FILE="$ROOT/.cpanel-deploy-rev"
+VENDOR_CACHE="${CPANEL_VENDOR_CACHE:-/tmp/nn-vendor-prod-cache}"
+START_TS="$(date +%s)"
 
+HEAD_REV="$(git rev-parse HEAD)"
+PREV_REV=""
+if [[ -f "$REV_FILE" ]]; then
+  PREV_REV="$(tr -d '[:space:]' <"$REV_FILE" || true)"
+fi
+if [[ -z "$PREV_REV" ]] || ! git cat-file -e "${PREV_REV}^{commit}" 2>/dev/null; then
+  PREV_REV="$(git rev-parse HEAD~1 2>/dev/null || true)"
+fi
+
+CHANGED_FILE="$(mktemp)"
 cleanup() {
-  rm -rf "$WORK" "$ARCHIVE" \
+  rm -f "$CHANGED_FILE" \
     /tmp/nn-ci-extract-"$STAMP".php \
-    /tmp/nn-deploy-token-"$STAMP" 2>/dev/null || true
+    /tmp/nn-deploy-token-"$STAMP" \
+    /tmp/nanyukinow-release-"$STAMP".tar.gz \
+    /tmp/nn-fast-filelist-"$STAMP".txt 2>/dev/null || true
+  rm -rf "/tmp/nn-cpanel-deploy-$STAMP" 2>/dev/null || true
 }
 trap cleanup EXIT
 
-echo "==> Building release in $WORK"
-rm -rf "$WORK"
-mkdir -p "$WORK"
-
-rsync -a \
-  --exclude='.git' \
-  --exclude='.github' \
-  --exclude='node_modules' \
-  --exclude='tests' \
-  --exclude='.env' \
-  --exclude='.env.*' \
-  --exclude='.deploy-cpanel.env' \
-  --exclude='storage/logs/*' \
-  --exclude='storage/framework/cache/data/*' \
-  --exclude='storage/framework/sessions/*' \
-  --exclude='storage/framework/views/*' \
-  --exclude='storage/app/public/*' \
-  --exclude='public/build' \
-  --exclude='public/hot' \
-  --exclude='.tools' \
-  --exclude='.cursor' \
-  --exclude='.agents' \
-  "$ROOT"/ "$WORK"/
-
-mkdir -p \
-  "$WORK/storage/framework/cache/data" \
-  "$WORK/storage/framework/sessions" \
-  "$WORK/storage/framework/views" \
-  "$WORK/storage/logs" \
-  "$WORK/bootstrap/cache"
-touch "$WORK/storage/logs/.gitkeep"
-
-echo "==> Composer (no-dev)"
-composer install \
-  --working-dir="$WORK" \
-  --no-dev \
-  --prefer-dist \
-  --optimize-autoloader \
-  --no-interaction
-
-echo "==> npm build"
-if [[ -f "$ROOT/package-lock.json" ]]; then
-  npm ci --prefix "$ROOT"
+if [[ -n "$PREV_REV" && "$PREV_REV" != "$HEAD_REV" ]]; then
+  git diff --name-only "$PREV_REV" "$HEAD_REV" >"$CHANGED_FILE" || true
 else
-  npm install --prefix "$ROOT"
+  # First run or identical rev: treat as full unless forced otherwise.
+  : >"$CHANGED_FILE"
 fi
-npm run build --prefix "$ROOT"
-mkdir -p "$WORK/public/build"
-rsync -a "$ROOT/public/build/" "$WORK/public/build/"
 
-echo "==> Packaging"
-tar -C "$WORK" -czf "$ARCHIVE" .
+FORCE_FULL="${FORCE_FULL:-0}"
+NEED_COMPOSER=0
+NEED_ASSETS=0
+NEED_CODE=0
 
-echo "==> Uploading to cPanel"
-export CPANEL_FTP_HOST CPANEL_FTP_USER CPANEL_FTP_PASSWORD CPANEL_DEPLOY_TOKEN APP_URL ARCHIVE STAMP
-python3 - <<'PY'
+if [[ "$FORCE_FULL" == "1" || ! -s "$CHANGED_FILE" ]]; then
+  NEED_COMPOSER=1
+  NEED_ASSETS=1
+  NEED_CODE=1
+else
+  while IFS= read -r path; do
+    [[ -z "$path" ]] && continue
+    case "$path" in
+      composer.lock|composer.json)
+        NEED_COMPOSER=1
+        NEED_CODE=1
+        ;;
+      package-lock.json|package.json|vite.config.*|postcss.config.*|tailwind.config.*|resources/js/*|resources/css/*|resources/js/*/*|resources/css/*/*)
+        NEED_ASSETS=1
+        ;;
+      public/build/*)
+        NEED_ASSETS=1
+        ;;
+      *)
+        NEED_CODE=1
+        ;;
+    esac
+    case "$path" in
+      resources/js/*|resources/css/*|vite.config.js|vite.config.ts|tailwind.config.js|postcss.config.js)
+        NEED_ASSETS=1
+        ;;
+    esac
+  done <"$CHANGED_FILE"
+
+  # Broader path matching for nested frontend files
+  if rg -q '^(resources/js/|resources/css/|vite\.config\.|tailwind\.config\.|postcss\.config\.|package(-lock)?\.json$)' "$CHANGED_FILE"; then
+    NEED_ASSETS=1
+  fi
+  if rg -q '^(composer\.(json|lock)$)' "$CHANGED_FILE"; then
+    NEED_COMPOSER=1
+  fi
+fi
+
+# If frontend changed but build already exists for this tree, still rebuild to be safe.
+if [[ "$NEED_ASSETS" == "1" ]]; then
+  :
+fi
+
+MODE="fast"
+if [[ "$NEED_COMPOSER" == "1" || "$FORCE_FULL" == "1" ]]; then
+  MODE="full"
+fi
+
+echo "==> Deploy mode: $MODE (composer=$NEED_COMPOSER assets=$NEED_ASSETS code=$NEED_CODE)"
+echo "==> From ${PREV_REV:-none} -> $HEAD_REV"
+
+build_assets_if_needed() {
+  if [[ "$NEED_ASSETS" != "1" && -d "$ROOT/public/build" && -f "$ROOT/public/build/manifest.json" ]]; then
+    echo "==> Reusing existing public/build"
+    return 0
+  fi
+  echo "==> npm run build"
+  if [[ ! -d "$ROOT/node_modules" ]]; then
+    if [[ -f "$ROOT/package-lock.json" ]]; then
+      npm ci --prefix "$ROOT"
+    else
+      npm install --prefix "$ROOT"
+    fi
+  fi
+  npm run build --prefix "$ROOT"
+}
+
+remote_artisan() {
+  local commands_csv="$1"
+  export CPANEL_FTP_HOST CPANEL_FTP_USER CPANEL_FTP_PASSWORD CPANEL_DEPLOY_TOKEN APP_URL STAMP
+  export REMOTE_ARTISAN_COMMANDS="$commands_csv"
+  python3 - <<'PY'
+import ftplib, os
+from pathlib import Path
+
+host = os.environ["CPANEL_FTP_HOST"]
+user = os.environ["CPANEL_FTP_USER"]
+passwd = os.environ["CPANEL_FTP_PASSWORD"]
+token = os.environ["CPANEL_DEPLOY_TOKEN"].strip()
+stamp = os.environ["STAMP"]
+commands = [c.strip() for c in os.environ.get("REMOTE_ARTISAN_COMMANDS", "").split("|") if c.strip()]
+
+ftp = ftplib.FTP()
+ftp.connect(host, 21, timeout=120)
+ftp.login(user, passwd)
+ftp.set_pasv(True)
+
+cmd_php = "\n".join([f'Artisan::call({c!r}); echo {c!r} . "\\n" . Artisan::output();' for c in commands])
+extract = f'''<?php
+$token = $_GET['token'] ?? '';
+$expected = trim((string) @file_get_contents(__DIR__ . '/.deploy_token'));
+if ($expected === '' || !hash_equals($expected, (string) $token)) {{
+    http_response_code(403);
+    echo 'forbidden';
+    exit;
+}}
+header('Content-Type: text/plain');
+set_time_limit(0);
+require __DIR__ . '/vendor/autoload.php';
+$app = require __DIR__ . '/bootstrap/app.php';
+$app->make(Illuminate\\Contracts\\Console\\Kernel::class)->bootstrap();
+try {{
+    Illuminate\\Support\\Facades\\Cache::forget('admin.dashboard.overview');
+    echo "forgot admin.dashboard.overview\\n";
+}} catch (Throwable $e) {{
+    echo 'cache forget skipped\\n';
+}}
+{cmd_php}
+echo "DONE\\n";
+'''
+Path(f'/tmp/nn-ci-extract-{stamp}.php').write_text(extract)
+Path(f'/tmp/nn-deploy-token-{stamp}').write_text(token)
+with open(f'/tmp/nn-ci-extract-{stamp}.php', 'rb') as f:
+    ftp.storbinary('STOR nn-ci-extract.php', f)
+with open(f'/tmp/nn-deploy-token-{stamp}', 'rb') as f:
+    ftp.storbinary('STOR .deploy_token', f)
+ftp.quit()
+print('uploaded artisan helper')
+PY
+
+  curl -fsS --max-time 180 \
+    --resolve "nanyukinow.co.ke:443:${CPANEL_FTP_HOST}" \
+    --resolve "nanyukinow.co.ke:80:${CPANEL_FTP_HOST}" \
+    "${APP_URL}/nn-ci-extract.php?token=${CPANEL_DEPLOY_TOKEN}"
+
+  python3 - <<'PY'
+import ftplib, os
+ftp = ftplib.FTP()
+ftp.connect(os.environ["CPANEL_FTP_HOST"], 21, timeout=60)
+ftp.login(os.environ["CPANEL_FTP_USER"], os.environ["CPANEL_FTP_PASSWORD"])
+ftp.set_pasv(True)
+for name in ["nn-ci-extract.php", ".deploy_token"]:
+    try:
+        ftp.delete(name)
+    except Exception:
+        pass
+ftp.quit()
+PY
+}
+
+ftp_upload_paths() {
+  local list_file="$1"
+  export CPANEL_FTP_HOST CPANEL_FTP_USER CPANEL_FTP_PASSWORD
+  export FAST_FILELIST="$list_file"
+  python3 - <<'PY'
+import ftplib, os
+from pathlib import Path
+
+root = Path(os.environ.get("PWD", "."))
+host = os.environ["CPANEL_FTP_HOST"]
+user = os.environ["CPANEL_FTP_USER"]
+passwd = os.environ["CPANEL_FTP_PASSWORD"]
+paths = [ln.strip() for ln in Path(os.environ["FAST_FILELIST"]).read_text().splitlines() if ln.strip()]
+
+ftp = ftplib.FTP()
+ftp.connect(host, 21, timeout=180)
+ftp.login(user, passwd)
+ftp.set_pasv(True)
+
+def ensure_dir(remote_dir: str):
+    if not remote_dir or remote_dir in (".", "/"):
+        return
+    parts = remote_dir.strip("/").split("/")
+    cur = ""
+    for part in parts:
+        cur = f"{cur}/{part}" if cur else part
+        try:
+            ftp.mkd(cur)
+        except Exception:
+            pass
+
+uploaded = 0
+for rel in paths:
+    local = root / rel
+    if not local.is_file():
+        continue
+    ensure_dir(str(Path(rel).parent).replace("\\", "/"))
+    with local.open("rb") as f:
+        ftp.storbinary(f"STOR {rel}", f)
+    uploaded += 1
+    if uploaded % 25 == 0:
+        print(f"uploaded {uploaded} files...")
+ftp.quit()
+print(f"uploaded {uploaded} files")
+PY
+}
+
+if [[ "$MODE" == "fast" ]]; then
+  build_assets_if_needed
+
+  LIST="/tmp/nn-fast-filelist-$STAMP.txt"
+  : >"$LIST"
+
+  # Changed tracked files (skip heavy/irrelevant paths)
+  if [[ -s "$CHANGED_FILE" ]]; then
+    while IFS= read -r path; do
+      [[ -z "$path" ]] && continue
+      case "$path" in
+        .github/*|tests/*|node_modules/*|.cursor/*|.agents/*|.tools/*|storage/logs/*|storage/framework/*|public/hot|.env*|.deploy-cpanel.env|bin/deploy-cpanel|bin/install-cpanel-deploy-hook|.gitignore|README.md)
+          continue
+          ;;
+        public/build/*)
+          continue
+          ;;
+        vendor/*)
+          continue
+          ;;
+      esac
+      if [[ -f "$ROOT/$path" ]]; then
+        echo "$path" >>"$LIST"
+      fi
+    done <"$CHANGED_FILE"
+  fi
+
+  if [[ "$NEED_ASSETS" == "1" ]]; then
+    if [[ -d "$ROOT/public/build" ]]; then
+      find public/build -type f | sed 's|^\./||' >>"$LIST"
+    fi
+  fi
+
+  # Always refresh route/view/config caches after code or asset deploys
+  sort -u "$LIST" -o "$LIST"
+  COUNT="$(grep -c . "$LIST" || true)"
+  echo "==> Fast upload ($COUNT files)"
+  if [[ "$COUNT" -gt 0 ]]; then
+    ftp_upload_paths "$LIST"
+  else
+    echo "==> No file changes to upload"
+  fi
+
+  remote_artisan "migrate --force|config:cache|route:cache|view:cache|storage:link"
+else
+  WORK="/tmp/nn-cpanel-deploy-$STAMP"
+  ARCHIVE="/tmp/nanyukinow-release-$STAMP.tar.gz"
+
+  echo "==> Building full release in $WORK"
+  rm -rf "$WORK"
+  mkdir -p "$WORK"
+
+  rsync -a \
+    --exclude='.git' \
+    --exclude='.github' \
+    --exclude='node_modules' \
+    --exclude='tests' \
+    --exclude='.env' \
+    --exclude='.env.*' \
+    --exclude='.deploy-cpanel.env' \
+    --exclude='.cpanel-deploy-rev' \
+    --exclude='storage/logs/*' \
+    --exclude='storage/framework/cache/data/*' \
+    --exclude='storage/framework/sessions/*' \
+    --exclude='storage/framework/views/*' \
+    --exclude='storage/app/public/*' \
+    --exclude='public/build' \
+    --exclude='public/hot' \
+    --exclude='.tools' \
+    --exclude='.cursor' \
+    --exclude='.agents' \
+    --exclude='vendor' \
+    "$ROOT"/ "$WORK"/
+
+  mkdir -p \
+    "$WORK/storage/framework/cache/data" \
+    "$WORK/storage/framework/sessions" \
+    "$WORK/storage/framework/views" \
+    "$WORK/storage/logs" \
+    "$WORK/bootstrap/cache"
+  touch "$WORK/storage/logs/.gitkeep"
+
+  LOCK_HASH="$(sha256sum "$ROOT/composer.lock" | awk '{print $1}')"
+  CACHE_META="$VENDOR_CACHE/.composer.lock.sha"
+  if [[ -d "$VENDOR_CACHE/vendor" && -f "$CACHE_META" && "$(cat "$CACHE_META")" == "$LOCK_HASH" ]]; then
+    echo "==> Reusing cached vendor (composer.lock unchanged)"
+    rsync -a "$VENDOR_CACHE/vendor/" "$WORK/vendor/"
+  else
+    echo "==> Composer (no-dev)"
+    composer install \
+      --working-dir="$WORK" \
+      --no-dev \
+      --prefer-dist \
+      --optimize-autoloader \
+      --no-interaction
+    rm -rf "$VENDOR_CACHE"
+    mkdir -p "$VENDOR_CACHE"
+    rsync -a "$WORK/vendor/" "$VENDOR_CACHE/vendor/"
+    echo "$LOCK_HASH" >"$CACHE_META"
+  fi
+
+  build_assets_if_needed
+  mkdir -p "$WORK/public/build"
+  rsync -a "$ROOT/public/build/" "$WORK/public/build/"
+
+  echo "==> Packaging"
+  tar -C "$WORK" -czf "$ARCHIVE" .
+
+  echo "==> Uploading full archive to cPanel"
+  export CPANEL_FTP_HOST CPANEL_FTP_USER CPANEL_FTP_PASSWORD CPANEL_DEPLOY_TOKEN APP_URL ARCHIVE STAMP
+  python3 - <<'PY'
 import ftplib, os
 from pathlib import Path
 
@@ -111,7 +377,7 @@ ftp.set_pasv(True)
 with open(archive, "rb") as f:
     ftp.storbinary("STOR nanyukinow-release.tar.gz", f)
 
-extract = r'''<?php
+extract = '''<?php
 $token = $_GET['token'] ?? '';
 $expected = trim((string) @file_get_contents(__DIR__ . '/.deploy_token'));
 if ($expected === '' || !hash_equals($expected, (string) $token)) {
@@ -126,53 +392,49 @@ $cmd = 'tar -xzf nanyukinow-release.tar.gz --exclude=storage/app/public --exclud
 $des = [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']];
 $p = proc_open($cmd, $des, $pipes, getcwd());
 if (!is_resource($p)) {
-    echo "proc_open failed\n";
+    echo "proc_open failed\\n";
     exit(1);
 }
 fclose($pipes[0]);
 echo stream_get_contents($pipes[1]);
 echo stream_get_contents($pipes[2]);
-echo 'exit ' . proc_close($p) . "\n";
+echo 'exit ' . proc_close($p) . "\\n";
 @unlink('nanyukinow-release.tar.gz');
 require 'vendor/autoload.php';
 $app = require 'bootstrap/app.php';
-$k = $app->make(Illuminate\Contracts\Console\Kernel::class);
+$k = $app->make(Illuminate\\Contracts\\Console\\Kernel::class);
 $k->bootstrap();
 try {
-    Illuminate\Support\Facades\Cache::forget('admin.dashboard.overview');
-    echo "forgot admin.dashboard.overview\n";
+    Illuminate\\Support\\Facades\\Cache::forget('admin.dashboard.overview');
+    echo "forgot admin.dashboard.overview\\n";
 } catch (Throwable $e) {
-    echo 'cache forget skipped: ' . $e->getMessage() . "\n";
+    echo 'cache forget skipped: ' . $e->getMessage() . "\\n";
 }
 foreach (['migrate --force', 'config:cache', 'route:cache', 'view:cache', 'storage:link'] as $c) {
     Artisan::call($c);
-    echo $c . "\n" . Artisan::output();
+    echo $c . "\\n" . Artisan::output();
 }
-echo "DONE\n";
+echo "DONE\\n";
 '''
 
-extract_path = f"/tmp/nn-ci-extract-{stamp}.php"
-token_path = f"/tmp/nn-deploy-token-{stamp}"
-Path(extract_path).write_text(extract)
-Path(token_path).write_text(token)
-
-with open(extract_path, "rb") as f:
+Path(f"/tmp/nn-ci-extract-{stamp}.php").write_text(extract)
+Path(f"/tmp/nn-deploy-token-{stamp}").write_text(token)
+with open(f"/tmp/nn-ci-extract-{stamp}.php", "rb") as f:
     ftp.storbinary("STOR nn-ci-extract.php", f)
-with open(token_path, "rb") as f:
+with open(f"/tmp/nn-deploy-token-{stamp}", "rb") as f:
     ftp.storbinary("STOR .deploy_token", f)
 ftp.quit()
 print("uploaded")
 PY
 
-echo "==> Extracting on server"
-# Force the cPanel IP so a local /etc/hosts override cannot send this to localhost.
-curl -fsS --max-time 600 \
-  --resolve "nanyukinow.co.ke:443:${CPANEL_FTP_HOST}" \
-  --resolve "nanyukinow.co.ke:80:${CPANEL_FTP_HOST}" \
-  "${APP_URL}/nn-ci-extract.php?token=${CPANEL_DEPLOY_TOKEN}"
+  echo "==> Extracting on server"
+  curl -fsS --max-time 600 \
+    --resolve "nanyukinow.co.ke:443:${CPANEL_FTP_HOST}" \
+    --resolve "nanyukinow.co.ke:80:${CPANEL_FTP_HOST}" \
+    "${APP_URL}/nn-ci-extract.php?token=${CPANEL_DEPLOY_TOKEN}"
 
-echo "==> Cleaning remote helpers"
-python3 - <<'PY'
+  echo "==> Cleaning remote helpers"
+  python3 - <<'PY'
 import ftplib, os
 ftp = ftplib.FTP()
 ftp.connect(os.environ["CPANEL_FTP_HOST"], 21, timeout=60)
@@ -185,5 +447,8 @@ for name in ["nn-ci-extract.php", ".deploy_token", "nanyukinow-release.tar.gz"]:
         pass
 ftp.quit()
 PY
+fi
 
-echo "==> cPanel deploy finished"
+echo "$HEAD_REV" >"$REV_FILE"
+END_TS="$(date +%s)"
+echo "==> cPanel deploy finished in $((END_TS - START_TS))s"
