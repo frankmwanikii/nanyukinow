@@ -1,0 +1,104 @@
+name: Deploy to cPanel
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-cpanel
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, xml, ctype, json, bcmath, fileinfo, tokenizer, PDO, pdo_mysql, gd, zip
+          coverage: none
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install PHP dependencies
+        run: composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+
+      - name: Install JS dependencies and build
+        run: |
+          npm ci
+          npm run build
+
+      - name: Package release
+        run: |
+          mkdir -p /tmp/release
+          rsync -a \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='node_modules' \
+            --exclude='tests' \
+            --exclude='.env' \
+            --exclude='.env.*' \
+            --exclude='storage/logs/*' \
+            --exclude='storage/framework/cache/data/*' \
+            --exclude='storage/framework/sessions/*' \
+            --exclude='storage/framework/views/*' \
+            --exclude='storage/app/public/*' \
+            ./ /tmp/release/
+          mkdir -p /tmp/release/storage/framework/{cache/data,sessions,views} /tmp/release/storage/logs /tmp/release/bootstrap/cache
+          touch /tmp/release/storage/logs/.gitkeep
+          tar -C /tmp/release -czf /tmp/nanyukinow-release.tar.gz .
+
+      - name: Upload release and extract on cPanel
+        env:
+          FTP_HOST: ${{ secrets.CPANEL_FTP_HOST }}
+          FTP_USER: ${{ secrets.CPANEL_FTP_USER }}
+          FTP_PASS: ${{ secrets.CPANEL_FTP_PASSWORD }}
+          DEPLOY_TOKEN: ${{ secrets.CPANEL_DEPLOY_TOKEN }}
+        run: |
+          python3 - <<'PY'
+          import ftplib, os
+          host=os.environ['FTP_HOST']
+          user=os.environ['FTP_USER']
+          passwd=os.environ['FTP_PASS']
+          ftp=ftplib.FTP(); ftp.connect(host,21,timeout=120); ftp.login(user,passwd); ftp.set_pasv(True)
+          with open('/tmp/nanyukinow-release.tar.gz','rb') as f:
+              ftp.storbinary('STOR nanyukinow-release.tar.gz', f)
+          extract='''<?php
+          $token=$_GET["token"]??"";
+          if(!hash_equals(getenv("NN_DEPLOY_TOKEN") ?: file_get_contents(__DIR__."/.deploy_token"), $token)){http_response_code(403);exit("forbidden");}
+          header("Content-Type: text/plain"); set_time_limit(0); chdir(__DIR__);
+          $cmd="tar -xzf nanyukinow-release.tar.gz --exclude=storage/app/public --exclude=.env";
+          $des=[0=>["pipe","r"],1=>["pipe","w"],2=>["pipe","w"]];
+          $p=proc_open($cmd,$des,$pipes,getcwd());
+          fclose($pipes[0]); echo stream_get_contents($pipes[1]); echo stream_get_contents($pipes[2]);
+          echo "exit ".proc_close($p)."\\n";
+          @unlink("nanyukinow-release.tar.gz");
+          require "vendor/autoload.php"; $app=require "bootstrap/app.php";
+          $k=$app->make(Illuminate\\Contracts\\Console\\Kernel::class); $k->bootstrap();
+          foreach(["migrate --force","config:cache","route:cache","view:cache","storage:link"] as $c){ Artisan::call($c); echo $c."\\n".Artisan::output(); }
+          echo "DONE\\n";
+          '''
+          open('/tmp/nn-ci-extract.php','w').write(extract)
+          open('/tmp/nn-deploy-token','w').write(os.environ['DEPLOY_TOKEN'])
+          with open('/tmp/nn-ci-extract.php','rb') as f: ftp.storbinary('STOR nn-ci-extract.php', f)
+          with open('/tmp/nn-deploy-token','rb') as f: ftp.storbinary('STOR .deploy_token', f)
+          ftp.quit()
+          print('uploaded')
+          PY
+          curl -fsS --max-time 600 "https://nanyukinow.co.ke/nn-ci-extract.php?token=${DEPLOY_TOKEN}"
+          # remove extractor
+          python3 - <<'PY'
+          import ftplib, os
+          ftp=ftplib.FTP(); ftp.connect(os.environ['FTP_HOST'],21,timeout=60)
+          ftp.login(os.environ['FTP_USER'], os.environ['FTP_PASS']); ftp.set_pasv(True)
+          for n in ['nn-ci-extract.php','.deploy_token','nanyukinow-release.tar.gz']:
+              try: ftp.delete(n)
+              except Exception: pass
+          ftp.quit()
+          PY
