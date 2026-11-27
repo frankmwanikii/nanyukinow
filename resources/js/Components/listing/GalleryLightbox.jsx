@@ -1,28 +1,7 @@
 import { createPortal } from 'react-dom';
 import { useEffect, useId } from 'react';
 import CloseButton from '@/Components/site/CloseButton';
-
-function Chevron({ direction }) {
-    const isPrev = direction === 'prev';
-    return (
-        <svg
-            viewBox="0 0 24 24"
-            className="h-5 w-5"
-            aria-hidden="true"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        >
-            {isPrev ? (
-                <path d="M15 5 8 12l7 7" />
-            ) : (
-                <path d="m9 5 7 7-7 7" />
-            )}
-        </svg>
-    );
-}
+import MediaNavButton from '@/Components/site/MediaNavButton';
 
 /**
  * Full-viewport photo viewer. Image fills the screen; chrome sits as overlays.
@@ -150,32 +129,28 @@ export default function GalleryLightbox({
 
             {hasNav ? (
                 <>
-                    <button
-                        type="button"
-                        aria-label="Previous photo"
+                    <MediaNavButton
+                        direction="prev"
+                        label="Previous photo"
                         onClick={(e) => {
                             e.stopPropagation();
                             onIndexChange?.(
                                 (safeIndex - 1 + items.length) % items.length,
                             );
                         }}
-                        className="absolute left-3 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-[2px] bg-black/55 text-white ring-1 ring-white/25 transition hover:bg-black/75 sm:left-5 sm:h-11 sm:w-11"
-                    >
-                        <Chevron direction="prev" />
-                    </button>
-                    <button
-                        type="button"
-                        aria-label="Next photo"
+                        className="absolute left-3 top-1/2 z-20 -translate-y-1/2 sm:left-5"
+                    />
+                    <MediaNavButton
+                        direction="next"
+                        label="Next photo"
                         onClick={(e) => {
                             e.stopPropagation();
                             onIndexChange?.(
                                 (safeIndex + 1) % items.length,
                             );
                         }}
-                        className="absolute right-3 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-[2px] bg-black/55 text-white ring-1 ring-white/25 transition hover:bg-black/75 sm:right-5 sm:h-11 sm:w-11"
-                    >
-                        <Chevron direction="next" />
-                    </button>
+                        className="absolute right-3 top-1/2 z-20 -translate-y-1/2 sm:right-5"
+                    />
                 </>
             ) : null}
 

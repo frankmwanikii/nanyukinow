@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import MediaNavButton from '@/Components/site/MediaNavButton';
 import { resolveAmenityItem } from '@/utils/amenityIcons';
 import GalleryLightbox from './GalleryLightbox';
 import DetailSection from './DetailSection';
+import SwipeImageRail from './SwipeImageRail';
 
 function formatPrice(price) {
     if (price == null || price === '') return null;
@@ -94,29 +96,8 @@ export function normalizeRoomTypes(roomTypes) {
         .filter(Boolean);
 }
 
-function StripChevron({ direction }) {
-    const isLeft = direction === 'left';
-    return (
-        <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
-            <path
-                d={
-                    isLeft
-                        ? 'M14.5 6.5 9 12l5.5 5.5'
-                        : 'M9.5 6.5 15 12l-5.5 5.5'
-                }
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-            />
-        </svg>
-    );
-}
-
 function RoomTypePanel({ room, onOpenImage, compact = false }) {
     const hasImages = room.images.length > 0;
-    const hero = hasImages ? room.images[0] : null;
     const amenities = room.amenities || [];
     const description = (room.description || '').trim();
     const aboutPreview = description.replace(/\s+/g, ' ').trim();
@@ -162,25 +143,13 @@ function RoomTypePanel({ room, onOpenImage, compact = false }) {
             }`}
         >
             {hasImages ? (
-                <button
-                    type="button"
-                    onClick={() => onOpenImage(room, 0)}
-                    className="group relative block w-full overflow-hidden bg-olive-100 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-mustard"
-                    aria-label={`View photos of ${room.title}`}
-                >
-                    <img
-                        src={hero}
-                        alt={room.title}
-                        className="aspect-[4/3] w-full object-cover transition duration-500 group-hover:scale-[1.02]"
-                        loading="lazy"
-                    />
-                    <span className="absolute inset-0 bg-gradient-to-t from-earth-dusk/50 via-transparent to-transparent" />
-                    {room.images.length > 1 ? (
-                        <span className="absolute bottom-2.5 right-2.5 inline-flex items-center rounded-[2px] bg-white/95 px-2 py-1 text-[11px] font-bold tabular-nums text-olive-900 shadow-soft">
-                            {room.images.length} photos
-                        </span>
-                    ) : null}
-                </button>
+                <SwipeImageRail
+                    images={room.images}
+                    alt={room.title}
+                    aspectClass="aspect-[4/3]"
+                    objectClass="object-cover"
+                    onOpen={(imageIndex) => onOpenImage(room, imageIndex)}
+                />
             ) : (
                 <div className="flex aspect-[4/3] items-end bg-olive-50 px-4 py-4">
                     <p className="text-sm text-olive-500">No photos yet</p>
@@ -423,24 +392,18 @@ export default function RoomTypesGallery({
                                 {activeIndex + 1} / {rooms.length}
                             </p>
                             <div className="flex items-center gap-2">
-                                <button
-                                    type="button"
+                                <MediaNavButton
+                                    direction="prev"
+                                    label="Previous room type"
                                     disabled={!canScrollLeft}
-                                    aria-label="Previous room type"
                                     onClick={() => scrollBy(-1)}
-                                    className="inline-flex h-10 w-10 items-center justify-center border border-olive-900/10 bg-white text-olive-800 transition hover:border-olive-900/25 hover:text-earth-dusk disabled:pointer-events-none disabled:opacity-35"
-                                >
-                                    <StripChevron direction="left" />
-                                </button>
-                                <button
-                                    type="button"
+                                />
+                                <MediaNavButton
+                                    direction="next"
+                                    label="Next room type"
                                     disabled={!canScrollRight}
-                                    aria-label="Next room type"
                                     onClick={() => scrollBy(1)}
-                                    className="inline-flex h-10 w-10 items-center justify-center border border-olive-900/10 bg-white text-olive-800 transition hover:border-olive-900/25 hover:text-earth-dusk disabled:pointer-events-none disabled:opacity-35"
-                                >
-                                    <StripChevron direction="right" />
-                                </button>
+                                />
                             </div>
                         </div>
                     </div>

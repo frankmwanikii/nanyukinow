@@ -1,13 +1,13 @@
 import {
     ChevronLeft,
     ChevronRight,
-    Expand,
     Package,
     Tag,
 } from '@/Components/site/LucideCompat';
 import { productItemImages } from '@/data/shoppingTierFeatures';
 import { useEffect, useMemo, useState } from 'react';
 import GalleryLightbox from './GalleryLightbox';
+import SwipeImageRail from './SwipeImageRail';
 
 const PAGE_SIZE = 12;
 
@@ -204,34 +204,20 @@ export default function ProductsPage({ listing }) {
                                     key={product.id}
                                     className="group flex flex-col overflow-hidden rounded-2xl border border-olive-200/70 bg-white shadow-soft transition hover:-translate-y-0.5 hover:shadow-lift"
                                 >
-                                    <div className="relative aspect-[4/5] overflow-hidden bg-olive-100">
-                                        {product.image ? (
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    openLightbox(product, 0)
+                                    <div className="relative overflow-hidden bg-olive-100">
+                                        {product.images.length ? (
+                                            <SwipeImageRail
+                                                images={product.images}
+                                                alt={product.name}
+                                                onOpen={(imageIndex) =>
+                                                    openLightbox(
+                                                        product,
+                                                        imageIndex,
+                                                    )
                                                 }
-                                                className="absolute inset-0 block text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-mustard"
-                                                aria-label={`View ${product.name}`}
-                                            >
-                                                <img
-                                                    src={product.image}
-                                                    alt=""
-                                                    className="h-full w-full object-cover object-bottom transition duration-500 group-hover:scale-[1.03]"
-                                                    loading="lazy"
-                                                />
-                                                <span className="absolute bottom-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-olive-900 shadow-soft opacity-0 transition group-hover:opacity-100">
-                                                    <Expand className="h-3.5 w-3.5" />
-                                                </span>
-                                                {product.images.length > 1 ? (
-                                                    <span className="absolute bottom-3 left-3 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-semibold text-olive-800 shadow-soft">
-                                                        {product.images.length}{' '}
-                                                        photos
-                                                    </span>
-                                                ) : null}
-                                            </button>
+                                            />
                                         ) : (
-                                            <div className="flex h-full items-center justify-center text-olive-400">
+                                            <div className="flex aspect-[4/5] items-center justify-center text-olive-400">
                                                 <Package
                                                     className="h-10 w-10"
                                                     strokeWidth={1.5}
@@ -239,7 +225,7 @@ export default function ProductsPage({ listing }) {
                                             </div>
                                         )}
                                         {product.category ? (
-                                            <span className="pointer-events-none absolute left-3 top-3 z-[1] inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-semibold text-olive-800 shadow-soft">
+                                            <span className="pointer-events-none absolute left-3 top-3 z-[3] inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-semibold text-olive-800 shadow-soft">
                                                 <Tag className="h-3 w-3 text-mustard" />
                                                 {product.category}
                                             </span>

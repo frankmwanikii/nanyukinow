@@ -1,4 +1,5 @@
 import { Expand } from '@/Components/site/LucideCompat';
+import MediaNavButton from '@/Components/site/MediaNavButton';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import GalleryLightbox from './GalleryLightbox';
 import DetailSection, { useDetailSectionTone } from './DetailSection';
@@ -308,12 +309,23 @@ export default function VisualTour({
     const [spaceIndex, setSpaceIndex] = useState(0);
     const [lightbox, setLightbox] = useState(null);
     const [mobileIndex, setMobileIndex] = useState(0);
+    const [mobileControlsVisible, setMobileControlsVisible] = useState(false);
     const scrollerRef = useRef(null);
+    const mobileHideTimerRef = useRef(null);
 
     useEffect(() => {
         setSpaceIndex(0);
         setMobileIndex(0);
+        setMobileControlsVisible(false);
     }, [gallery]);
+
+    useEffect(() => {
+        return () => {
+            if (mobileHideTimerRef.current) {
+                window.clearTimeout(mobileHideTimerRef.current);
+            }
+        };
+    }, []);
 
     const safeSpaceIndex = Math.min(
         spaceIndex,
@@ -372,6 +384,17 @@ export default function VisualTour({
         [flat],
     );
 
+    const revealMobileControls = () => {
+        if (mosaicSources.length <= 1) return;
+        setMobileControlsVisible(true);
+        if (mobileHideTimerRef.current) {
+            window.clearTimeout(mobileHideTimerRef.current);
+        }
+        mobileHideTimerRef.current = window.setTimeout(() => {
+            setMobileControlsVisible(false);
+        }, 2200);
+    };
+
     const onMobileScroll = () => {
         const el = scrollerRef.current;
         if (!el) return;
@@ -381,6 +404,22 @@ export default function VisualTour({
         setMobileIndex(
             Math.min(Math.max(next, 0), Math.max(mosaicSources.length - 1, 0)),
         );
+        revealMobileControls();
+    };
+
+    const goMobile = (nextIndex) => {
+        const el = scrollerRef.current;
+        if (!el) return;
+        const clamped = Math.min(
+            Math.max(nextIndex, 0),
+            Math.max(mosaicSources.length - 1, 0),
+        );
+        el.scrollTo({
+            left: clamped * el.clientWidth,
+            behavior: 'smooth',
+        });
+        setMobileIndex(clamped);
+        revealMobileControls();
     };
 
     if (!spaces.length || !mosaicSources.length) return null;
@@ -412,7 +451,10 @@ export default function VisualTour({
 
                 {/* Mobile: swipe hero */}
                 <div className="sm:hidden">
-                    <div className="relative">
+                    <div
+                        className="group/rail relative"
+                        onPointerDown={revealMobileControls}
+                    >
                         <div
                             ref={scrollerRef}
                             onScroll={onMobileScroll}
@@ -468,28 +510,66 @@ export default function VisualTour({
                         </div>
 
                         {mobileCount > 1 ? (
-                            <div
-                                className="pointer-events-none absolute inset-x-0 bottom-3 z-[2] flex items-center justify-center gap-1.5"
-                                aria-hidden="true"
-                            >
-                                {mobileGalleryDots(
-                                    mobileCount,
-                                    safeMobileIndex,
-                                ).map((dot) => (
-                                    <span
-                                        key={`gallery-dot-${dot.index}`}
-                                        className={`rounded-full shadow-sm transition ${
-                                            dot.edge
-                                                ? 'h-1 w-1'
-                                                : 'h-1.5 w-1.5'
-                                        } ${
-                                            dot.active
-                                                ? 'bg-white'
-                                                : 'bg-white/55'
-                                        }`}
+                            <>
+                                <div
+                                    className={`pointer-events-none absolute inset-y-0 left-0 z-[2] flex items-center pl-2 transition duration-200 ${
+                                        mobileControlsVisible
+                                            ? 'opacity-100'
+                                            : 'opacity-0'
+                                    }`}
+                                >
+                                    <MediaNavButton
+                                        direction="prev"
+                                        label="Previous photo"
+                                        disabled={safeMobileIndex <= 0}
+                                        className="pointer-events-auto"
+                                        onClick={() =>
+                                            goMobile(safeMobileIndex - 1)
+                                        }
                                     />
-                                ))}
-                            </div>
+                                </div>
+                                <div
+                                    className={`pointer-events-none absolute inset-y-0 right-0 z-[2] flex items-center pr-2 transition duration-200 ${
+                                        mobileControlsVisible
+                                            ? 'opacity-100'
+                                            : 'opacity-0'
+                                    }`}
+                                >
+                                    <MediaNavButton
+                                        direction="next"
+                                        label="Next photo"
+                                        disabled={
+                                            safeMobileIndex >= mobileCount - 1
+                                        }
+                                        className="pointer-events-auto"
+                                        onClick={() =>
+                                            goMobile(safeMobileIndex + 1)
+                                        }
+                                    />
+                                </div>
+                                <div
+                                    className="pointer-events-none absolute inset-x-0 bottom-3 z-[2] flex items-center justify-center gap-1.5"
+                                    aria-hidden="true"
+                                >
+                                    {mobileGalleryDots(
+                                        mobileCount,
+                                        safeMobileIndex,
+                                    ).map((dot) => (
+                                        <span
+                                            key={`gallery-dot-${dot.index}`}
+                                            className={`rounded-full shadow-sm transition ${
+                                                dot.edge
+                                                    ? 'h-1 w-1'
+                                                    : 'h-1.5 w-1.5'
+                                            } ${
+                                                dot.active
+                                                    ? 'bg-white'
+                                                    : 'bg-white/55'
+                                            }`}
+                                        />
+                                    ))}
+                                </div>
+                            </>
                         ) : null}
                     </div>
 
