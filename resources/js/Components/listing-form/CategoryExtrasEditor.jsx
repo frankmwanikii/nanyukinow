@@ -1,5 +1,6 @@
 import AmenitiesPicker from './AmenitiesPicker';
 import MediaAddDialog from './MediaAddDialog';
+import ProductCategoryField from './ProductCategoryField';
 import RichTextEditor from './RichTextEditor';
 import { field, help, label } from './fieldStyles';
 import {
@@ -768,6 +769,8 @@ export default function CategoryExtrasEditor({
     isAdmin = false,
     amenityOptions = [],
     onAmenityCreated,
+    productCategories = [],
+    onProductCategoryCreated,
 }) {
     const [imageTarget, setImageTarget] = useState(null); // { list, index, key } — sponsors only
     const [singleUploadProgress, setSingleUploadProgress] = useState(null);
@@ -1834,21 +1837,17 @@ export default function CategoryExtrasEditor({
                                             placeholder="Product name"
                                         />
                                     </div>
-                                    <div className="min-w-0">
-                                        <label className={label}>
-                                            Category
-                                        </label>
-                                        <input
-                                            className={field}
-                                            value={item.category || ''}
-                                            onChange={(e) =>
-                                                updateItem('products', index, {
-                                                    category: e.target.value,
-                                                })
-                                            }
-                                            placeholder="e.g. Dairy"
-                                        />
-                                    </div>
+                                    <ProductCategoryField
+                                        id={`product-category-${index}`}
+                                        value={item.category || ''}
+                                        options={productCategories}
+                                        onChange={(category) =>
+                                            updateItem('products', index, {
+                                                category,
+                                            })
+                                        }
+                                        onCreated={onProductCategoryCreated}
+                                    />
                                     <div className="min-w-0 sm:col-span-2 sm:max-w-xs">
                                         <label
                                             className={label}

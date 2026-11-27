@@ -436,6 +436,7 @@ export default function Form({
     listing = null,
     categories = [],
     amenities: initialAmenities = [],
+    productCategories: initialProductCategories = [],
     stayGallerySpaces: initialStayGallerySpaces = [],
     mapsApiKey = '',
     plan,
@@ -465,6 +466,9 @@ export default function Form({
     draftKeyRef.current = draftKey;
     const { errors: pageErrors } = usePage().props;
     const [amenityOptions, setAmenityOptions] = useState(initialAmenities);
+    const [productCategoryOptions, setProductCategoryOptions] = useState(
+        initialProductCategories,
+    );
     const [stayGallerySpaceLibrary, setStayGallerySpaceLibrary] = useState(
         initialStayGallerySpaces,
     );
@@ -1877,6 +1881,32 @@ export default function Form({
                                                     }
                                                     return [amenity, ...prev];
                                                 });
+                                            }}
+                                            productCategories={
+                                                productCategoryOptions
+                                            }
+                                            onProductCategoryCreated={(
+                                                category,
+                                            ) => {
+                                                setProductCategoryOptions(
+                                                    (prev) => {
+                                                        if (
+                                                            prev.some(
+                                                                (c) =>
+                                                                    c.slug ===
+                                                                        category.slug ||
+                                                                    c.name.toLowerCase() ===
+                                                                        category.name.toLowerCase(),
+                                                            )
+                                                        ) {
+                                                            return prev;
+                                                        }
+                                                        return [
+                                                            category,
+                                                            ...prev,
+                                                        ];
+                                                    },
+                                                );
                                             }}
                                         />
                                         {categoryKey !== 'properties' &&

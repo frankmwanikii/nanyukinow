@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\SaveListingDraftRequest;
 use App\Models\Amenity;
 use App\Models\Category;
 use App\Models\Listing;
+use App\Models\ProductCategory;
 use App\Models\StayGallerySpace;
 use App\Models\User;
 use App\Notifications\ListingReviewedNotification;
@@ -149,6 +150,7 @@ class ListingController extends Controller
             'editLock' => null,
             'categories' => $this->categories(),
             'amenities' => $this->amenitiesPayload(),
+            'productCategories' => $this->productCategoriesPayload(),
             'stayGallerySpaces' => $this->stayGallerySpacesPayload(),
             'plan' => null,
             'allowedTiers' => ['free', 'featured', 'premium'],
@@ -290,6 +292,7 @@ class ListingController extends Controller
             ],
             'categories' => $this->categories(),
             'amenities' => $this->amenitiesPayload(),
+            'productCategories' => $this->productCategoriesPayload(),
             'stayGallerySpaces' => $this->stayGallerySpacesPayload(),
             'plan' => null,
             'allowedTiers' => ['free', 'featured', 'premium'],
@@ -703,6 +706,24 @@ class ListingController extends Controller
                 'id' => $space->id,
                 'name' => $space->name,
                 'slug' => $space->slug,
+            ])
+            ->all();
+    }
+
+    /**
+     * @return list<array{id:int,name:string,slug:string}>
+     */
+    private function productCategoriesPayload(): array
+    {
+        return ProductCategory::query()
+            ->where('is_active', true)
+            ->orderByDesc('usage_count')
+            ->orderBy('name')
+            ->get(['id', 'name', 'slug'])
+            ->map(fn (ProductCategory $category) => [
+                'id' => $category->id,
+                'name' => $category->name,
+                'slug' => $category->slug,
             ])
             ->all();
     }

@@ -12,6 +12,7 @@ use App\Http\Controllers\Account\PaypalReturnController;
 use App\Http\Controllers\Account\PaystackReturnController;
 use App\Http\Controllers\Account\PlaceSearchController;
 use App\Http\Controllers\Account\PremiumTrialController;
+use App\Http\Controllers\Account\ProductCategoryController;
 use App\Http\Controllers\Account\StayGallerySpaceController;
 use App\Http\Controllers\Account\SupportTicketController as AccountSupportTicketController;
 use App\Http\Controllers\Account\UpgradeController as AccountUpgradeController;
@@ -132,6 +133,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/account/amenities', [AmenityController::class, 'store'])
             ->middleware('throttle:30,1')
             ->name('account.amenities.store');
+        Route::post('/account/product-categories', [ProductCategoryController::class, 'store'])
+            ->middleware('throttle:30,1')
+            ->name('account.product-categories.store');
         Route::post('/account/stay-gallery-spaces', [StayGallerySpaceController::class, 'store'])
             ->middleware('throttle:30,1')
             ->name('account.stay-gallery-spaces.store');

@@ -9,6 +9,7 @@ use App\Http\Requests\Account\UpdateListingRequest;
 use App\Models\Amenity;
 use App\Models\Category;
 use App\Models\Listing;
+use App\Models\ProductCategory;
 use App\Models\StayGallerySpace;
 use App\Support\CategoryKey;
 use App\Support\CategoryTaxonomy;
@@ -70,6 +71,7 @@ class ListingController extends Controller
             'listing' => $draft ? $this->listingFormPayload($draft) : null,
             'categories' => $this->categories(),
             'amenities' => $this->amenitiesPayload(),
+            'productCategories' => $this->productCategoriesPayload(),
             'stayGallerySpaces' => $this->stayGallerySpacesPayload(),
             'plan' => Membership::planSummary($user),
             'allowedTiers' => Membership::allowedTiersFor($user),
@@ -193,6 +195,7 @@ class ListingController extends Controller
             'listing' => $this->listingFormPayload($listing),
             'categories' => $this->categories(),
             'amenities' => $this->amenitiesPayload(),
+            'productCategories' => $this->productCategoriesPayload(),
             'stayGallerySpaces' => $this->stayGallerySpacesPayload(),
             'plan' => Membership::planSummary($request->user()),
             'allowedTiers' => Membership::allowedTiersFor($request->user()),
@@ -561,6 +564,24 @@ class ListingController extends Controller
                 'slug' => $a->slug,
                 'icon_key' => $a->icon_key,
                 'category_key' => $a->category_key,
+            ])
+            ->all();
+    }
+
+    /**
+     * @return list<array{id:int,name:string,slug:string}>
+     */
+    private function productCategoriesPayload(): array
+    {
+        return ProductCategory::query()
+            ->where('is_active', true)
+            ->orderByDesc('usage_count')
+            ->orderBy('name')
+            ->get(['id', 'name', 'slug'])
+            ->map(fn (ProductCategory $category) => [
+                'id' => $category->id,
+                'name' => $category->name,
+                'slug' => $category->slug,
             ])
             ->all();
     }
