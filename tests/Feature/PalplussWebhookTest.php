@@ -13,6 +13,7 @@ use App\Support\Membership;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 class PalplussWebhookTest extends TestCase
@@ -401,6 +402,44 @@ class PalplussWebhookTest extends TestCase
             'value' => 'pp_test_xxx',
             'sort_order' => 31,
         ]);
+        SiteSetting::query()->updateOrCreate(
+            ['key' => 'palpluss_webhook_secret'],
+            [
+                'group' => 'payments',
+                'label' => 'Palpluss webhook signing secret',
+                'type' => 'password',
+                'value' => 'whsec_'.base64_encode('test-signing-key-bytes!!'),
+                'sort_order' => 36,
+            ],
+        );
         SiteSetting::forgetCache();
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    private function postSignedPalplussWebhook(array $payload): TestResponse
+    {
+        $raw = json_encode($payload, JSON_THROW_ON_ERROR);
+        $secret = (string) SiteSetting::getValue('palpluss_webhook_secret', '');
+        $id = 'msg_'.bin2hex(random_bytes(4));
+        $timestamp = (string) time();
+        $key = base64_decode(preg_replace('/^whsec_/', '', $secret) ?? '', true);
+        $signature = base64_encode(hash_hmac('sha256', $id.'.'.$timestamp.'.'.$raw, $key, true));
+
+        return $this->call(
+            'POST',
+            route('webhooks.palpluss'),
+            [],
+            [],
+            [],
+            [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_WEBHOOK_ID' => $id,
+                'HTTP_WEBHOOK_TIMESTAMP' => $timestamp,
+                'HTTP_WEBHOOK_SIGNATURE' => 'v1,'.$signature,
+            ],
+            $raw,
+        );
     }
 }

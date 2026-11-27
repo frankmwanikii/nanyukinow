@@ -44,7 +44,7 @@ export default function NotFound() {
 
                     <Link
                         href="/"
-                        className="mt-2 inline-flex items-center justify-center rounded-lg bg-white px-6 py-3 text-sm font-bold text-earth-dusk transition hover:bg-white/90 sm:mt-4"
+                        className="mt-10 inline-flex items-center justify-center rounded-lg bg-white px-6 py-3 text-sm font-bold text-earth-dusk transition hover:bg-white/90 sm:mt-12"
                     >
                         Go back home
                     </Link>

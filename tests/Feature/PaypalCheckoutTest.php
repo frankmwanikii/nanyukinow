@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\PlanUpgrade;
 use App\Models\PricingPlan;
+use App\Models\SiteSetting;
 use App\Models\User;
 use App\Notifications\PlanUpgradeReviewedNotification;
 use App\Support\Membership;
@@ -12,6 +13,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 class PaypalCheckoutTest extends TestCase
@@ -51,15 +53,14 @@ class PaypalCheckoutTest extends TestCase
         [$user, $upgrade] = $this->startPaypalCheckout();
         [$amount, $currency] = PaymentGateway::paypalChargeAmount((float) $upgrade->amount, (string) $upgrade->currency);
 
-        Http::fake([
-            'api-m.sandbox.paypal.com/v1/oauth2/token' => Http::response(['access_token' => 'TEST_TOKEN'], 200),
+        $this->fakePaypalWebhookApis([
             'api-m.sandbox.paypal.com/v2/checkout/orders/ORDER-SANDBOX-1' => Http::response(
                 $this->completedOrder($user, $amount, $currency),
                 200,
             ),
         ]);
 
-        $this->postJson(route('webhooks.paypal'), [
+        $this->postSignedPaypalWebhook([
             'event_type' => 'PAYMENT.CAPTURE.COMPLETED',
             'resource' => [
                 'id' => 'CAP-1',
@@ -81,8 +82,7 @@ class PaypalCheckoutTest extends TestCase
         [$user, $upgrade] = $this->startPaypalCheckout();
         [$amount, $currency] = PaymentGateway::paypalChargeAmount((float) $upgrade->amount, (string) $upgrade->currency);
 
-        Http::fake([
-            'api-m.sandbox.paypal.com/v1/oauth2/token' => Http::response(['access_token' => 'TEST_TOKEN'], 200),
+        $this->fakePaypalWebhookApis([
             'api-m.sandbox.paypal.com/v2/checkout/orders/ORDER-SANDBOX-1' => Http::response(
                 $this->completedOrder($user, $amount, $currency),
                 200,
@@ -98,9 +98,9 @@ class PaypalCheckoutTest extends TestCase
             ],
         ];
 
-        $this->postJson(route('webhooks.paypal'), $payload)->assertOk();
+        $this->postSignedPaypalWebhook($payload)->assertOk();
         $expiresAt = $user->fresh()->plan_expires_at;
-        $this->postJson(route('webhooks.paypal'), $payload)->assertOk();
+        $this->postSignedPaypalWebhook($payload)->assertOk();
 
         $this->assertTrue($user->fresh()->plan_expires_at->equalTo($expiresAt));
         Notification::assertSentToTimes($user, PlanUpgradeReviewedNotification::class, 1);
@@ -110,15 +110,14 @@ class PaypalCheckoutTest extends TestCase
     {
         [$user] = $this->startPaypalCheckout();
 
-        Http::fake([
-            'api-m.sandbox.paypal.com/v1/oauth2/token' => Http::response(['access_token' => 'TEST_TOKEN'], 200),
+        $this->fakePaypalWebhookApis([
             'api-m.sandbox.paypal.com/v2/checkout/orders/ORDER-SANDBOX-1' => Http::response(
                 $this->completedOrder($user, '1.00', 'USD'),
                 200,
             ),
         ]);
 
-        $this->postJson(route('webhooks.paypal'), [
+        $this->postSignedPaypalWebhook([
             'event_type' => 'PAYMENT.CAPTURE.COMPLETED',
             'resource' => [
                 'supplementary_data' => [
@@ -138,7 +137,9 @@ class PaypalCheckoutTest extends TestCase
     {
         [$user] = $this->startPaypalCheckout();
 
-        $this->postJson(route('webhooks.paypal'), [
+        $this->fakePaypalWebhookApis();
+
+        $this->postSignedPaypalWebhook([
             'event_type' => 'PAYMENT.CAPTURE.DENIED',
             'resource' => [
                 'supplementary_data' => [
@@ -159,10 +160,15 @@ class PaypalCheckoutTest extends TestCase
 
         Http::preventStrayRequests();
         Http::fake([
-            'api-m.sandbox.paypal.com/*' => Http::failedConnection(),
+            'api-m.sandbox.paypal.com/v1/oauth2/token' => Http::response(['access_token' => 'TEST_TOKEN'], 200),
+            'api-m.sandbox.paypal.com/v1/notifications/verify-webhook-signature' => Http::response([
+                'verification_status' => 'SUCCESS',
+            ], 200),
+            'api-m.sandbox.paypal.com/v2/checkout/orders/*' => Http::failedConnection(),
         ]);
+        $this->seedPaypalWebhookId();
 
-        $this->postJson(route('webhooks.paypal'), [
+        $this->postSignedPaypalWebhook([
             'event_type' => 'PAYMENT.CAPTURE.COMPLETED',
             'resource' => [
                 'supplementary_data' => [
@@ -179,7 +185,9 @@ class PaypalCheckoutTest extends TestCase
 
     public function test_webhook_rejects_an_invalid_payload(): void
     {
-        $this->postJson(route('webhooks.paypal'), [])
+        $this->fakePaypalWebhookApis();
+
+        $this->postSignedPaypalWebhook([])
             ->assertStatus(400)
             ->assertJson(['error' => 'Invalid payload']);
     }
@@ -247,5 +255,69 @@ class PaypalCheckoutTest extends TestCase
                 ],
             ]],
         ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $extraFakes
+     */
+    private function fakePaypalWebhookApis(array $extraFakes = []): void
+    {
+        $this->seedPaypalWebhookId();
+        Http::fake(array_merge([
+            'api-m.sandbox.paypal.com/v1/oauth2/token' => Http::response(['access_token' => 'TEST_TOKEN'], 200),
+            'api-m.sandbox.paypal.com/v1/notifications/verify-webhook-signature' => Http::response([
+                'verification_status' => 'SUCCESS',
+            ], 200),
+        ], $extraFakes));
+    }
+
+    private function seedPaypalWebhookId(): void
+    {
+        SiteSetting::query()->updateOrCreate(
+            ['key' => 'paypal_mode'],
+            [
+                'group' => 'payments',
+                'label' => 'PayPal mode',
+                'type' => 'select',
+                'value' => 'sandbox',
+                'sort_order' => 10,
+            ],
+        );
+        SiteSetting::query()->updateOrCreate(
+            ['key' => 'paypal_sandbox_webhook_id'],
+            [
+                'group' => 'payments',
+                'label' => 'PayPal sandbox webhook ID',
+                'type' => 'text',
+                'value' => 'WH-TEST-123',
+                'sort_order' => 15,
+            ],
+        );
+        SiteSetting::forgetCache();
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    private function postSignedPaypalWebhook(array $payload): TestResponse
+    {
+        $raw = json_encode($payload, JSON_THROW_ON_ERROR);
+
+        return $this->call(
+            'POST',
+            route('webhooks.paypal'),
+            [],
+            [],
+            [],
+            [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_PAYPAL_AUTH_ALGO' => 'SHA256withRSA',
+                'HTTP_PAYPAL_CERT_URL' => 'https://api.sandbox.paypal.com/v1/notifications/certs/CERT-1',
+                'HTTP_PAYPAL_TRANSMISSION_ID' => 'tx-'.bin2hex(random_bytes(3)),
+                'HTTP_PAYPAL_TRANSMISSION_SIG' => 'sig',
+                'HTTP_PAYPAL_TRANSMISSION_TIME' => '2026-01-01T00:00:00Z',
+            ],
+            $raw,
+        );
     }
 }
