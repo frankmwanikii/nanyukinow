@@ -21,6 +21,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Staff console path
+    |--------------------------------------------------------------------------
+    |
+    | Prefix for all admin routes (login included). Use a non-guessable value
+    | in production via ADMIN_PATH. Letters, numbers, and hyphens only.
+    | Default stays "admin" for local/tests.
+    |
+    */
+
+    'admin_path' => env('ADMIN_PATH', 'admin'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Claim plan grace
     |--------------------------------------------------------------------------
     |

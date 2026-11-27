@@ -21,7 +21,9 @@ class PalplussWebhookTest extends TestCase
 
     public function test_webhook_rejects_an_invalid_payload(): void
     {
-        $this->postJson(route('webhooks.palpluss'), [
+        $this->configurePalpluss();
+
+        $this->postSignedPalplussWebhook([
             'event' => 'transaction.updated',
         ])
             ->assertStatus(400)
@@ -30,7 +32,9 @@ class PalplussWebhookTest extends TestCase
 
     public function test_webhook_acknowledges_an_unknown_transaction(): void
     {
-        $this->postJson(route('webhooks.palpluss'), $this->successPayload())
+        $this->configurePalpluss();
+
+        $this->postSignedPalplussWebhook($this->successPayload())
             ->assertOk()
             ->assertJson(['received' => true]);
 
@@ -55,7 +59,7 @@ class PalplussWebhookTest extends TestCase
             ]),
         ]);
 
-        $this->postJson(route('webhooks.palpluss'), $this->successPayload())
+        $this->postSignedPalplussWebhook($this->successPayload())
             ->assertOk()
             ->assertJson(['received' => true]);
 
@@ -86,10 +90,10 @@ class PalplussWebhookTest extends TestCase
             ]),
         ]);
 
-        $this->postJson(route('webhooks.palpluss'), $this->successPayload())->assertOk();
+        $this->postSignedPalplussWebhook($this->successPayload())->assertOk();
         $expiresAt = $user->fresh()->plan_expires_at;
 
-        $this->postJson(route('webhooks.palpluss'), $this->successPayload())->assertOk();
+        $this->postSignedPalplussWebhook($this->successPayload())->assertOk();
 
         $this->assertTrue($user->fresh()->plan_expires_at->equalTo($expiresAt));
         Notification::assertSentToTimes($user, PlanUpgradeReviewedNotification::class, 1);
@@ -109,7 +113,7 @@ class PalplussWebhookTest extends TestCase
             ]),
         ]);
 
-        $this->postJson(route('webhooks.palpluss'), $this->successPayload())
+        $this->postSignedPalplussWebhook($this->successPayload())
             ->assertOk()
             ->assertJson(['received' => true]);
 
@@ -124,7 +128,7 @@ class PalplussWebhookTest extends TestCase
     {
         $user = $this->startPalplussUpgrade();
 
-        $this->postJson(route('webhooks.palpluss'), [
+        $this->postSignedPalplussWebhook([
             'event_type' => 'transaction.cancelled',
             'transaction' => [
                 'id' => 'fa98a577-95ea-4a8f-8467-1fbe74f5d6f4',
@@ -148,7 +152,7 @@ class PalplussWebhookTest extends TestCase
             'api.palpluss.com/v1/transactions/*' => Http::failedConnection(),
         ]);
 
-        $this->postJson(route('webhooks.palpluss'), $this->successPayload())
+        $this->postSignedPalplussWebhook($this->successPayload())
             ->assertStatus(503);
 
         $this->assertNotSame(Membership::STANDARD, $user->fresh()->plan);

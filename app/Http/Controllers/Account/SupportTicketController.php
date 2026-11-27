@@ -74,7 +74,7 @@ class SupportTicketController extends Controller
 
     public function show(Request $request, SupportTicket $ticket): Response
     {
-        abort_unless((int) $ticket->user_id === (int) $request->user()->id, 403);
+        $this->authorize('view', $ticket);
 
         return Inertia::render('Account/Tickets/Show', [
             'ticket' => $ticket->toMemberArray(),
@@ -83,8 +83,7 @@ class SupportTicketController extends Controller
 
     public function downloadAttachment(Request $request, SupportTicket $ticket): StreamedResponse
     {
-        abort_unless((int) $ticket->user_id === (int) $request->user()->id, 403);
-        abort_unless($ticket->hasAttachment(), 404);
+        $this->authorize('downloadAttachment', $ticket);
         abort_unless(Storage::disk('local')->exists($ticket->attachment_path), 404);
 
         return Storage::disk('local')->download(

@@ -52,6 +52,38 @@ class HomeHeroSlidesTest extends TestCase
                 ->component('Home')
                 ->has('heroSlides', 1)
                 ->where('heroSlides.0.title', 'Saved stay')
-                ->where('heroSlides.0.image', '/images/hero/bnb3.webp'));
+                ->where('heroSlides.0.image', '/images/hero/bnb3.webp')
+                ->where('heroSlides.0.showOnDesktop', true)
+                ->where('heroSlides.0.showOnMobile', true));
+    }
+
+    public function test_home_includes_per_slide_device_visibility(): void
+    {
+        HeroSlides::save([
+            [
+                'id' => 'desktop-only',
+                'image' => '/images/hero/slide-2.webp',
+                'title' => 'Desktop plains',
+                'showOnDesktop' => true,
+                'showOnMobile' => false,
+            ],
+            [
+                'id' => 'mobile-only',
+                'image' => '/images/hero/bnb3.webp',
+                'title' => 'Mobile stay',
+                'showOnDesktop' => false,
+                'showOnMobile' => true,
+            ],
+        ]);
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Home')
+                ->has('heroSlides', 2)
+                ->where('heroSlides.0.showOnDesktop', true)
+                ->where('heroSlides.0.showOnMobile', false)
+                ->where('heroSlides.1.showOnDesktop', false)
+                ->where('heroSlides.1.showOnMobile', true));
     }
 }

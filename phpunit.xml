@@ -33,5 +33,6 @@
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
         <env name="SITE_PREVIEW_GATE" value="false"/>
+        <env name="ADMIN_PATH" value="admin"/>
     </php>
 </phpunit>

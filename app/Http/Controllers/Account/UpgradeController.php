@@ -59,24 +59,15 @@ class UpgradeController extends Controller
             'initialPlan' => $initialPlan && $initialPlan !== Membership::FREE ? $initialPlan : null,
             'forceRenew' => $request->boolean('renew'),
             'upgradeContact' => [
-                'whatsapp' => SiteSetting::getValue('upgrade_whatsapp', ''),
                 'phone' => SiteSetting::getValue('contact_phone', ''),
                 'email' => SiteSetting::getValue('contact_email', 'hello@nanyukinow.co.ke'),
                 'mpesa_paybill' => SiteSetting::getValue('upgrade_mpesa_paybill', '542542'),
                 'mpesa_account' => SiteSetting::getValue('upgrade_mpesa_account', '451220'),
-                'intasend_note' => SiteSetting::getValue(
-                    'upgrade_intasend_note',
-                    'Complete payment in IntaSend, then paste your IntaSend transaction / invoice ID below.',
-                ),
                 'paypal_note' => SiteSetting::getValue(
                     'upgrade_paypal_note',
                     'Send payment via PayPal, then paste your PayPal transaction ID below.',
                 ),
                 'paypal_email' => SiteSetting::getValue('upgrade_paypal_email', ''),
-                'instructions' => SiteSetting::getValue(
-                    'upgrade_instructions',
-                    'Choose a plan, pick how you want to pay, then submit your payment reference. We activate your plan after verifying payment.',
-                ),
             ],
         ]);
     }
@@ -159,6 +150,11 @@ class UpgradeController extends Controller
             ? $pricing->amountForPeriod($billingPeriod)
             : (int) ($data['amount'] ?? 0);
 
+        $email = $data['email'] ?? null;
+        if ($method === PaymentMethods::PAYSTACK) {
+            $email = $user->email;
+        }
+
         $payload = [
             'user_id' => $user->id,
             'to_plan' => $toPlan,
@@ -166,14 +162,25 @@ class UpgradeController extends Controller
             'amount' => (float) $amount,
             'currency' => $data['currency'] ?? $pricing?->currency ?? 'KES',
             'phone' => $data['phone'] ?? null,
-            'email' => $data['email'] ?? null,
+            'email' => $email,
+            'paypal_mode' => $data['paypal_mode'] ?? 'wallet',
+            'paystack_mode' => $data['paystack_mode'] ?? 'mpesa',
             'return_url' => $data['return_url'] ?? route('account.billing'),
             'cancel_url' => $data['cancel_url'] ?? route('account.upgrade'),
         ];
 
+        if (! in_array($method, PaymentMethods::enabledCheckoutKeys(), true)) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'That payment method is not available.',
+                'can_retry' => false,
+            ], 422);
+        }
+
         $result = match ($method) {
             PaymentMethods::MPESA => PaymentGateway::initiateMpesa($payload),
             PaymentMethods::PAYPAL => PaymentGateway::initiatePaypal($payload),
+            PaymentMethods::PAYSTACK => PaymentGateway::initiatePaystack($payload),
             default => [
                 'ok' => false,
                 'message' => 'Payment failed. Please try again.',
@@ -198,11 +205,19 @@ class UpgradeController extends Controller
             if ($method === PaymentMethods::PAYPAL) {
                 $this->recordPendingUpgrade($user, $toPlan, $billingPeriod, (int) $amount, $currency, $providerRef, PaymentMethods::PAYPAL, 'Replaced by a new PayPal checkout.');
             }
+
+            if ($method === PaymentMethods::PAYSTACK) {
+                $replacedNote = (($data['paystack_mode'] ?? 'mpesa') === 'card')
+                    ? 'Replaced by a new Paystack card checkout.'
+                    : 'Replaced by a new Paystack payment prompt.';
+                $this->recordPendingUpgrade($user, $toPlan, $billingPeriod, (int) $amount, $currency, $providerRef, PaymentMethods::PAYSTACK, $replacedNote);
+            }
         }
 
         return response()->json([
             'ok' => true,
             'checkout_url' => $result['checkout_url'] ?? null,
+            'access_code' => $result['access_code'] ?? null,
             'provider_ref' => $result['provider_ref'] ?? null,
             'message' => $result['message'] ?? null,
         ]);
@@ -297,8 +312,7 @@ class UpgradeController extends Controller
 
     public function cancel(Request $request, PlanUpgrade $upgrade): RedirectResponse
     {
-        abort_unless((int) $upgrade->user_id === (int) $request->user()->id, 403);
-        abort_unless($upgrade->status === PlanUpgrade::STATUS_PENDING, 422);
+        $this->authorize('cancel', $upgrade);
 
         $upgrade->update(['status' => PlanUpgrade::STATUS_CANCELLED]);
 

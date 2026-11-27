@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Middleware\EnsureSitePreviewAccess;
 use App\Models\SiteSetting;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -14,6 +15,9 @@ class SitePreviewGateTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        // TestCase disables this for most feature tests; this suite needs it on.
+        $this->withMiddleware(EnsureSitePreviewAccess::class);
 
         config([
             'site.preview_gate_enabled' => true,

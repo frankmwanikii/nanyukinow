@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { ArrowUpRight, Mail, Shield } from '@/Components/site/LucideCompat';
 import { useEffect, useState } from 'react';
 import SiteLayout from '@/Layouts/SiteLayout';
@@ -31,6 +31,9 @@ function Section({ id, title, children }) {
 }
 
 export default function Privacy({ page = null }) {
+    const { siteContact } = usePage().props;
+    const contactEmail = siteContact?.email || 'hello@nanyukinow.co.ke';
+    const contactPhone = siteContact?.phone || null;
     const content = page?.content || {};
     const heroTitle = content.hero_title || page?.title || 'Privacy Policy';
     const heroSubtitle =
@@ -325,10 +328,10 @@ export default function Privacy({ page = null }) {
                             <p>
                                 To make a request, email{' '}
                                 <a
-                                    href="mailto:hello@nanyukinow.co.ke"
+                                    href={`mailto:${contactEmail}`}
                                     className="font-medium text-olive-800 underline decoration-olive-300 underline-offset-4 transition hover:decoration-mustard"
                                 >
-                                    hello@nanyukinow.co.ke
+                                    {contactEmail}
                                 </a>
                                 .
                             </p>
@@ -381,15 +384,23 @@ export default function Privacy({ page = null }) {
                                             Nanyuki, Laikipia, Kenya
                                         </p>
                                         <a
-                                            href="mailto:hello@nanyukinow.co.ke"
+                                            href={`mailto:${contactEmail}`}
                                             className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-olive-800 transition hover:text-mustard"
                                         >
                                             <Mail className="h-4 w-4 text-mustard" />
-                                            hello@nanyukinow.co.ke
+                                            {contactEmail}
                                         </a>
+                                        {contactPhone ? (
+                                            <a
+                                                href={`tel:${String(contactPhone).replace(/\s+/g, '')}`}
+                                                className="mt-2 flex items-center gap-2 text-sm font-semibold text-olive-800 transition hover:text-mustard"
+                                            >
+                                                {contactPhone}
+                                            </a>
+                                        ) : null}
                                     </div>
                                     <a
-                                        href="mailto:hello@nanyukinow.co.ke?subject=Privacy%20request"
+                                        href={`mailto:${contactEmail}?subject=Privacy%20request`}
                                         className="inline-flex items-center justify-center gap-2 rounded-full bg-olive-800 px-5 py-3 text-sm font-semibold text-white transition hover:bg-mustard hover:text-olive-950"
                                     >
                                         Email privacy team

@@ -277,7 +277,9 @@
                 <p class="meta-label">From</p>
                 <p class="meta-value">{{ $appName }}</p>
                 <p class="meta-sub">{{ $contactEmail }}</p>
-                <p class="meta-sub">{{ $contactPhone }}</p>
+                @if (! empty($contactPhone))
+                    <p class="meta-sub">{{ $contactPhone }}</p>
+                @endif
             </td>
         </tr>
     </table>
@@ -338,7 +340,9 @@
             <strong>{{ $appName }}</strong>
             · {{ $appUrl }}
             · {{ $contactEmail }}
-            · {{ $contactPhone }}
+            @if (! empty($contactPhone))
+                · {{ $contactPhone }}
+            @endif
         </p>
         <p style="margin:8px 0 0 0;">
             Keep this receipt for your records. Questions about this payment?

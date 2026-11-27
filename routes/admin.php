@@ -23,13 +23,24 @@ use App\Http\Controllers\Admin\StoryCategoryController;
 use App\Http\Controllers\Admin\StoryController;
 use App\Http\Controllers\Admin\SupportTicketController;
 use App\Http\Controllers\Admin\UserController;
+use App\Support\AdminArea;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('admin')->name('admin.')->group(function () {
-    Route::get('login', [AuthController::class, 'create'])->name('login');
-    Route::post('login', [AuthController::class, 'store'])->name('login.store');
+$adminPath = AdminArea::path();
 
-    Route::middleware(['auth', 'admin'])->group(function () {
+if (AdminArea::usesCustomPath()) {
+    // Classic /admin stays closed so scanners get nothing useful.
+    Route::any('admin/{any?}', fn () => abort(404))
+        ->where('any', '.*');
+}
+
+Route::prefix($adminPath)->name('admin.')->group(function () use ($adminPath) {
+    Route::get('login', [AuthController::class, 'create'])->name('login');
+    Route::post('login', [AuthController::class, 'store'])
+        ->middleware('throttle:5,1')
+        ->name('login.store');
+
+    Route::middleware(['auth', 'admin'])->group(function () use ($adminPath) {
         Route::post('logout', [AuthController::class, 'destroy'])->name('logout');
         Route::get('/', DashboardController::class)->name('dashboard');
 
@@ -156,7 +167,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('finance/assign-plan', [FinanceController::class, 'updateUserPlan'])->name('finance.assign');
 
         // Legacy upgrade URLs / names (tests + bookmarks)
-        Route::redirect('upgrades', '/admin/finance');
+        Route::redirect('upgrades', '/'.$adminPath.'/finance');
         Route::post('upgrades/{upgrade}/approve', [FinanceController::class, 'approve'])->name('upgrades.approve');
         Route::post('upgrades/{upgrade}/reject', [FinanceController::class, 'reject'])->name('upgrades.reject');
         Route::post('upgrades/assign-plan', [FinanceController::class, 'updateUserPlan'])->name('upgrades.assign');

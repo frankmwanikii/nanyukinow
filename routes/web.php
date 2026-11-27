@@ -9,6 +9,7 @@ use App\Http\Controllers\Account\ListingController as AccountListingController;
 use App\Http\Controllers\Account\MessageController;
 use App\Http\Controllers\Account\NotificationController;
 use App\Http\Controllers\Account\PaypalReturnController;
+use App\Http\Controllers\Account\PaystackReturnController;
 use App\Http\Controllers\Account\PlaceSearchController;
 use App\Http\Controllers\Account\PremiumTrialController;
 use App\Http\Controllers\Account\StayGallerySpaceController;
@@ -28,13 +29,16 @@ use App\Http\Controllers\SitePreviewController;
 use App\Http\Controllers\StoryController;
 use App\Http\Controllers\Webhooks\PalplussWebhookController;
 use App\Http\Controllers\Webhooks\PaypalWebhookController;
+use App\Http\Controllers\Webhooks\PaystackWebhookController;
 use App\Models\SitePage;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::post('/webhooks/palpluss', PalplussWebhookController::class)->name('webhooks.palpluss');
 Route::post('/webhooks/paypal', PaypalWebhookController::class)->name('webhooks.paypal');
+Route::post('/webhooks/paystack', PaystackWebhookController::class)->name('webhooks.paystack');
 Route::get('/account/upgrade/paypal/return', PaypalReturnController::class)->name('account.upgrade.paypal.return');
+Route::get('/account/upgrade/paystack/return', PaystackReturnController::class)->name('account.upgrade.paystack.return');
 
 Route::get('/'.trim((string) config('site.preview_path'), '/'), SitePreviewController::class)
     ->middleware('throttle:20,1')

@@ -12,7 +12,16 @@ class SaveListingDraftRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user() !== null;
+        if ($this->user() === null) {
+            return false;
+        }
+
+        $listing = $this->route('listing');
+        if ($listing) {
+            return $this->user()->can('update', $listing);
+        }
+
+        return true;
     }
 
     /**

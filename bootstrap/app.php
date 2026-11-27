@@ -3,6 +3,7 @@
 use App\Http\Middleware\EnsureSitePreviewAccess;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Support\AdminArea;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -29,10 +30,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->preventRequestForgery(except: [
             'webhooks/palpluss',
             'webhooks/paypal',
+            'webhooks/paystack',
         ]);
 
         $middleware->redirectGuestsTo(function (Request $request) {
-            return $request->is('admin') || $request->is('admin/*')
+            return AdminArea::requestIsAdmin($request)
                 ? route('admin.login')
                 : route('login');
         });
@@ -43,7 +45,7 @@ return Application::configure(basePath: dirname(__DIR__))
         );
 
         $exceptions->render(function (NotFoundHttpException $e, Request $request) {
-            if ($request->expectsJson() || $request->is('api/*') || $request->is('admin') || $request->is('admin/*')) {
+            if ($request->expectsJson() || $request->is('api/*') || AdminArea::requestIsAdmin($request)) {
                 return null;
             }
 

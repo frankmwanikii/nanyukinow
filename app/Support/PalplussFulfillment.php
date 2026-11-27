@@ -12,11 +12,24 @@ class PalplussFulfillment
      * Apply a Palpluss callback. Membership is activated only after Palpluss confirms the same transaction succeeded.
      *
      * @param  array<string, mixed>  $payload
+     * @param  array<string, mixed>  $headers
      * @return array{status: int, body: array<string, mixed>}
      */
-    public static function handle(array $payload): array
+    public static function handle(array $payload, array $headers = [], string $rawBody = ''): array
     {
+        $flatHeaders = self::flattenHeaders($headers);
+        $body = $rawBody !== '' ? $rawBody : (string) json_encode($payload);
+        if (! PaymentGateway::palplussWebhookSignatureValid($flatHeaders, $body)) {
+            Log::warning('Palpluss webhook signature rejected');
+
+            return self::result(401, ['error' => 'Invalid signature']);
+        }
+
         $eventType = $payload['event_type'] ?? null;
+        if ($eventType === 'webhook.test') {
+            return self::result(200, ['received' => true]);
+        }
+
         $transaction = $payload['transaction'] ?? null;
 
         if (! is_string($eventType) || $eventType === '' || ! is_array($transaction)) {
@@ -194,6 +207,23 @@ class PalplussFulfillment
             'admin_notes' => 'Palpluss payment was not completed.',
             'reviewed_at' => now(),
         ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $headers
+     * @return array<string, string|null>
+     */
+    private static function flattenHeaders(array $headers): array
+    {
+        $flat = [];
+        foreach ($headers as $key => $value) {
+            if (! is_string($key)) {
+                continue;
+            }
+            $flat[$key] = is_array($value) ? (string) ($value[0] ?? '') : (is_string($value) ? $value : null);
+        }
+
+        return $flat;
     }
 
     /**

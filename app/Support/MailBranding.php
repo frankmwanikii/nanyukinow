@@ -25,10 +25,7 @@ class MailBranding
             'contact_email',
             config('mail.from.address', 'hello@nanyukinow.co.ke'),
         );
-        $contactPhone = trim((string) SiteSetting::getValue('contact_phone', '+254 700 000 000'));
-        if ($contactPhone === '') {
-            $contactPhone = '+254 700 000 000';
-        }
+        $contactPhone = trim((string) SiteSetting::getValue('contact_phone', ''));
 
         return [
             'appName' => $appName,

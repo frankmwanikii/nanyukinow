@@ -15,7 +15,7 @@ class UpdateListingRequest extends FormRequest
 
         return $this->user() !== null
             && $listing
-            && (int) $listing->user_id === (int) $this->user()->id;
+            && $this->user()->can('update', $listing);
     }
 
     /**

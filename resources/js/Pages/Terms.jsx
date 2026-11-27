@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { ArrowUpRight, FileText, Mail } from '@/Components/site/LucideCompat';
 import { useEffect, useState } from 'react';
 import SiteLayout from '@/Layouts/SiteLayout';
@@ -35,6 +35,9 @@ function Section({ id, title, children }) {
 }
 
 export default function Terms({ page = null }) {
+    const { siteContact } = usePage().props;
+    const contactEmail = siteContact?.email || 'hello@nanyukinow.co.ke';
+    const contactPhone = siteContact?.phone || null;
     const content = page?.content || {};
     const heroTitle = content.hero_title || page?.title || 'Terms of Service';
     const heroSubtitle =
@@ -299,10 +302,10 @@ export default function Terms({ page = null }) {
                             <p className="rounded-xl border border-olive-200/80 bg-olive-50/80 px-4 py-3 text-sm text-olive-800">
                                 For billing questions or payment receipts, email{' '}
                                 <a
-                                    href="mailto:hello@nanyukinow.co.ke?subject=Payments%20enquiry"
+                                    href={`mailto:${contactEmail}?subject=Payments%20enquiry`}
                                     className="font-semibold text-olive-900 underline decoration-olive-300 underline-offset-2 hover:decoration-mustard"
                                 >
-                                    hello@nanyukinow.co.ke
+                                    {contactEmail}
                                 </a>
                                 .
                             </p>
@@ -460,15 +463,23 @@ export default function Terms({ page = null }) {
                                             Nanyuki, Laikipia, Kenya
                                         </p>
                                         <a
-                                            href="mailto:hello@nanyukinow.co.ke"
+                                            href={`mailto:${contactEmail}`}
                                             className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-olive-800 transition hover:text-mustard"
                                         >
                                             <Mail className="h-4 w-4 text-mustard" />
-                                            hello@nanyukinow.co.ke
+                                            {contactEmail}
                                         </a>
+                                        {contactPhone ? (
+                                            <a
+                                                href={`tel:${String(contactPhone).replace(/\s+/g, '')}`}
+                                                className="mt-2 flex items-center gap-2 text-sm font-semibold text-olive-800 transition hover:text-mustard"
+                                            >
+                                                {contactPhone}
+                                            </a>
+                                        ) : null}
                                     </div>
                                     <a
-                                        href="mailto:hello@nanyukinow.co.ke?subject=Terms%20of%20Service"
+                                        href={`mailto:${contactEmail}?subject=Terms%20of%20Service`}
                                         className="inline-flex items-center justify-center gap-2 rounded-full bg-olive-800 px-5 py-3 text-sm font-semibold text-white transition hover:bg-mustard hover:text-olive-950"
                                     >
                                         Email the team

@@ -14,14 +14,33 @@ class SettingController extends Controller
     public function index(): Response
     {
         $this->ensureDefaults();
+        $this->ensureContactDefaults();
         $this->ensureBillingDefaults();
         $this->ensurePaymentGatewayDefaults();
         $this->ensureMapsDefaults();
         $this->ensureSocialDefaults();
         $this->ensureAccessDefaults();
 
+        // Hide orphaned keys that are not wired into the live product UI.
+        $hiddenKeys = [
+            'site_tagline',
+            'logo_url',
+            'favicon_url',
+            'footer_blurb',
+            'facebook_url',
+            'instagram_url',
+            'twitter_url',
+            'youtube_url',
+            'meta_description',
+            'og_image',
+            'upgrade_whatsapp',
+            'upgrade_intasend_note',
+            'upgrade_instructions',
+        ];
+
         $settings = SiteSetting::query()
-            ->whereIn('group', ['branding', 'pages', 'billing', 'payments', 'maps', 'social', 'seo', 'access'])
+            ->whereIn('group', ['branding', 'pages', 'billing', 'payments', 'maps', 'access'])
+            ->whereNotIn('key', $hiddenKeys)
             ->orderBy('group')
             ->orderBy('sort_order')
             ->get()
@@ -73,7 +92,8 @@ class SettingController extends Controller
             ['group' => 'branding', 'key' => 'favicon_url', 'label' => 'Favicon URL', 'type' => 'image', 'value' => '/favicon.ico', 'help' => null, 'sort_order' => 4],
             ['group' => 'pages', 'key' => 'contact_email', 'label' => 'Contact email', 'type' => 'text', 'value' => 'hello@nanyukinow.co.ke', 'help' => null, 'sort_order' => 1],
             ['group' => 'pages', 'key' => 'contact_phone', 'label' => 'Contact phone', 'type' => 'text', 'value' => '', 'help' => null, 'sort_order' => 2],
-            ['group' => 'pages', 'key' => 'footer_blurb', 'label' => 'Footer blurb', 'type' => 'textarea', 'value' => 'Nanyuki Now — your local directory for places worth knowing.', 'help' => null, 'sort_order' => 3],
+            ['group' => 'pages', 'key' => 'contact_phone_alt', 'label' => 'Second phone', 'type' => 'text', 'value' => '0720 299 423', 'help' => 'Optional. Shown under the primary phone in the footer.', 'sort_order' => 3],
+            ['group' => 'pages', 'key' => 'footer_blurb', 'label' => 'Footer blurb', 'type' => 'textarea', 'value' => 'Nanyuki Now — your local directory for places worth knowing.', 'help' => null, 'sort_order' => 4],
             ['group' => 'billing', 'key' => 'upgrade_whatsapp', 'label' => 'Upgrade WhatsApp', 'type' => 'text', 'value' => '', 'help' => 'WhatsApp number members can message after paying (e.g. 2547…).', 'sort_order' => 1],
             ['group' => 'billing', 'key' => 'upgrade_mpesa_paybill', 'label' => 'M-Pesa Paybill / Till', 'type' => 'text', 'value' => '542542', 'help' => 'Shown on the public pricing & upgrade pages.', 'sort_order' => 2],
             ['group' => 'billing', 'key' => 'upgrade_mpesa_account', 'label' => 'M-Pesa account reference', 'type' => 'text', 'value' => '451220', 'help' => 'Account number members should use with Paybill.', 'sort_order' => 3],
@@ -92,6 +112,58 @@ class SettingController extends Controller
         foreach ($defaults as $row) {
             SiteSetting::query()->create($row);
         }
+    }
+
+    private function ensureContactDefaults(): void
+    {
+        $contacts = [
+            [
+                'group' => 'pages',
+                'key' => 'contact_email',
+                'label' => 'Contact email',
+                'type' => 'text',
+                'value' => 'hello@nanyukinow.co.ke',
+                'help' => null,
+                'sort_order' => 1,
+            ],
+            [
+                'group' => 'pages',
+                'key' => 'contact_phone',
+                'label' => 'Contact phone',
+                'type' => 'text',
+                'value' => '',
+                'help' => null,
+                'sort_order' => 2,
+            ],
+            [
+                'group' => 'pages',
+                'key' => 'contact_phone_alt',
+                'label' => 'Second phone',
+                'type' => 'text',
+                'value' => '0720 299 423',
+                'help' => 'Optional. Shown under the primary phone in the footer.',
+                'sort_order' => 3,
+            ],
+        ];
+
+        foreach ($contacts as $row) {
+            SiteSetting::query()->firstOrCreate(
+                ['key' => $row['key']],
+                $row,
+            );
+        }
+
+        SiteSetting::query()
+            ->where('key', 'contact_phone')
+            ->update(['label' => 'Contact phone', 'sort_order' => 2]);
+
+        SiteSetting::query()
+            ->where('key', 'contact_phone_alt')
+            ->update([
+                'label' => 'Second phone',
+                'help' => 'Optional. Shown under the primary phone in the footer.',
+                'sort_order' => 3,
+            ]);
     }
 
     private function ensureBillingDefaults(): void
@@ -119,12 +191,21 @@ class SettingController extends Controller
         $payments = [
             [
                 'group' => 'payments',
+                'key' => 'enabled_checkout_methods',
+                'label' => 'Enabled checkout methods',
+                'type' => 'text',
+                'value' => 'mpesa,paypal,paystack',
+                'help' => 'Comma-separated member methods: mpesa, paypal, paystack. Only listed methods appear at checkout.',
+                'sort_order' => 0,
+            ],
+            [
+                'group' => 'payments',
                 'key' => 'mobile_money_provider',
                 'label' => 'M-Pesa checkout provider',
                 'type' => 'select',
                 'value' => 'mpesa',
                 'help' => 'Members still see M-Pesa. Choose whether STK runs through Safaricom Daraja, IntaSend, or Palpluss.',
-                'sort_order' => 0,
+                'sort_order' => 1,
             ],
             [
                 'group' => 'payments',
@@ -133,7 +214,7 @@ class SettingController extends Controller
                 'type' => 'select',
                 'value' => 'sandbox',
                 'help' => 'Sandbox for testing. Switch to Live only with production credentials.',
-                'sort_order' => 1,
+                'sort_order' => 10,
             ],
             [
                 'group' => 'payments',
@@ -142,7 +223,7 @@ class SettingController extends Controller
                 'type' => 'text',
                 'value' => 'BAArAU7QuOwie6GylyZKkHtHBsUIvyjvKrJX-UPEurvQOic1-upqESJEfsT950Bc4YcpCz7mBdCw1-qO2Y',
                 'help' => 'From PayPal Developer → Sandbox apps.',
-                'sort_order' => 2,
+                'sort_order' => 11,
             ],
             [
                 'group' => 'payments',
@@ -151,7 +232,7 @@ class SettingController extends Controller
                 'type' => 'password',
                 'value' => 'EOFR-tNNYN4XtEH49K8Ej82xJGNvCnAtRFZMwjMXiZpAH6MgFsS4Mwds_uDQjQJHQv4_rOoRuNfrT35h',
                 'help' => 'Keep private. Used only when PayPal mode is Sandbox.',
-                'sort_order' => 3,
+                'sort_order' => 12,
             ],
             [
                 'group' => 'payments',
@@ -160,7 +241,7 @@ class SettingController extends Controller
                 'type' => 'text',
                 'value' => '',
                 'help' => 'Production app client ID. Used when mode is Live.',
-                'sort_order' => 4,
+                'sort_order' => 13,
             ],
             [
                 'group' => 'payments',
@@ -169,7 +250,25 @@ class SettingController extends Controller
                 'type' => 'password',
                 'value' => '',
                 'help' => 'Production secret. Used when mode is Live.',
-                'sort_order' => 5,
+                'sort_order' => 14,
+            ],
+            [
+                'group' => 'payments',
+                'key' => 'paypal_sandbox_webhook_id',
+                'label' => 'PayPal sandbox webhook ID',
+                'type' => 'text',
+                'value' => '',
+                'help' => 'From PayPal Developer → Sandbox webhooks. Required to verify /webhooks/paypal.',
+                'sort_order' => 15,
+            ],
+            [
+                'group' => 'payments',
+                'key' => 'paypal_live_webhook_id',
+                'label' => 'PayPal live webhook ID',
+                'type' => 'text',
+                'value' => '',
+                'help' => 'From PayPal Developer → Live webhooks. Required to verify /webhooks/paypal in Live mode.',
+                'sort_order' => 16,
             ],
             [
                 'group' => 'payments',
@@ -178,7 +277,7 @@ class SettingController extends Controller
                 'type' => 'text',
                 'value' => 'USD',
                 'help' => 'Currency sent to PayPal (KES is not supported on most accounts). Plans in KES are converted.',
-                'sort_order' => 6,
+                'sort_order' => 17,
             ],
             [
                 'group' => 'payments',
@@ -187,7 +286,61 @@ class SettingController extends Controller
                 'type' => 'text',
                 'value' => '130',
                 'help' => 'Used to convert plan prices from KES to USD for PayPal checkout. Example: 2500 KES ÷ 130 ≈ $19.23.',
-                'sort_order' => 7,
+                'sort_order' => 18,
+            ],
+            [
+                'group' => 'payments',
+                'key' => 'paystack_mode',
+                'label' => 'Paystack mode',
+                'type' => 'select',
+                'value' => 'live',
+                'help' => 'Live uses production keys. Sandbox uses test keys from Paystack.',
+                'sort_order' => 20,
+            ],
+            [
+                'group' => 'payments',
+                'key' => 'paystack_live_secret_key',
+                'label' => 'Paystack live secret key',
+                'type' => 'password',
+                'value' => 'rk_live_boLQQTvQ-Ckr5VeUVuIugpgxpQlo65Zpf7bc0145',
+                'help' => 'Secret / API key from Paystack Dashboard → Settings → API Keys & Webhooks. Used for initialize, verify, and webhook HMAC.',
+                'sort_order' => 21,
+            ],
+            [
+                'group' => 'payments',
+                'key' => 'paystack_live_public_key',
+                'label' => 'Paystack live public key',
+                'type' => 'text',
+                'value' => '',
+                'help' => 'Optional public key (pk_live_…). Redirect checkout uses the secret key only.',
+                'sort_order' => 22,
+            ],
+            [
+                'group' => 'payments',
+                'key' => 'paystack_sandbox_secret_key',
+                'label' => 'Paystack sandbox secret key',
+                'type' => 'password',
+                'value' => '',
+                'help' => 'Test secret key (sk_test_…). Used when Paystack mode is Sandbox.',
+                'sort_order' => 23,
+            ],
+            [
+                'group' => 'payments',
+                'key' => 'paystack_sandbox_public_key',
+                'label' => 'Paystack sandbox public key',
+                'type' => 'text',
+                'value' => '',
+                'help' => 'Test public key (pk_test_…). Optional for redirect checkout.',
+                'sort_order' => 24,
+            ],
+            [
+                'group' => 'payments',
+                'key' => 'paystack_channels',
+                'label' => 'Paystack channels',
+                'type' => 'text',
+                'value' => '',
+                'help' => 'Optional. Comma-separated: card, bank, ussd, mobile_money, bank_transfer, qr. Leave blank for Paystack defaults.',
+                'sort_order' => 25,
             ],
             [
                 'group' => 'payments',
@@ -196,7 +349,7 @@ class SettingController extends Controller
                 'type' => 'select',
                 'value' => 'sandbox',
                 'help' => 'Used when M-Pesa checkout provider is set to M-Pesa (Daraja).',
-                'sort_order' => 10,
+                'sort_order' => 30,
             ],
             [
                 'group' => 'payments',
@@ -378,6 +531,15 @@ class SettingController extends Controller
                 'help' => 'Optional HTTPS URL. Leave blank to use /webhooks/palpluss on this site.',
                 'sort_order' => 35,
             ],
+            [
+                'group' => 'payments',
+                'key' => 'palpluss_webhook_secret',
+                'label' => 'Palpluss webhook signing secret',
+                'type' => 'password',
+                'value' => '',
+                'help' => 'whsec_… from Palpluss Console → Webhooks after adding nanyukinow.co.ke. Required to verify callbacks.',
+                'sort_order' => 36,
+            ],
         ];
 
         foreach ($payments as $row) {
@@ -393,6 +555,21 @@ class SettingController extends Controller
             ->update([
                 'help' => 'Members still see M-Pesa. Choose whether STK runs through Safaricom Daraja, IntaSend, or Palpluss.',
             ]);
+
+        // Keep existing installs aligned with the new Paystack defaults when blank.
+        SiteSetting::query()
+            ->where('key', 'paystack_live_secret_key')
+            ->where(function ($query): void {
+                $query->whereNull('value')->orWhere('value', '');
+            })
+            ->update(['value' => 'rk_live_boLQQTvQ-Ckr5VeUVuIugpgxpQlo65Zpf7bc0145']);
+
+        SiteSetting::query()
+            ->where('key', 'enabled_checkout_methods')
+            ->where(function ($query): void {
+                $query->whereNull('value')->orWhere('value', '');
+            })
+            ->update(['value' => 'mpesa,paypal,paystack']);
     }
 
     private function ensureSocialDefaults(): void
@@ -513,7 +690,7 @@ class SettingController extends Controller
                 ['value' => 'intasend', 'label' => 'IntaSend'],
                 ['value' => 'palpluss', 'label' => 'Palpluss'],
             ],
-            'paypal_mode', 'mpesa_mode', 'intasend_mode', 'palpluss_mode' => [
+            'paypal_mode', 'mpesa_mode', 'intasend_mode', 'palpluss_mode', 'paystack_mode' => [
                 ['value' => 'sandbox', 'label' => 'Sandbox (test)'],
                 ['value' => 'live', 'label' => 'Live (production)'],
             ],

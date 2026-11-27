@@ -623,8 +623,12 @@ export default function Form({
     const isServices = categoryKey === 'services';
     const isEvents = categoryKey === 'events';
     // Prefer named routes, but never crash the form if Ziggy is stale.
+    const adminBase =
+        typeof window !== 'undefined'
+            ? `/${window.location.pathname.split('/').filter(Boolean)[0] || 'admin'}`
+            : '/admin';
     let editorMediaUploadUrl = isAdmin
-        ? '/admin/listings/editor-media'
+        ? `${adminBase}/listings/editor-media`
         : '/account/listings/editor-media';
     try {
         editorMediaUploadUrl = route(
@@ -636,7 +640,7 @@ export default function Form({
         // keep path fallback
     }
     let editorVideoUploadUrl = isAdmin
-        ? '/admin/listings/editor-video'
+        ? `${adminBase}/listings/editor-video`
         : '/account/listings/editor-video';
     try {
         editorVideoUploadUrl = route(

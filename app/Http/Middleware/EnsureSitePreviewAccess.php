@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\SiteSetting;
+use App\Support\AdminArea;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -12,16 +13,18 @@ class EnsureSitePreviewAccess
     /**
      * Paths that stay reachable while the public site is locked.
      *
-     * @var list<string>
+     * @return list<string>
      */
-    private array $except = [
-        'up',
-        'webhooks/*',
-        'newsletter',
-        // Staff must reach sign-in and the dashboard without the public unlock.
-        'admin',
-        'admin/*',
-    ];
+    private function exceptPatterns(): array
+    {
+        return [
+            'up',
+            'webhooks/*',
+            'newsletter',
+            // Staff must reach sign-in and the dashboard without the public unlock.
+            ...AdminArea::patterns(),
+        ];
+    }
 
     /**
      * @param  Closure(Request): (Response)  $next
@@ -38,7 +41,7 @@ class EnsureSitePreviewAccess
             return $next($request);
         }
 
-        foreach ($this->except as $pattern) {
+        foreach ($this->exceptPatterns() as $pattern) {
             if ($request->is($pattern)) {
                 return $next($request);
             }

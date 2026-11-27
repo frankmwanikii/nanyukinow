@@ -10,11 +10,15 @@ use Illuminate\Http\Request;
 class PaypalWebhookController extends Controller
 {
     /**
-     * PayPal posts the order result here. A confirmed capture activates the member plan.
+     * PayPal posts the order result here. Signature is verified before fulfillment.
      */
     public function __invoke(Request $request): JsonResponse
     {
-        $result = PaypalFulfillment::handleWebhook($request->json()->all());
+        $result = PaypalFulfillment::handleWebhook(
+            $request->json()->all(),
+            $request->headers->all(),
+            $request->getContent(),
+        );
 
         return response()->json($result['body'], $result['status']);
     }

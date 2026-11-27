@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Support\AdminArea;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -62,7 +63,7 @@ class AuthController extends Controller
         // staff behind the preview gate after a session rotate.
         if (is_string($intended) && $intended !== '') {
             $path = parse_url($intended, PHP_URL_PATH) ?: '';
-            if (str_starts_with($path, '/admin')) {
+            if (str_starts_with($path, AdminArea::uriPrefix())) {
                 return redirect()->to($intended);
             }
         }

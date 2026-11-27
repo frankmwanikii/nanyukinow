@@ -383,7 +383,10 @@ class PaymentGateway
                 ]],
                 'application_context' => [
                     'brand_name' => (string) SiteSetting::getValue('site_name', 'Nanyuki Now'),
-                    'landing_page' => 'LOGIN',
+                    // BILLING nudges guest debit/credit card; LOGIN is PayPal wallet sign-in.
+                    'landing_page' => (($payload['paypal_mode'] ?? 'wallet') === 'card')
+                        ? 'BILLING'
+                        : 'LOGIN',
                     'user_action' => 'PAY_NOW',
                     'shipping_preference' => 'NO_SHIPPING',
                     'return_url' => $returnUrl,
@@ -570,7 +573,7 @@ class PaymentGateway
     }
 
     /**
-     * @return array{mode: string, client_id: string, secret: string}
+     * @return array{mode: string, client_id: string, secret: string, webhook_id: string}
      */
     public static function paypalCredentials(): array
     {
@@ -581,6 +584,7 @@ class PaymentGateway
                 'mode' => self::MODE_LIVE,
                 'client_id' => trim((string) SiteSetting::getValue('paypal_live_client_id', '')),
                 'secret' => trim((string) SiteSetting::getValue('paypal_live_secret', '')),
+                'webhook_id' => trim((string) SiteSetting::getValue('paypal_live_webhook_id', '')),
             ];
         }
 
@@ -594,7 +598,427 @@ class PaymentGateway
                 'paypal_sandbox_secret',
                 self::DEFAULT_PAYPAL_SANDBOX_SECRET,
             )),
+            'webhook_id' => trim((string) SiteSetting::getValue('paypal_sandbox_webhook_id', '')),
         ];
+    }
+
+    /**
+     * Verify PayPal webhook authenticity via /v1/notifications/verify-webhook-signature.
+     *
+     * @param  array<string, string|null>  $headers
+     */
+    public static function paypalWebhookSignatureValid(array $headers, string $rawBody): bool
+    {
+        $creds = self::paypalCredentials();
+        if ($creds['client_id'] === '' || $creds['secret'] === '' || $creds['webhook_id'] === '') {
+            return false;
+        }
+
+        $authAlgo = trim((string) ($headers['PAYPAL-AUTH-ALGO'] ?? $headers['paypal-auth-algo'] ?? ''));
+        $certUrl = trim((string) ($headers['PAYPAL-CERT-URL'] ?? $headers['paypal-cert-url'] ?? ''));
+        $transmissionId = trim((string) ($headers['PAYPAL-TRANSMISSION-ID'] ?? $headers['paypal-transmission-id'] ?? ''));
+        $transmissionSig = trim((string) ($headers['PAYPAL-TRANSMISSION-SIG'] ?? $headers['paypal-transmission-sig'] ?? ''));
+        $transmissionTime = trim((string) ($headers['PAYPAL-TRANSMISSION-TIME'] ?? $headers['paypal-transmission-time'] ?? ''));
+
+        if ($authAlgo === '' || $certUrl === '' || $transmissionId === '' || $transmissionSig === '' || $transmissionTime === '') {
+            return false;
+        }
+
+        if (! str_starts_with($certUrl, 'https://api.') && ! str_starts_with($certUrl, 'https://api-m.')) {
+            return false;
+        }
+
+        $event = json_decode($rawBody, true);
+        if (! is_array($event)) {
+            return false;
+        }
+
+        try {
+            $token = self::paypalAccessToken($creds);
+            if ($token === null) {
+                return false;
+            }
+
+            $response = Http::withToken($token)
+                ->acceptJson()
+                ->connectTimeout(5)
+                ->timeout(20)
+                ->post(self::paypalBaseUrl($creds['mode']).'/v1/notifications/verify-webhook-signature', [
+                    'auth_algo' => $authAlgo,
+                    'cert_url' => $certUrl,
+                    'transmission_id' => $transmissionId,
+                    'transmission_sig' => $transmissionSig,
+                    'transmission_time' => $transmissionTime,
+                    'webhook_id' => $creds['webhook_id'],
+                    'webhook_event' => $event,
+                ]);
+        } catch (Throwable $e) {
+            Log::warning('PayPal webhook signature verify failed', ['error' => $e->getMessage()]);
+
+            return false;
+        }
+
+        $status = strtoupper((string) ($response->json('verification_status') ?? ''));
+
+        return $response->successful() && $status === 'SUCCESS';
+    }
+
+    /**
+     * Palpluss Standard Webhooks HMAC (webhook-id / timestamp / signature).
+     *
+     * @param  array<string, string|null>  $headers
+     */
+    public static function palplussWebhookSignatureValid(array $headers, string $rawBody): bool
+    {
+        $secret = trim((string) SiteSetting::getValue('palpluss_webhook_secret', ''));
+        if ($secret === '' || $rawBody === '') {
+            return false;
+        }
+
+        $id = trim((string) ($headers['webhook-id'] ?? $headers['Webhook-Id'] ?? ''));
+        $timestamp = trim((string) ($headers['webhook-timestamp'] ?? $headers['Webhook-Timestamp'] ?? ''));
+        $signatures = trim((string) ($headers['webhook-signature'] ?? $headers['Webhook-Signature'] ?? ''));
+
+        if ($id === '' || $timestamp === '' || $signatures === '' || ! ctype_digit($timestamp)) {
+            return false;
+        }
+
+        if (abs(time() - (int) $timestamp) > 300) {
+            return false;
+        }
+
+        $keyMaterial = preg_replace('/^whsec_/', '', $secret) ?? $secret;
+        $key = base64_decode($keyMaterial, true);
+        if ($key === false || $key === '') {
+            return false;
+        }
+
+        $expected = base64_encode(hash_hmac('sha256', $id.'.'.$timestamp.'.'.$rawBody, $key, true));
+
+        foreach (explode(' ', $signatures) as $part) {
+            [$version, $signature] = array_pad(explode(',', $part, 2), 2, '');
+            if ($version === 'v1' && is_string($signature) && $signature !== '' && hash_equals($expected, $signature)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Paystack checkout: card (on-site Popup access_code) or M-Pesa STK charge.
+     *
+     * @param  array<string, mixed>  $payload
+     * @return array{ok: bool, provider_ref?: string, access_code?: string, checkout_url?: string, message?: string}
+     */
+    public static function initiatePaystack(array $payload): array
+    {
+        $creds = self::paystackCredentials();
+
+        if ($creds['secret'] === '') {
+            return self::fail('Paystack credentials missing');
+        }
+
+        $amount = (float) ($payload['amount'] ?? 0);
+        if ($amount <= 0) {
+            return [
+                'ok' => false,
+                'message' => 'Invalid payment amount.',
+            ];
+        }
+
+        $email = trim((string) ($payload['email'] ?? ''));
+        if ($email === '' || ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return [
+                'ok' => false,
+                'message' => 'Enter a valid email address for Paystack.',
+            ];
+        }
+
+        $mode = strtolower(trim((string) ($payload['paystack_mode'] ?? 'mpesa')));
+        if ($mode === 'card') {
+            return self::initiatePaystackCard($payload, $creds, $amount, $email);
+        }
+
+        return self::initiatePaystackMpesa($payload, $creds, $amount, $email);
+    }
+
+    /**
+     * Initialize Paystack card for on-site Popup (access_code). No hosted redirect.
+     *
+     * @param  array<string, mixed>  $payload
+     * @param  array{mode: string, public_key: string, secret: string}  $creds
+     * @return array{ok: bool, provider_ref?: string, access_code?: string, checkout_url?: string, message?: string}
+     */
+    private static function initiatePaystackCard(array $payload, array $creds, float $amount, string $email): array
+    {
+        $currency = strtoupper(trim((string) ($payload['currency'] ?? 'KES'))) ?: 'KES';
+        $reference = self::paystackReference((int) ($payload['user_id'] ?? 0));
+        $body = [
+            'email' => $email,
+            'amount' => self::paystackAmountSubunits($amount, $currency),
+            'currency' => $currency,
+            'reference' => $reference,
+            // Fallback if 3DS forces a browser redirect.
+            'callback_url' => route('account.upgrade.paystack.return'),
+            'channels' => ['card'],
+            'metadata' => [
+                'user_id' => (string) ($payload['user_id'] ?? ''),
+                'to_plan' => (string) ($payload['to_plan'] ?? ''),
+                'paystack_mode' => 'card',
+            ],
+        ];
+
+        try {
+            $response = Http::withToken($creds['secret'])
+                ->acceptJson()
+                ->connectTimeout(5)
+                ->timeout(30)
+                ->post('https://api.paystack.co/transaction/initialize', $body);
+
+            $json = $response->json() ?? [];
+            $data = is_array($json['data'] ?? null) ? $json['data'] : [];
+            $accessCode = is_string($data['access_code'] ?? null) ? $data['access_code'] : null;
+            $ref = is_string($data['reference'] ?? null) && $data['reference'] !== ''
+                ? $data['reference']
+                : $reference;
+
+            if (! $response->successful() || ! ($json['status'] ?? false) || ! $accessCode) {
+                $apiMessage = is_string($json['message'] ?? null) ? $json['message'] : '';
+                if (stripos($apiMessage, 'No active channel') !== false) {
+                    Log::warning('Paystack card channel unavailable', [
+                        'status' => $response->status(),
+                        'body' => $json,
+                    ]);
+
+                    return [
+                        'ok' => false,
+                        'message' => 'Card is not enabled on your Paystack account yet. Enable Card payments in Paystack (or ask Paystack support for Kenya), then try again. M-Pesa still works.',
+                    ];
+                }
+
+                return self::fail('Paystack card initialize failed', [
+                    'status' => $response->status(),
+                    'body' => $json !== [] ? $json : $response->body(),
+                ]);
+            }
+
+            return [
+                'ok' => true,
+                'provider_ref' => $ref,
+                'access_code' => $accessCode,
+            ];
+        } catch (Throwable $e) {
+            Log::error('Paystack card initiate error', ['error' => $e->getMessage()]);
+
+            return [
+                'ok' => false,
+                'message' => self::FAILURE_MESSAGE,
+            ];
+        }
+    }
+
+    /**
+     * Charge Paystack M-Pesa on-site (STK push). No hosted redirect.
+     *
+     * @param  array<string, mixed>  $payload
+     * @param  array{mode: string, public_key: string, secret: string}  $creds
+     * @return array{ok: bool, provider_ref?: string, checkout_url?: string, message?: string}
+     */
+    private static function initiatePaystackMpesa(array $payload, array $creds, float $amount, string $email): array
+    {
+        $currency = strtoupper(trim((string) ($payload['currency'] ?? 'KES'))) ?: 'KES';
+        if ($currency !== 'KES') {
+            return [
+                'ok' => false,
+                'message' => 'Paystack mobile money supports KES only.',
+            ];
+        }
+
+        $phone = self::normalizeKenyanPhone((string) ($payload['phone'] ?? ''));
+        if ($phone === null) {
+            return [
+                'ok' => false,
+                'message' => 'Enter a valid phone number for Paystack M-Pesa.',
+            ];
+        }
+
+        $reference = self::paystackReference((int) ($payload['user_id'] ?? 0));
+        $body = [
+            'email' => $email,
+            'amount' => self::paystackAmountSubunits($amount, $currency),
+            'currency' => $currency,
+            'reference' => $reference,
+            'mobile_money' => [
+                'phone' => '+'.$phone,
+                'provider' => 'mpesa',
+            ],
+            'metadata' => [
+                'user_id' => (string) ($payload['user_id'] ?? ''),
+                'to_plan' => (string) ($payload['to_plan'] ?? ''),
+                'paystack_mode' => 'mpesa',
+            ],
+        ];
+
+        try {
+            $response = Http::withToken($creds['secret'])
+                ->acceptJson()
+                ->connectTimeout(5)
+                ->timeout(30)
+                ->post('https://api.paystack.co/charge', $body);
+
+            $json = $response->json() ?? [];
+            $data = is_array($json['data'] ?? null) ? $json['data'] : [];
+            $ref = is_string($data['reference'] ?? null) && $data['reference'] !== ''
+                ? $data['reference']
+                : $reference;
+            $status = strtolower((string) ($data['status'] ?? ''));
+
+            if (! $response->successful() || ! ($json['status'] ?? false)) {
+                return self::fail('Paystack charge failed', [
+                    'status' => $response->status(),
+                    'body' => $json !== [] ? $json : $response->body(),
+                ]);
+            }
+
+            // pay_offline = STK sent; success = instant complete (rare).
+            if (! in_array($status, ['pay_offline', 'success', 'pending'], true)) {
+                return self::fail('Paystack charge rejected', [
+                    'status' => $status,
+                    'body' => $json,
+                ]);
+            }
+
+            $display = trim((string) ($data['display_text'] ?? ''));
+
+            return [
+                'ok' => true,
+                'provider_ref' => $ref,
+                'message' => $display !== ''
+                    ? $display
+                    : 'Check your phone and enter your M-Pesa PIN to complete payment.',
+            ];
+        } catch (Throwable $e) {
+            Log::error('Paystack initiate error', ['error' => $e->getMessage()]);
+
+            return [
+                'ok' => false,
+                'message' => self::FAILURE_MESSAGE,
+            ];
+        }
+    }
+
+    /**
+     * @return array{retry: bool, data: array<string, mixed>|null}
+     */
+    public static function verifyPaystackTransaction(string $reference): array
+    {
+        $creds = self::paystackCredentials();
+        if ($creds['secret'] === '' || $reference === '') {
+            return ['retry' => true, 'data' => null];
+        }
+
+        try {
+            $response = Http::withToken($creds['secret'])
+                ->acceptJson()
+                ->connectTimeout(5)
+                ->timeout(15)
+                ->get('https://api.paystack.co/transaction/verify/'.rawurlencode($reference));
+        } catch (Throwable $e) {
+            Log::warning('Paystack verify failed', ['error' => $e->getMessage()]);
+
+            return ['retry' => true, 'data' => null];
+        }
+
+        if ($response->serverError() || $response->status() === 429) {
+            return ['retry' => true, 'data' => null];
+        }
+
+        $json = $response->json();
+        $data = is_array($json) && is_array($json['data'] ?? null) ? $json['data'] : null;
+        if (! $response->successful() || ! ($json['status'] ?? false) || $data === null) {
+            return ['retry' => false, 'data' => null];
+        }
+
+        return ['retry' => false, 'data' => $data];
+    }
+
+    public static function paystackAmountSubunits(float $amount, string $currency = 'KES'): int
+    {
+        // Paystack expects the smallest currency unit (kobo / cents).
+        return (int) max(round($amount * 100), 1);
+    }
+
+    /**
+     * Validate classic x-paystack-signature (HMAC SHA512 of raw body with secret key).
+     */
+    public static function paystackSignatureValid(?string $signature, string $rawBody): bool
+    {
+        if (! is_string($signature) || $signature === '' || $rawBody === '') {
+            return false;
+        }
+
+        $creds = self::paystackCredentials();
+        if ($creds['secret'] === '') {
+            return false;
+        }
+
+        $expected = hash_hmac('sha512', $rawBody, $creds['secret']);
+
+        return hash_equals($expected, $signature);
+    }
+
+    /**
+     * @return array{mode: string, public_key: string, secret: string}
+     */
+    public static function paystackCredentials(): array
+    {
+        $mode = self::normalizeMode(SiteSetting::getValue('paystack_mode', self::MODE_LIVE));
+        $prefix = $mode === self::MODE_LIVE ? 'paystack_live_' : 'paystack_sandbox_';
+
+        return [
+            'mode' => $mode,
+            'public_key' => trim((string) SiteSetting::getValue($prefix.'public_key', '')),
+            'secret' => trim((string) SiteSetting::getValue($prefix.'secret_key', '')),
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function paystackChannels(): array
+    {
+        $raw = trim((string) SiteSetting::getValue('paystack_channels', ''));
+        if ($raw === '') {
+            return [];
+        }
+
+        $allowed = [
+            'card',
+            'bank',
+            'apple_pay',
+            'ussd',
+            'qr',
+            'mobile_money',
+            'bank_transfer',
+            'eft',
+            'capitec_pay',
+            'payattitude',
+        ];
+
+        $channels = array_values(array_filter(array_map(
+            static fn (string $channel): string => strtolower(trim($channel)),
+            explode(',', $raw),
+        )));
+
+        return array_values(array_intersect($channels, $allowed));
+    }
+
+    private static function paystackReference(int $userId): string
+    {
+        $suffix = bin2hex(random_bytes(6));
+
+        return 'nnup_'.($userId > 0 ? $userId.'_' : '').$suffix;
     }
 
     /**

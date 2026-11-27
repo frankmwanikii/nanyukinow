@@ -14,6 +14,7 @@ import {
     isAwaitingMpesaPrompt,
     memberFacingPaymentReference,
 } from '@/utils/paymentReference';
+import { openPaystackCardCheckout } from '@/utils/paystackInline';
 
 const PENDING_WAIT_SECONDS = 5;
 const PENDING_PAY_SECONDS = 30;
@@ -28,7 +29,7 @@ function isLivePendingPayment(upgrade, emphasizeStk = false) {
     }
 
     const method = upgrade.payment_method || 'mpesa';
-    if (method === 'paypal') {
+    if (method === 'paypal' || method === 'paystack') {
         return true;
     }
 
@@ -38,7 +39,9 @@ function isLivePendingPayment(upgrade, emphasizeStk = false) {
 function PendingPaymentBanner({ upgrade, emphasizeStk = false }) {
     const live = isLivePendingPayment(upgrade, emphasizeStk);
     const visibleRef = memberFacingPaymentReference(upgrade.payment_reference);
-    const isPaypal = (upgrade.payment_method || '') === 'paypal';
+    const method = upgrade.payment_method || 'mpesa';
+    const isPaypal = method === 'paypal';
+    const isPaystack = method === 'paystack';
     const [phase, setPhase] = useState(live ? 'wait' : 'review');
     const [waitLeft, setWaitLeft] = useState(PENDING_WAIT_SECONDS);
     const [payLeft, setPayLeft] = useState(PENDING_PAY_SECONDS);
@@ -197,7 +200,11 @@ function PendingPaymentBanner({ upgrade, emphasizeStk = false }) {
     const countdown = phase === 'wait' ? waitLeft : payLeft;
     const total = phase === 'wait' ? PENDING_WAIT_SECONDS : PENDING_PAY_SECONDS;
     const progress = Math.max(0, Math.min(100, (countdown / total) * 100));
-    const title = isPaypal ? 'Complete PayPal checkout' : 'M-Pesa prompt sent';
+    const title = isPaypal
+        ? 'Complete PayPal checkout'
+        : isPaystack
+          ? 'Paystack prompt sent'
+          : 'M-Pesa prompt sent';
     const body = isPaypal
         ? `Finish checkout for ${upgrade.to_label} in the PayPal window.`
         : `Check your phone and enter your PIN to finish paying for ${upgrade.to_label}.`;
@@ -343,9 +350,22 @@ function PaypalIcon({ className = 'h-8 w-auto max-w-[9rem]' }) {
     );
 }
 
+function PaystackIcon({ className = 'h-7 w-auto' }) {
+    return (
+        <span
+            className={`inline-flex items-center font-semibold tracking-tight text-[#0BA4DB] ${className}`}
+        >
+            Paystack
+        </span>
+    );
+}
+
 function MethodIcon({ method, className }) {
     if (method === 'paypal') {
         return <PaypalIcon className={className || 'h-8 w-auto max-w-[9rem]'} />;
+    }
+    if (method === 'paystack') {
+        return <PaystackIcon className={className || 'text-base'} />;
     }
     return <MpesaIcon className={className || 'h-10 w-auto max-w-[9rem]'} />;
 }
@@ -697,6 +717,9 @@ function PaymentCheckout({
     const method = form.data.payment_method;
     const [phone, setPhone] = useState('');
     const [paypalEmail, setPaypalEmail] = useState('');
+    const [paystackPhone, setPaystackPhone] = useState('');
+    const [paystackMode, setPaystackMode] = useState('mpesa');
+    const [paypalMode, setPaypalMode] = useState('wallet');
     const [offlinePayment, setOfflinePayment] = useState(false);
     const [paying, setPaying] = useState(false);
     const [payError, setPayError] = useState(null);
@@ -707,11 +730,20 @@ function PaymentCheckout({
     const amountLabel = `${displayPrice(plan, period)}${
         !plan.price_label && amount > 0 ? ` ${periodSuffix(period)}` : ''
     }`;
+    const methodCount = Math.max(paymentMethods?.length || 2, 1);
 
     const referenceLabel =
-        method === 'paypal' ? 'PayPal transaction ID' : 'M-Pesa confirmation code';
+        method === 'paypal'
+            ? 'PayPal transaction ID'
+            : method === 'paystack'
+              ? 'Paystack reference'
+              : 'M-Pesa confirmation code';
     const referenceHint =
-        method === 'paypal' ? 'e.g. 8AB12345XY678901A' : 'e.g. QJX7ABC123';
+        method === 'paypal'
+            ? 'e.g. 8AB12345XY678901A'
+            : method === 'paystack'
+              ? 'e.g. nnup_12_ab12cd'
+              : 'e.g. QJX7ABC123';
 
     useEffect(() => {
         const onKey = (e) => {
@@ -733,6 +765,13 @@ function PaymentCheckout({
         setPayError(null);
         setPhoneError('');
         setEmailError('');
+        if (value !== 'paypal') {
+            setPaypalMode('wallet');
+        }
+        if (value !== 'paystack') {
+            setPaystackPhone('');
+            setPaystackMode('mpesa');
+        }
     };
 
     const buildNotes = () => {
@@ -742,6 +781,16 @@ function PaymentCheckout({
         }
         if (method === 'paypal' && paypalEmail.trim()) {
             bits.push(`PayPal email: ${paypalEmail.trim()}`);
+        }
+        if (method === 'paystack') {
+            bits.push(
+                paystackMode === 'card'
+                    ? 'Paystack: card'
+                    : 'Paystack: M-Pesa',
+            );
+            if (paystackMode !== 'card' && paystackPhone.trim()) {
+                bits.push(`Paystack phone: ${paystackPhone.trim()}`);
+            }
         }
         if (form.data.member_notes?.trim()) {
             bits.push(form.data.member_notes.trim());
@@ -776,8 +825,18 @@ function PaymentCheckout({
         payment_method: method,
         amount,
         currency: plan.currency || 'KES',
-        phone: method === 'mpesa' ? phone.trim() : undefined,
-        email: method === 'paypal' ? paypalEmail.trim() : undefined,
+        phone:
+            method === 'mpesa'
+                ? phone.trim()
+                : method === 'paystack' && paystackMode !== 'card'
+                  ? paystackPhone.trim()
+                  : undefined,
+        email:
+            method === 'paypal' && paypalEmail.trim()
+                ? paypalEmail.trim()
+                : undefined,
+        paypal_mode: method === 'paypal' ? paypalMode : undefined,
+        paystack_mode: method === 'paystack' ? paystackMode : undefined,
         return_url:
             typeof window !== 'undefined'
                 ? `${window.location.origin}/account/billing`
@@ -798,8 +857,17 @@ function PaymentCheckout({
             return;
         }
 
-        if (method === 'paypal' && !paypalEmail.trim()) {
+        if (method === 'paypal' && paypalMode === 'wallet' && !paypalEmail.trim()) {
             setEmailError('Enter your PayPal email address.');
+            return;
+        }
+
+        if (
+            method === 'paystack' &&
+            paystackMode !== 'card' &&
+            !paystackPhone.trim()
+        ) {
+            setPhoneError('Enter the phone number to receive the Paystack prompt.');
             return;
         }
 
@@ -810,6 +878,37 @@ function PaymentCheckout({
                 route('account.upgrade.pay'),
                 paymentPayload(),
             );
+            if (
+                method === 'paystack' &&
+                paystackMode === 'card' &&
+                data?.ok &&
+                data?.access_code
+            ) {
+                try {
+                    const paid = await openPaystackCardCheckout(data.access_code);
+                    const reference =
+                        paid.reference || data.provider_ref || '';
+                    const returnUrl = new URL(
+                        route('account.upgrade.paystack.return'),
+                        window.location.origin,
+                    );
+                    if (reference) {
+                        returnUrl.searchParams.set('reference', reference);
+                    }
+                    window.location.assign(returnUrl.toString());
+                    return;
+                } catch (popupErr) {
+                    const cancelled =
+                        popupErr?.message === 'Payment cancelled.';
+                    setPayError(
+                        cancelled
+                            ? null
+                            : popupErr?.message ||
+                              'Card payment failed. Please try again.',
+                    );
+                    return;
+                }
+            }
             if (data?.checkout_url) {
                 window.location.href = data.checkout_url;
                 return;
@@ -915,20 +1014,18 @@ function PaymentCheckout({
                             </div>
                         </div>
 
-                        {/* Methods — sliding segmented toggle */}
+                        {/* Methods */}
                         <div>
                             <p className={labelCls}>Payment method</p>
                             <div
                                 role="radiogroup"
                                 aria-label="Payment method"
-                                className="relative grid grid-cols-2 rounded-full bg-olive-100/90 p-1 dark:bg-olive-950 dark:ring-1 dark:ring-olive-700"
+                                className={`grid gap-2 ${
+                                    methodCount >= 3
+                                        ? 'grid-cols-1 sm:grid-cols-3'
+                                        : 'grid-cols-2'
+                                }`}
                             >
-                                <span
-                                    aria-hidden
-                                    className={`pointer-events-none absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-white shadow-sm ring-1 ring-olive-200/80 transition-transform duration-300 ease-out dark:bg-mustard dark:ring-mustard/40 ${
-                                        method === 'paypal' ? 'translate-x-full' : 'translate-x-0'
-                                    }`}
-                                />
                                 {paymentMethods.map((opt) => {
                                     const active = method === opt.value;
                                     return (
@@ -939,18 +1036,20 @@ function PaymentCheckout({
                                             aria-checked={active}
                                             aria-label={opt.label}
                                             onClick={() => selectMethod(opt.value)}
-                                            className={`relative z-10 flex items-center justify-center rounded-full px-3 py-3 transition ${
+                                            className={`flex min-h-[3.25rem] items-center justify-center rounded-xl border px-3 py-2.5 transition ${
                                                 active
-                                                    ? 'text-olive-950 dark:text-earth-dusk'
-                                                    : 'text-olive-500 hover:text-olive-800 dark:text-olive-400 dark:hover:text-olive-100'
+                                                    ? 'border-olive-900 bg-olive-900 text-white shadow-sm dark:border-mustard dark:bg-mustard dark:text-earth-dusk'
+                                                    : 'border-olive-200 bg-olive-50/80 text-olive-600 hover:border-olive-300 hover:bg-white dark:border-olive-700 dark:bg-olive-950 dark:text-olive-300 dark:hover:border-olive-500'
                                             }`}
                                         >
                                             <MethodIcon
                                                 method={opt.value}
                                                 className={
                                                     opt.value === 'paypal'
-                                                        ? 'h-7 w-auto max-w-[6.5rem]'
-                                                        : 'h-8 w-auto max-w-[6.5rem]'
+                                                        ? `h-7 w-auto max-w-[6.5rem] ${active ? 'brightness-0 invert dark:invert-0 dark:brightness-100' : ''}`
+                                                        : opt.value === 'paystack'
+                                                          ? `text-sm sm:text-base ${active ? 'text-white dark:text-earth-dusk' : ''}`
+                                                          : `h-8 w-auto max-w-[6.5rem] ${active ? 'brightness-0 invert dark:invert-0 dark:brightness-100' : ''}`
                                                 }
                                             />
                                         </button>
@@ -991,29 +1090,177 @@ function PaymentCheckout({
                             </div>
                         )}
 
+                        {method === 'paystack' && !offlinePayment && (
+                            <div className="space-y-4">
+                                <div>
+                                    <p className={labelCls}>Pay with</p>
+                                    <div
+                                        role="radiogroup"
+                                        aria-label="Paystack checkout type"
+                                        className="relative grid grid-cols-2 rounded-full bg-olive-100/90 p-1 dark:bg-olive-950 dark:ring-1 dark:ring-olive-700"
+                                    >
+                                        <span
+                                            aria-hidden
+                                            className={`pointer-events-none absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-white shadow-sm ring-1 ring-olive-200/80 transition-transform duration-300 ease-out dark:bg-olive-800 dark:ring-olive-600 ${
+                                                paystackMode === 'card'
+                                                    ? 'translate-x-full'
+                                                    : 'translate-x-0'
+                                            }`}
+                                        />
+                                        {[
+                                            { value: 'mpesa', label: 'M-Pesa' },
+                                            { value: 'card', label: 'Card' },
+                                        ].map((opt) => {
+                                            const active = paystackMode === opt.value;
+                                            return (
+                                                <button
+                                                    key={opt.value}
+                                                    type="button"
+                                                    role="radio"
+                                                    aria-checked={active}
+                                                    onClick={() => {
+                                                        setPaystackMode(opt.value);
+                                                        setPhoneError('');
+                                                        setPayError(null);
+                                                    }}
+                                                    className={`relative z-10 rounded-full px-3 py-2.5 text-sm font-semibold transition ${
+                                                        active
+                                                            ? 'text-olive-950 dark:text-olive-50'
+                                                            : 'text-olive-500 hover:text-olive-800 dark:text-olive-400 dark:hover:text-olive-100'
+                                                    }`}
+                                                >
+                                                    {opt.label}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                    {paystackMode === 'card' ? (
+                                        <p className="mt-2 text-xs leading-relaxed text-olive-500 dark:text-olive-400">
+                                            A secure card window opens on this page.
+                                            You stay on Nanyuki Now.
+                                        </p>
+                                    ) : null}
+                                </div>
+
+                                {paystackMode !== 'card' ? (
+                                    <div>
+                                        <label
+                                            className={labelCls}
+                                            htmlFor="payer_paystack_phone"
+                                        >
+                                            M-Pesa phone number
+                                        </label>
+                                        <input
+                                            id="payer_paystack_phone"
+                                            type="tel"
+                                            inputMode="tel"
+                                            autoComplete="tel"
+                                            className={field}
+                                            value={paystackPhone}
+                                            onChange={(e) => {
+                                                setPaystackPhone(e.target.value);
+                                                setPhoneError('');
+                                                setPayError(null);
+                                            }}
+                                            placeholder="07XX XXX XXX"
+                                            required
+                                        />
+                                        <p className="mt-2 text-xs leading-relaxed text-olive-500 dark:text-olive-400">
+                                            Stay on this page. Paystack will send an
+                                            M-Pesa prompt to this number.
+                                        </p>
+                                        {phoneError && (
+                                            <p className="mt-1.5 text-sm text-rose-600">
+                                                {phoneError}
+                                            </p>
+                                        )}
+                                    </div>
+                                ) : null}
+                            </div>
+                        )}
+
                         {method === 'paypal' && !offlinePayment && (
-                            <div>
-                                <label className={labelCls} htmlFor="payer_paypal_email">
-                                    PayPal email
-                                </label>
-                                <input
-                                    id="payer_paypal_email"
-                                    type="email"
-                                    inputMode="email"
-                                    autoComplete="email"
-                                    className={field}
-                                    value={paypalEmail}
-                                    onChange={(e) => {
-                                        setPaypalEmail(e.target.value);
-                                        setEmailError('');
-                                        setPayError(null);
-                                    }}
-                                    placeholder="you@email.com"
-                                    required
-                                />
-                                {emailError && (
-                                    <p className="mt-1.5 text-sm text-rose-600">{emailError}</p>
-                                )}
+                            <div className="space-y-4">
+                                <div>
+                                    <p className={labelCls}>Pay with</p>
+                                    <div
+                                        role="radiogroup"
+                                        aria-label="PayPal checkout type"
+                                        className="relative grid grid-cols-2 rounded-full bg-olive-100/90 p-1 dark:bg-olive-950 dark:ring-1 dark:ring-olive-700"
+                                    >
+                                        <span
+                                            aria-hidden
+                                            className={`pointer-events-none absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-white shadow-sm ring-1 ring-olive-200/80 transition-transform duration-300 ease-out dark:bg-olive-800 dark:ring-olive-600 ${
+                                                paypalMode === 'card'
+                                                    ? 'translate-x-full'
+                                                    : 'translate-x-0'
+                                            }`}
+                                        />
+                                        {[
+                                            { value: 'wallet', label: 'PayPal' },
+                                            { value: 'card', label: 'Card' },
+                                        ].map((opt) => {
+                                            const active = paypalMode === opt.value;
+                                            return (
+                                                <button
+                                                    key={opt.value}
+                                                    type="button"
+                                                    role="radio"
+                                                    aria-checked={active}
+                                                    onClick={() => {
+                                                        setPaypalMode(opt.value);
+                                                        setEmailError('');
+                                                        setPayError(null);
+                                                    }}
+                                                    className={`relative z-10 rounded-full px-3 py-2.5 text-sm font-semibold transition ${
+                                                        active
+                                                            ? 'text-olive-950 dark:text-olive-50'
+                                                            : 'text-olive-500 hover:text-olive-800 dark:text-olive-400 dark:hover:text-olive-100'
+                                                    }`}
+                                                >
+                                                    {opt.label}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                    {paypalMode === 'card' ? (
+                                        <p className="mt-2 text-xs leading-relaxed text-olive-500 dark:text-olive-400">
+                                            Enter card details on PayPal's secure page. A
+                                            PayPal account is not required.
+                                        </p>
+                                    ) : null}
+                                </div>
+
+                                {paypalMode === 'wallet' ? (
+                                    <div>
+                                        <label
+                                            className={labelCls}
+                                            htmlFor="payer_paypal_email"
+                                        >
+                                            PayPal email
+                                        </label>
+                                        <input
+                                            id="payer_paypal_email"
+                                            type="email"
+                                            inputMode="email"
+                                            autoComplete="email"
+                                            className={field}
+                                            value={paypalEmail}
+                                            onChange={(e) => {
+                                                setPaypalEmail(e.target.value);
+                                                setEmailError('');
+                                                setPayError(null);
+                                            }}
+                                            placeholder="you@email.com"
+                                            required
+                                        />
+                                        {emailError && (
+                                            <p className="mt-1.5 text-sm text-rose-600">
+                                                {emailError}
+                                            </p>
+                                        )}
+                                    </div>
+                                ) : null}
                             </div>
                         )}
 
@@ -1067,7 +1314,9 @@ function PaymentCheckout({
                                     <span className="mt-0.5 block text-xs text-olive-500 dark:text-olive-400">
                                         {method === 'mpesa'
                                             ? 'Pay via Lipa na M-Pesa, then enter your code'
-                                            : 'Pay via PayPal, then enter your transaction ID'}
+                                            : method === 'paystack'
+                                              ? 'Pay via Paystack, then enter your reference'
+                                              : 'Pay via PayPal, then enter your transaction ID'}
                                     </span>
                                 </span>
                                 <span
@@ -1270,20 +1519,38 @@ function PaymentCheckout({
                             {form.processing
                                 ? offlinePayment
                                     ? 'Submitting for verification…'
-                                    : method === 'mpesa'
-                                      ? 'Sending M-Pesa prompt…'
-                                      : 'Connecting to PayPal…'
+                                    : method === 'mpesa' ||
+                                        (method === 'paystack' &&
+                                            paystackMode !== 'card')
+                                      ? 'Sending payment prompt…'
+                                      : method === 'paystack' ||
+                                          paypalMode === 'card'
+                                        ? 'Opening card payment…'
+                                        : 'Connecting to PayPal…'
                                 : paying
-                                  ? method === 'mpesa'
-                                      ? 'Sending M-Pesa prompt…'
-                                      : 'Connecting to PayPal…'
+                                  ? method === 'mpesa' ||
+                                    (method === 'paystack' &&
+                                        paystackMode !== 'card')
+                                      ? 'Sending payment prompt…'
+                                      : method === 'paystack' ||
+                                          paypalMode === 'card'
+                                        ? 'Opening card payment…'
+                                        : 'Connecting to PayPal…'
                                   : offlinePayment
                                     ? method === 'mpesa'
                                         ? `Submit M-Pesa code · ${amountLabel}`
-                                        : `Submit PayPal ID · ${amountLabel}`
+                                        : method === 'paystack'
+                                          ? `Submit Paystack reference · ${amountLabel}`
+                                          : `Submit PayPal ID · ${amountLabel}`
                                     : method === 'mpesa'
                                       ? `Pay with M-Pesa · ${amountLabel}`
-                                      : `Pay with PayPal · ${amountLabel}`}
+                                      : method === 'paystack'
+                                        ? paystackMode === 'card'
+                                          ? `Pay with card · ${amountLabel}`
+                                          : `Pay with M-Pesa · ${amountLabel}`
+                                        : paypalMode === 'card'
+                                          ? `Pay with card · ${amountLabel}`
+                                          : `Pay with PayPal · ${amountLabel}`}
                         </button>
                         {offlinePayment && (
                             <p className="mt-2 text-center text-[11px] text-olive-400 dark:text-olive-500">
@@ -1369,12 +1636,14 @@ export default function Upgrade({
         (p) => Number(p.price_amount) > 0 && p.yearly_price_amount != null,
     );
 
+    const defaultPaymentMethod = paymentMethods[0]?.value || 'mpesa';
+
     const form = useForm({
         to_plan: 'featured',
         category: categoryKey || null,
         billing_period: billing,
         payment_reference: '',
-        payment_method: 'mpesa',
+        payment_method: defaultPaymentMethod,
         member_notes: '',
     });
 
@@ -1401,7 +1670,7 @@ export default function Upgrade({
             category: categoryKey || null,
             billing_period: billing,
             payment_reference: '',
-            payment_method: 'mpesa',
+            payment_method: paymentMethods[0]?.value || 'mpesa',
             member_notes: '',
         });
         form.clearErrors();

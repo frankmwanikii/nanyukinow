@@ -10,11 +10,15 @@ use Illuminate\Http\Request;
 class PalplussWebhookController extends Controller
 {
     /**
-     * Palpluss posts the STK result here. A confirmed success activates the member plan.
+     * Palpluss posts the STK result here. Signature is verified before fulfillment.
      */
     public function __invoke(Request $request): JsonResponse
     {
-        $result = PalplussFulfillment::handle($request->json()->all());
+        $result = PalplussFulfillment::handle(
+            $request->json()->all(),
+            $request->headers->all(),
+            $request->getContent(),
+        );
 
         return response()->json($result['body'], $result['status']);
     }

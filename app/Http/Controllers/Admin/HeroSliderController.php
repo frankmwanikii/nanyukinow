@@ -18,7 +18,6 @@ class HeroSliderController extends Controller
     {
         return Inertia::render('Admin/HeroSlider/Index', [
             'slides' => HeroSlides::forHome(),
-            'maxSlides' => HeroSlides::MAX_SLIDES,
             'uploadUrl' => route('admin.hero-slider.upload'),
         ]);
     }
@@ -26,13 +25,15 @@ class HeroSliderController extends Controller
     public function update(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'slides' => ['required', 'array', 'min:1', 'max:'.HeroSlides::MAX_SLIDES],
+            'slides' => ['required', 'array', 'min:1'],
             'slides.*.id' => ['nullable', 'string', 'max:64'],
             'slides.*.image' => ['required', 'string', 'max:2048'],
             'slides.*.imageMobile' => ['nullable', 'string', 'max:2048'],
             'slides.*.alt' => ['nullable', 'string', 'max:255'],
             'slides.*.title' => ['nullable', 'string', 'max:120'],
             'slides.*.credit' => ['nullable', 'string', 'max:160'],
+            'slides.*.showOnDesktop' => ['sometimes', 'boolean'],
+            'slides.*.showOnMobile' => ['sometimes', 'boolean'],
         ]);
 
         $saved = HeroSlides::save($data['slides']);

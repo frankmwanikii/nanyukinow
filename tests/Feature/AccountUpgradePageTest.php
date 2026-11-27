@@ -31,7 +31,7 @@ class AccountUpgradePageTest extends TestCase
                 ->has('plans', 3)
                 ->has('plansByCategory')
                 ->has('categories')
-                ->has('paymentMethods', 2)
+                ->has('paymentMethods', 3)
                 ->has('upgradeContact')
                 ->where('initialBilling', 'month')
                 ->where('initialCategory', null)
@@ -595,6 +595,62 @@ class AccountUpgradePageTest extends TestCase
                 'provider_ref' => 'ORDER-SANDBOX-1',
                 'checkout_url' => 'https://www.sandbox.paypal.com/checkoutnow?token=ORDER-SANDBOX-1',
             ]);
+
+        Http::assertSent(function (Request $request) {
+            if (! str_contains($request->url(), '/v2/checkout/orders')) {
+                return false;
+            }
+
+            $landing = data_get($request->data(), 'application_context.landing_page');
+
+            return $landing === 'LOGIN';
+        });
+    }
+
+    public function test_paypal_card_mode_opens_billing_landing_without_email(): void
+    {
+        PricingPlan::ensureDefaults();
+        $user = User::factory()->create();
+
+        Http::fake([
+            'api-m.sandbox.paypal.com/v1/oauth2/token' => Http::response([
+                'access_token' => 'TEST_TOKEN',
+                'token_type' => 'Bearer',
+            ], 200),
+            'api-m.sandbox.paypal.com/v2/checkout/orders' => Http::response([
+                'id' => 'ORDER-CARD-1',
+                'status' => 'CREATED',
+                'links' => [
+                    [
+                        'rel' => 'approve',
+                        'href' => 'https://www.sandbox.paypal.com/checkoutnow?token=ORDER-CARD-1',
+                    ],
+                ],
+            ], 201),
+        ]);
+
+        $this->actingAs($user)
+            ->postJson(route('account.upgrade.pay'), [
+                'to_plan' => Membership::PREMIUM,
+                'payment_method' => 'paypal',
+                'paypal_mode' => 'card',
+                'amount' => 5000,
+                'currency' => 'USD',
+            ])
+            ->assertOk()
+            ->assertJson([
+                'ok' => true,
+                'provider_ref' => 'ORDER-CARD-1',
+                'checkout_url' => 'https://www.sandbox.paypal.com/checkoutnow?token=ORDER-CARD-1',
+            ]);
+
+        Http::assertSent(function (Request $request) {
+            if (! str_contains($request->url(), '/v2/checkout/orders')) {
+                return false;
+            }
+
+            return data_get($request->data(), 'application_context.landing_page') === 'BILLING';
+        });
     }
 
     public function test_paypal_converts_kes_to_usd_for_checkout(): void

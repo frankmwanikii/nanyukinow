@@ -1,5 +1,5 @@
 import { router } from '@inertiajs/react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { SearchMark } from '@/Components/site/Mark';
 import SearchSuggestions from '@/Components/site/SearchSuggestions';
 
@@ -11,6 +11,8 @@ const DEFAULT_HERO_PHOTOS = [
         alt: 'Mount Kenya, wildlife, and town life around Nanyuki',
         title: 'Nanyuki Now',
         credit: 'Mount Kenya, wildlife, and town life',
+        showOnDesktop: true,
+        showOnMobile: true,
     },
     {
         id: 'wildlife',
@@ -19,6 +21,8 @@ const DEFAULT_HERO_PHOTOS = [
         alt: 'Black rhinos on the Laikipia plains near Nanyuki',
         title: "Discover Nanyuki's wild side",
         credit: 'Black rhinos on the Laikipia plains',
+        showOnDesktop: true,
+        showOnMobile: true,
     },
     {
         id: 'cabin',
@@ -26,6 +30,8 @@ const DEFAULT_HERO_PHOTOS = [
         alt: 'A-frame cabin stay in Nanyuki at dusk',
         title: 'Unwind in the heart of Nanyuki',
         credit: 'Stay. Relax. Explore',
+        showOnDesktop: true,
+        showOnMobile: true,
     },
     {
         id: 'stay',
@@ -33,6 +39,8 @@ const DEFAULT_HERO_PHOTOS = [
         alt: 'Warm stone-walled stay interior in Nanyuki',
         title: 'Your home away from home',
         credit: 'Stone-walled guest stays in town',
+        showOnDesktop: true,
+        showOnMobile: true,
     },
     {
         id: 'dining',
@@ -40,6 +48,8 @@ const DEFAULT_HERO_PHOTOS = [
         alt: 'Dining with a view of Mount Kenya at dusk',
         title: "Nanyuki's finest flavors",
         credit: 'Dining with a Mount Kenya view',
+        showOnDesktop: true,
+        showOnMobile: true,
     },
 ];
 
@@ -69,6 +79,8 @@ function normalizeHeroPhotos(photos) {
                 alt: photo.alt || photo.title || 'Homepage hero photo',
                 title: photo.title || '',
                 credit: photo.credit || '',
+                showOnDesktop: photo.showOnDesktop !== false,
+                showOnMobile: photo.showOnMobile !== false,
             };
         })
         .filter(Boolean);
@@ -76,13 +88,23 @@ function normalizeHeroPhotos(photos) {
     return cleaned.length > 0 ? cleaned : DEFAULT_HERO_PHOTOS;
 }
 
+function visibleHeroPhotos(photos, isDesktop) {
+    const filtered = photos.filter((photo) =>
+        isDesktop ? photo.showOnDesktop !== false : photo.showOnMobile !== false,
+    );
+
+    return filtered.length > 0 ? filtered : photos;
+}
+
 const HERO_PLACES = ['Nanyuki', 'Timau', 'Naromoru', 'Laikipia'];
 const PLACE_INTERVAL_MS = 3200;
+const TYPEWRITER_MS = 72;
+const TYPEWRITER_SETTLE_MS = 480;
 
 const OPEN_MOBILE_SEARCH = 'nn:open-mobile-search';
 
 export default function HeroSlider({ photos = null }) {
-    const heroPhotos = normalizeHeroPhotos(photos);
+    const allHeroPhotos = useMemo(() => normalizeHeroPhotos(photos), [photos]);
     const [photoIndex, setPhotoIndex] = useState(0);
     const [progressKey, setProgressKey] = useState(0);
     const [placeIndex, setPlaceIndex] = useState(0);
@@ -95,10 +117,18 @@ export default function HeroSlider({ photos = null }) {
             : false,
     );
     const [reduceMotion, setReduceMotion] = useState(false);
+    const [typedPlace, setTypedPlace] = useState('');
+    const [placeSettled, setPlaceSettled] = useState(false);
     const searchRef = useRef(null);
     const suggestionsRef = useRef(null);
     const searchInputRef = useRef(null);
     const searchToggleRef = useRef(null);
+    const hasTypedRef = useRef(false);
+
+    const heroPhotos = useMemo(
+        () => visibleHeroPhotos(allHeroPhotos, desktopLayout),
+        [allHeroPhotos, desktopLayout],
+    );
 
     useEffect(() => {
         const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -123,6 +153,11 @@ export default function HeroSlider({ photos = null }) {
     }, []);
 
     useEffect(() => {
+        setPhotoIndex(0);
+        setProgressKey((key) => key + 1);
+    }, [desktopLayout, heroPhotos.length]);
+
+    useEffect(() => {
         if (photoIndex >= heroPhotos.length) {
             setPhotoIndex(0);
         }
@@ -139,15 +174,57 @@ export default function HeroSlider({ photos = null }) {
         return () => window.clearInterval(id);
     }, [reduceMotion, progressKey, heroPhotos.length]);
 
+    // Desktop: one-shot typewriter for the first place, then settle into rotation.
+    useEffect(() => {
+        if (reduceMotion || !desktopLayout) {
+            setTypedPlace(HERO_PLACES[0]);
+            setPlaceSettled(true);
+            return undefined;
+        }
+
+        if (hasTypedRef.current) {
+            setPlaceSettled(true);
+            return undefined;
+        }
+
+        hasTypedRef.current = true;
+        setPlaceSettled(false);
+        setPlaceIndex(0);
+        setTypedPlace('');
+
+        const full = HERO_PLACES[0];
+        let i = 0;
+        let settleTimer = 0;
+        const typeTimer = window.setInterval(() => {
+            i += 1;
+            setTypedPlace(full.slice(0, i));
+            if (i >= full.length) {
+                window.clearInterval(typeTimer);
+                settleTimer = window.setTimeout(() => {
+                    setPlaceSettled(true);
+                }, TYPEWRITER_SETTLE_MS);
+            }
+        }, TYPEWRITER_MS);
+
+        return () => {
+            window.clearInterval(typeTimer);
+            window.clearTimeout(settleTimer);
+        };
+    }, [desktopLayout, reduceMotion]);
+
     useEffect(() => {
         if (reduceMotion || HERO_PLACES.length < 2) {
+            return undefined;
+        }
+        // Desktop waits until typewriter settles; mobile rotates immediately.
+        if (desktopLayout && !placeSettled) {
             return undefined;
         }
         const id = window.setInterval(() => {
             setPlaceIndex((prev) => (prev + 1) % HERO_PLACES.length);
         }, PLACE_INTERVAL_MS);
         return () => window.clearInterval(id);
-    }, [reduceMotion]);
+    }, [reduceMotion, desktopLayout, placeSettled]);
 
     useEffect(() => {
         if (!searchOpen && !searchFieldVisible) {
@@ -376,8 +453,8 @@ export default function HeroSlider({ photos = null }) {
             </div>
 
             {/*
-              Mobile: Find + place + search icon at bottom (opens bottom-nav search).
-              Desktop: search reveals at top; big white icon beside headline.
+              Mobile: glowing search pill (opens bottom-nav search).
+              Desktop: Find + place + search icon; field reveals at top.
             */}
             <div className="relative z-10 mx-auto flex w-full max-w-site flex-1 flex-col justify-end px-4 pb-20 pt-10 sm:px-6 sm:pb-16 sm:pt-14 lg:justify-start lg:px-8 lg:pb-16 lg:pt-6 xl:px-10">
                 {desktopLayout && searchFieldVisible ? (
@@ -418,80 +495,102 @@ export default function HeroSlider({ photos = null }) {
                         </div>
                     ) : null}
 
-                    <div className="flex flex-nowrap items-center justify-center gap-2.5 sm:gap-4 lg:gap-5">
-                        <h1 className="min-w-0 shrink font-display text-[clamp(1.85rem,7.2vw,3.75rem)] font-semibold leading-[1.05] tracking-tight text-white sm:text-[clamp(2.25rem,9vw,3.75rem)] lg:text-[clamp(3rem,5vw,4.5rem)]">
-                            {desktopLayout ? (
-                                <span className="inline-flex flex-nowrap items-baseline gap-[0.28em] whitespace-nowrap">
-                                    <span>Find</span>
-                                    <span
-                                        key={HERO_PLACES[placeIndex]}
-                                        className={`inline-block whitespace-nowrap text-mustard ${
-                                            reduceMotion
-                                                ? ''
-                                                : 'animate-hero-place-in'
-                                        }`}
-                                        aria-live="polite"
-                                    >
-                                        {HERO_PLACES[placeIndex]}
-                                    </span>
-                                </span>
-                            ) : (
-                                <button
-                                    type="button"
-                                    onClick={openMobileSearch}
-                                    className="inline-flex flex-nowrap items-baseline gap-[0.28em] whitespace-nowrap text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-mustard"
-                                >
-                                    <span>Find</span>
-                                    <span
-                                        key={HERO_PLACES[placeIndex]}
-                                        className={`inline-block whitespace-nowrap text-mustard ${
-                                            reduceMotion
-                                                ? ''
-                                                : 'animate-hero-place-in'
-                                        }`}
-                                        aria-live="polite"
-                                    >
-                                        {HERO_PLACES[placeIndex]}
-                                    </span>
-                                </button>
-                            )}
-                        </h1>
+                    {!desktopLayout ? (
                         <button
-                            ref={searchToggleRef}
                             type="button"
-                            onClick={() => {
-                                if (!desktopLayout) {
-                                    openMobileSearch();
-                                    return;
-                                }
-                                if (searchFieldVisible) {
-                                    closeSearch();
-                                } else {
-                                    revealSearch();
-                                }
-                            }}
-                            aria-label={
-                                desktopLayout && searchFieldVisible
-                                    ? 'Close search'
-                                    : 'Open search'
-                            }
-                            aria-expanded={
-                                desktopLayout ? searchFieldVisible : undefined
-                            }
-                            title="Search"
-                            className={`group inline-flex shrink-0 cursor-pointer text-white transition duration-200 hover:text-mustard focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-mustard ${
-                                !(desktopLayout && searchFieldVisible) &&
-                                !reduceMotion
-                                    ? 'animate-search-cue'
-                                    : ''
-                            } hover:animate-none`}
+                            onClick={openMobileSearch}
+                            aria-label={`Search ${HERO_PLACES[placeIndex]}`}
+                            className={`nn-hero-search-glow mx-auto w-full max-w-md text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-mustard ${
+                                reduceMotion ? 'nn-hero-search-glow--static' : ''
+                            }`}
                         >
-                            <SearchMark className="h-8 w-8 transition duration-200 group-hover:scale-110 sm:h-10 sm:w-10 lg:h-12 lg:w-12 xl:h-14 xl:w-14" />
+                            <span
+                                className="nn-hero-search-glow__spin"
+                                aria-hidden="true"
+                            />
+                            <span className="relative flex min-h-[3.25rem] items-center gap-3 rounded-full bg-earth-dusk/85 px-4 backdrop-blur-md sm:min-h-14 sm:gap-3.5 sm:px-5">
+                                <SearchMark className="h-5 w-5 shrink-0 text-mustard sm:h-[1.35rem] sm:w-[1.35rem]" />
+                                <span className="min-w-0 truncate text-[15px] leading-none text-white/90 sm:text-base">
+                                    Search{' '}
+                                    <span
+                                        key={HERO_PLACES[placeIndex]}
+                                        className={`inline-block font-semibold text-mustard ${
+                                            reduceMotion
+                                                ? ''
+                                                : 'animate-hero-place-in'
+                                        }`}
+                                        aria-live="polite"
+                                    >
+                                        {HERO_PLACES[placeIndex]}
+                                    </span>
+                                    …
+                                </span>
+                            </span>
                         </button>
-                    </div>
-                    <p className="mx-auto mt-4 hidden max-w-full text-base leading-snug tracking-normal text-white/85 sm:block lg:mt-5 lg:text-xl lg:leading-relaxed lg:text-white/90">
-                        Stay, eat, explore, and get things done right now.
-                    </p>
+                    ) : (
+                        <>
+                            <div className="flex flex-nowrap items-center justify-center gap-4 lg:gap-5">
+                                <h1 className="min-w-0 shrink font-display text-[clamp(3rem,5vw,4.5rem)] font-semibold leading-[1.05] tracking-tight text-white">
+                                    <span className="inline-flex flex-nowrap items-baseline gap-[0.28em] whitespace-nowrap">
+                                        <span>Find</span>
+                                        {!placeSettled ? (
+                                            <span
+                                                className="inline-flex items-baseline whitespace-nowrap text-mustard"
+                                                aria-live="polite"
+                                            >
+                                                <span>{typedPlace}</span>
+                                                <span
+                                                    aria-hidden="true"
+                                                    className="ml-[0.06em] inline-block h-[0.85em] w-[0.08em] translate-y-[0.06em] bg-mustard animate-pulse"
+                                                />
+                                            </span>
+                                        ) : (
+                                            <span
+                                                key={HERO_PLACES[placeIndex]}
+                                                className={`inline-block whitespace-nowrap text-mustard ${
+                                                    reduceMotion
+                                                        ? ''
+                                                        : 'animate-hero-place-in'
+                                                }`}
+                                                aria-live="polite"
+                                            >
+                                                {HERO_PLACES[placeIndex]}
+                                            </span>
+                                        )}
+                                    </span>
+                                </h1>
+                                <button
+                                    ref={searchToggleRef}
+                                    type="button"
+                                    onClick={() => {
+                                        if (searchFieldVisible) {
+                                            closeSearch();
+                                        } else {
+                                            revealSearch();
+                                        }
+                                    }}
+                                    aria-label={
+                                        searchFieldVisible
+                                            ? 'Close search'
+                                            : 'Open search'
+                                    }
+                                    aria-expanded={searchFieldVisible}
+                                    title="Search"
+                                    className={`group inline-flex shrink-0 cursor-pointer text-white transition duration-200 hover:text-mustard focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-mustard ${
+                                        !searchFieldVisible && !reduceMotion
+                                            ? 'animate-search-cue'
+                                            : ''
+                                    } hover:animate-none`}
+                                >
+                                    <SearchMark className="h-12 w-12 transition duration-200 group-hover:scale-110 xl:h-14 xl:w-14" />
+                                </button>
+                            </div>
+                            <p className="mx-auto mt-5 max-w-full text-xl leading-relaxed text-white/90">
+                                Stay, eat, explore, and get things done right
+                                now.
+                            </p>
+                        </>
+                    )}
                 </div>
             </div>
         </section>

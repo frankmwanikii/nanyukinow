@@ -46,7 +46,7 @@ class AdminHeroSliderTest extends TestCase
             ->assertInertia(fn ($page) => $page
                 ->component('Admin/HeroSlider/Index')
                 ->has('slides', count(HeroSlides::defaults()))
-                ->where('maxSlides', HeroSlides::MAX_SLIDES));
+                ->missing('maxSlides'));
     }
 
     public function test_admin_can_update_hero_slides(): void
@@ -64,6 +64,8 @@ class AdminHeroSliderTest extends TestCase
                     'alt' => 'Custom plains photo',
                     'title' => 'Custom plains',
                     'credit' => 'Edited by admin',
+                    'showOnDesktop' => true,
+                    'showOnMobile' => false,
                 ],
                 [
                     'id' => 'custom-2',
@@ -72,6 +74,8 @@ class AdminHeroSliderTest extends TestCase
                     'alt' => 'Stay photo',
                     'title' => 'Stay edit',
                     'credit' => 'Guest room',
+                    'showOnDesktop' => false,
+                    'showOnMobile' => true,
                 ],
             ],
         ];
@@ -85,7 +89,36 @@ class AdminHeroSliderTest extends TestCase
         $this->assertCount(2, $slides);
         $this->assertSame('Custom plains', $slides[0]['title']);
         $this->assertSame('/images/hero/slide-2.webp', $slides[0]['image']);
+        $this->assertTrue($slides[0]['showOnDesktop']);
+        $this->assertFalse($slides[0]['showOnMobile']);
         $this->assertSame('Stay edit', $slides[1]['title']);
+        $this->assertFalse($slides[1]['showOnDesktop']);
+        $this->assertTrue($slides[1]['showOnMobile']);
+    }
+
+    public function test_admin_slide_with_both_visibility_off_defaults_to_both_on(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+
+        $this->actingAs($admin)->get(route('admin.hero-slider.index'))->assertOk();
+
+        $this->actingAs($admin)
+            ->put(route('admin.hero-slider.update'), [
+                'slides' => [[
+                    'id' => 'hidden-both',
+                    'image' => '/images/hero/bnb3.webp',
+                    'title' => 'Should stay visible',
+                    'showOnDesktop' => false,
+                    'showOnMobile' => false,
+                ]],
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
+        $slides = HeroSlides::forHome();
+        $this->assertCount(1, $slides);
+        $this->assertTrue($slides[0]['showOnDesktop']);
+        $this->assertTrue($slides[0]['showOnMobile']);
     }
 
     public function test_admin_can_upload_hero_image(): void

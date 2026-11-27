@@ -7,6 +7,7 @@ use App\Models\ListingClaim;
 use App\Models\ListingReport;
 use App\Models\SiteSetting;
 use App\Models\SupportTicket;
+use App\Support\AdminArea;
 use App\Support\AdminNotifications;
 use App\Support\CategoryTaxonomy;
 use App\Support\MemberMessages;
@@ -64,7 +65,7 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        $isAdminArea = $request->is('admin', 'admin/*');
+        $isAdminArea = AdminArea::requestIsAdmin($request);
 
         return [
             ...parent::share($request),
@@ -166,20 +167,29 @@ class HandleInertiaRequests extends Middleware
             'siteContact' => function () {
                 try {
                     $phone = trim((string) SiteSetting::getValue('contact_phone', ''));
+                    $phoneAlt = trim((string) SiteSetting::getValue('contact_phone_alt', '0720 299 423'));
                     $email = trim((string) SiteSetting::getValue(
                         'contact_email',
                         (string) config('mail.from.address', 'hello@nanyukinow.co.ke'),
                     ));
 
+                    $normalizePhone = static function (string $value): ?string {
+                        if ($value === '' || $value === '+254 700 000 000') {
+                            return null;
+                        }
+
+                        return $value;
+                    };
+
                     return [
-                        'phone' => $phone !== '' && $phone !== '+254 700 000 000'
-                            ? $phone
-                            : null,
+                        'phone' => $normalizePhone($phone),
+                        'phone_alt' => $normalizePhone($phoneAlt),
                         'email' => $email !== '' ? $email : 'hello@nanyukinow.co.ke',
                     ];
                 } catch (Throwable) {
                     return [
                         'phone' => null,
+                        'phone_alt' => '0720 299 423',
                         'email' => 'hello@nanyukinow.co.ke',
                     ];
                 }

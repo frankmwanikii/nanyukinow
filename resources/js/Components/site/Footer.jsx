@@ -2,8 +2,6 @@ import { Link, usePage } from '@inertiajs/react';
 import { MailMark, PhoneMark, PinMark } from '@/Components/site/Mark';
 import Logo from './Logo';
 
-const EXTRA_CONTACT_PHONE = '0720 299 423';
-
 /** Format local Kenyan mobiles like 0742 451 220. */
 function formatKenyanPhone(value) {
     const digits = String(value ?? '').replace(/\D/g, '');
@@ -113,14 +111,20 @@ export default function Footer() {
     const year = new Date().getFullYear();
     const { siteContact } = usePage().props;
     const contactPhone = siteContact?.phone || null;
+    const contactPhoneAlt = siteContact?.phone_alt || null;
     const contactPhoneLabel = contactPhone
         ? formatKenyanPhone(contactPhone)
         : null;
-    const contactEmail = siteContact?.email || 'hello@nanyukinow.co.ke';
+    const contactPhoneAltLabel = contactPhoneAlt
+        ? formatKenyanPhone(contactPhoneAlt)
+        : null;
+    const contactEmail = siteContact?.email || null;
     const telHref = contactPhone
         ? `tel:${String(contactPhone).replace(/\s+/g, '')}`
         : null;
-    const extraTelHref = `tel:${EXTRA_CONTACT_PHONE.replace(/\s+/g, '')}`;
+    const telAltHref = contactPhoneAlt
+        ? `tel:${String(contactPhoneAlt).replace(/\s+/g, '')}`
+        : null;
 
     return (
         <footer className="relative z-10 bg-earth-dusk text-white">
@@ -232,24 +236,28 @@ export default function Footer() {
                                             </a>
                                         </li>
                                     ) : null}
-                                    <li className="flex items-start gap-2.5">
-                                        <PhoneMark className="mt-0.5 h-4 w-4 shrink-0 text-olive-500" />
-                                        <a
-                                            href={extraTelHref}
-                                            className="transition hover:text-olive-950"
-                                        >
-                                            {EXTRA_CONTACT_PHONE}
-                                        </a>
-                                    </li>
-                                    <li className="flex items-start gap-2.5">
-                                        <MailMark className="mt-0.5 h-4 w-4 shrink-0 text-olive-500" />
-                                        <a
-                                            href={`mailto:${contactEmail}`}
-                                            className="break-all transition hover:text-olive-950"
-                                        >
-                                            {contactEmail}
-                                        </a>
-                                    </li>
+                                    {contactPhoneAlt ? (
+                                        <li className="flex items-start gap-2.5">
+                                            <PhoneMark className="mt-0.5 h-4 w-4 shrink-0 text-olive-500" />
+                                            <a
+                                                href={telAltHref}
+                                                className="transition hover:text-olive-950"
+                                            >
+                                                {contactPhoneAltLabel}
+                                            </a>
+                                        </li>
+                                    ) : null}
+                                    {contactEmail ? (
+                                        <li className="flex items-start gap-2.5">
+                                            <MailMark className="mt-0.5 h-4 w-4 shrink-0 text-olive-500" />
+                                            <a
+                                                href={`mailto:${contactEmail}`}
+                                                className="break-all transition hover:text-olive-950"
+                                            >
+                                                {contactEmail}
+                                            </a>
+                                        </li>
+                                    ) : null}
                                 </ul>
                             </div>
                         </nav>

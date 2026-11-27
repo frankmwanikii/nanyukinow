@@ -16,7 +16,11 @@
         <link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
         <link href="https://fonts.bunny.net/css?family=dm-sans:400,500,600,700&display=swap" rel="stylesheet" />
 
-        @routes
+        @php
+            $onAdmin = \App\Support\AdminArea::requestIsAdmin(request());
+        @endphp
+        {{-- Public pages omit admin.* so ADMIN_PATH is not leaked in HTML. --}}
+        @routes($onAdmin ? null : 'guest')
         @viteReactRefresh
         @vite(['resources/js/app.jsx', "resources/js/Pages/{$page['component']}.jsx"])
         @inertiaHead

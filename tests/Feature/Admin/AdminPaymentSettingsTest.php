@@ -20,11 +20,13 @@ class AdminPaymentSettingsTest extends TestCase
             ->assertInertia(fn ($page) => $page
                 ->component('Admin/Settings/Index')
                 ->has('groupedSettings.payments')
-                ->where('groupedSettings.payments.0.key', 'mobile_money_provider')
-                ->where('groupedSettings.payments.0.value', 'mpesa')
-                ->where('groupedSettings.payments.0.options.0.value', 'mpesa')
-                ->where('groupedSettings.payments.0.options.1.value', 'intasend')
-                ->where('groupedSettings.payments.0.options.2.value', 'palpluss')
+                ->where('groupedSettings.payments.0.key', 'enabled_checkout_methods')
+                ->where('groupedSettings.payments.0.value', 'mpesa,paypal,paystack')
+                ->where('groupedSettings.payments.1.key', 'mobile_money_provider')
+                ->where('groupedSettings.payments.1.value', 'mpesa')
+                ->where('groupedSettings.payments.1.options.0.value', 'mpesa')
+                ->where('groupedSettings.payments.1.options.1.value', 'intasend')
+                ->where('groupedSettings.payments.1.options.2.value', 'palpluss')
                 ->etc());
     }
 

@@ -1,6 +1,7 @@
 import AdminLayout from '@/Layouts/AdminLayout';
 import {
     AdminButton,
+    AdminCheckbox,
     AdminInput,
     PageHeader,
 } from '@/Components/Admin/ui';
@@ -25,6 +26,8 @@ function blankSlide() {
         alt: '',
         title: '',
         credit: '',
+        showOnDesktop: true,
+        showOnMobile: true,
     };
 }
 
@@ -114,9 +117,20 @@ function SlideCard({
     return (
         <section className="overflow-hidden border border-olive-200 bg-white dark:border-olive-800 dark:bg-olive-900">
             <header className="flex flex-wrap items-center justify-between gap-2 border-b border-olive-100 px-4 py-3 dark:border-olive-800 sm:px-5">
-                <h2 className="text-sm font-semibold text-olive-950 dark:text-olive-50">
-                    Slide {index + 1}
-                </h2>
+                <div className="min-w-0">
+                    <h2 className="text-sm font-semibold text-olive-950 dark:text-olive-50">
+                        Slide {index + 1}
+                    </h2>
+                    {!slide.showOnDesktop || !slide.showOnMobile ? (
+                        <p className="mt-0.5 text-xs font-medium text-olive-500">
+                            {slide.showOnDesktop && !slide.showOnMobile
+                                ? 'Desktop only'
+                                : !slide.showOnDesktop && slide.showOnMobile
+                                  ? 'Mobile only'
+                                  : 'Hidden on all sizes'}
+                        </p>
+                    ) : null}
+                </div>
                 <div className="flex items-center gap-1">
                     <button
                         type="button"
@@ -294,13 +308,41 @@ function SlideCard({
                         placeholder="Describe the photo for accessibility"
                         disabled={disabled}
                     />
+
+                    <div className="rounded-sm border border-olive-100 bg-olive-50/60 px-3 py-3 dark:border-olive-800 dark:bg-olive-950/40">
+                        <p className="text-xs font-semibold text-olive-700 dark:text-olive-300">
+                            Visibility
+                        </p>
+                        <p className="mt-1 text-xs text-olive-500">
+                            Desktop is large screens (1024px and up). Mobile is
+                            phones and tablets below that.
+                        </p>
+                        <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2">
+                            <AdminCheckbox
+                                label="Show on desktop"
+                                checked={slide.showOnDesktop !== false}
+                                disabled={disabled}
+                                onChange={(e) =>
+                                    patch({ showOnDesktop: e.target.checked })
+                                }
+                            />
+                            <AdminCheckbox
+                                label="Show on mobile"
+                                checked={slide.showOnMobile !== false}
+                                disabled={disabled}
+                                onChange={(e) =>
+                                    patch({ showOnMobile: e.target.checked })
+                                }
+                            />
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
     );
 }
 
-export default function Index({ slides = [], maxSlides = 8, uploadUrl }) {
+export default function Index({ slides = [], uploadUrl }) {
     const form = useForm({
         slides: (slides || []).map((slide) => ({
             id: slide.id || blankSlide().id,
@@ -309,6 +351,8 @@ export default function Index({ slides = [], maxSlides = 8, uploadUrl }) {
             alt: slide.alt || '',
             title: slide.title || '',
             credit: slide.credit || '',
+            showOnDesktop: slide.showOnDesktop !== false,
+            showOnMobile: slide.showOnMobile !== false,
         })),
     });
 
@@ -337,7 +381,6 @@ export default function Index({ slides = [], maxSlides = 8, uploadUrl }) {
     };
 
     const addSlide = () => {
-        if (form.data.slides.length >= maxSlides) return;
         form.setData('slides', [...form.data.slides, blankSlide()]);
     };
 
@@ -354,7 +397,7 @@ export default function Index({ slides = [], maxSlides = 8, uploadUrl }) {
 
             <PageHeader
                 title="Hero slider"
-                description="Homepage background photos. Upload a file or paste an image URL, then save."
+                description="Homepage background photos. Upload a file or paste an image URL. Per slide, choose desktop, mobile, or both."
                 actions={
                     <AdminButton
                         type="submit"
@@ -396,16 +439,13 @@ export default function Index({ slides = [], maxSlides = 8, uploadUrl }) {
                     <AdminButton
                         type="button"
                         variant="secondary"
-                        disabled={
-                            form.processing ||
-                            form.data.slides.length >= maxSlides
-                        }
+                        disabled={form.processing}
                         onClick={addSlide}
                     >
                         <Plus className="h-4 w-4" />
                         Add slide
                         <span className="text-olive-500">
-                            ({form.data.slides.length}/{maxSlides})
+                            ({form.data.slides.length})
                         </span>
                     </AdminButton>
                     <AdminButton type="submit" disabled={form.processing}>

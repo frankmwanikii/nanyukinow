@@ -41,10 +41,18 @@ class PaypalFulfillment
 
     /**
      * @param  array<string, mixed>  $payload
+     * @param  array<string, mixed>  $headers
      * @return array{status: int, body: array<string, mixed>}
      */
-    public static function handleWebhook(array $payload): array
+    public static function handleWebhook(array $payload, array $headers = [], string $rawBody = ''): array
     {
+        $flatHeaders = self::flattenHeaders($headers);
+        if (! PaymentGateway::paypalWebhookSignatureValid($flatHeaders, $rawBody !== '' ? $rawBody : (string) json_encode($payload))) {
+            Log::warning('PayPal webhook signature rejected');
+
+            return self::result(401, ['error' => 'Invalid signature']);
+        }
+
         $eventType = $payload['event_type'] ?? null;
         if (! is_string($eventType) || $eventType === '') {
             return self::result(400, ['error' => 'Invalid payload']);
@@ -196,6 +204,23 @@ class PaypalFulfillment
     private static function validOrderId(string $orderId): bool
     {
         return preg_match('/^[A-Za-z0-9-]{8,40}$/', $orderId) === 1;
+    }
+
+    /**
+     * @param  array<string, mixed>  $headers
+     * @return array<string, string|null>
+     */
+    private static function flattenHeaders(array $headers): array
+    {
+        $flat = [];
+        foreach ($headers as $key => $value) {
+            if (! is_string($key)) {
+                continue;
+            }
+            $flat[$key] = is_array($value) ? (string) ($value[0] ?? '') : (is_string($value) ? $value : null);
+        }
+
+        return $flat;
     }
 
     /**

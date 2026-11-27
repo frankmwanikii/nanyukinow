@@ -9,10 +9,8 @@ class HeroSlides
 {
     public const SETTING_KEY = 'hero_slides';
 
-    public const MAX_SLIDES = 8;
-
     /**
-     * @return list<array{id: string, image: string, imageMobile: ?string, alt: string, title: string, credit: string}>
+     * @return list<array{id: string, image: string, imageMobile: ?string, alt: string, title: string, credit: string, showOnDesktop: bool, showOnMobile: bool}>
      */
     public static function defaults(): array
     {
@@ -24,6 +22,8 @@ class HeroSlides
                 'alt' => 'Mount Kenya, wildlife, and town life around Nanyuki',
                 'title' => 'Nanyuki Now',
                 'credit' => 'Mount Kenya, wildlife, and town life',
+                'showOnDesktop' => true,
+                'showOnMobile' => true,
             ],
             [
                 'id' => 'wildlife',
@@ -32,6 +32,8 @@ class HeroSlides
                 'alt' => 'Black rhinos on the Laikipia plains near Nanyuki',
                 'title' => "Discover Nanyuki's wild side",
                 'credit' => 'Black rhinos on the Laikipia plains',
+                'showOnDesktop' => true,
+                'showOnMobile' => true,
             ],
             [
                 'id' => 'cabin',
@@ -40,6 +42,8 @@ class HeroSlides
                 'alt' => 'A-frame cabin stay in Nanyuki at dusk',
                 'title' => 'Unwind in the heart of Nanyuki',
                 'credit' => 'Stay. Relax. Explore',
+                'showOnDesktop' => true,
+                'showOnMobile' => true,
             ],
             [
                 'id' => 'stay',
@@ -48,6 +52,8 @@ class HeroSlides
                 'alt' => 'Warm stone-walled stay interior in Nanyuki',
                 'title' => 'Your home away from home',
                 'credit' => 'Stone-walled guest stays in town',
+                'showOnDesktop' => true,
+                'showOnMobile' => true,
             ],
             [
                 'id' => 'dining',
@@ -56,6 +62,8 @@ class HeroSlides
                 'alt' => 'Dining with a view of Mount Kenya at dusk',
                 'title' => "Nanyuki's finest flavors",
                 'credit' => 'Dining with a Mount Kenya view',
+                'showOnDesktop' => true,
+                'showOnMobile' => true,
             ],
         ];
     }
@@ -90,7 +98,7 @@ class HeroSlides
     /**
      * Public slides for the homepage (falls back to built-in defaults).
      *
-     * @return list<array{id: string, image: string, imageMobile: ?string, alt: string, title: string, credit: string}>
+     * @return list<array{id: string, image: string, imageMobile: ?string, alt: string, title: string, credit: string, showOnDesktop: bool, showOnMobile: bool}>
      */
     public static function forHome(): array
     {
@@ -106,7 +114,7 @@ class HeroSlides
      * Persist a validated slide list.
      *
      * @param  list<array<string, mixed>>  $slides
-     * @return list<array{id: string, image: string, imageMobile: ?string, alt: string, title: string, credit: string}>
+     * @return list<array{id: string, image: string, imageMobile: ?string, alt: string, title: string, credit: string, showOnDesktop: bool, showOnMobile: bool}>
      */
     public static function save(array $slides): array
     {
@@ -144,13 +152,13 @@ class HeroSlides
 
     /**
      * @param  list<array<string, mixed>>  $slides
-     * @return list<array{id: string, image: string, imageMobile: ?string, alt: string, title: string, credit: string}>
+     * @return list<array{id: string, image: string, imageMobile: ?string, alt: string, title: string, credit: string, showOnDesktop: bool, showOnMobile: bool}>
      */
     public static function normalize(array $slides): array
     {
         $out = [];
 
-        foreach (array_slice(array_values($slides), 0, self::MAX_SLIDES) as $index => $slide) {
+        foreach (array_values($slides) as $index => $slide) {
             if (! is_array($slide)) {
                 continue;
             }
@@ -178,6 +186,13 @@ class HeroSlides
                 $alt = $title !== '' ? $title : 'Homepage hero photo';
             }
 
+            $showOnDesktop = self::boolFlag($slide['showOnDesktop'] ?? true);
+            $showOnMobile = self::boolFlag($slide['showOnMobile'] ?? true);
+            if (! $showOnDesktop && ! $showOnMobile) {
+                $showOnDesktop = true;
+                $showOnMobile = true;
+            }
+
             $out[] = [
                 'id' => Str::limit($id, 64, ''),
                 'image' => $image,
@@ -185,9 +200,22 @@ class HeroSlides
                 'alt' => Str::limit($alt, 255, ''),
                 'title' => Str::limit($title, 120, ''),
                 'credit' => Str::limit($credit, 160, ''),
+                'showOnDesktop' => $showOnDesktop,
+                'showOnMobile' => $showOnMobile,
             ];
         }
 
         return $out;
+    }
+
+    private static function boolFlag(mixed $value): bool
+    {
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        $parsed = filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+
+        return $parsed ?? true;
     }
 }

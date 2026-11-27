@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use App\Models\SiteSetting;
+
 class PaymentMethods
 {
     public const MPESA = 'mpesa';
@@ -10,26 +12,60 @@ class PaymentMethods
 
     public const PAYPAL = 'paypal';
 
+    public const PAYSTACK = 'paystack';
+
     /**
      * @return list<string>
      */
     public static function keys(): array
     {
-        return [self::MPESA, self::INTASEND, self::PAYPAL];
+        return [self::MPESA, self::INTASEND, self::PAYPAL, self::PAYSTACK];
+    }
+
+    /**
+     * Live checkout methods members can start from the upgrade modal.
+     *
+     * @return list<string>
+     */
+    public static function liveKeys(): array
+    {
+        return [self::MPESA, self::PAYPAL, self::PAYSTACK];
     }
 
     /**
      * Methods shown to members at checkout.
-     * M-Pesa UI is always shown; admin chooses Daraja, IntaSend, or Palpluss behind the scenes.
+     * Admin enables the combination via Settings → Payment gateways.
      *
      * @return list<array{value: string, label: string, short: string, description: string}>
      */
     public static function memberOptions(): array
     {
+        $enabled = self::enabledCheckoutKeys();
+
         return array_values(array_filter(
             self::options(),
-            fn (array $option): bool => in_array($option['value'], [self::MPESA, self::PAYPAL], true),
+            fn (array $option): bool => in_array($option['value'], $enabled, true),
         ));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function enabledCheckoutKeys(): array
+    {
+        $raw = trim((string) SiteSetting::getValue(
+            'enabled_checkout_methods',
+            implode(',', self::liveKeys()),
+        ));
+
+        $keys = array_values(array_filter(array_map(
+            static fn (string $key): string => strtolower(trim($key)),
+            $raw === '' ? [] : explode(',', $raw),
+        )));
+
+        $allowed = array_values(array_intersect($keys, self::liveKeys()));
+
+        return $allowed !== [] ? $allowed : [self::MPESA];
     }
 
     /**
@@ -55,6 +91,12 @@ class PaymentMethods
                 'label' => 'PayPal',
                 'short' => 'PayPal',
                 'description' => 'International cards & PayPal balance',
+            ],
+            [
+                'value' => self::PAYSTACK,
+                'label' => 'Paystack',
+                'short' => 'Paystack',
+                'description' => 'Cards, bank, USSD, and mobile money',
             ],
         ];
     }

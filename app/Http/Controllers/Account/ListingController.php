@@ -82,7 +82,7 @@ class ListingController extends Controller
         $user = $request->user();
 
         if ($listing) {
-            $this->authorizeOwner($request, $listing);
+            $this->authorize('update', $listing);
             abort_unless($listing->status === 'draft', 422, 'Only drafts can be auto-saved this way.');
         } else {
             $listing = Listing::query()
@@ -187,7 +187,7 @@ class ListingController extends Controller
 
     public function edit(Request $request, Listing $listing): Response|RedirectResponse
     {
-        $this->authorizeOwner($request, $listing);
+        $this->authorize('update', $listing);
 
         return Inertia::render('Account/Listings/Form', [
             'listing' => $this->listingFormPayload($listing),
@@ -202,7 +202,7 @@ class ListingController extends Controller
 
     public function update(UpdateListingRequest $request, Listing $listing): RedirectResponse
     {
-        $this->authorizeOwner($request, $listing);
+        $this->authorize('update', $listing);
 
         $data = $request->validated();
         $tier = Membership::normalize($data['tier']);
@@ -246,7 +246,7 @@ class ListingController extends Controller
 
     public function destroy(Request $request, Listing $listing): RedirectResponse
     {
-        $this->authorizeOwner($request, $listing);
+        $this->authorize('delete', $listing);
 
         $title = $listing->title;
         $listing->delete();
@@ -282,14 +282,6 @@ class ListingController extends Controller
                 : null,
             'claim_grace_active' => $graceActive,
         ];
-    }
-
-    private function authorizeOwner(Request $request, Listing $listing): void
-    {
-        abort_unless(
-            (int) $listing->user_id === (int) $request->user()->id,
-            403,
-        );
     }
 
     /**
