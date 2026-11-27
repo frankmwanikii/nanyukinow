@@ -22,6 +22,21 @@ class ListingReviewFactory extends Factory
             'user_id' => User::factory(),
             'rating' => fake()->numberBetween(1, 5),
             'body' => fake()->paragraph(),
+            'is_published' => true,
         ];
+    }
+
+    public function unpublished(): static
+    {
+        return $this->state(fn () => [
+            'is_published' => false,
+        ]);
+    }
+
+    public function published(): static
+    {
+        return $this->state(fn () => [
+            'is_published' => true,
+        ]);
     }
 }

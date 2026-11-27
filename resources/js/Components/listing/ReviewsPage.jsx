@@ -198,14 +198,18 @@ function ReviewForm({ listing }) {
     );
 }
 
-export default function ReviewsPage({ listing }) {
+export default function ReviewsPage({ listing, viewerHasReviewed = false }) {
     const { auth } = usePage().props;
     const user = auth?.user;
     const reviews = Array.isArray(listing.reviews) ? listing.reviews : [];
     const [page, setPage] = useState(1);
 
     const alreadyReviewed = Boolean(
-        user && reviews.some((review) => Number(review.userId) === Number(user.id)),
+        viewerHasReviewed ||
+            (user &&
+                reviews.some(
+                    (review) => Number(review.userId) === Number(user.id),
+                )),
     );
 
     const totalPages = Math.max(1, Math.ceil(reviews.length / PAGE_SIZE));
@@ -256,7 +260,13 @@ export default function ReviewsPage({ listing }) {
                     </div>
                 ) : alreadyReviewed ? (
                     <p className="text-sm leading-relaxed text-olive-700">
-                        Thanks, you already reviewed this place.
+                        {viewerHasReviewed &&
+                        !reviews.some(
+                            (review) =>
+                                Number(review.userId) === Number(user?.id),
+                        )
+                            ? 'Thanks for your review. It will appear once approved.'
+                            : 'Thanks, you already reviewed this place.'}
                     </p>
                 ) : (
                     <ReviewForm listing={listing} />

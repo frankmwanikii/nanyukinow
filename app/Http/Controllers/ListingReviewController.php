@@ -6,6 +6,7 @@ use App\Http\Requests\StoreListingReviewRequest;
 use App\Models\Listing;
 use App\Models\ListingReview;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Cache;
 
 class ListingReviewController extends Controller
 {
@@ -39,12 +40,18 @@ class ListingReviewController extends Controller
             'user_id' => $user->id,
             'rating' => (int) $request->validated('rating'),
             'body' => trim($request->validated('body')),
+            'is_published' => false,
         ]);
 
-        ListingReview::syncListingRating($listing);
+        try {
+            Cache::forget('admin.badge.pending_reviews');
+            Cache::forget('admin.dashboard.overview');
+        } catch (\Throwable) {
+            // Cache store may be unavailable; ignore.
+        }
 
         return redirect()
             ->to(route('listings.show', $listing->slug).'#reviews')
-            ->with('success', 'Thanks for your review.');
+            ->with('success', 'Thanks for your review. It will appear once approved.');
     }
 }

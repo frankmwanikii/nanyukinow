@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Models\Conversation;
 use App\Models\ListingClaim;
 use App\Models\ListingReport;
+use App\Models\ListingReview;
 use App\Models\SiteSetting;
 use App\Models\SupportTicket;
 use App\Support\AdminArea;
@@ -228,6 +229,19 @@ class HandleInertiaRequests extends Middleware
                 try {
                     return Cache::remember('admin.badge.pending_reports', 30, fn () => ListingReport::query()
                         ->where('status', ListingReport::STATUS_PENDING)
+                        ->count());
+                } catch (Throwable) {
+                    return 0;
+                }
+            },
+            'pendingReviews' => function () use ($request) {
+                if (! $request->user()?->is_admin) {
+                    return 0;
+                }
+
+                try {
+                    return Cache::remember('admin.badge.pending_reviews', 30, fn () => ListingReview::query()
+                        ->where('is_published', false)
                         ->count());
                 } catch (Throwable) {
                     return 0;

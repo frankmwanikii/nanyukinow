@@ -132,7 +132,7 @@ class ListingPayload
             'reviewSummary' => [
                 'count' => $listing->relationLoaded('reviews')
                     ? $listing->reviews->count()
-                    : (int) $listing->reviews()->count(),
+                    : (int) $listing->reviews()->published()->count(),
             ],
         ];
     }

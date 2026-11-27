@@ -63,12 +63,13 @@ class ListingReviewTest extends TestCase
             'user_id' => $member->id,
             'rating' => 5,
             'body' => 'Wonderful wildlife experience.',
+            'is_published' => false,
         ]);
 
-        $this->assertSame(5.0, (float) $listing->fresh()->rating);
+        $this->assertNull($listing->fresh()->rating);
     }
 
-    public function test_listing_show_includes_reviews_payload(): void
+    public function test_listing_show_includes_published_reviews_only(): void
     {
         $listing = $this->makeListing();
         $member = User::factory()->create(['name' => 'Amina Wanjiku']);
@@ -78,6 +79,15 @@ class ListingReviewTest extends TestCase
             'user_id' => $member->id,
             'rating' => 4,
             'body' => 'Great guides and open savannahs.',
+            'is_published' => true,
+        ]);
+
+        ListingReview::query()->create([
+            'listing_id' => $listing->id,
+            'user_id' => User::factory()->create()->id,
+            'rating' => 1,
+            'body' => 'Hidden until approved.',
+            'is_published' => false,
         ]);
 
         ListingReview::syncListingRating($listing);

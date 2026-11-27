@@ -47,6 +47,7 @@ function ListingOverview({ listing, layout }) {
 }
 
 export default function ListingShow({
+    viewerHasReviewed = false,
     slug,
     listing: serverListing = null,
     related: serverRelated = [],
@@ -168,7 +169,10 @@ export default function ListingShow({
                 ) : null}
 
                 {tab === 'reviews' ? (
-                    <ReviewsPage listing={listing} />
+                    <ReviewsPage
+                        listing={listing}
+                        viewerHasReviewed={viewerHasReviewed}
+                    />
                 ) : null}
             </div>
 

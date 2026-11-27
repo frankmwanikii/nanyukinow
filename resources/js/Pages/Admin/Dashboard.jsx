@@ -28,7 +28,13 @@ export default function Dashboard(props) {
     );
 }
 
-function DashboardBody({ stats, recentListings, expiringListings, charts }) {
+function DashboardBody({
+    stats,
+    recentListings,
+    expiringListings,
+    recentReviews,
+    charts,
+}) {
     const { isDark } = useAdminTheme();
     const activity = Array.isArray(charts?.activity) ? charts.activity : [];
     const categories = Array.isArray(charts?.categories) ? charts.categories : [];
@@ -36,6 +42,7 @@ function DashboardBody({ stats, recentListings, expiringListings, charts }) {
     const tiers = Array.isArray(charts?.tiers) ? charts.tiers : [];
     const recent = Array.isArray(recentListings) ? recentListings : [];
     const expiring = Array.isArray(expiringListings) ? expiringListings : [];
+    const reviews = Array.isArray(recentReviews) ? recentReviews : [];
     const [dismissed, setDismissed] = useState({});
 
     const dismiss = (key) => setDismissed((prev) => ({ ...prev, [key]: true }));
@@ -52,6 +59,12 @@ function DashboardBody({ stats, recentListings, expiringListings, charts }) {
                 key: 'listings',
                 href: route('admin.listings.index', { status: 'pending' }),
                 text: `${stats.pending_listings} listing${stats.pending_listings === 1 ? '' : 's'} waiting for review.`,
+            },
+        stats.pending_reviews > 0 &&
+            !dismissed.reviews && {
+                key: 'reviews',
+                href: route('admin.reviews.index', { status: 'unpublished' }),
+                text: `${stats.pending_reviews} review${stats.pending_reviews === 1 ? '' : 's'} awaiting publish.`,
             },
         stats.expiring_soon > 0 &&
             !dismissed.expiring && {
@@ -80,7 +93,7 @@ function DashboardBody({ stats, recentListings, expiringListings, charts }) {
                 </div>
             )}
 
-            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-7">
+            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-8">
                 <StatCard
                     label="Listings"
                     value={stats.listings}
@@ -95,6 +108,11 @@ function DashboardBody({ stats, recentListings, expiringListings, charts }) {
                     label="Finance queue"
                     value={stats.pending_upgrades ?? 0}
                     hint="Awaiting payment check"
+                />
+                <StatCard
+                    label="Reviews queue"
+                    value={stats.pending_reviews ?? 0}
+                    hint={`${stats.reviews ?? 0} total reviews`}
                 />
                 <StatCard
                     label="Featured"
@@ -289,6 +307,81 @@ function DashboardBody({ stats, recentListings, expiringListings, charts }) {
                                 <tr>
                                     <Td colSpan={3} className="py-8 text-center text-olive-400">
                                         Nothing in the watch window.
+                                    </Td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </DataTable>
+                </DataCard>
+            </div>
+
+            <div className="mt-4">
+                <DataCard
+                    title="Recent reviews"
+                    tools={
+                        <Link
+                            href={route('admin.reviews.index')}
+                            className="text-xs font-medium text-olive-500 hover:text-olive-800 dark:text-olive-300 dark:hover:text-olive-100"
+                        >
+                            Manage reviews
+                        </Link>
+                    }
+                >
+                    <DataTable>
+                        <thead>
+                            <tr>
+                                <Th>Listing</Th>
+                                <Th>Rating</Th>
+                                <Th>Member</Th>
+                                <Th>Status</Th>
+                                <Th>Review</Th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {reviews.map((review) => (
+                                <tr key={review.id}>
+                                    <Td>
+                                        <Link
+                                            href={route('admin.reviews.index', {
+                                                status: review.is_published
+                                                    ? 'published'
+                                                    : 'unpublished',
+                                            })}
+                                            className="text-base font-medium text-olive-900 hover:text-earth-dusk dark:text-olive-100 dark:hover:text-white"
+                                        >
+                                            {review.listing?.title || 'Listing removed'}
+                                        </Link>
+                                    </Td>
+                                    <Td>
+                                        <span className="tabular-nums text-sm font-semibold text-olive-900 dark:text-olive-50">
+                                            {review.rating}/5
+                                        </span>
+                                    </Td>
+                                    <Td>
+                                        <span className="text-sm text-olive-700 dark:text-olive-200">
+                                            {review.author?.name || 'Member'}
+                                        </span>
+                                    </Td>
+                                    <Td>
+                                        <StatusBadge
+                                            status={
+                                                review.is_published
+                                                    ? 'published'
+                                                    : 'pending'
+                                            }
+                                        />
+                                    </Td>
+                                    <Td>
+                                        <p className="line-clamp-2 max-w-md text-sm text-olive-600 dark:text-olive-300">
+                                            {review.body}
+                                        </p>
+                                    </Td>
+                                </tr>
+                            ))}
+                            {reviews.length === 0 && (
+                                <tr>
+                                    <Td colSpan={5} className="py-8 text-center text-olive-400">
+                                        No reviews yet.
                                     </Td>
                                 </tr>
                             )}

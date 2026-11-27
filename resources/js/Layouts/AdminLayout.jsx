@@ -78,6 +78,12 @@ const navSections = [
                 icon: Flag,
                 badgeKey: 'pendingReports',
             },
+            {
+                label: 'Reviews',
+                href: 'admin.reviews.index',
+                icon: Star,
+                badgeKey: 'pendingReviews',
+            },
             { label: 'Settings', href: 'admin.settings.index', icon: Settings2 },
         ],
     },
@@ -92,6 +98,7 @@ function isAdminNavActive(href) {
         'admin.listings.index': ['admin.listings.*'],
         'admin.claims.index': ['admin.claims.*'],
         'admin.reports.index': ['admin.reports.*'],
+        'admin.reviews.index': ['admin.reviews.*'],
         'admin.stories.index': ['admin.stories.*'],
         'admin.story-categories.index': ['admin.story-categories.*'],
         'admin.categories.index': ['admin.categories.*'],
@@ -115,6 +122,9 @@ function adminNavBadge(item, counts) {
     }
     if (item.badgeKey === 'pendingReports') {
         return Number(counts.pendingReports) || 0;
+    }
+    if (item.badgeKey === 'pendingReviews') {
+        return Number(counts.pendingReviews) || 0;
     }
     if (item.badgeKey === 'inboxMessages') {
         return Number(counts.inboxMessages) || 0;
@@ -456,6 +466,7 @@ function AdminShell({ children }) {
         auth,
         pendingClaims = 0,
         pendingReports = 0,
+        pendingReviews = 0,
         inboxMessages = 0,
         openTickets = 0,
     } = usePage().props;
@@ -542,6 +553,7 @@ function AdminShell({ children }) {
                                             const badge = adminNavBadge(item, {
                                                 pendingClaims,
                                                 pendingReports,
+                                                pendingReviews,
                                                 inboxMessages,
                                                 openTickets,
                                             });

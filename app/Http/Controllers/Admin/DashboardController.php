@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Listing;
+use App\Models\ListingReview;
 use App\Models\PlanUpgrade;
 use App\Models\Story;
 use App\Models\User;
@@ -64,6 +65,10 @@ class DashboardController extends Controller
                 'pending_upgrades' => PlanUpgrade::query()
                     ->where('status', PlanUpgrade::STATUS_PENDING)
                     ->count(),
+                'pending_reviews' => ListingReview::query()
+                    ->where('is_published', false)
+                    ->count(),
+                'reviews' => ListingReview::query()->count(),
             ];
 
             $recentListings = Listing::query()
@@ -81,6 +86,17 @@ class DashboardController extends Controller
                 ->limit(8)
                 ->get()
                 ->map(fn (Listing $listing) => $this->listingRow($listing));
+
+            $recentReviews = ListingReview::query()
+                ->with([
+                    'listing:id,title,slug,image_url',
+                    'user:id,name',
+                ])
+                ->latest()
+                ->limit(8)
+                ->get()
+                ->map(fn (ListingReview $review) => $review->toAdminArray())
+                ->values();
 
             $categoryBreakdown = Category::query()
                 ->withCount('listings')
@@ -101,6 +117,7 @@ class DashboardController extends Controller
                 'stats' => $stats,
                 'recentListings' => $recentListings->values()->all(),
                 'expiringListings' => $expiringListings->values()->all(),
+                'recentReviews' => $recentReviews->all(),
                 'categoryBreakdown' => $categoryBreakdown->all(),
                 'charts' => [
                     'activity' => $this->activitySeries(30),

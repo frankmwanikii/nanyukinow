@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\GoldListController;
 use App\Http\Controllers\Admin\HeroSliderController;
 use App\Http\Controllers\Admin\ListingController;
 use App\Http\Controllers\Admin\ListingEditLockController;
+use App\Http\Controllers\Admin\ListingReviewController;
 use App\Http\Controllers\Admin\LocationController;
 use App\Http\Controllers\Admin\MessageController;
 use App\Http\Controllers\Admin\PageController;
@@ -87,6 +88,11 @@ Route::prefix($adminPath)->name('admin.')->group(function () use ($adminPath) {
         Route::get('reports/{report}', [ReportController::class, 'show'])->name('reports.show');
         Route::post('reports/{report}/resolve', [ReportController::class, 'resolve'])->name('reports.resolve');
         Route::delete('reports/{report}', [ReportController::class, 'destroy'])->name('reports.destroy');
+
+        Route::get('reviews', [ListingReviewController::class, 'index'])->name('reviews.index');
+        Route::post('reviews/{listingReview}/publish', [ListingReviewController::class, 'publish'])->name('reviews.publish');
+        Route::post('reviews/{listingReview}/unpublish', [ListingReviewController::class, 'unpublish'])->name('reviews.unpublish');
+        Route::delete('reviews/{listingReview}', [ListingReviewController::class, 'destroy'])->name('reviews.destroy');
 
         Route::get('categories', [CategoryController::class, 'index'])->name('categories.index');
         Route::get('categories/create', [CategoryController::class, 'create'])->name('categories.create');

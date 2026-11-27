@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Listing;
+use App\Models\ListingReview;
 use App\Models\Location;
 use App\Models\SitePage;
 use App\Models\Story;
@@ -109,6 +110,7 @@ class ListingController extends Controller
             ->with([
                 'category',
                 'reviews' => fn ($query) => $query
+                    ->published()
                     ->with('user:id,name,avatar_url')
                     ->latest(),
             ])
@@ -147,6 +149,12 @@ class ListingController extends Controller
             'related' => $related,
             'preview' => ! $listing->is_published,
             'previewStatus' => $listing->status,
+            'viewerHasReviewed' => $user
+                ? ListingReview::query()
+                    ->where('listing_id', $listing->id)
+                    ->where('user_id', $user->id)
+                    ->exists()
+                : false,
         ]);
     }
 
