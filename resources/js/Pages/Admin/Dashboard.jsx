@@ -30,10 +30,12 @@ export default function Dashboard(props) {
 
 function DashboardBody({ stats, recentListings, expiringListings, charts }) {
     const { isDark } = useAdminTheme();
-    const activity = charts?.activity || [];
-    const categories = charts?.categories || [];
-    const statuses = charts?.statuses || [];
-    const tiers = charts?.tiers || [];
+    const activity = Array.isArray(charts?.activity) ? charts.activity : [];
+    const categories = Array.isArray(charts?.categories) ? charts.categories : [];
+    const statuses = Array.isArray(charts?.statuses) ? charts.statuses : [];
+    const tiers = Array.isArray(charts?.tiers) ? charts.tiers : [];
+    const recent = Array.isArray(recentListings) ? recentListings : [];
+    const expiring = Array.isArray(expiringListings) ? expiringListings : [];
     const [dismissed, setDismissed] = useState({});
 
     const dismiss = (key) => setDismissed((prev) => ({ ...prev, [key]: true }));
@@ -194,7 +196,7 @@ function DashboardBody({ stats, recentListings, expiringListings, charts }) {
                                 </tr>
                             </thead>
                             <tbody>
-                                {recentListings.map((listing) => (
+                                {recent.map((listing) => (
                                     <tr key={listing.id}>
                                         <Td>
                                             <Link
@@ -222,7 +224,7 @@ function DashboardBody({ stats, recentListings, expiringListings, charts }) {
                                         </Td>
                                     </tr>
                                 ))}
-                                {recentListings.length === 0 && (
+                                {recent.length === 0 && (
                                     <tr>
                                         <Td colSpan={4} className="py-8 text-center text-olive-400">
                                             No listings yet.
@@ -254,7 +256,7 @@ function DashboardBody({ stats, recentListings, expiringListings, charts }) {
                             </tr>
                         </thead>
                         <tbody>
-                            {expiringListings.map((listing) => (
+                            {expiring.map((listing) => (
                                 <tr key={listing.id}>
                                     <Td>
                                         <Link
@@ -283,7 +285,7 @@ function DashboardBody({ stats, recentListings, expiringListings, charts }) {
                                     </Td>
                                 </tr>
                             ))}
-                            {expiringListings.length === 0 && (
+                            {expiring.length === 0 && (
                                 <tr>
                                     <Td colSpan={3} className="py-8 text-center text-olive-400">
                                         Nothing in the watch window.

@@ -95,17 +95,19 @@ class DashboardController extends Controller
                 ])
                 ->values();
 
+            // Plain arrays only: cached Collections can unserialize as
+            // __PHP_Incomplete_Class on some hosts and break the React dashboard.
             return [
                 'stats' => $stats,
-                'recentListings' => $recentListings->values(),
-                'expiringListings' => $expiringListings->values(),
-                'categoryBreakdown' => $categoryBreakdown,
+                'recentListings' => $recentListings->values()->all(),
+                'expiringListings' => $expiringListings->values()->all(),
+                'categoryBreakdown' => $categoryBreakdown->all(),
                 'charts' => [
                     'activity' => $this->activitySeries(30),
                     'categories' => $categoryBreakdown->map(fn (array $cat) => [
                         'name' => $cat['name'],
                         'count' => $cat['listings_count'],
-                    ])->values(),
+                    ])->values()->all(),
                     'statuses' => $this->groupedCounts(Listing::class, 'status'),
                     'tiers' => $this->groupedCounts(Listing::class, 'tier'),
                 ],
