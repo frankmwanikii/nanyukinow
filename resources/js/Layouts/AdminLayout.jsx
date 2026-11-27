@@ -11,6 +11,7 @@ import {
     Wallet,
     FileText,
     Images,
+    Star,
     BadgeCheck,
     Flag,
     Menu,
@@ -39,6 +40,7 @@ const navSections = [
             { label: 'Story categories', href: 'admin.story-categories.index', icon: FolderTree },
             { label: 'Gallery', href: 'admin.gallery.index', icon: Images },
             { label: 'Hero slider', href: 'admin.hero-slider.index', icon: Images },
+            { label: 'Gold List', href: 'admin.gold-list.index', icon: Star },
         ],
     },
     {

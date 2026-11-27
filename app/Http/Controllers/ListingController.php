@@ -6,6 +6,7 @@ use App\Models\Listing;
 use App\Models\Location;
 use App\Models\SitePage;
 use App\Models\Story;
+use App\Support\GoldList;
 use App\Support\HeroSlides;
 use App\Support\ListingOutbound;
 use App\Support\ListingPayload;
@@ -300,7 +301,7 @@ class ListingController extends Controller
      */
     private function goldListCards(): array
     {
-        return array_slice(PublishedListingsCatalogue::cards(), 0, 24);
+        return GoldList::cards();
     }
 
     /**

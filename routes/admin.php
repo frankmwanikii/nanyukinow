@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\ClaimController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\FinanceController;
 use App\Http\Controllers\Admin\GalleryController;
+use App\Http\Controllers\Admin\GoldListController;
 use App\Http\Controllers\Admin\HeroSliderController;
 use App\Http\Controllers\Admin\ListingController;
 use App\Http\Controllers\Admin\ListingEditLockController;
@@ -155,6 +156,12 @@ Route::prefix($adminPath)->name('admin.')->group(function () use ($adminPath) {
         Route::post('hero-slider/upload', [HeroSliderController::class, 'upload'])
             ->middleware('throttle:40,1')
             ->name('hero-slider.upload');
+
+        Route::get('gold-list', [GoldListController::class, 'index'])->name('gold-list.index');
+        Route::get('gold-list/search', [GoldListController::class, 'search'])->name('gold-list.search');
+        Route::post('gold-list', [GoldListController::class, 'store'])->name('gold-list.store');
+        Route::post('gold-list/reorder', [GoldListController::class, 'reorder'])->name('gold-list.reorder');
+        Route::delete('gold-list/{goldListEntry}', [GoldListController::class, 'destroy'])->name('gold-list.destroy');
 
         Route::get('pricing', [PricingController::class, 'index'])->name('pricing.index');
         Route::get('pricing/{pricing}/edit', [PricingController::class, 'edit'])->name('pricing.edit');
