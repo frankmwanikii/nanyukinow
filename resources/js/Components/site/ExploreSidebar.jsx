@@ -43,6 +43,8 @@ export default function ExploreSidebar({
     onOpenNowChange,
     onSearch,
     onClear,
+    /** Mobile: close the filters overlay after a leaf choice. */
+    onSelectionComplete,
     className = '',
 }) {
     const { directoryCategories: sharedCategories } = usePage().props;
@@ -72,6 +74,21 @@ export default function ExploreSidebar({
         onCategoryChange(null);
         onSubcategoryChange(null);
         onPropertyTypeChange?.(null);
+    };
+
+    const chooseSubcategory = (child) => {
+        onSubcategoryChange(child);
+        onSelectionComplete?.();
+    };
+
+    const choosePropertyType = (type) => {
+        onPropertyTypeChange?.(type);
+        onSelectionComplete?.();
+    };
+
+    const chooseAllListings = () => {
+        clearCategory();
+        onSelectionComplete?.();
     };
 
     return (
@@ -347,7 +364,7 @@ export default function ExploreSidebar({
                                         <button
                                             type="button"
                                             onClick={() =>
-                                                onSubcategoryChange(
+                                                chooseSubcategory(
                                                     childActive
                                                         ? null
                                                         : child,
@@ -379,7 +396,7 @@ export default function ExploreSidebar({
                                                 <button
                                                     type="button"
                                                     onClick={() =>
-                                                        onPropertyTypeChange?.(
+                                                        choosePropertyType(
                                                             typeActive
                                                                 ? null
                                                                 : type,
@@ -404,7 +421,7 @@ export default function ExploreSidebar({
                     <div className="space-y-1">
                         <button
                             type="button"
-                            onClick={clearCategory}
+                            onClick={chooseAllListings}
                             className="w-full rounded-lg bg-[#4f5a3e] px-3 py-2.5 text-left text-sm font-semibold text-white"
                         >
                             All listings

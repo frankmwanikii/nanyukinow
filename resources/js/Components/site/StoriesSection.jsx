@@ -1,7 +1,7 @@
 import { Link } from '@inertiajs/react';
-import { ChevronRight } from '@/Components/site/LucideCompat';
 import Reveal from '@/Components/site/Reveal';
 import StoryCard from '@/Components/site/StoryCard';
+import { ForwardMark } from '@/Components/site/Mark';
 
 export default function StoriesSection({ stories = [] }) {
     const items = stories.slice(0, 4);
@@ -20,10 +20,10 @@ export default function StoriesSection({ stories = [] }) {
         >
             <div className="absolute inset-0 bg-earth-dusk/80" />
 
-            <div className="relative mx-auto max-w-site px-4 sm:px-6">
+            <div className="relative mx-auto max-w-site">
                 <Reveal>
-                    <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-                        <div>
+                    <header className="flex items-end justify-between gap-3 px-4 sm:px-6">
+                        <div className="min-w-0 flex-1">
                             <h2 className="font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl">
                                 Latest stories
                             </h2>
@@ -33,25 +33,29 @@ export default function StoriesSection({ stories = [] }) {
                         </div>
                         <Link
                             href="/stories"
-                            className="inline-flex min-h-10 items-center gap-2 rounded-md border border-white/25 bg-white/10 px-5 text-sm font-semibold text-white transition hover:border-mustard hover:bg-mustard hover:text-olive-950"
+                            className="mb-0.5 inline-flex shrink-0 items-center gap-1 rounded-md px-2.5 py-1.5 text-sm font-semibold text-white/90 transition hover:bg-white/10 hover:text-white sm:mb-1 sm:gap-1.5 sm:px-3 sm:py-2"
                         >
                             All stories
-                            <ChevronRight className="h-4 w-4" />
+                            <ForwardMark className="h-3.5 w-3.5" />
                         </Link>
                     </header>
                 </Reveal>
 
                 <div
-                    className="mt-8 grid gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4"
+                    className="mt-8 flex gap-4 overflow-x-auto px-4 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] sm:grid sm:grid-cols-2 sm:gap-5 sm:overflow-visible sm:px-6 sm:pb-0 lg:grid-cols-4 [&::-webkit-scrollbar]:hidden"
                     aria-label="Latest stories"
                 >
                     {items.map((article) => (
-                        <StoryCard
+                        <div
                             key={article.id}
-                            article={article}
-                            compact
-                            className="h-full bg-white"
-                        />
+                            className="w-[min(78vw,19rem)] shrink-0 sm:w-auto sm:min-w-0"
+                        >
+                            <StoryCard
+                                article={article}
+                                compact
+                                className="h-full bg-white"
+                            />
+                        </div>
                     ))}
                 </div>
             </div>

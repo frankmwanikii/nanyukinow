@@ -307,15 +307,15 @@ export default function HeroSlider({ photos = null }) {
                         </picture>
                     );
                 })}
-                <div className="absolute inset-0 bg-earth-dusk/30 lg:bg-earth-dusk/25" />
-                <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-earth-dusk/75 to-transparent lg:h-40" />
-                <div className="absolute inset-x-0 bottom-0 h-[78%] bg-gradient-to-t from-earth-dusk via-earth-dusk/70 to-transparent sm:h-[68%] lg:h-[55%] lg:via-earth-dusk/55" />
+                <div className="absolute inset-0 bg-earth-dusk/10 lg:bg-earth-dusk/20" />
+                <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-earth-dusk/55 to-transparent lg:h-40 lg:from-earth-dusk/70" />
+                <div className="absolute inset-x-0 bottom-0 h-[36%] bg-gradient-to-t from-earth-dusk/90 via-earth-dusk/40 to-transparent sm:h-[48%] sm:via-earth-dusk/50 lg:h-[55%] lg:from-earth-dusk lg:via-earth-dusk/55" />
             </div>
 
             <span className="sr-only">{activePhoto.alt}</span>
 
-            {/* Side rail: progress + caption as one stacked column */}
-            <div className="pointer-events-none absolute bottom-[8.5rem] left-3 z-20 flex w-[min(14rem,calc(100vw-5.5rem))] flex-col gap-6 sm:bottom-36 sm:left-5 sm:w-[16rem] sm:gap-7 lg:bottom-28 lg:left-8 lg:gap-8 xl:bottom-32 xl:left-10">
+            {/* Desktop side rail: progress + caption */}
+            <div className="pointer-events-none absolute bottom-28 left-8 z-20 hidden w-[min(14rem,calc(100vw-5.5rem))] flex-col gap-8 lg:flex xl:bottom-32 xl:left-10">
                 {heroPhotos.length > 1 ? (
                     <div
                         className="pointer-events-auto flex flex-col gap-3"
@@ -333,7 +333,7 @@ export default function HeroSlider({ photos = null }) {
                                     aria-selected={active}
                                     aria-label={`Show ${photo.title || `photo ${i + 1}`}`}
                                     onClick={() => goToPhoto(i)}
-                                    className="relative block h-11 w-1 shrink-0 overflow-visible bg-white/35 transition hover:bg-white/55 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mustard sm:h-14 lg:h-16"
+                                    className="relative block h-16 w-1 shrink-0 overflow-visible bg-white/35 transition hover:bg-white/55 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mustard"
                                 >
                                     {completed ? (
                                         <span className="absolute inset-0 bg-mustard" />
@@ -349,7 +349,7 @@ export default function HeroSlider({ photos = null }) {
                                         >
                                             <span
                                                 aria-hidden="true"
-                                                className="absolute bottom-0 left-1/2 h-2.5 w-2.5 -translate-x-1/2 translate-y-1/2 rounded-full bg-mustard sm:h-3 sm:w-3"
+                                                className="absolute bottom-0 left-1/2 h-3 w-3 -translate-x-1/2 translate-y-1/2 rounded-full bg-mustard"
                                             />
                                         </span>
                                     ) : null}
@@ -362,7 +362,7 @@ export default function HeroSlider({ photos = null }) {
                 {(activePhoto.title || activePhoto.credit) && (
                     <div className="text-white">
                         {activePhoto.title ? (
-                            <p className="font-display text-[15px] font-semibold leading-snug sm:text-base">
+                            <p className="font-display text-base font-semibold leading-snug">
                                 {activePhoto.title}
                             </p>
                         ) : null}
@@ -379,7 +379,7 @@ export default function HeroSlider({ photos = null }) {
               Mobile: Find + place + search icon at bottom (opens bottom-nav search).
               Desktop: search reveals at top; big white icon beside headline.
             */}
-            <div className="relative z-10 mx-auto flex w-full max-w-site flex-1 flex-col justify-end px-4 pb-14 pt-10 sm:px-6 sm:pb-16 sm:pt-14 lg:justify-start lg:px-8 lg:pb-16 lg:pt-6 xl:px-10">
+            <div className="relative z-10 mx-auto flex w-full max-w-site flex-1 flex-col justify-end px-4 pb-20 pt-10 sm:px-6 sm:pb-16 sm:pt-14 lg:justify-start lg:px-8 lg:pb-16 lg:pt-6 xl:px-10">
                 {desktopLayout && searchFieldVisible ? (
                     <div
                         className={`relative order-1 mx-auto w-full max-w-3xl xl:max-w-4xl ${
@@ -391,6 +391,33 @@ export default function HeroSlider({ photos = null }) {
                 ) : null}
 
                 <div className="order-2 mx-auto mt-auto w-full max-w-xl text-center lg:max-w-3xl lg:pb-10 xl:max-w-4xl xl:pb-14">
+                    {heroPhotos.length > 1 ? (
+                        <div
+                            className="mb-4 flex items-center justify-center gap-2 lg:hidden"
+                            role="tablist"
+                            aria-label="Hero photos"
+                        >
+                            {heroPhotos.map((photo, i) => {
+                                const active = i === photoIndex;
+                                return (
+                                    <button
+                                        key={photo.id}
+                                        type="button"
+                                        role="tab"
+                                        aria-selected={active}
+                                        aria-label={`Show ${photo.title || `photo ${i + 1}`}`}
+                                        onClick={() => goToPhoto(i)}
+                                        className={`h-1.5 rounded-full transition-[width,background-color] duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mustard ${
+                                            active
+                                                ? 'w-5 bg-mustard'
+                                                : 'w-1.5 bg-white/45 hover:bg-white/70'
+                                        }`}
+                                    />
+                                );
+                            })}
+                        </div>
+                    ) : null}
+
                     <div className="flex flex-nowrap items-center justify-center gap-2.5 sm:gap-4 lg:gap-5">
                         <h1 className="min-w-0 shrink font-display text-[clamp(1.85rem,7.2vw,3.75rem)] font-semibold leading-[1.05] tracking-tight text-white sm:text-[clamp(2.25rem,9vw,3.75rem)] lg:text-[clamp(3rem,5vw,4.5rem)]">
                             {desktopLayout ? (
@@ -398,7 +425,7 @@ export default function HeroSlider({ photos = null }) {
                                     <span>Find</span>
                                     <span
                                         key={HERO_PLACES[placeIndex]}
-                                        className={`inline-block whitespace-nowrap ${
+                                        className={`inline-block whitespace-nowrap text-mustard ${
                                             reduceMotion
                                                 ? ''
                                                 : 'animate-hero-place-in'
@@ -417,7 +444,7 @@ export default function HeroSlider({ photos = null }) {
                                     <span>Find</span>
                                     <span
                                         key={HERO_PLACES[placeIndex]}
-                                        className={`inline-block whitespace-nowrap ${
+                                        className={`inline-block whitespace-nowrap text-mustard ${
                                             reduceMotion
                                                 ? ''
                                                 : 'animate-hero-place-in'
@@ -462,7 +489,7 @@ export default function HeroSlider({ photos = null }) {
                             <SearchMark className="h-8 w-8 transition duration-200 group-hover:scale-110 sm:h-10 sm:w-10 lg:h-12 lg:w-12 xl:h-14 xl:w-14" />
                         </button>
                     </div>
-                    <p className="mx-auto mt-3 max-w-full whitespace-nowrap text-[clamp(0.6875rem,3.55vw,0.8125rem)] leading-snug tracking-tight text-white/85 sm:mt-4 sm:text-base sm:tracking-normal lg:mt-5 lg:whitespace-normal lg:text-xl lg:leading-relaxed lg:tracking-normal lg:text-white/90">
+                    <p className="mx-auto mt-4 hidden max-w-full text-base leading-snug tracking-normal text-white/85 sm:block lg:mt-5 lg:text-xl lg:leading-relaxed lg:text-white/90">
                         Stay, eat, explore, and get things done right now.
                     </p>
                 </div>

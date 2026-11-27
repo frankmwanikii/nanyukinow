@@ -25,7 +25,7 @@ export default function NotFound() {
                     <div className="absolute inset-0 bg-[radial-gradient(ellipse_62%_54%_at_40%_48%,transparent_38%,#121412_82%)]" />
                 </div>
 
-                <div className="relative z-10 mx-auto flex min-h-svh w-full max-w-5xl flex-col items-center justify-center px-4 pb-[6.5rem] pt-[5.5rem] text-center sm:px-6 sm:pb-16 sm:pt-[6.5rem] lg:pb-16">
+                <div className="relative z-10 mx-auto flex min-h-svh w-full max-w-5xl flex-col items-center justify-center px-4 pb-20 pt-[5.5rem] text-center sm:px-6 sm:pb-16 sm:pt-[6.5rem] lg:pb-16">
                     <h1 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl md:text-5xl">
                         <span className="text-white">You&apos;re drunk!</span>{' '}
                         <span className="text-mustard">Go home</span>

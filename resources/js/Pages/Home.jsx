@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { useEffect, useMemo, useState } from 'react';
 import SiteLayout from '@/Layouts/SiteLayout';
 import Reveal from '@/Components/site/Reveal';
@@ -80,7 +80,16 @@ function useTwoRowPageSize() {
     return pageSize;
 }
 
-function ListingsSoonPlaceholder({ light = false }) {
+function ListingsSoonPlaceholder({
+    light = false,
+    exploreHref = explorePath(),
+    exploreLabel = 'Browse Explore',
+}) {
+    const { auth } = usePage().props;
+    const addHref = auth?.user
+        ? route('account.listings.create')
+        : route('register');
+
     return (
         <div className="mx-auto max-w-md py-10 text-center sm:py-14">
             <EmptyListingsMark
@@ -95,6 +104,37 @@ function ListingsSoonPlaceholder({ light = false }) {
             >
                 Nothing here yet!
             </p>
+            <p
+                className={`mt-2 text-sm leading-relaxed sm:text-base ${
+                    light ? 'text-white/75' : 'text-olive-700'
+                }`}
+            >
+                Be the first to add one, or keep browsing.
+            </p>
+            <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
+                <Link
+                    href={addHref}
+                    className={
+                        light
+                            ? 'inline-flex min-h-11 items-center justify-center rounded-md bg-mustard px-7 py-3 text-sm font-semibold text-olive-950 transition hover:bg-white sm:px-8'
+                            : 'inline-flex min-h-11 items-center justify-center rounded-md bg-olive-700 px-7 py-3 text-sm font-semibold text-white transition hover:bg-mustard hover:text-olive-950 sm:px-8'
+                    }
+                >
+                    List yours
+                </Link>
+                <Link
+                    href={exploreHref}
+                    prefetch
+                    className={
+                        light
+                            ? 'inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-white/25 bg-white/10 px-7 py-3 text-sm font-semibold text-white transition hover:border-mustard hover:bg-mustard hover:text-olive-950 sm:px-8'
+                            : 'inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-olive-900/15 bg-white px-7 py-3 text-sm font-semibold text-olive-900 transition hover:border-mustard hover:bg-mustard hover:text-olive-950 sm:px-8'
+                    }
+                >
+                    {exploreLabel}
+                    <SendArrowMark className="h-4 w-4" />
+                </Link>
+            </div>
         </div>
     );
 }
@@ -181,7 +221,11 @@ function GoldListSection({ items = [], title, subtitle }) {
                     />
                 </Reveal>
                 {items.length === 0 ? (
-                    <ListingsSoonPlaceholder light />
+                    <ListingsSoonPlaceholder
+                        light
+                        exploreHref={explorePath()}
+                        exploreLabel="Browse Explore"
+                    />
                 ) : (
                     <>
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
@@ -231,7 +275,10 @@ function PlacesToEatSection({ items = [] }) {
                     />
                 </Reveal>
                 {items.length === 0 ? (
-                    <ListingsSoonPlaceholder />
+                    <ListingsSoonPlaceholder
+                        exploreHref={explorePath({ category: 'eatDrink' })}
+                        exploreLabel="Browse places to eat"
+                    />
                 ) : (
                     <>
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
@@ -275,7 +322,11 @@ function AirbnbsSection({ items = [], title, subtitle }) {
                     />
                 </Reveal>
                 {items.length === 0 ? (
-                    <ListingsSoonPlaceholder light />
+                    <ListingsSoonPlaceholder
+                        light
+                        exploreHref={explorePath({ category: 'stay' })}
+                        exploreLabel="Browse stays"
+                    />
                 ) : (
                     <>
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
@@ -316,7 +367,12 @@ function WildlifeSafarisSection({ items = [] }) {
                     />
                 </Reveal>
                 {items.length === 0 ? (
-                    <ListingsSoonPlaceholder />
+                    <ListingsSoonPlaceholder
+                        exploreHref={explorePath({
+                            category: 'thingsToDo',
+                        })}
+                        exploreLabel="Browse things to do"
+                    />
                 ) : (
                     <>
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
@@ -357,7 +413,11 @@ function EventsSection({ items = [] }) {
                     />
                 </Reveal>
                 {items.length === 0 ? (
-                    <ListingsSoonPlaceholder light />
+                    <ListingsSoonPlaceholder
+                        light
+                        exploreHref={explorePath({ category: 'events' })}
+                        exploreLabel="Browse events"
+                    />
                 ) : (
                     <>
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
@@ -466,7 +526,11 @@ function HomeContent({
                     {trending === undefined ? (
                         <ListingGridSkeleton light />
                     ) : trending.length === 0 ? (
-                        <ListingsSoonPlaceholder light />
+                        <ListingsSoonPlaceholder
+                            light
+                            exploreHref={explorePath()}
+                            exploreLabel="Browse Explore"
+                        />
                     ) : (
                         <TrendingCarousel items={trending} />
                     )}

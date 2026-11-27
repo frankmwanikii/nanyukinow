@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import CloseButton from '@/Components/site/CloseButton';
 import {
-    CompassMark,
+    MapMark,
     NyukiMark,
     PlusMark,
     SearchMark,
@@ -12,7 +12,9 @@ import { explorePath } from '@/data/categories';
 import FlippingSearchHint, { FLIP_WORDS } from './FlippingSearchHint';
 import SearchSuggestions from './SearchSuggestions';
 
-const ICON = 'h-10 w-10';
+const ICON = 'h-6 w-6';
+/** Shared icon slot so labels share one baseline (Add circle is taller than glyphs). */
+const ICON_WELL = 'flex h-8 w-full items-center justify-center';
 
 export default function MobileBottomNav() {
     const page = usePage();
@@ -90,7 +92,7 @@ export default function MobileBottomNav() {
             key: 'explore',
             label: 'Explore',
             href: explorePath(),
-            icon: CompassMark,
+            icon: MapMark,
             prefetch: true,
         },
         {
@@ -105,12 +107,14 @@ export default function MobileBottomNav() {
             label: 'Nyuki AI',
             href: route('nyuki'),
             icon: NyukiMark,
+            // Bee glyph is narrower than Unicons; scale up to match optical weight.
+            iconClass: 'h-8 w-8',
             prefetch: true,
         },
     ];
 
     const itemClass = (active) =>
-        `relative flex min-h-[4.5rem] w-full flex-col items-center justify-center gap-1 px-1 py-1 text-[11px] font-medium leading-none tracking-[0.04em] transition-colors ${
+        `relative flex min-h-11 w-full flex-col items-center justify-center gap-0.5 px-1 py-1 text-[10px] font-medium leading-none tracking-[0.04em] transition-colors ${
             active ? 'text-mustard' : 'text-white/80 hover:text-white'
         }`;
 
@@ -193,7 +197,7 @@ export default function MobileBottomNav() {
                 className="fixed inset-x-0 bottom-0 z-[1095] border-t border-white/10 bg-olive-900 pb-[env(safe-area-inset-bottom)] lg:hidden"
                 aria-label="Mobile toolbar"
             >
-                <ul className="mx-auto grid h-[5.25rem] max-w-lg grid-cols-4 px-1 sm:h-[5.5rem]">
+                <ul className="mx-auto grid h-[3.75rem] max-w-lg grid-cols-4 px-1 sm:h-16">
                     <li className="min-w-0">
                         <button
                             type="button"
@@ -205,11 +209,13 @@ export default function MobileBottomNav() {
                         >
                             {searchActive ? (
                                 <span
-                                    className="absolute inset-x-4 top-0 h-0.5 rounded-full bg-mustard"
+                                    className="absolute inset-x-5 top-0 h-0.5 rounded-full bg-mustard"
                                     aria-hidden
                                 />
                             ) : null}
-                            <SearchMark className={ICON} />
+                            <span className={ICON_WELL}>
+                                <SearchMark className={ICON} />
+                            </span>
                             <span className="relative block h-[1em] w-full max-w-[4.5rem] overflow-hidden text-center">
                                 <span
                                     key={flipWord}
@@ -240,17 +246,21 @@ export default function MobileBottomNav() {
                             <>
                                 {active ? (
                                     <span
-                                        className="absolute inset-x-4 top-0 h-0.5 rounded-full bg-mustard"
+                                        className="absolute inset-x-5 top-0 h-0.5 rounded-full bg-mustard"
                                         aria-hidden
                                     />
                                 ) : null}
-                                {item.accent ? (
-                                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-mustard text-olive-950 shadow-sm">
-                                        <Icon className="h-5 w-5" />
-                                    </span>
-                                ) : (
-                                    <Icon className={ICON} />
-                                )}
+                                <span className={ICON_WELL}>
+                                    {item.accent ? (
+                                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-mustard text-olive-950 shadow-sm">
+                                            <Icon className="h-4 w-4" />
+                                        </span>
+                                    ) : (
+                                        <Icon
+                                            className={item.iconClass || ICON}
+                                        />
+                                    )}
+                                </span>
                                 <span className="truncate">{item.label}</span>
                             </>
                         );

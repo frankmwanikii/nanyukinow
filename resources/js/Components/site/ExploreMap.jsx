@@ -40,6 +40,22 @@ function MapChrome({ pointsCount, onClose }) {
     );
 }
 
+function hasMapPoint(item) {
+    return (
+        Number.isFinite(Number(item?.lat ?? item?.latitude)) &&
+        Number.isFinite(Number(item?.lng ?? item?.longitude))
+    );
+}
+
+function toPoint(item) {
+    return {
+        id: item.id,
+        title: item.title,
+        lat: Number(item.lat ?? item.latitude),
+        lng: Number(item.lng ?? item.longitude),
+    };
+}
+
 function GoogleExploreMap({
     points,
     activeId,
@@ -56,13 +72,18 @@ function GoogleExploreMap({
     const infoWindowRef = useRef(null);
     const onSelectRef = useRef(onSelect);
     const [authError, setAuthError] = useState(null);
+    const [mapReady, setMapReady] = useState(false);
     onSelectRef.current = onSelect;
 
     useEffect(() => {
-        if (!visible || !googleKey) return undefined;
+        if (!visible || !googleKey) {
+            setMapReady(false);
+            return undefined;
+        }
 
         let cancelled = false;
         setAuthError(null);
+        setMapReady(false);
 
         const stopAuthWatch = onGoogleMapsAuthFailure(() => {
             if (!cancelled) {
@@ -72,46 +93,53 @@ function GoogleExploreMap({
 
         loadGoogleMaps(googleKey, { libraries: [] })
             .then((maps) => {
-                if (cancelled || !containerRef.current || mapRef.current) return;
+                if (cancelled || !containerRef.current) return;
 
-                mapRef.current = new maps.Map(containerRef.current, {
-                    center: NANYUKI,
-                    zoom: 12,
-                    mapTypeControl: false,
-                    streetViewControl: false,
-                    fullscreenControl: false,
-                    clickableIcons: false,
-                    gestureHandling: 'greedy',
-                });
-                infoWindowRef.current = new maps.InfoWindow();
+                if (!mapRef.current) {
+                    mapRef.current = new maps.Map(containerRef.current, {
+                        center: NANYUKI,
+                        zoom: 12,
+                        mapTypeControl: false,
+                        streetViewControl: false,
+                        fullscreenControl: false,
+                        clickableIcons: false,
+                        gestureHandling: 'greedy',
+                    });
+                    infoWindowRef.current = new maps.InfoWindow();
+                }
+
+                // Mobile panel animates open; resize once layout settles.
+                window.setTimeout(() => {
+                    if (!cancelled && mapRef.current) {
+                        maps.event.trigger(mapRef.current, 'resize');
+                    }
+                }, 320);
+
+                if (!cancelled) {
+                    setMapReady(true);
+                }
             })
             .catch(() => {
                 if (!cancelled) {
                     setAuthError(GOOGLE_MAPS_AUTH_HELP);
+                    setMapReady(false);
                 }
             });
 
         return () => {
             cancelled = true;
             stopAuthWatch();
+            markersRef.current.forEach((marker) => marker.setMap(null));
+            markersRef.current.clear();
+            infoWindowRef.current?.close();
+            mapRef.current = null;
+            infoWindowRef.current = null;
+            setMapReady(false);
         };
     }, [visible, googleKey]);
 
     useEffect(() => {
-        if (!visible) return undefined;
-        return () => {
-            if (mapRef.current) {
-                markersRef.current.forEach((marker) => marker.setMap(null));
-                infoWindowRef.current?.close();
-                mapRef.current = null;
-                markersRef.current.clear();
-                infoWindowRef.current = null;
-            }
-        };
-    }, [visible]);
-
-    useEffect(() => {
-        if (!visible || !googleKey) return;
+        if (!visible || !googleKey || !mapReady) return;
         const map = mapRef.current;
         const maps = typeof window !== 'undefined' ? window.google?.maps : null;
         if (!map || !maps) return;
@@ -156,15 +184,17 @@ function GoogleExploreMap({
             map.setCenter(NANYUKI);
             map.setZoom(12);
         }
-    }, [points, activeId, visible, googleKey]);
+
+        maps.event.trigger(map, 'resize');
+    }, [points, activeId, visible, googleKey, mapReady]);
 
     useEffect(() => {
-        if (!visible || !activeId || !mapRef.current) return;
+        if (!visible || !mapReady || !activeId || !mapRef.current) return;
         const marker = markersRef.current.get(String(activeId));
         if (!marker) return;
         const position = marker.getPosition();
         if (position) mapRef.current.panTo(position);
-    }, [activeId, visible]);
+    }, [activeId, visible, mapReady]);
 
     return (
         <div
@@ -199,10 +229,13 @@ function LeafletExploreMap({
     const mapRef = useRef(null);
     const layerRef = useRef(null);
     const onSelectRef = useRef(onSelect);
+    const [mapReady, setMapReady] = useState(false);
     onSelectRef.current = onSelect;
 
     useEffect(() => {
-        if (!visible || !containerRef.current || mapRef.current) return undefined;
+        if (!visible || !containerRef.current || mapRef.current) {
+            return undefined;
+        }
 
         const map = createOsmMap(containerRef.current, {
             center: NANYUKI,
@@ -210,18 +243,23 @@ function LeafletExploreMap({
         });
         mapRef.current = map;
         layerRef.current = L.layerGroup().addTo(map);
+        setMapReady(true);
 
-        requestAnimationFrame(() => map.invalidateSize());
+        const resizeTimer = window.setTimeout(() => {
+            map.invalidateSize();
+        }, 320);
 
         return () => {
+            window.clearTimeout(resizeTimer);
             map.remove();
             mapRef.current = null;
             layerRef.current = null;
+            setMapReady(false);
         };
     }, [visible]);
 
     useEffect(() => {
-        if (!visible) return;
+        if (!visible || !mapReady) return;
         const map = mapRef.current;
         const layer = layerRef.current;
         if (!map || !layer) return;
@@ -254,15 +292,15 @@ function LeafletExploreMap({
         }
 
         requestAnimationFrame(() => map.invalidateSize());
-    }, [points, activeId, visible]);
+    }, [points, activeId, visible, mapReady]);
 
     useEffect(() => {
-        if (!visible || !activeId || !mapRef.current || !layerRef.current) return;
+        if (!visible || !mapReady || !activeId || !mapRef.current) return;
         const point = points.find((p) => String(p.id) === String(activeId));
         if (point) {
             mapRef.current.panTo([point.lat, point.lng]);
         }
-    }, [activeId, visible, points]);
+    }, [activeId, visible, points, mapReady]);
 
     return (
         <div
@@ -285,12 +323,7 @@ export default function ExploreMap({
     const provider = useMapProvider();
 
     const points = useMemo(
-        () =>
-            listings.filter(
-                (item) =>
-                    typeof item.lat === 'number' &&
-                    typeof item.lng === 'number',
-            ),
+        () => listings.filter(hasMapPoint).map(toPoint),
         [listings],
     );
 

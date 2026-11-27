@@ -281,11 +281,104 @@ function ExploreContent({
         onOpenNowChange: setOpenNow,
         onSearch: applySearch,
         onClear: clearFilters,
+        onSelectionComplete: applySearch,
     };
 
+    const filterStrip = (
+        <div className="sticky top-0 z-30 grid shrink-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 border-b border-olive-200/80 bg-white px-3 py-2 shadow-[0_1px_0_rgba(28,23,18,0.06)] sm:gap-3 sm:px-4 lg:static lg:shadow-none">
+            <div className="flex shrink-0 items-center">
+                <button
+                    type="button"
+                    onClick={() =>
+                        setMobilePanel((p) =>
+                            p === 'filters' ? 'list' : 'filters',
+                        )
+                    }
+                    className={`inline-flex h-8 items-center justify-center gap-1 rounded-full px-2.5 text-[13px] font-semibold transition lg:hidden ${
+                        mobilePanel === 'filters'
+                            ? 'bg-olive-600 text-white'
+                            : 'border border-olive-200/80 bg-transparent text-olive-800 hover:border-olive-400'
+                    }`}
+                    aria-label="Filters"
+                    aria-pressed={mobilePanel === 'filters'}
+                >
+                    <FiltersMark className="h-3.5 w-3.5" />
+                    Filters
+                </button>
+            </div>
+
+            <p className="min-w-0 truncate text-center text-[12px] leading-tight text-olive-700 sm:text-sm">
+                <span className="sm:hidden">
+                    <span className="font-semibold text-earth-dusk">
+                        {filtered.length === 0
+                            ? '0'
+                            : `${start}–${end}`}
+                    </span>
+                    {' of '}
+                    <span className="font-semibold text-earth-dusk">
+                        {filtered.length}
+                    </span>
+                </span>
+                <span className="hidden sm:inline">
+                    Showing{' '}
+                    <span className="font-semibold text-earth-dusk">
+                        {filtered.length === 0
+                            ? '0'
+                            : `${start}–${end}`}
+                    </span>{' '}
+                    out of{' '}
+                    <span className="font-semibold text-earth-dusk">
+                        {filtered.length}
+                    </span>{' '}
+                    results
+                </span>
+            </p>
+
+            <div className="flex shrink-0 items-center gap-1">
+                <button
+                    type="button"
+                    disabled={safePage <= 1}
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-olive-200/80 bg-transparent text-olive-700 transition hover:border-olive-400 disabled:cursor-not-allowed disabled:opacity-35"
+                    aria-label="Previous page"
+                    title="Previous page"
+                >
+                    <BackMark className="h-4 w-4" />
+                </button>
+                <button
+                    type="button"
+                    disabled={safePage >= totalPages}
+                    onClick={() =>
+                        setPage((p) => Math.min(totalPages, p + 1))
+                    }
+                    className="flex h-8 w-8 items-center justify-center rounded-full border border-olive-200/80 bg-transparent text-olive-700 transition hover:border-olive-400 disabled:cursor-not-allowed disabled:opacity-35"
+                    aria-label="Next page"
+                    title="Next page"
+                >
+                    <ForwardMark className="h-3.5 w-3.5" />
+                </button>
+                <button
+                    type="button"
+                    onClick={() => (mapOpen ? closeMap() : openMap())}
+                    className={`flex h-8 w-8 items-center justify-center rounded-full border transition ${
+                        mapOpen
+                            ? 'border-mustard bg-mustard text-olive-950'
+                            : 'border-olive-200/80 bg-transparent text-olive-700 hover:border-olive-400'
+                    }`}
+                    aria-label={mapOpen ? 'Hide map' : 'Show map'}
+                    title={
+                        mapOpen ? 'Hide map' : 'Show listings on map'
+                    }
+                >
+                    <MapMark className="h-3.5 w-3.5" />
+                </button>
+            </div>
+        </div>
+    );
+
     return (
-        <div className="flex h-svh flex-col bg-[#f3f1ec] pb-[5.25rem] lg:pb-0">
-            <div className="shrink-0 bg-white pt-[5.75rem] sm:pt-[6.25rem] lg:pt-[6.75rem]">
+        <div className="flex h-svh flex-col bg-[#f3f1ec] pb-[3.75rem] pt-[4.25rem] sm:pt-[4.75rem] lg:pb-0 lg:pt-[6.75rem]">
+            <div className="hidden shrink-0 bg-white lg:block">
                 <ExploreCategoryTabs
                     categoryKey={categoryKey}
                     onCategoryChange={handleCategoryChange}
@@ -314,169 +407,91 @@ function ExploreContent({
                             : 'hidden lg:flex'
                     }`}
                 >
-                    <div className="grid shrink-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 border-b border-olive-200/80 bg-white px-3 py-2 sm:gap-3 sm:px-4">
-                        <div className="flex shrink-0 items-center">
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    setMobilePanel((p) =>
-                                        p === 'filters' ? 'list' : 'filters',
-                                    )
-                                }
-                                className={`inline-flex h-8 items-center justify-center gap-1 rounded-full px-2.5 text-[13px] font-semibold transition lg:hidden ${
-                                    mobilePanel === 'filters'
-                                        ? 'bg-olive-600 text-white'
-                                        : 'border border-olive-200/80 bg-transparent text-olive-800 hover:border-olive-400'
-                                }`}
-                                aria-label="Filters"
-                                aria-pressed={mobilePanel === 'filters'}
-                            >
-                                <FiltersMark className="h-3.5 w-3.5" />
-                                Filters
-                            </button>
+                    {/*
+                      Mobile: one scroll. Category tabs leave; filter strip sticks.
+                      Desktop: lg:contents restores the old flex column + nested list scroll.
+                    */}
+                    <div className="relative isolate min-h-0 flex-1 overflow-y-auto overscroll-y-contain lg:contents">
+                        <div className="relative z-0 bg-white lg:hidden">
+                            <ExploreCategoryTabs
+                                categoryKey={categoryKey}
+                                onCategoryChange={handleCategoryChange}
+                            />
                         </div>
 
-                        <p className="min-w-0 truncate text-center text-[12px] leading-tight text-olive-700 sm:text-sm">
-                            <span className="sm:hidden">
-                                <span className="font-semibold text-earth-dusk">
-                                    {filtered.length === 0
-                                        ? '0'
-                                        : `${start}–${end}`}
-                                </span>
-                                {' of '}
-                                <span className="font-semibold text-earth-dusk">
-                                    {filtered.length}
-                                </span>
-                            </span>
-                            <span className="hidden sm:inline">
-                                Showing{' '}
-                                <span className="font-semibold text-earth-dusk">
-                                    {filtered.length === 0
-                                        ? '0'
-                                        : `${start}–${end}`}
-                                </span>{' '}
-                                out of{' '}
-                                <span className="font-semibold text-earth-dusk">
-                                    {filtered.length}
-                                </span>{' '}
-                                results
-                            </span>
-                        </p>
+                        {filterStrip}
 
-                        <div className="flex shrink-0 items-center gap-1">
-                            <button
-                                type="button"
-                                disabled={safePage <= 1}
-                                onClick={() =>
-                                    setPage((p) => Math.max(1, p - 1))
-                                }
-                                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-olive-200/80 bg-transparent text-olive-700 transition hover:border-olive-400 disabled:cursor-not-allowed disabled:opacity-35"
-                                aria-label="Previous page"
-                                title="Previous page"
-                            >
-                                <BackMark className="h-4 w-4" />
-                            </button>
-                            <button
-                                type="button"
-                                disabled={safePage >= totalPages}
-                                onClick={() =>
-                                    setPage((p) => Math.min(totalPages, p + 1))
-                                }
-                                className="flex h-8 w-8 items-center justify-center rounded-full border border-olive-200/80 bg-transparent text-olive-700 transition hover:border-olive-400 disabled:cursor-not-allowed disabled:opacity-35"
-                                aria-label="Next page"
-                                title="Next page"
-                            >
-                                <ForwardMark className="h-3.5 w-3.5" />
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    mapOpen ? closeMap() : openMap()
-                                }
-                                className={`flex h-8 w-8 items-center justify-center rounded-full border transition ${
-                                    mapOpen
-                                        ? 'border-mustard bg-mustard text-olive-950'
-                                        : 'border-olive-200/80 bg-transparent text-olive-700 hover:border-olive-400'
-                                }`}
-                                aria-label={
-                                    mapOpen ? 'Hide map' : 'Show map'
-                                }
-                                title={
-                                    mapOpen
-                                        ? 'Hide map'
-                                        : 'Show listings on map'
-                                }
-                            >
-                                <MapMark className="h-3.5 w-3.5" />
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="min-h-0 flex-1 overflow-y-auto px-3 py-4 sm:px-4">
-                        {pageItems.length === 0 ? (
-                            <div className="flex h-full min-h-[240px] flex-col items-center justify-center border border-dashed border-olive-300 bg-white/70 px-6 text-center">
-                                <EmptyListingsMark className="mx-auto h-12 w-12 text-earth-dusk sm:h-14 sm:w-14" />
-                                <p className="mt-3 font-display text-xl font-semibold tracking-tight text-earth-dusk sm:text-2xl">
-                                    {location === NEAR_ME_LOCATION &&
-                                    nearMeStatus === 'loading'
-                                        ? 'Finding places near you'
-                                        : location === NEAR_ME_LOCATION &&
-                                            nearMeStatus === 'error'
-                                          ? 'Location unavailable'
-                                          : sitePage?.content?.empty_title ||
-                                            'Nothing here yet!'}
-                                </p>
-                                <p className="mt-2 max-w-sm text-sm leading-relaxed text-olive-600 sm:text-base">
-                                    {location === NEAR_ME_LOCATION &&
-                                    nearMeStatus === 'loading'
-                                        ? 'Allow location access so we can sort listings by distance.'
-                                        : location === NEAR_ME_LOCATION &&
-                                            nearMeStatus === 'error'
-                                          ? 'Allow location access in your browser, then choose Near me again.'
-                                          : location === NEAR_ME_LOCATION &&
-                                              nearMeStatus === 'ready'
-                                            ? 'No mapped listings within about 40 km of you. Try All locations or another town.'
-                                            : sitePage?.content?.empty_body ||
-                                              'Try another category, clear filters, or check back soon for new listings.'}
-                                </p>
-                                <button
-                                    type="button"
-                                    onClick={clearFilters}
-                                    className="mt-5 min-h-11 rounded-md bg-olive-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-mustard hover:text-olive-950"
-                                >
-                                    Clear filters
-                                </button>
-                            </div>
-                        ) : (
-                            <>
-                                <div
-                                    className={`grid gap-4 ${
-                                        mapOpen
-                                            ? 'grid-cols-1'
-                                            : 'sm:grid-cols-2 lg:grid-cols-3'
-                                    }`}
-                                >
-                                    {pageItems.map((listing) => (
-                                        <div
-                                            key={listing.id}
-                                            className="min-w-0"
-                                            onMouseEnter={() =>
-                                                setActiveId(listing.id)
-                                            }
-                                        >
-                                            <ListingCard listing={listing} />
-                                        </div>
-                                    ))}
+                        <div className="relative z-0 px-3 py-4 sm:px-4 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
+                            {pageItems.length === 0 ? (
+                                <div className="flex h-full min-h-[240px] flex-col items-center justify-center border border-dashed border-olive-300 bg-white/70 px-6 text-center">
+                                    <EmptyListingsMark className="mx-auto h-12 w-12 text-earth-dusk sm:h-14 sm:w-14" />
+                                    <p className="mt-3 font-display text-xl font-semibold tracking-tight text-earth-dusk sm:text-2xl">
+                                        {location === NEAR_ME_LOCATION &&
+                                        nearMeStatus === 'loading'
+                                            ? 'Finding places near you'
+                                            : location === NEAR_ME_LOCATION &&
+                                                nearMeStatus === 'error'
+                                              ? 'Location unavailable'
+                                              : sitePage?.content
+                                                      ?.empty_title ||
+                                                'Nothing here yet!'}
+                                    </p>
+                                    <p className="mt-2 max-w-sm text-sm leading-relaxed text-olive-600 sm:text-base">
+                                        {location === NEAR_ME_LOCATION &&
+                                        nearMeStatus === 'loading'
+                                            ? 'Allow location access so we can sort listings by distance.'
+                                            : location === NEAR_ME_LOCATION &&
+                                                nearMeStatus === 'error'
+                                              ? 'Allow location access in your browser, then choose Near me again.'
+                                              : location ===
+                                                      NEAR_ME_LOCATION &&
+                                                  nearMeStatus === 'ready'
+                                                ? 'No mapped listings within about 40 km of you. Try All locations or another town.'
+                                                : sitePage?.content
+                                                        ?.empty_body ||
+                                                  'Try another category, clear filters, or check back soon for new listings.'}
+                                    </p>
+                                    <button
+                                        type="button"
+                                        onClick={clearFilters}
+                                        className="mt-5 min-h-11 rounded-md bg-olive-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-mustard hover:text-olive-950"
+                                    >
+                                        Clear filters
+                                    </button>
                                 </div>
+                            ) : (
+                                <>
+                                    <div
+                                        className={`grid gap-4 ${
+                                            mapOpen
+                                                ? 'grid-cols-1'
+                                                : 'sm:grid-cols-2 lg:grid-cols-3'
+                                        }`}
+                                    >
+                                        {pageItems.map((listing) => (
+                                            <div
+                                                key={listing.id}
+                                                className="min-w-0"
+                                                onMouseEnter={() =>
+                                                    setActiveId(listing.id)
+                                                }
+                                            >
+                                                <ListingCard
+                                                    listing={listing}
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
 
-                                <Pagination
-                                    className="mt-8 pb-6"
-                                    page={safePage}
-                                    totalPages={totalPages}
-                                    onPageChange={setPage}
-                                />
-                            </>
-                        )}
+                                    <Pagination
+                                        className="mt-8 pb-6"
+                                        page={safePage}
+                                        totalPages={totalPages}
+                                        onPageChange={setPage}
+                                    />
+                                </>
+                            )}
+                        </div>
                     </div>
                 </section>
 
@@ -509,11 +524,11 @@ function ExploreContent({
 function ExploreListingsSkeleton() {
     return (
         <div
-            className="flex h-svh flex-col bg-[#f3f1ec] pb-[5.25rem] lg:pb-0"
+            className="flex h-svh flex-col bg-[#f3f1ec] pb-[3.75rem] pt-[4.25rem] sm:pt-[4.75rem] lg:pb-0 lg:pt-[6.75rem]"
             aria-busy="true"
             aria-label="Loading listings"
         >
-            <div className="shrink-0 bg-white pt-[5.75rem] sm:pt-[6.25rem] lg:pt-[6.75rem]">
+            <div className="hidden shrink-0 bg-white lg:block">
                 <div className="flex gap-2 overflow-hidden px-4 py-3">
                     {Array.from({ length: 6 }).map((_, i) => (
                         <div
@@ -534,9 +549,22 @@ function ExploreListingsSkeleton() {
                         ))}
                     </div>
                 </div>
-                <div className="min-w-0 flex-1 overflow-hidden p-4">
-                    <div className="mb-4 h-5 w-48 animate-pulse bg-olive-900/10" />
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="min-h-0 min-w-0 flex-1 overflow-y-auto lg:overflow-hidden lg:p-4">
+                    <div className="bg-white px-4 py-3 lg:hidden">
+                        <div className="mb-2 h-4 w-40 animate-pulse bg-olive-900/10" />
+                        <div className="flex gap-2 overflow-hidden">
+                            {Array.from({ length: 4 }).map((_, i) => (
+                                <div
+                                    key={i}
+                                    className="h-9 w-24 shrink-0 animate-pulse bg-olive-900/10"
+                                />
+                            ))}
+                        </div>
+                    </div>
+                    <div className="sticky top-0 z-10 border-b border-olive-200/80 bg-white px-3 py-2 lg:static lg:mb-4 lg:border-0 lg:px-0 lg:py-0">
+                        <div className="h-5 w-48 animate-pulse bg-olive-900/10" />
+                    </div>
+                    <div className="grid gap-4 p-3 sm:grid-cols-2 sm:p-4 lg:grid-cols-3 lg:p-0">
                         {Array.from({ length: 6 }).map((_, i) => (
                             <div
                                 key={i}

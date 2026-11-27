@@ -29,16 +29,17 @@ export default function SiteLayout({
         <>
             <Head title={title} />
             <div
-                className={`overflow-x-clip font-sans antialiased ${shellClassName} ${
+                className={`font-sans antialiased ${shellClassName} ${
                     lockViewport
-                        ? 'h-svh overflow-hidden'
+                        ? // Avoid overflow-x-clip here: it breaks position:sticky inside Explore.
+                          'h-svh overflow-hidden'
                         : padForBottomNav
                           ? hideFooter
-                            ? 'min-h-svh pb-[calc(5.25rem+env(safe-area-inset-bottom,0px))] lg:pb-0'
-                            : 'min-h-screen pb-[calc(5.25rem+env(safe-area-inset-bottom,0px))] lg:pb-0'
+                            ? 'min-h-svh overflow-x-clip pb-[calc(3.75rem+env(safe-area-inset-bottom,0px))] lg:pb-0'
+                            : 'min-h-screen overflow-x-clip pb-[calc(3.75rem+env(safe-area-inset-bottom,0px))] lg:pb-0'
                           : hideFooter
-                            ? 'min-h-svh'
-                            : 'min-h-screen'
+                            ? 'min-h-svh overflow-x-clip'
+                            : 'min-h-screen overflow-x-clip'
                 }`}
             >
                 {hideNav ? null : <Navbar compact={compactNav} />}

@@ -26,7 +26,7 @@ export default function ExploreCategoryTabs({
 }) {
     return (
         <div className="shrink-0 border-b border-olive-200 bg-white">
-            <p className="px-3 pb-2 text-sm font-semibold text-olive-700 lg:hidden">
+            <p className="px-3 pb-1.5 pt-2 text-sm font-semibold text-olive-700 lg:hidden">
                 What are you looking for?
             </p>
             <div className="flex items-stretch">
