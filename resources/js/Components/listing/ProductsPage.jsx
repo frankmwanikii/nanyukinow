@@ -8,11 +8,125 @@ import {
     formatProductPrice,
     productItemImages,
 } from '@/data/shoppingTierFeatures';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import GalleryLightbox from './GalleryLightbox';
 import SwipeImageRail from './SwipeImageRail';
 
 const PAGE_SIZE = 12;
+
+function isRichHtml(value) {
+    return /<[a-z][\s\S]*>/i.test(String(value || ''));
+}
+
+/**
+ * Product card description: 2-line clamp with smooth See more / See less.
+ */
+function ProductDescription({ content }) {
+    const contentRef = useRef(null);
+    const [expanded, setExpanded] = useState(false);
+    const [needsMore, setNeedsMore] = useState(false);
+    const [collapsedHeight, setCollapsedHeight] = useState(0);
+    const [fullHeight, setFullHeight] = useState(0);
+    const rich = isRichHtml(content);
+
+    useEffect(() => {
+        const el = contentRef.current;
+        if (!el || typeof window === 'undefined') {
+            return undefined;
+        }
+
+        const measure = () => {
+            const previousMax = el.parentElement?.style.maxHeight;
+            const previousOverflow = el.parentElement?.style.overflow;
+            if (el.parentElement) {
+                el.parentElement.style.maxHeight = 'none';
+                el.parentElement.style.overflow = 'visible';
+            }
+
+            const styles = window.getComputedStyle(el);
+            const parsedLine = Number.parseFloat(styles.lineHeight);
+            const lineHeight = Number.isFinite(parsedLine)
+                ? parsedLine
+                : Number.parseFloat(styles.fontSize) * 1.5 || 20;
+            const collapsed = Math.ceil(lineHeight * 2);
+            const full = el.scrollHeight;
+
+            if (el.parentElement) {
+                el.parentElement.style.maxHeight = previousMax || '';
+                el.parentElement.style.overflow = previousOverflow || '';
+            }
+
+            setCollapsedHeight(collapsed);
+            setFullHeight(full);
+            const overflow = full > collapsed + 2;
+            setNeedsMore(overflow);
+            if (!overflow) {
+                setExpanded(false);
+            }
+        };
+
+        measure();
+        const observer =
+            typeof ResizeObserver !== 'undefined'
+                ? new ResizeObserver(measure)
+                : null;
+        observer?.observe(el);
+        window.addEventListener('resize', measure);
+
+        return () => {
+            observer?.disconnect();
+            window.removeEventListener('resize', measure);
+        };
+    }, [content]);
+
+    if (!content) {
+        return null;
+    }
+
+    const maxHeight = needsMore
+        ? expanded
+            ? Math.max(fullHeight, collapsedHeight) + 8
+            : collapsedHeight
+        : undefined;
+
+    return (
+        <div>
+            <div
+                className="overflow-hidden transition-[max-height] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
+                style={
+                    needsMore && maxHeight != null
+                        ? { maxHeight: `${maxHeight}px` }
+                        : undefined
+                }
+            >
+                {rich ? (
+                    <div
+                        ref={contentRef}
+                        className="nn-editor text-xs leading-relaxed text-olive-600 sm:text-sm"
+                        dangerouslySetInnerHTML={{ __html: content }}
+                    />
+                ) : (
+                    <p
+                        ref={contentRef}
+                        className="text-xs leading-relaxed text-olive-600 sm:text-sm"
+                    >
+                        {content}
+                    </p>
+                )}
+            </div>
+            {needsMore ? (
+                <button
+                    type="button"
+                    className="mt-1.5 text-xs font-semibold text-olive-800 underline decoration-olive-300 underline-offset-2 transition hover:decoration-mustard"
+                    aria-expanded={expanded}
+                    onClick={() => setExpanded((value) => !value)}
+                >
+                    {expanded ? 'See less' : 'See more'}
+                </button>
+            ) : null}
+        </div>
+    );
+}
 
 function normalizeProducts(products = []) {
     if (!Array.isArray(products)) return [];
@@ -139,7 +253,7 @@ export default function ProductsPage({ listing }) {
                     </h2>
                     <p className="mt-1 text-sm text-olive-600">
                         {products.length
-                            ? `What ${listing?.title || 'this store'} offers — with prices.`
+                            ? `What ${listing?.title || 'this store'} offers, with prices.`
                             : `Products from ${listing?.title || 'this store'} will appear here.`}
                     </p>
                 </div>
@@ -232,22 +346,9 @@ export default function ProductsPage({ listing }) {
                                         <h3 className="line-clamp-2 font-display text-sm font-semibold leading-snug text-earth-dusk sm:text-base">
                                             {product.name}
                                         </h3>
-                                        {product.description ? (
-                                            /<[a-z][\s\S]*>/i.test(
-                                                String(product.description),
-                                            ) ? (
-                                                <div
-                                                    className="nn-editor line-clamp-2 text-xs leading-relaxed text-olive-600 sm:text-sm"
-                                                    dangerouslySetInnerHTML={{
-                                                        __html: product.description,
-                                                    }}
-                                                />
-                                            ) : (
-                                                <p className="line-clamp-2 text-xs leading-relaxed text-olive-600 sm:text-sm">
-                                                    {product.description}
-                                                </p>
-                                            )
-                                        ) : null}
+                                        <ProductDescription
+                                            content={product.description}
+                                        />
                                         <div className="mt-auto border-t border-olive-100 pt-2.5">
                                             {priceLabel ? (
                                                 <p className="font-display text-base font-semibold text-olive-800 sm:text-lg">
@@ -337,24 +438,6 @@ export default function ProductsPage({ listing }) {
                     meta={[active.category, activePrice]
                         .filter(Boolean)
                         .join(' · ')}
-                    footer={
-                        active.description ? (
-                            /<[a-z][\s\S]*>/i.test(
-                                String(active.description),
-                            ) ? (
-                                <div
-                                    className="nn-editor mx-auto max-w-2xl text-center text-sm text-white/80"
-                                    dangerouslySetInnerHTML={{
-                                        __html: active.description,
-                                    }}
-                                />
-                            ) : (
-                                <p className="mx-auto max-w-2xl text-center text-sm text-white/80">
-                                    {active.description}
-                                </p>
-                            )
-                        ) : null
-                    }
                 />
             ) : null}
         </div>
