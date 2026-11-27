@@ -1,19 +1,37 @@
 import { useEffect, useState } from 'react';
 import { router } from '@inertiajs/react';
 
+const STATUS_LINES = [
+    'Fetching page',
+    'Warming up',
+    'Lacing boots',
+    'Checking the map',
+    'Gathering places',
+    'Brewing the view',
+    'Almost there',
+    'Smoothing edges',
+    'Polishing details',
+    'Opening the gate',
+];
+
 /**
  * Full-page Inertia visit preloader.
- * Solid brand surface (no page blur), logo pulse, mustard orbit.
+ * Solid brand surface (no page blur), logo pulse, mustard orbit,
+ * and rotating status lines in the Cursor style.
  */
 export default function PageLoadingSpinner() {
     const [visible, setVisible] = useState(false);
+    const [statusIndex, setStatusIndex] = useState(0);
 
     useEffect(() => {
         let timeoutId = null;
 
         const show = () => {
             clearTimeout(timeoutId);
-            timeoutId = setTimeout(() => setVisible(true), 80);
+            timeoutId = setTimeout(() => {
+                setStatusIndex(0);
+                setVisible(true);
+            }, 80);
         };
 
         const hide = () => {
@@ -40,16 +58,30 @@ export default function PageLoadingSpinner() {
         };
     }, []);
 
+    useEffect(() => {
+        if (!visible) {
+            return undefined;
+        }
+
+        const intervalId = window.setInterval(() => {
+            setStatusIndex((prev) => (prev + 1) % STATUS_LINES.length);
+        }, 1400);
+
+        return () => window.clearInterval(intervalId);
+    }, [visible]);
+
     if (!visible) {
         return null;
     }
+
+    const status = STATUS_LINES[statusIndex] || STATUS_LINES[0];
 
     return (
         <div
             className="nn-page-preloader fixed inset-0 z-[1100] flex flex-col items-center justify-center bg-earth-dusk"
             role="status"
             aria-live="polite"
-            aria-label="Loading page"
+            aria-label={status}
             aria-busy="true"
         >
             <div
@@ -89,16 +121,22 @@ export default function PageLoadingSpinner() {
                     <p className="font-display text-lg font-semibold tracking-tight text-white sm:text-xl">
                         Nanyuki Now
                     </p>
-                    <p className="mt-1.5 text-xs font-medium tracking-wide text-white/55 sm:text-sm">
-                        Loading
-                        <span className="nn-page-preloader__dots" aria-hidden="true">
+                    <p
+                        key={status}
+                        className="nn-page-preloader__status mt-1.5 text-xs font-medium tracking-wide text-white/55 sm:text-sm"
+                    >
+                        {status}
+                        <span
+                            className="nn-page-preloader__dots"
+                            aria-hidden="true"
+                        >
                             …
                         </span>
                     </p>
                 </div>
             </div>
 
-            <span className="sr-only">Loading</span>
+            <span className="sr-only">{status}</span>
         </div>
     );
 }

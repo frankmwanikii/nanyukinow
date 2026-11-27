@@ -621,8 +621,23 @@ input[type='search']::-ms-clear {
     }
 }
 
+@keyframes nn-page-preloader-status {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .nn-page-preloader {
     animation: nn-page-preloader-in 180ms ease-out both;
+}
+
+.nn-page-preloader__status {
+    animation: nn-page-preloader-status 280ms ease-out both;
 }
 
 .nn-page-preloader__glow {
@@ -656,6 +671,7 @@ input[type='search']::-ms-clear {
 
     .nn-page-preloader,
     .nn-page-preloader__glow,
+    .nn-page-preloader__status,
     .nn-logo-loader__orbit,
     .nn-logo-loader__spin,
     .nn-logo-loader__mark,
