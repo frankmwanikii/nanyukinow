@@ -165,7 +165,11 @@ print("uploaded")
 PY
 
 echo "==> Extracting on server"
-curl -fsS --max-time 600 "${APP_URL}/nn-ci-extract.php?token=${CPANEL_DEPLOY_TOKEN}"
+# Force the cPanel IP so a local /etc/hosts override cannot send this to localhost.
+curl -fsS --max-time 600 \
+  --resolve "nanyukinow.co.ke:443:${CPANEL_FTP_HOST}" \
+  --resolve "nanyukinow.co.ke:80:${CPANEL_FTP_HOST}" \
+  "${APP_URL}/nn-ci-extract.php?token=${CPANEL_DEPLOY_TOKEN}"
 
 echo "==> Cleaning remote helpers"
 python3 - <<'PY'
