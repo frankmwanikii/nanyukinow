@@ -2166,35 +2166,64 @@ export default function Form({
                                 >
                                     Cancel
                                 </Link>
-                                {isAdmin ? (
-                                    <>
-                                        <button
-                                            type="button"
-                                            disabled={form.processing || editLockedByOther}
-                                            onClick={(e) => submit(e, 'draft')}
-                                            className="inline-flex shrink-0 items-center gap-2 rounded-sm border border-olive-900/20 bg-white px-3.5 py-2 text-sm font-semibold text-olive-800 transition hover:border-olive-900/40 disabled:opacity-50 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-100 dark:hover:bg-olive-800"
-                                        >
-                                            <Save className="h-4 w-4" />
-                                            {form.processing
-                                                ? form.progress?.percentage != null
-                                                  ? `Saving ${Math.round(form.progress.percentage)}%`
-                                                  : 'Saving…'
-                                                : 'Save draft'}
-                                        </button>
-                                        <button
-                                            type="button"
-                                            disabled={form.processing || editLockedByOther}
-                                            onClick={(e) => submit(e, 'publish')}
-                                            className="inline-flex shrink-0 items-center gap-2 rounded-sm bg-mustard px-3.5 py-2 text-sm font-semibold text-earth-dusk transition hover:bg-olive-900 hover:text-white disabled:opacity-50 dark:hover:bg-olive-100 dark:hover:text-earth-dusk"
-                                        >
-                                            {form.processing
-                                                ? form.progress?.percentage != null
-                                                  ? `Publishing ${Math.round(form.progress.percentage)}%`
-                                                  : 'Publishing…'
-                                                : 'Publish'}
-                                        </button>
-                                    </>
+                                {isAdmin || !isEdit ? (
+                                    <button
+                                        type="button"
+                                        disabled={
+                                            form.processing ||
+                                            editLockedByOther ||
+                                            (!isAdmin &&
+                                                (saveState === 'saving' ||
+                                                    draftUploadProgress != null))
+                                        }
+                                        onClick={(e) => {
+                                            if (isAdmin) {
+                                                submit(e, 'draft');
+                                                return;
+                                            }
+                                            void persistDraft({ silent: false });
+                                        }}
+                                        className="inline-flex shrink-0 items-center gap-2 rounded-sm border border-olive-900/20 bg-white px-3.5 py-2 text-sm font-semibold text-olive-800 transition hover:border-olive-900/40 disabled:opacity-50 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-100 dark:hover:bg-olive-800"
+                                    >
+                                        <Save className="h-4 w-4" />
+                                        {isAdmin && form.processing
+                                            ? form.progress?.percentage != null
+                                              ? `Saving ${Math.round(form.progress.percentage)}%`
+                                              : 'Saving…'
+                                            : !isAdmin &&
+                                                (saveState === 'saving' ||
+                                                    draftUploadProgress != null)
+                                              ? draftUploadProgress != null
+                                                ? `Saving ${draftUploadProgress}%`
+                                                : 'Saving…'
+                                              : 'Save draft'}
+                                    </button>
                                 ) : null}
+                                <button
+                                    type="button"
+                                    disabled={form.processing || editLockedByOther}
+                                    onClick={(e) =>
+                                        submit(e, isAdmin ? 'publish' : 'save')
+                                    }
+                                    className="inline-flex shrink-0 items-center gap-2 rounded-sm bg-mustard px-3.5 py-2 text-sm font-semibold text-earth-dusk transition hover:bg-olive-900 hover:text-white disabled:opacity-50 dark:hover:bg-olive-100 dark:hover:text-earth-dusk"
+                                >
+                                    {isAdmin ? null : (
+                                        <Save className="h-4 w-4" />
+                                    )}
+                                    {form.processing
+                                        ? form.progress?.percentage != null
+                                          ? isAdmin
+                                            ? `Publishing ${Math.round(form.progress.percentage)}%`
+                                            : `Saving ${Math.round(form.progress.percentage)}%`
+                                          : isAdmin
+                                            ? 'Publishing…'
+                                            : 'Saving…'
+                                        : isAdmin
+                                          ? 'Publish'
+                                          : isEdit
+                                            ? 'Save changes'
+                                            : 'Publish'}
+                                </button>
                                 {step.id !== 'preview' ? (
                                     <button
                                         type="button"
@@ -2202,21 +2231,6 @@ export default function Form({
                                         className="inline-flex shrink-0 items-center rounded-sm bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-mustard hover:text-earth-dusk dark:bg-mustard dark:text-earth-dusk dark:hover:bg-olive-100"
                                     >
                                         Continue
-                                    </button>
-                                ) : !isAdmin ? (
-                                    <button
-                                        type="submit"
-                                        disabled={form.processing}
-                                        className="inline-flex shrink-0 items-center gap-2 rounded-sm bg-mustard px-3.5 py-2 text-sm font-semibold text-earth-dusk transition hover:bg-olive-900 hover:text-white disabled:opacity-50 dark:hover:bg-olive-100 dark:hover:text-earth-dusk"
-                                    >
-                                        <Save className="h-4 w-4" />
-                                        {form.processing
-                                            ? form.progress?.percentage != null
-                                              ? `Saving ${Math.round(form.progress.percentage)}%`
-                                              : 'Saving…'
-                                            : isEdit
-                                              ? 'Save changes'
-                                              : 'Submit for review'}
                                     </button>
                                 ) : null}
                             </div>

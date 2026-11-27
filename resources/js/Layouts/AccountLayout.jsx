@@ -418,7 +418,7 @@ function AccountShell({ title = 'Account', children }) {
 
 export default function AccountLayout({ title = 'Account', children }) {
     return (
-        <SiteLayout hideFooter compactNav>
+        <SiteLayout hideFooter hideNyukiWidget compactNav>
             <ThemeProvider>
                 <AccountShell title={title}>{children}</AccountShell>
                 <AccountFlashToast />
