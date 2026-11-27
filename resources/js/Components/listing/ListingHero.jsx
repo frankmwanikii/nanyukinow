@@ -39,6 +39,13 @@ export default function ListingHero({
         : listing.image;
     const ticketUrl = listing.ticketUrl;
     const bookUrl = actionUrl(listing);
+    // Shopping uses "Call store" as the phone CTA. Do not also show the
+    // external book/store URL as a mustard "Call store" button.
+    const showBookCta = Boolean(
+        bookUrl && !ticketUrl && secondaryCta !== 'Call store',
+    );
+    const showCallPrimary = Boolean(tel && !ticketUrl && !showBookCta);
+    const showCallSecondary = Boolean(tel && (ticketUrl || showBookCta));
     const contactHref = `#contact`;
     const openMessage = () => {
         if (onMessage) {
@@ -214,7 +221,7 @@ export default function ListingHero({
                                 <span className="truncate">Buy tickets</span>
                             </a>
                         ) : null}
-                        {!ticketUrl && bookUrl ? (
+                        {showBookCta ? (
                             <a
                                 href={bookUrl}
                                 target="_blank"
@@ -227,7 +234,7 @@ export default function ListingHero({
                                 </span>
                             </a>
                         ) : null}
-                        {tel && !ticketUrl && !bookUrl ? (
+                        {showCallPrimary ? (
                             <a
                                 href={tel}
                                 className={`min-w-0 flex-1 sm:flex-none ${primaryBtn}`}
@@ -240,7 +247,7 @@ export default function ListingHero({
                                 </span>
                             </a>
                         ) : null}
-                        {tel && (ticketUrl || bookUrl) ? (
+                        {showCallSecondary ? (
                             <a
                                 href={tel}
                                 className={`min-w-0 flex-1 sm:flex-none ${secondaryBtn}`}
@@ -259,7 +266,8 @@ export default function ListingHero({
                         </button>
                         {secondaryCta &&
                         !ticketUrl &&
-                        !bookUrl &&
+                        !showBookCta &&
+                        !showCallPrimary &&
                         secondaryCta !== 'Call store' ? (
                             <a
                                 href={contactHref}
