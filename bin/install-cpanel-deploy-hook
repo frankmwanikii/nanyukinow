@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# Install a local post-commit hook that deploys main commits to cPanel.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+HOOK="$ROOT/.git/hooks/post-commit"
+
+mkdir -p "$ROOT/.git/hooks"
+cat > "$HOOK" <<'EOF'
+#!/usr/bin/env bash
+# Auto-deploy to cPanel after commits on main (local workaround for Actions billing lock).
+set -euo pipefail
+
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT"
+
+branch="$(git rev-parse --abbrev-ref HEAD)"
+if [[ "$branch" != "main" ]]; then
+  exit 0
+fi
+
+if [[ "${SKIP_CPANEL_DEPLOY:-}" == "1" ]]; then
+  echo "Skipping cPanel deploy (SKIP_CPANEL_DEPLOY=1)."
+  exit 0
+fi
+
+if [[ ! -x "$ROOT/bin/deploy-cpanel" ]]; then
+  echo "Missing executable $ROOT/bin/deploy-cpanel" >&2
+  exit 0
+fi
+
+if [[ ! -f "$ROOT/.deploy-cpanel.env" ]]; then
+  echo "Missing $ROOT/.deploy-cpanel.env ; cPanel auto-deploy skipped." >&2
+  exit 0
+fi
+
+mkdir -p "$ROOT/storage/logs"
+LOG="$ROOT/storage/logs/cpanel-deploy.log"
+
+# Keep GitHub copy in sync when possible (does not block deploy).
+if git remote get-url origin >/dev/null 2>&1; then
+  nohup git push origin HEAD:main >>"$LOG" 2>&1 &
+fi
+
+echo "Deploying commit $(git rev-parse --short HEAD) to cPanel..."
+echo "Log: $LOG"
+nohup "$ROOT/bin/deploy-cpanel" >>"$LOG" 2>&1 &
+echo "cPanel deploy started in background (pid $!)."
+EOF
+
+chmod +x "$HOOK" "$ROOT/bin/deploy-cpanel" "$ROOT/bin/install-cpanel-deploy-hook"
+echo "Installed $HOOK"
+echo "Commits on main will deploy to cPanel automatically."
+echo "Skip once with: SKIP_CPANEL_DEPLOY=1 git commit ..."

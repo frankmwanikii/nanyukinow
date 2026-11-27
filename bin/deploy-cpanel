@@ -1,0 +1,185 @@
+#!/usr/bin/env bash
+# Deploy the current working tree to cPanel over FTP.
+# Used by the local post-commit hook while GitHub Actions is unavailable.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT"
+
+ENV_FILE="${CPANEL_DEPLOY_ENV:-$ROOT/.deploy-cpanel.env}"
+if [[ ! -f "$ENV_FILE" ]]; then
+  echo "Missing $ENV_FILE" >&2
+  echo "Create it with CPANEL_FTP_HOST, CPANEL_FTP_USER, CPANEL_FTP_PASSWORD, CPANEL_DEPLOY_TOKEN." >&2
+  exit 1
+fi
+
+set -a
+# shellcheck disable=SC1090
+source "$ENV_FILE"
+set +a
+
+: "${CPANEL_FTP_HOST:?}"
+: "${CPANEL_FTP_USER:?}"
+: "${CPANEL_FTP_PASSWORD:?}"
+: "${CPANEL_DEPLOY_TOKEN:?}"
+APP_URL="${CPANEL_APP_URL:-https://nanyukinow.co.ke}"
+
+LOG_DIR="$ROOT/storage/logs"
+mkdir -p "$LOG_DIR"
+STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
+WORK="/tmp/nn-cpanel-deploy-$STAMP"
+ARCHIVE="/tmp/nanyukinow-release-$STAMP.tar.gz"
+
+cleanup() {
+  rm -rf "$WORK" "$ARCHIVE" \
+    /tmp/nn-ci-extract-"$STAMP".php \
+    /tmp/nn-deploy-token-"$STAMP" 2>/dev/null || true
+}
+trap cleanup EXIT
+
+echo "==> Building release in $WORK"
+rm -rf "$WORK"
+mkdir -p "$WORK"
+
+rsync -a \
+  --exclude='.git' \
+  --exclude='.github' \
+  --exclude='node_modules' \
+  --exclude='tests' \
+  --exclude='.env' \
+  --exclude='.env.*' \
+  --exclude='.deploy-cpanel.env' \
+  --exclude='storage/logs/*' \
+  --exclude='storage/framework/cache/data/*' \
+  --exclude='storage/framework/sessions/*' \
+  --exclude='storage/framework/views/*' \
+  --exclude='storage/app/public/*' \
+  --exclude='public/build' \
+  --exclude='public/hot' \
+  --exclude='.tools' \
+  --exclude='.cursor' \
+  --exclude='.agents' \
+  "$ROOT"/ "$WORK"/
+
+mkdir -p \
+  "$WORK/storage/framework/cache/data" \
+  "$WORK/storage/framework/sessions" \
+  "$WORK/storage/framework/views" \
+  "$WORK/storage/logs" \
+  "$WORK/bootstrap/cache"
+touch "$WORK/storage/logs/.gitkeep"
+
+echo "==> Composer (no-dev)"
+composer install \
+  --working-dir="$WORK" \
+  --no-dev \
+  --prefer-dist \
+  --optimize-autoloader \
+  --no-interaction
+
+echo "==> npm build"
+if [[ -f "$ROOT/package-lock.json" ]]; then
+  npm ci --prefix "$ROOT"
+else
+  npm install --prefix "$ROOT"
+fi
+npm run build --prefix "$ROOT"
+mkdir -p "$WORK/public/build"
+rsync -a "$ROOT/public/build/" "$WORK/public/build/"
+
+echo "==> Packaging"
+tar -C "$WORK" -czf "$ARCHIVE" .
+
+echo "==> Uploading to cPanel"
+export CPANEL_FTP_HOST CPANEL_FTP_USER CPANEL_FTP_PASSWORD CPANEL_DEPLOY_TOKEN APP_URL ARCHIVE STAMP
+python3 - <<'PY'
+import ftplib, os
+from pathlib import Path
+
+host = os.environ["CPANEL_FTP_HOST"]
+user = os.environ["CPANEL_FTP_USER"]
+passwd = os.environ["CPANEL_FTP_PASSWORD"]
+token = os.environ["CPANEL_DEPLOY_TOKEN"].strip()
+archive = os.environ["ARCHIVE"]
+stamp = os.environ["STAMP"]
+
+ftp = ftplib.FTP()
+ftp.connect(host, 21, timeout=180)
+ftp.login(user, passwd)
+ftp.set_pasv(True)
+
+with open(archive, "rb") as f:
+    ftp.storbinary("STOR nanyukinow-release.tar.gz", f)
+
+extract = r'''<?php
+$token = $_GET['token'] ?? '';
+$expected = trim((string) @file_get_contents(__DIR__ . '/.deploy_token'));
+if ($expected === '' || !hash_equals($expected, (string) $token)) {
+    http_response_code(403);
+    echo 'forbidden';
+    exit;
+}
+header('Content-Type: text/plain');
+set_time_limit(0);
+chdir(__DIR__);
+$cmd = 'tar -xzf nanyukinow-release.tar.gz --exclude=storage/app/public --exclude=.env';
+$des = [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']];
+$p = proc_open($cmd, $des, $pipes, getcwd());
+if (!is_resource($p)) {
+    echo "proc_open failed\n";
+    exit(1);
+}
+fclose($pipes[0]);
+echo stream_get_contents($pipes[1]);
+echo stream_get_contents($pipes[2]);
+echo 'exit ' . proc_close($p) . "\n";
+@unlink('nanyukinow-release.tar.gz');
+require 'vendor/autoload.php';
+$app = require 'bootstrap/app.php';
+$k = $app->make(Illuminate\Contracts\Console\Kernel::class);
+$k->bootstrap();
+try {
+    Illuminate\Support\Facades\Cache::forget('admin.dashboard.overview');
+    echo "forgot admin.dashboard.overview\n";
+} catch (Throwable $e) {
+    echo 'cache forget skipped: ' . $e->getMessage() . "\n";
+}
+foreach (['migrate --force', 'config:cache', 'route:cache', 'view:cache', 'storage:link'] as $c) {
+    Artisan::call($c);
+    echo $c . "\n" . Artisan::output();
+}
+echo "DONE\n";
+'''
+
+extract_path = f"/tmp/nn-ci-extract-{stamp}.php"
+token_path = f"/tmp/nn-deploy-token-{stamp}"
+Path(extract_path).write_text(extract)
+Path(token_path).write_text(token)
+
+with open(extract_path, "rb") as f:
+    ftp.storbinary("STOR nn-ci-extract.php", f)
+with open(token_path, "rb") as f:
+    ftp.storbinary("STOR .deploy_token", f)
+ftp.quit()
+print("uploaded")
+PY
+
+echo "==> Extracting on server"
+curl -fsS --max-time 600 "${APP_URL}/nn-ci-extract.php?token=${CPANEL_DEPLOY_TOKEN}"
+
+echo "==> Cleaning remote helpers"
+python3 - <<'PY'
+import ftplib, os
+ftp = ftplib.FTP()
+ftp.connect(os.environ["CPANEL_FTP_HOST"], 21, timeout=60)
+ftp.login(os.environ["CPANEL_FTP_USER"], os.environ["CPANEL_FTP_PASSWORD"])
+ftp.set_pasv(True)
+for name in ["nn-ci-extract.php", ".deploy_token", "nanyukinow-release.tar.gz"]:
+    try:
+        ftp.delete(name)
+    except Exception:
+        pass
+ftp.quit()
+PY
+
+echo "==> cPanel deploy finished"

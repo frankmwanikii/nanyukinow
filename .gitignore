@@ -5,6 +5,7 @@
 .env.sqlite.bak
 .env.backup
 .env.production
+.deploy-cpanel.env
 .phpactor.json
 .phpunit.result.cache
 /.codex
