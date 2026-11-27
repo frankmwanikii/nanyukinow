@@ -359,7 +359,7 @@ export default function HeroSlider({ photos = null }) {
                     return (
                         <picture
                             key={photo.id}
-                            className={`absolute inset-0 overflow-hidden transition-opacity duration-[1200ms] ease-out ${
+                            className={`absolute inset-0 overflow-hidden transition-opacity duration-[750ms] ease-out ${
                                 visible ? 'opacity-100' : 'opacity-0'
                             } ${reduceMotion ? 'duration-0' : ''}`}
                         >
