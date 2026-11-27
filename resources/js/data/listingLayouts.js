@@ -25,6 +25,15 @@ export const shoppingPageTabs = [
     { id: 'reviews', label: 'Reviews' },
 ];
 
+/** Services adds Services and Portfolio tabs between Contact and Reviews. */
+export const servicesPageTabs = [
+    { id: 'overview', label: 'Overview' },
+    { id: 'contact', label: 'Contact info' },
+    { id: 'services', label: 'Services' },
+    { id: 'portfolio', label: 'Portfolio' },
+    { id: 'reviews', label: 'Reviews' },
+];
+
 export const categoryLayouts = {
     eatDrink: {
         subnav: listingPageTabs,
@@ -78,13 +87,12 @@ export const categoryLayouts = {
         ctaSecondary: 'Enquire',
     },
     services: {
-        subnav: listingPageTabs,
+        subnav: servicesPageTabs,
         main: [
             'about',
             'offerings',
             'facts',
             'credentials',
-            'portfolio',
             'visualTour',
             'video',
             'deals',

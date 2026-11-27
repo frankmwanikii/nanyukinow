@@ -726,6 +726,7 @@ export function emptyDetailsFor(categoryKey) {
         sponsors: [],
         event_schedule: [],
         products: [],
+        services: [],
         portfolio: [],
         deals: [],
         host_photo: '',

@@ -5,11 +5,11 @@ import { Sparkles } from '@/Components/site/LucideCompat';
 const COPY = {
     free: {
         next: 'Standard',
-        line: 'Unlimited description, tagline, map pin, credentials, portfolio / work links, amenities, gallery, logo, payments, email, and social unlock on Standard. Video, booking link, offers, WhatsApp, website, and a larger portfolio unlock on Premium.',
+        line: 'Unlimited description, tagline, map pin, credentials, priced service menu, portfolio showcase, amenities, gallery, logo, payments, email, and social unlock on Standard. Video, booking link, offers, WhatsApp, website, and larger menus unlock on Premium.',
     },
     featured: {
         next: 'Premium',
-        line: 'Featured search placement, video, booking link, special offers, WhatsApp, website, larger gallery, and more portfolio pieces unlock on Premium.',
+        line: 'Featured search placement, video, booking link, special offers, WhatsApp, website, larger gallery, a bigger service menu, and more portfolio pieces unlock on Premium.',
     },
 };
 

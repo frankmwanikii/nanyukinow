@@ -75,11 +75,17 @@ class RemainingCategoryTierFeaturesTest extends TestCase
         $this->assertArrayNotHasKey('deals', $payload['details']);
     }
 
-    public function test_services_portfolio_limits_and_free_strips(): void
+    public function test_services_portfolio_and_service_menu_limits_and_free_strips(): void
     {
         $this->assertSame(0, ServicesTierFeatures::portfolioLimit(Membership::FREE));
         $this->assertSame(5, ServicesTierFeatures::portfolioLimit(Membership::STANDARD));
         $this->assertSame(25, ServicesTierFeatures::portfolioLimit(Membership::PREMIUM));
+
+        $this->assertSame(0, ServicesTierFeatures::serviceLimit(Membership::FREE));
+        $this->assertSame(5, ServicesTierFeatures::serviceLimit(Membership::STANDARD));
+        $this->assertSame(50, ServicesTierFeatures::serviceLimit(Membership::PREMIUM));
+        $this->assertSame(5, ServicesTierFeatures::serviceImagesPerItem(Membership::STANDARD));
+        $this->assertNull(ServicesTierFeatures::serviceImagesPerItem(Membership::PREMIUM));
 
         $free = ServicesTierFeatures::applyToPayload([
             'details' => [
@@ -88,21 +94,37 @@ class RemainingCategoryTierFeaturesTest extends TestCase
                 'portfolio' => [
                     ['title' => 'Job 1', 'url' => 'https://example.com/1'],
                 ],
+                'services' => [
+                    ['name' => 'Oil change', 'price' => 2500, 'currency' => 'KES'],
+                ],
                 'credentials' => ['Licensed'],
             ],
         ], Membership::FREE, 'services');
 
         $this->assertSame('Nanyuki', $free['details']['service_area']);
         $this->assertArrayNotHasKey('portfolio', $free['details']);
+        $this->assertArrayNotHasKey('services', $free['details']);
         $this->assertArrayNotHasKey('credentials', $free['details']);
 
         $standard = ServicesTierFeatures::applyToPayload([
             'details' => [
                 'portfolio' => array_fill(0, 8, ['title' => 'Job', 'url' => 'https://example.com']),
+                'services' => array_fill(0, 8, [
+                    'name' => 'Tune-up',
+                    'price' => 1000,
+                    'currency' => 'KES',
+                    'images' => array_map(
+                        static fn (int $i): string => "/storage/s{$i}.jpg",
+                        range(1, 12),
+                    ),
+                ]),
             ],
         ], Membership::STANDARD, 'services');
 
         $this->assertCount(5, $standard['details']['portfolio']);
+        $this->assertCount(5, $standard['details']['services']);
+        $this->assertCount(5, $standard['details']['services'][0]['images']);
+        $this->assertSame('/storage/s1.jpg', $standard['details']['services'][0]['image']);
     }
 
     public function test_events_ticket_and_sponsor_gating(): void

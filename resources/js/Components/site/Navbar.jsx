@@ -272,8 +272,6 @@ export default function Navbar({ compact = false }) {
         () => buildDropdownItems(directoryCategories),
         [directoryCategories],
     );
-    const isHomeHeroSearch =
-        page.component === 'Home' || page.url === '/' || page.url.startsWith('/?');
     const [open, setOpen] = useState(false);
     const [scrolled, setScrolled] = useState(compact);
     const [activeMenu, setActiveMenu] = useState(null);
@@ -532,9 +530,7 @@ export default function Navbar({ compact = false }) {
 
                 <form
                     ref={searchRef}
-                    className={`relative z-10 ml-1 hidden min-w-0 max-w-xs flex-1 items-center xl:max-w-sm ${
-                        isHomeHeroSearch ? 'lg:hidden' : 'lg:flex'
-                    }`}
+                    className="relative z-10 ml-1 hidden min-w-0 max-w-xs flex-1 items-center lg:flex xl:max-w-sm"
                     onSubmit={submitSearch}
                     role="search"
                 >

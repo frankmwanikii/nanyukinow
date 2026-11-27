@@ -8,6 +8,8 @@ import RelatedListings from '@/Components/listing/RelatedListings';
 import ContactInfoPage from '@/Components/listing/ContactInfoPage';
 import MessageListingModal from '@/Components/listing/MessageListingModal';
 import ProductsPage from '@/Components/listing/ProductsPage';
+import ServicesPage from '@/Components/listing/ServicesPage';
+import PortfolioPage from '@/Components/listing/PortfolioPage';
 import ReviewsPage from '@/Components/listing/ReviewsPage';
 import { renderListingSection } from '@/Components/listing/renderListingSection';
 import { DetailSectionToneContext } from '@/Components/listing/DetailSection';
@@ -68,7 +70,27 @@ export default function ListingShow({
             listing.products.some(
                 (p) => p?.name || p?.title || typeof p === 'string',
             );
-        return items.filter((t) => (t.id === 'products' ? hasProducts : true));
+        const hasServices =
+            Array.isArray(listing?.services) &&
+            listing.services.some(
+                (s) => s?.name || s?.title || typeof s === 'string',
+            );
+        const hasPortfolio =
+            Array.isArray(listing?.portfolio) &&
+            listing.portfolio.some(
+                (p) =>
+                    p?.title ||
+                    p?.url ||
+                    p?.image ||
+                    p?.description ||
+                    (Array.isArray(p?.images) && p.images.length),
+            );
+        return items.filter((t) => {
+            if (t.id === 'products') return hasProducts;
+            if (t.id === 'services') return hasServices;
+            if (t.id === 'portfolio') return hasPortfolio;
+            return true;
+        });
     }, [layout, listing]);
     const allowedTabs = useMemo(() => {
         const ids = subnav.map((t) => t.id);
@@ -166,6 +188,14 @@ export default function ListingShow({
 
                 {tab === 'products' ? (
                     <ProductsPage listing={listing} />
+                ) : null}
+
+                {tab === 'services' ? (
+                    <ServicesPage listing={listing} />
+                ) : null}
+
+                {tab === 'portfolio' ? (
+                    <PortfolioPage listing={listing} />
                 ) : null}
 
                 {tab === 'reviews' ? (

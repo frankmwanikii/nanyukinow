@@ -35,8 +35,14 @@ import {
 } from '@/data/shoppingTierFeatures';
 import {
     canUseServicesFeature,
+    portfolioItemImages,
+    serviceItemImages,
     servicesPortfolioHelp,
+    servicesPortfolioImagesPerItem,
     servicesPortfolioLimit,
+    servicesServiceHelp,
+    servicesServiceImagesPerItem,
+    servicesServiceLimit,
 } from '@/data/servicesTierFeatures';
 import { canUseEventsFeature } from '@/data/eventsTierFeatures';
 import { canUseThingsToDoFeature } from '@/data/thingsToDoTierFeatures';
@@ -1074,6 +1080,9 @@ export default function CategoryExtrasEditor({
         ? details.event_schedule
         : [];
     const products = Array.isArray(details.products) ? details.products : [];
+    const pricedServices = Array.isArray(details.services)
+        ? details.services
+        : [];
     const showMenus =
         categoryKey !== 'eatDrink' ||
         isAdmin ||
@@ -1101,6 +1110,8 @@ export default function CategoryExtrasEditor({
         categoryKey === 'shopping' && canUseShoppingFeature(tier, 'products');
     const showShoppingOffers =
         categoryKey === 'shopping' && canUseShoppingFeature(tier, 'deals');
+    const showServicesList =
+        categoryKey === 'services' && canUseServicesFeature(tier, 'services');
     const showServicesPortfolio =
         categoryKey === 'services' && canUseServicesFeature(tier, 'portfolio');
     const showServicesOffers =
@@ -1129,6 +1140,24 @@ export default function CategoryExtrasEditor({
                 ? null
                 : Math.max(1, shoppingImagesPerProduct)
             : 5;
+    const servicesCap =
+        categoryKey === 'services' ? servicesServiceLimit(tier) : null;
+    const servicesRemaining =
+        servicesCap == null
+            ? 0
+            : Math.max(0, servicesCap - pricedServices.length);
+    const atServicesLimit =
+        servicesCap != null && servicesRemaining <= 0;
+    const servicesImagesPerItem =
+        categoryKey === 'services'
+            ? servicesServiceImagesPerItem(tier)
+            : null;
+    const imagesPerService =
+        categoryKey === 'services'
+            ? servicesImagesPerItem == null
+                ? null
+                : Math.max(1, servicesImagesPerItem)
+            : 5;
     const portfolio = Array.isArray(details.portfolio) ? details.portfolio : [];
     const portfolioCap =
         categoryKey === 'services' ? servicesPortfolioLimit(tier) : null;
@@ -1138,6 +1167,16 @@ export default function CategoryExtrasEditor({
             : Math.max(0, portfolioCap - portfolio.length);
     const atPortfolioLimit =
         portfolioCap != null && portfolioRemaining <= 0;
+    const portfolioImagesPerItem =
+        categoryKey === 'services'
+            ? servicesPortfolioImagesPerItem(tier)
+            : null;
+    const imagesPerPortfolio =
+        categoryKey === 'services'
+            ? portfolioImagesPerItem == null
+                ? null
+                : Math.max(1, portfolioImagesPerItem)
+            : 1;
     // Admins can edit menus even on Free listings; use Standard caps unless Premium.
     const menuTier =
         categoryKey === 'eatDrink' && isAdmin && !canUseEatDrinkFeature(tier, 'menus')
@@ -2200,8 +2239,201 @@ export default function CategoryExtrasEditor({
                 </Section>
             ) : null}
 
-            {categoryKey === 'services' && !showServicesPortfolio ? (
+            {categoryKey === 'services' &&
+            !showServicesList &&
+            !showServicesPortfolio ? (
                 <ServicesTierUpsell tier={tier} isAdmin={isAdmin} />
+            ) : null}
+
+            {showServicesList ? (
+                <Section
+                    title="Service menu"
+                    blurb={servicesServiceHelp(tier)}
+                >
+                    <ul className="space-y-4">
+                        {pricedServices.map((item, index) => (
+                            <li
+                                key={`service-${index}`}
+                                className="space-y-4 rounded-xl border border-olive-100 bg-olive-50/40 p-3 sm:p-4 dark:border-olive-800 dark:bg-olive-950/40"
+                            >
+                                <div className="flex items-center justify-between gap-2">
+                                    <span className="text-xs font-semibold uppercase tracking-wide text-olive-500 dark:text-olive-400">
+                                        Service {index + 1}
+                                    </span>
+                                    <RowActions
+                                        onRemove={() =>
+                                            removeItem('services', index)
+                                        }
+                                    />
+                                </div>
+                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                    <div className="min-w-0">
+                                        <label className={label}>Name</label>
+                                        <input
+                                            className={field}
+                                            value={item.name || ''}
+                                            onChange={(e) =>
+                                                updateItem('services', index, {
+                                                    name: e.target.value,
+                                                })
+                                            }
+                                            placeholder="Service name"
+                                        />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <label className={label}>
+                                            Category
+                                        </label>
+                                        <input
+                                            className={field}
+                                            value={item.category || ''}
+                                            onChange={(e) =>
+                                                updateItem('services', index, {
+                                                    category: e.target.value,
+                                                })
+                                            }
+                                            placeholder="e.g. Repairs, Design"
+                                        />
+                                    </div>
+                                    <div className="min-w-0 sm:col-span-2 sm:max-w-md">
+                                        <label
+                                            className={label}
+                                            htmlFor={`service-price-${index}`}
+                                        >
+                                            Price
+                                        </label>
+                                        <div className="flex min-w-0 overflow-hidden border border-olive-900/20 bg-white focus-within:border-olive-900 dark:border-olive-700 dark:bg-olive-950 dark:focus-within:border-mustard">
+                                            <select
+                                                id={`service-currency-${index}`}
+                                                className="w-[5.75rem] shrink-0 border-0 border-r border-olive-900/20 bg-olive-50/80 px-3 py-3 text-sm font-semibold text-olive-800 outline-none dark:border-olive-700 dark:bg-olive-900 dark:text-olive-100"
+                                                value={normalizeProductCurrency(
+                                                    item.currency,
+                                                )}
+                                                onChange={(e) =>
+                                                    updateItem(
+                                                        'services',
+                                                        index,
+                                                        {
+                                                            currency:
+                                                                normalizeProductCurrency(
+                                                                    e.target
+                                                                        .value,
+                                                                ),
+                                                        },
+                                                    )
+                                                }
+                                                aria-label="Currency"
+                                            >
+                                                {PRODUCT_CURRENCIES.map(
+                                                    (option) => (
+                                                        <option
+                                                            key={option.code}
+                                                            value={option.code}
+                                                        >
+                                                            {option.label}
+                                                        </option>
+                                                    ),
+                                                )}
+                                            </select>
+                                            <input
+                                                id={`service-price-${index}`}
+                                                type="number"
+                                                inputMode="numeric"
+                                                min={0}
+                                                step={1}
+                                                className="min-w-0 flex-1 border-0 bg-transparent px-3.5 py-3 text-base text-olive-900 outline-none placeholder:text-olive-400 dark:text-olive-50 dark:placeholder:text-olive-500"
+                                                value={String(
+                                                    item.price ?? '',
+                                                ).replace(/\D+/g, '')}
+                                                onChange={(e) => {
+                                                    const digits = String(
+                                                        e.target.value,
+                                                    ).replace(/\D+/g, '');
+                                                    updateItem(
+                                                        'services',
+                                                        index,
+                                                        {
+                                                            price:
+                                                                digits === ''
+                                                                    ? ''
+                                                                    : Number(
+                                                                          digits,
+                                                                      ),
+                                                        },
+                                                    );
+                                                }}
+                                                onKeyDown={(e) => {
+                                                    if (
+                                                        [
+                                                            'e',
+                                                            'E',
+                                                            '+',
+                                                            '-',
+                                                            '.',
+                                                            ',',
+                                                        ].includes(e.key)
+                                                    ) {
+                                                        e.preventDefault();
+                                                    }
+                                                }}
+                                                placeholder="0"
+                                                autoComplete="off"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                                <RichTextEditor
+                                    id={`service-description-${index}`}
+                                    label="Description"
+                                    value={item.description || ''}
+                                    onChange={(html) =>
+                                        updateItem('services', index, {
+                                            description: html,
+                                        })
+                                    }
+                                    placeholder="What’s included, turnaround, notes…"
+                                    allowImages={false}
+                                    compact
+                                />
+                                <div className="min-w-0">
+                                    <p className={label}>Service images</p>
+                                    <MenuImagesEditor
+                                        inputId={`service-image-${index}`}
+                                        images={serviceItemImages(item)}
+                                        maxImages={imagesPerService}
+                                        libraryRoute={libraryRoute}
+                                        uploadUrl={uploadUrl}
+                                        onChange={(urls) =>
+                                            updateItem('services', index, {
+                                                images: urls,
+                                                image: urls[0] || '',
+                                            })
+                                        }
+                                    />
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                    <button
+                        type="button"
+                        disabled={atServicesLimit}
+                        onClick={() =>
+                            addItem('services', {
+                                name: '',
+                                category: '',
+                                price: '',
+                                currency: 'KES',
+                                description: '',
+                                image: '',
+                                images: [],
+                            })
+                        }
+                        className="inline-flex items-center gap-1.5 rounded-sm bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        <Plus className="h-4 w-4" />
+                        Add service
+                    </button>
+                </Section>
             ) : null}
 
             {showServicesPortfolio ? (
@@ -2213,7 +2445,7 @@ export default function CategoryExtrasEditor({
                         {portfolio.map((item, index) => (
                             <li
                                 key={`portfolio-${index}`}
-                                className="space-y-3 rounded-xl border border-olive-100 bg-olive-50/40 p-3"
+                                className="space-y-3 rounded-xl border border-olive-100 bg-olive-50/40 p-3 sm:p-4 dark:border-olive-800 dark:bg-olive-950/40"
                             >
                                 <div className="flex items-center justify-between">
                                     <span className="text-xs font-semibold uppercase tracking-wide text-olive-500">
@@ -2271,17 +2503,16 @@ export default function CategoryExtrasEditor({
                                     </div>
                                 </div>
                                 <div className="min-w-0">
-                                    <p className={label}>Work image</p>
+                                    <p className={label}>Work images</p>
                                     <MenuImagesEditor
                                         inputId={`portfolio-image-${index}`}
-                                        images={
-                                            item.image ? [item.image] : []
-                                        }
-                                        maxImages={1}
+                                        images={portfolioItemImages(item)}
+                                        maxImages={imagesPerPortfolio}
                                         libraryRoute={libraryRoute}
                                         uploadUrl={uploadUrl}
                                         onChange={(urls) =>
                                             updateItem('portfolio', index, {
+                                                images: urls,
                                                 image: urls[0] || '',
                                             })
                                         }
@@ -2299,6 +2530,7 @@ export default function CategoryExtrasEditor({
                                 url: '',
                                 description: '',
                                 image: '',
+                                images: [],
                             })
                         }
                         className="inline-flex items-center gap-1.5 rounded-sm bg-olive-900 px-3.5 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"

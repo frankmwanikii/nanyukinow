@@ -2445,6 +2445,9 @@ export function getListingDetail(listing) {
         products: Array.isArray(listing.details?.products)
             ? listing.details.products.filter((p) => p?.name)
             : null,
+        services: Array.isArray(listing.details?.services)
+            ? listing.details.services.filter((s) => s?.name || s?.title)
+            : null,
         highlights: (() => {
             if (listing.categoryKey === 'stay') {
                 if (nonEmptyList(listing.details?.nearby_attractions)) {
@@ -2637,6 +2640,18 @@ export function getListingDetail(listing) {
                   ? []
                   : (explicit?.products ??
                     productsForShoppingListing(listing)),
+        services:
+            base.services !== null
+                ? base.services
+                : live
+                  ? []
+                  : (explicit?.services ?? []),
+        portfolio:
+            base.portfolio !== null
+                ? base.portfolio
+                : live
+                  ? []
+                  : (explicit?.portfolio ?? []),
         sponsors:
             base.sponsors !== null
                 ? base.sponsors
