@@ -96,9 +96,19 @@ class MigrateListingRemoteMediaCommandTest extends TestCase
         Storage::fake('public');
         $listing = $this->listingWithRemotes();
 
+        // Distinct bodies so content-hash dedupe does not collapse different slots.
         Http::fake([
-            'cdn.example.test/*' => Http::response($this->pngBytes(), 200, [
-                'Content-Type' => 'image/png',
+            'cdn.example.test/cover.png' => Http::response('cover-bytes', 200, [
+                'Content-Type' => 'image/webp',
+            ]),
+            'cdn.example.test/logo.png' => Http::response('logo-bytes', 200, [
+                'Content-Type' => 'image/webp',
+            ]),
+            'cdn.example.test/g1.png' => Http::response('g1-bytes', 200, [
+                'Content-Type' => 'image/webp',
+            ]),
+            'cdn.example.test/g2.png' => Http::response('g2-bytes', 200, [
+                'Content-Type' => 'image/webp',
             ]),
         ]);
 
@@ -112,6 +122,7 @@ class MigrateListingRemoteMediaCommandTest extends TestCase
         $this->assertStringStartsWith('/storage/listings/gallery/', (string) $listing->gallery[0]);
         $this->assertStringStartsWith('/storage/listings/gallery/', (string) $listing->gallery[1]['src']);
         $this->assertSame('Interior', $listing->gallery[1]['label']);
+        $this->assertNotSame($listing->image_url, $listing->logo_url);
     }
 
     public function test_migrate_command_dry_run_does_not_write_or_download(): void

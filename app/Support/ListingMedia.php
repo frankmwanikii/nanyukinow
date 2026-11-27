@@ -15,7 +15,9 @@ class ListingMedia
 {
     public static function store(UploadedFile $file, string $folder = 'listings'): string
     {
-        return WebpConverter::storeAsWebp($file, $folder);
+        return MediaDeduplicator::dedupeStoredUrl(
+            WebpConverter::storeAsWebp($file, $folder),
+        );
     }
 
     /**
@@ -172,7 +174,7 @@ class ListingMedia
         $converted = WebpConverter::convertStored($path);
         $relative = is_string($converted) && $converted !== '' ? $converted : $path;
 
-        return '/storage/'.$relative;
+        return MediaDeduplicator::dedupeStoredUrl('/storage/'.$relative);
     }
 
     private static function extensionFromUrl(string $url): ?string
