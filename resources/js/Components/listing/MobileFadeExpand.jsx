@@ -87,7 +87,7 @@ export default function MobileFadeExpand({
             {needsClamp ? (
                 <button
                     type="button"
-                    className={`relative z-[1] mt-3 inline-flex min-h-11 items-center justify-center rounded-sm border border-olive-900/20 bg-white px-3.5 py-2 text-sm font-semibold text-olive-900 transition hover:border-olive-900/40 hover:bg-olive-50 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-100 dark:hover:bg-olive-900${
+                    className={`relative z-[1] mt-3 inline-flex min-h-11 items-center justify-center rounded-full border border-olive-900/20 bg-white px-4 py-2 text-sm font-semibold text-olive-900 transition hover:border-olive-900/40 hover:bg-olive-50 dark:border-olive-700 dark:bg-olive-950 dark:text-olive-100 dark:hover:bg-olive-900${
                         mobileOnly ? ' sm:hidden' : ''
                     }`}
                     aria-expanded={expanded}
