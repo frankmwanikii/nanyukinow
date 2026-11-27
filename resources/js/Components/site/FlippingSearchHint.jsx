@@ -37,16 +37,16 @@ export default function FlippingSearchHint({
 
     return (
         <span
-            className={`pointer-events-none absolute inset-y-0 flex items-center gap-1.5 overflow-hidden text-[15px] text-white/65 sm:text-base ${
+            className={`pointer-events-none absolute inset-y-0 flex items-center gap-1.5 overflow-hidden text-base leading-none text-white/65 sm:text-[17px] ${
                 className || 'left-7'
             }`}
             aria-hidden
         >
             <span className="shrink-0">{prefix}</span>
-            <span className="relative inline-flex h-[1.25em] min-w-[9rem] items-center">
+            <span className="relative inline-flex h-[1em] min-w-[9rem] items-center">
                 <span
                     key={FLIP_WORDS[index]}
-                    className="absolute left-0 font-semibold text-white/80"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 font-semibold text-white/80"
                 >
                     {FLIP_WORDS[index]}
                 </span>

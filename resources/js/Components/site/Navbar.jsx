@@ -530,11 +530,11 @@ export default function Navbar({ compact = false }) {
 
                 <form
                     ref={searchRef}
-                    className="relative z-10 ml-1 hidden min-w-0 max-w-xs flex-1 items-center lg:flex xl:max-w-sm"
+                    className="relative z-10 ml-1 hidden h-10 min-w-0 max-w-xs flex-1 items-center self-center lg:flex xl:max-w-sm"
                     onSubmit={submitSearch}
                     role="search"
                 >
-                    <SearchMark className="pointer-events-none absolute left-0 z-10 h-4 w-4 text-white/80" />
+                    <SearchMark className="pointer-events-none absolute left-0 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-white/80" />
                     <FlippingSearchHint visible={!query.trim() && !searchOpen} />
                     <input
                         type="search"
@@ -557,7 +557,7 @@ export default function Navbar({ compact = false }) {
                         aria-expanded={searchOpen}
                         aria-controls="nav-search-suggestions"
                         autoComplete="off"
-                        className={`site-nav-search w-full border-0 bg-transparent py-2 pl-7 text-[15px] text-white placeholder:text-white/65 focus:outline-none focus:ring-0 sm:text-base ${
+                        className={`site-nav-search h-full w-full border-0 bg-transparent py-0 pl-7 text-base leading-none text-white placeholder:text-white/65 focus:outline-none focus:ring-0 sm:text-[17px] ${
                             query.trim() ? 'pr-9' : 'pr-2'
                         }`}
                     />
