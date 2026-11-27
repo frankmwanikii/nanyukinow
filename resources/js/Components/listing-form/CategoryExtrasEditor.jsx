@@ -187,38 +187,115 @@ function RoomTitleField({ value, onChange, options = POPULAR_ROOM_TYPES, id }) {
     );
 }
 
-function ImagePickButton({ image, onPick, onClear }) {
+function parseImageUrl(raw, setError) {
+    const value = (raw || '').trim();
+    if (!value) {
+        setError('Paste an image URL.');
+        return null;
+    }
+    try {
+        const parsed = new URL(value);
+        if (!['http:', 'https:'].includes(parsed.protocol)) {
+            setError('URL must start with http:// or https://');
+            return null;
+        }
+    } catch {
+        setError('That does not look like a valid URL.');
+        return null;
+    }
+    setError(null);
+    return value;
+}
+
+function ImagePickButton({ image, onPick, onClear, onApplyUrl, urlInputId }) {
+    const [urlDraft, setUrlDraft] = useState('');
+    const [urlError, setUrlError] = useState(null);
+    const inputId = urlInputId || 'image-url';
+
+    const submitUrl = () => {
+        const raw = parseImageUrl(urlDraft, setUrlError);
+        if (!raw) {
+            return;
+        }
+        onApplyUrl?.(raw);
+        setUrlDraft('');
+        setUrlError(null);
+    };
+
     return (
-        <div className="flex items-center gap-3">
-            {image ? (
-                <img
-                    src={image}
-                    alt=""
-                    className="h-14 w-14 rounded-xl object-cover ring-1 ring-olive-200"
-                />
-            ) : (
-                <span className="flex h-14 w-14 items-center justify-center rounded-xl bg-olive-50 text-olive-400 ring-1 ring-olive-200 dark:bg-olive-900 dark:text-olive-500 dark:ring-olive-700">
-                    <ImagePlus className="h-5 w-5" />
-                </span>
-            )}
-            <div className="flex flex-wrap gap-2">
-                <button
-                    type="button"
-                    onClick={onPick}
-                    className="rounded-sm border border-olive-200 bg-white px-3 py-1.5 text-xs font-semibold text-olive-800 hover:border-mustard dark:border-olive-700 dark:bg-olive-900 dark:text-olive-100 dark:hover:border-mustard"
-                >
-                    {image ? 'Replace image' : 'Add image'}
-                </button>
+        <div className="min-w-0 space-y-3">
+            <div className="flex items-center gap-3">
                 {image ? (
+                    <img
+                        src={image}
+                        alt=""
+                        className="h-14 w-14 shrink-0 rounded-xl object-cover ring-1 ring-olive-200"
+                    />
+                ) : (
+                    <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-olive-50 text-olive-400 ring-1 ring-olive-200 dark:bg-olive-900 dark:text-olive-500 dark:ring-olive-700">
+                        <ImagePlus className="h-5 w-5" />
+                    </span>
+                )}
+                <div className="flex flex-wrap gap-2">
                     <button
                         type="button"
-                        onClick={onClear}
-                        className="rounded-sm px-3 py-1.5 text-xs font-semibold text-olive-500 hover:text-rose-700 dark:text-olive-400 dark:hover:text-rose-400"
+                        onClick={onPick}
+                        className="rounded-sm border border-olive-200 bg-white px-3 py-1.5 text-xs font-semibold text-olive-800 hover:border-mustard dark:border-olive-700 dark:bg-olive-900 dark:text-olive-100 dark:hover:border-mustard"
                     >
-                        Clear
+                        {image ? 'Replace image' : 'Add image'}
                     </button>
-                ) : null}
+                    {image ? (
+                        <button
+                            type="button"
+                            onClick={onClear}
+                            className="rounded-sm px-3 py-1.5 text-xs font-semibold text-olive-500 hover:text-rose-700 dark:text-olive-400 dark:hover:text-rose-400"
+                        >
+                            Clear
+                        </button>
+                    ) : null}
+                </div>
             </div>
+            {onApplyUrl ? (
+                <div className="min-w-0">
+                    <label className={label} htmlFor={inputId}>
+                        Image URL (optional)
+                    </label>
+                    <div className="flex flex-col gap-2 sm:flex-row">
+                        <input
+                            id={inputId}
+                            type="url"
+                            className={field}
+                            value={urlDraft}
+                            onChange={(e) => {
+                                setUrlDraft(e.target.value);
+                                setUrlError(null);
+                            }}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    submitUrl();
+                                }
+                            }}
+                            placeholder="https://…/photo.jpg"
+                        />
+                        <button
+                            type="button"
+                            onClick={submitUrl}
+                            className="inline-flex shrink-0 items-center justify-center rounded-sm bg-olive-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-olive-800"
+                        >
+                            Use URL
+                        </button>
+                    </div>
+                    {urlError ? (
+                        <p className="mt-1.5 text-sm text-rose-600">{urlError}</p>
+                    ) : (
+                        <p className={help}>
+                            Paste a direct image link if you already host the
+                            photo online.
+                        </p>
+                    )}
+                </div>
+            ) : null}
         </div>
     );
 }
@@ -1904,6 +1981,7 @@ export default function CategoryExtrasEditor({
                                 </div>
                                 <ImagePickButton
                                     image={item.image}
+                                    urlInputId={`product-image-url-${index}`}
                                     onPick={() =>
                                         setImageTarget({
                                             list: 'products',
@@ -1914,6 +1992,11 @@ export default function CategoryExtrasEditor({
                                     onClear={() =>
                                         updateItem('products', index, {
                                             image: '',
+                                        })
+                                    }
+                                    onApplyUrl={(url) =>
+                                        updateItem('products', index, {
+                                            image: url,
                                         })
                                     }
                                 />
@@ -2012,6 +2095,7 @@ export default function CategoryExtrasEditor({
                                 </div>
                                 <ImagePickButton
                                     image={item.image}
+                                    urlInputId={`portfolio-image-url-${index}`}
                                     onPick={() =>
                                         setImageTarget({
                                             list: 'portfolio',
@@ -2022,6 +2106,11 @@ export default function CategoryExtrasEditor({
                                     onClear={() =>
                                         updateItem('portfolio', index, {
                                             image: '',
+                                        })
+                                    }
+                                    onApplyUrl={(url) =>
+                                        updateItem('portfolio', index, {
+                                            image: url,
                                         })
                                     }
                                 />
